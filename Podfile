@@ -1,5 +1,5 @@
 def shared_pods
-    pod 'PLCrashReporter', :git => 'https://github.com/apptailors/plcrashreporter.git', :branch => 'backtrace'
+    pod 'PLCrashReporter', :git => 'https://github.com/backtrace-labs/plcrashreporter.git', :branch => 'backtrace'
 end
 
 # Framework iOS

@@ -15,11 +15,11 @@ Pod::Spec.new do |s|
   s.homepage     = "https://backtrace.io/"
   s.license      = "MIT"
   s.author             = { "Marcin Karmelita" => "marcin@apptailors.co" }
-  s.source       = { :git => "git@github.com:apptailors/backtrace.git", :tag => "#{s.version}" }
+  s.source       = { :git => "git@github.com:backtrace-labs/backtrace-cocoa.git", :tag => "#{s.version}" }
 
   s.ios.deployment_target = "10.0"
   s.osx.deployment_target = "10.10"
-  
+
   s.ios.source_files  = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.h*"]
   s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.h*"]
 
