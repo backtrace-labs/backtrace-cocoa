@@ -33,7 +33,7 @@ import Foundation
 
 /// Logs Backtrace events.
 @objc final class Logger: NSObject {
-    static var destinations: Set<BaseDestination> = [ConsoleDestination(level: .debug)]
+    static var destinations: Set<BaseDestination> = [ConsoleDestination(level: .error)]
 
     class func setDestinations(destinations: Set<BaseDestination>) {
         self.destinations = destinations

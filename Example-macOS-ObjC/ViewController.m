@@ -22,14 +22,21 @@
     // Do any additional setup after loading the view.
 }
 - (IBAction)crashAction:(id)sender {
+    
 }
+
 - (IBAction)liveReportAction:(id)sender {
+    
 }
 
 - (IBAction)liveReportButtonAction:(id)sender {
+    NSString *customErrorDomain = @"backtrace";
+    NSInteger errorCode = 100;
+    NSError *exampleError = [NSError errorWithDomain: customErrorDomain code: errorCode userInfo: nil];
     
-    NSString *reportInfo = [[BacktraceClient shared] generateLiveReport];
-    [self.textView setString: reportInfo];
+    [[BacktraceClient shared] send: exampleError completion:^(BacktraceResult * _Nonnull result) {
+        NSLog(@"%@", result.message);
+    }];
 }
 
 - (void)setRepresentedObject:(id)representedObject {

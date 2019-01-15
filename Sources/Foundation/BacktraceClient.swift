@@ -16,14 +16,20 @@ import Foundation
     ///   - endpoint: Backtrace API endpoint
     ///   - token: Backtrace API token
     @objc func register(endpoint: String, token: String)
-    @objc var pendingCrashReport: String? { get }
-    @objc func generateLiveReport() -> String
+    
     /// Sends a crash report to Backtrace services.
     ///
     /// - Parameters:
     ///   - error: catched error
     ///   - completion:
-    @objc func send(_ error: Error, completion: ((Error?) -> Void)?)
+    @objc func send(_ error: Error, completion: ((_ result: BacktraceResult) -> Void)?)
+    
+    /// Sends a crash report to Backtrace services.
+    ///
+    /// - Parameters:
+    ///   - exception: NSException
+    ///   - completion:
+    @objc func send(exception: NSException, completion: ((_ result: BacktraceResult) -> Void)?)
 }
 
 /// Provides the default implementation of BacktraceClientProviding protocol.
@@ -31,7 +37,7 @@ import Foundation
 
     /// Shared instance of BacktraceClient class.
     @objc public static let shared = BacktraceClient()
-    private var client: BacktraceClientType & BacktraceClientTypeDebuggable
+    private var client: BacktraceClientType
     private let dispatcher: Dispatcher
 
     private override init() {
@@ -43,6 +49,21 @@ import Foundation
 
 // MARK: - BacktraceClientProviding
 extension BacktraceClient: BacktraceClientProviding {
+    @objc public func send(exception: NSException, completion: ((BacktraceResult) -> Void)?) {
+        dispatcher.dispatch({ [weak self] in
+            guard let self = self else { return }
+            do {
+                try self.client.send(exception: exception)
+                completion?(BacktraceResult(.ok))
+            } catch {
+                Logger.error(error)
+                completion?(BacktraceResult(.serverError))
+            }
+            }, completion: {
+                Logger.debug("Finished")
+        })
+    }
+    
     @objc public func register(endpoint: String, token: String) {
         guard let url = URL(string: endpoint) else {
             Logger.error("Invalid URL.")
@@ -62,23 +83,15 @@ extension BacktraceClient: BacktraceClientProviding {
         })
     }
 
-    @objc public var pendingCrashReport: String? {
-        return client.pendingCrashReport
-    }
-
-    @objc public func generateLiveReport() -> String {
-        return client.generateLiveReport()
-    }
-
-    @objc public func send(_ error: Error, completion: ((Error?) -> Void)? = nil) {
+    @objc public func send(_ error: Error, completion: ((_ result: BacktraceResult) -> Void)? = nil) {
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
                 try self.client.send(error)
-                completion?(nil)
+                completion?(BacktraceResult(.ok))
             } catch {
                 Logger.error(error)
-                completion?(error)
+                completion?(BacktraceResult(.serverError))
             }
             }, completion: {
                 Logger.debug("Finished")

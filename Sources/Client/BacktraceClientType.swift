@@ -9,10 +9,6 @@ import Foundation
 
 protocol BacktraceClientType {
     func send(_ error: Error) throws
-}
-
-protocol BacktraceClientTypeDebuggable {
-    func generateLiveReport() -> String
+    func send(exception: NSException) throws
     func handlePendingCrashes() throws
-    var pendingCrashReport: String? { get }
 }

@@ -11,24 +11,16 @@ class BacktraceUnregisteredClient: BacktraceClientType {
     private static let printBlock = {
         Logger.error("Backtrace client is not regiestered.")
     }
+    
+    func send(exception: NSException) throws {
+        BacktraceUnregisteredClient.printBlock()
+    }
 
     func handlePendingCrashes() throws {
         BacktraceUnregisteredClient.printBlock()
     }
 
-    func generateLiveReport() -> String {
-        BacktraceUnregisteredClient.printBlock()
-        return ""
-    }
-
     func send(_ error: Error) throws {
         BacktraceUnregisteredClient.printBlock()
-    }
-}
-
-extension BacktraceUnregisteredClient: BacktraceClientTypeDebuggable {
-    var pendingCrashReport: String? {
-        BacktraceUnregisteredClient.printBlock()
-        return nil
     }
 }

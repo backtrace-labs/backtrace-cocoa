@@ -16,11 +16,11 @@ import Foundation
     static let operationQueueName = "backtrace.dispatching"
     static let underlyingQueue = DispatchQueue(label: operationQueueName, qos: .background)
 
-    lazy var serialQueue = { () -> OperationQueue in
+    lazy var workingQueue = { () -> OperationQueue in
         let operationQueue = OperationQueue()
         operationQueue.name = Dispatcher.operationQueueName
         operationQueue.underlyingQueue = Dispatcher.underlyingQueue
-        operationQueue.maxConcurrentOperationCount = 1
+        operationQueue.maxConcurrentOperationCount = 10
         return operationQueue
     }()
 }
@@ -29,6 +29,6 @@ extension Dispatcher: DispatcherType {
     @objc public func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void) {
         let blockOperation = BlockOperation(block: block)
         blockOperation.completionBlock = completion
-        serialQueue.addOperation(blockOperation)
+        workingQueue.addOperation(blockOperation)
     }
 }

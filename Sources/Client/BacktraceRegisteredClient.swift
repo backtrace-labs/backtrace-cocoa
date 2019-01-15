@@ -20,8 +20,11 @@ class BacktraceRegisteredClient {
 }
 
 extension BacktraceRegisteredClient: BacktraceClientType {
-    func generateLiveReport() -> String {
-        return (try? reporter.generateLiveReport().description) ?? ""
+    func send(exception: NSException) throws {
+        let resource = try reporter.generateLiveReport()
+        try repository.save(resource)
+        try networkClient.send(resource.reportData)
+        try repository.delete(resource)
     }
 
     func handlePendingCrashes() throws {
@@ -42,14 +45,5 @@ extension BacktraceRegisteredClient: BacktraceClientType {
         try repository.save(resource)
         try networkClient.send(resource.reportData)
         try repository.delete(resource)
-    }
-}
-
-extension BacktraceRegisteredClient: BacktraceClientTypeDebuggable {
-    var pendingCrashReport: String? {
-        guard reporter.hasPendingCrashes() else {
-            return nil
-        }
-        return try? reporter.pendingCrashReport().description
     }
 }

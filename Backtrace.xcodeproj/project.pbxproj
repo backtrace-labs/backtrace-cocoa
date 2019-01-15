@@ -22,6 +22,10 @@
 		F25C0FC521C797D60083029C /* BacktraceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F266B85421C77D8B00D14417 /* BacktraceTests.swift */; };
 		F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C2FA5E21BBD26300934744 /* Backtrace_iOSTests.swift */; };
 		F25C0FC721C79EFB0083029C /* Backtrace_macOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F266B82B21C77B4D00D14417 /* Backtrace_macOSTests.swift */; };
+		F25F9E9721EE84AF00236E04 /* BacktraceResultStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25F9E9621EE84AF00236E04 /* BacktraceResultStatus.swift */; };
+		F25F9E9821EE84AF00236E04 /* BacktraceResultStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25F9E9621EE84AF00236E04 /* BacktraceResultStatus.swift */; };
+		F25F9E9A21EE84EA00236E04 /* BacktraceResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25F9E9921EE84EA00236E04 /* BacktraceResult.swift */; };
+		F25F9E9B21EE84EA00236E04 /* BacktraceResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25F9E9921EE84EA00236E04 /* BacktraceResult.swift */; };
 		F266B81B21C77AC800D14417 /* Backtrace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F266B81221C77AC800D14417 /* Backtrace.framework */; };
 		F266B82221C77AC800D14417 /* Backtrace.h in Headers */ = {isa = PBXBuildFile; fileRef = F266B81421C77AC800D14417 /* Backtrace.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F266B83321C77B9600D14417 /* BacktraceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22EB87621BBD36800DEE94E /* BacktraceClient.swift */; };
@@ -153,6 +157,8 @@
 		F22EB87621BBD36800DEE94E /* BacktraceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClient.swift; sourceTree = "<group>"; };
 		F240531D21C5680600FC9394 /* CrashReporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporting.swift; sourceTree = "<group>"; };
 		F240532021C578AA00FC9394 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		F25F9E9621EE84AF00236E04 /* BacktraceResultStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceResultStatus.swift; sourceTree = "<group>"; };
+		F25F9E9921EE84EA00236E04 /* BacktraceResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceResult.swift; sourceTree = "<group>"; };
 		F266B81221C77AC800D14417 /* Backtrace.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Backtrace.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F266B81421C77AC800D14417 /* Backtrace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Backtrace.h; sourceTree = "<group>"; };
 		F266B81521C77AC800D14417 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -382,6 +388,8 @@
 			children = (
 				F22EB87621BBD36800DEE94E /* BacktraceClient.swift */,
 				F2D8BE3721BD7894007CFEFA /* BacktraceError.swift */,
+				F25F9E9621EE84AF00236E04 /* BacktraceResultStatus.swift */,
+				F25F9E9921EE84EA00236E04 /* BacktraceResult.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -1035,7 +1043,9 @@
 				F266B83821C77B9600D14417 /* Logger.swift in Sources */,
 				F28F164A21E2844A008E4B96 /* BacktraceUnregisteredClient.swift in Sources */,
 				F266B83321C77B9600D14417 /* BacktraceClient.swift in Sources */,
+				F25F9E9821EE84AF00236E04 /* BacktraceResultStatus.swift in Sources */,
 				F21771C121E344C10059896E /* SendCrashRequest.swift in Sources */,
+				F25F9E9B21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F282076121CEABBC0017367F /* NetworkClientType.swift in Sources */,
 				F266B83421C77B9600D14417 /* BacktraceError.swift in Sources */,
 				F28F164721E28441008E4B96 /* BacktraceRegisteredClient.swift in Sources */,
@@ -1069,7 +1079,9 @@
 				F2CC8ACB21CF8D8400A68CAC /* Dispatcher.swift in Sources */,
 				F28F164C21E287F8008E4B96 /* InMemoryRepository.swift in Sources */,
 				F28F164321E28433008E4B96 /* BacktraceClientType.swift in Sources */,
+				F25F9E9721EE84AF00236E04 /* BacktraceResultStatus.swift in Sources */,
 				F21771C021E344C10059896E /* SendCrashRequest.swift in Sources */,
+				F25F9E9A21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F28F165121E2A08F008E4B96 /* Method.swift in Sources */,
 				F22EB87721BBD36800DEE94E /* BacktraceClient.swift in Sources */,
 				F28F165421E2A097008E4B96 /* RequestType.swift in Sources */,
@@ -1267,7 +1279,6 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1347,7 +1358,6 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -1510,12 +1520,16 @@
 		F2C2FA4921BBD23B00934744 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 			};
 			name = Debug;
 		};
 		F2C2FA4A21BBD23B00934744 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 			};
 			name = Release;
 		};
@@ -1558,7 +1572,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1583,7 +1597,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "Backtrace-iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1664,7 +1677,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "Backtrace-iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1888,7 +1900,6 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "Example-iOS/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1957,7 +1968,6 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "Example-iOS/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2031,7 +2041,6 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "Example-iOS-ObjC/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2096,7 +2105,6 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "Example-iOS-ObjC/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2175,7 +2183,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2243,7 +2250,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "Backtrace.io.Example-macOS-ObjC";
