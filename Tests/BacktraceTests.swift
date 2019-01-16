@@ -5,24 +5,25 @@
 //  Created by Marcin Karmelita on 17/12/2018.
 //
 
-import XCTest
+import Nimble
+import Quick
 @testable import Backtrace
-import PLCrashReporter
 
-class BacktraceTests: XCTestCase {
-
-    func testPLCrashReporterDefaultConfigNeverFails() {
-        XCTAssertNotNil(PLCrashReporterConfig.defaultConfiguration())
-    }
-
-    func testGeneratingLiveReportWithoutEnabledReporter() {
-        let reporter = CrashReporter(config: PLCrashReporterConfig.defaultConfiguration())
-        XCTAssertNoThrow(try reporter.generateLiveReport())
-    }
-
-    func testGeneratingLiveReport() {
-        let reporter = CrashReporter(config: PLCrashReporterConfig.defaultConfiguration())
-        XCTAssertNoThrow(try reporter.enableCrashReporting())
-        XCTAssertNoThrow(try reporter.generateLiveReport())
+final class BacktraceTests: QuickSpec {
+    
+    override func spec() {
+        describe("Crash reporter") {
+            let crashReporter = CrashReporter()
+            it("generates live report", closure: {
+                expect { try crashReporter.generateLiveReport() }
+                    .toNot(throwError())
+            })
+            it("generate live report 100 times", closure: {
+                for _ in 0...100 {
+                    expect{ try crashReporter.generateLiveReport() }
+                        .toNot(throwError())
+                }
+            })
+        }
     }
 }

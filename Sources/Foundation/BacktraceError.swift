@@ -13,8 +13,10 @@ enum FlowError: BacktraceError {
     case unexpectedState
 }
 
-enum UrlError: BacktraceError {
+enum HttpError: BacktraceError {
     case malformedUrl
+    case serverError(Error)
+    case unknownError
 }
 
 enum PLCrashReporterError: BacktraceError {
@@ -24,4 +26,10 @@ enum PLCrashReporterError: BacktraceError {
 enum RepositoryError: BacktraceError {
     case resourceNotFound
     case resourceAlreadyExists
+}
+
+extension BacktraceError {
+    var backtraceResult: BacktraceResult {
+        return BacktraceResult(.serverError)
+    }
 }

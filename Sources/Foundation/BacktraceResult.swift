@@ -16,6 +16,11 @@ import Foundation
         self.status = status
         self.message = status.description
     }
+    
+    init(status: BacktraceResultStatus, message: String) {
+        self.status = status
+        self.message = message
+    }
 }
 
 private extension BacktraceResultStatus {
