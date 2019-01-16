@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="tBY-gu-pKz">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Fhp-D4-2oC">
+                                <rect key="frame" x="10" y="30" width="355" height="507"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="tQm-Xk-agy">
+                                <rect key="frame" x="10" y="547" width="355" height="110"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wfh-no-STH">
+                                        <rect key="frame" x="0.0" y="0.0" width="355" height="50"/>
+                                        <color key="backgroundColor" red="0.86495327950000001" green="0.49887192250000001" blue="0.45880818369999998" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <state key="normal" title="live report">
+                                            <color key="titleColor" red="0.23527315260000001" green="0.23534822459999999" blue="0.2313722074" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="liveReportAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="r8l-mx-oQk"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4g4-3C-4oZ">
+                                        <rect key="frame" x="0.0" y="60" width="355" height="50"/>
+                                        <color key="backgroundColor" red="0.86495327950000001" green="0.49887192250000001" blue="0.45880818369999998" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <state key="normal" title="crash">
+                                            <color key="titleColor" red="0.23527315260000001" green="0.23534822459999999" blue="0.2313722074" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="crashAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="WF8-kd-r4x"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="110" id="lgg-Nc-FJA"/>
+                                </constraints>
+                            </stackView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="Wq8-QM-bIQ" firstAttribute="bottom" secondItem="tQm-Xk-agy" secondAttribute="bottom" constant="10" id="6Uy-hB-fYL"/>
+                            <constraint firstItem="tQm-Xk-agy" firstAttribute="top" secondItem="Fhp-D4-2oC" secondAttribute="bottom" constant="10" id="Eoh-yf-HIu"/>
+                            <constraint firstItem="Wq8-QM-bIQ" firstAttribute="trailing" secondItem="tQm-Xk-agy" secondAttribute="trailing" constant="10" id="Frh-cP-Ea0"/>
+                            <constraint firstItem="Fhp-D4-2oC" firstAttribute="leading" secondItem="Wq8-QM-bIQ" secondAttribute="leading" constant="10" id="GPC-aq-qne"/>
+                            <constraint firstItem="Wq8-QM-bIQ" firstAttribute="trailing" secondItem="Fhp-D4-2oC" secondAttribute="trailing" constant="10" id="Ywq-Dc-ZIv"/>
+                            <constraint firstItem="tQm-Xk-agy" firstAttribute="leading" secondItem="Wq8-QM-bIQ" secondAttribute="leading" constant="10" id="eY6-cL-M6I"/>
+                            <constraint firstItem="Fhp-D4-2oC" firstAttribute="top" secondItem="Wq8-QM-bIQ" secondAttribute="top" constant="10" id="vbK-EV-v8z"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="Wq8-QM-bIQ"/>
+                    </view>
+                    <connections>
+                        <outlet property="textView" destination="Fhp-D4-2oC" id="NVZ-d1-QD6"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+</document>

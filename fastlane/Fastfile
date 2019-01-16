@@ -1,0 +1,41 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Run iOS tests"
+  lane :tests do
+    common_tests(scheme: "Backtrace-iOS")
+  end
+end
+
+platform :mac do
+  desc "Run macOS tests"
+  lane :tests do
+    common_tests(scheme: "Backtrace-macOS")
+  end
+end
+
+desc "Run tests"
+lane :common_tests do |options|
+  scan(
+    workspace: "Backtrace.xcworkspace",
+    scheme: options[:scheme],
+    clean: true,
+    code_coverage: true,
+    open_report: true
+  )
+end

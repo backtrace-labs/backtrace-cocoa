@@ -1,0 +1,22 @@
+PODS:
+  - PLCrashReporter (1.4.0.0)
+
+DEPENDENCIES:
+  - PLCrashReporter (from `https://github.com/apptailors/plcrashreporter.git`, branch `backtrace`)
+
+EXTERNAL SOURCES:
+  PLCrashReporter:
+    :branch: backtrace
+    :git: https://github.com/apptailors/plcrashreporter.git
+
+CHECKOUT OPTIONS:
+  PLCrashReporter:
+    :commit: 8c64c024cff47304f90cea32bffeb16903ad1092
+    :git: https://github.com/apptailors/plcrashreporter.git
+
+SPEC CHECKSUMS:
+  PLCrashReporter: 0942ec27e39aba40115b0f6e6d7cc80651061dde
+
+PODFILE CHECKSUM: 8432f27d6a8d57cacbf16f905393ef0657ef5ddd
+
+COCOAPODS: 1.5.3
