@@ -53,8 +53,7 @@ extension BacktraceClient: BacktraceClientProviding {
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                try self.client.send(exception: exception)
-                completion?(BacktraceResult(.ok))
+                completion?(try self.client.send(exception: exception))
             } catch {
                 Logger.error(error)
                 completion?(BacktraceResult(.serverError))
@@ -87,8 +86,7 @@ extension BacktraceClient: BacktraceClientProviding {
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                try self.client.send(error)
-                completion?(BacktraceResult(.ok))
+                completion?(try self.client.send(error))
             } catch {
                 Logger.error(error)
                 completion?(BacktraceResult(.serverError))

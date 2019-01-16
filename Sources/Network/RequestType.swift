@@ -21,7 +21,7 @@ extension RequestType {
 
         guard let finalUrl = urlComponents?.url else {
             Logger.error("Malformed error")
-            throw UrlError.malformedUrl
+            throw HttpError.malformedUrl
         }
         var request = URLRequest(url: finalUrl)
         request.httpMethod = method.rawValue

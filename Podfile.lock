@@ -1,8 +1,20 @@
 PODS:
+  - Nimble (7.3.1)
   - PLCrashReporter (1.4.0.0)
+  - Quick (1.3.2)
+  - SwiftLint (0.29.3)
 
 DEPENDENCIES:
+  - Nimble
   - PLCrashReporter (from `https://github.com/apptailors/plcrashreporter.git`, branch `backtrace`)
+  - Quick
+  - SwiftLint
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Nimble
+    - Quick
+    - SwiftLint
 
 EXTERNAL SOURCES:
   PLCrashReporter:
@@ -15,8 +27,11 @@ CHECKOUT OPTIONS:
     :git: https://github.com/apptailors/plcrashreporter.git
 
 SPEC CHECKSUMS:
+  Nimble: 04f732da099ea4d153122aec8c2a88fd0c7219ae
   PLCrashReporter: 0942ec27e39aba40115b0f6e6d7cc80651061dde
+  Quick: 2623cb30d7a7f41ca62f684f679586558f483d46
+  SwiftLint: bfa7ca7b4d170cfaf0d236ca3ffd969e88a2f002
 
-PODFILE CHECKSUM: 8432f27d6a8d57cacbf16f905393ef0657ef5ddd
+PODFILE CHECKSUM: cdc250c96303f08d3d2f5f5508f185658c409ef2
 
 COCOAPODS: 1.5.3
