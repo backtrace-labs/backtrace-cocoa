@@ -33,13 +33,25 @@ struct BacktraceResponse: Codable {
     }
 }
 
-struct BacktraceErrorResponse: Codable, Error {
-    let error: ResponseError
+extension BacktraceResponse {
+    var backtraceResult: BacktraceResult {
+        return BacktraceResult(status: .ok, message: self.response)
+    }
 }
 
-struct ResponseError: Codable {
-    let code: Int
-    let message: String
+struct BacktraceErrorResponse: Codable, BacktraceError {
+    let error: ResponseError
+    
+    struct ResponseError: Codable {
+        let code: Int
+        let message: String
+    }
+}
+
+extension BacktraceErrorResponse {
+    var backtraceResult: BacktraceResult {
+        return BacktraceResult(status: .serverError, message: self.error.message)
+    }
 }
 
 private extension HTTPURLResponse {

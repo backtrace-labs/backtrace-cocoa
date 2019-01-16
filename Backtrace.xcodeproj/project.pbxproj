@@ -34,8 +34,6 @@
 		F266B83621C77B9600D14417 /* CrashReporter+StringConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE3B21BD78D8007CFEFA /* CrashReporter+StringConvertible.swift */; };
 		F266B83721C77B9600D14417 /* CrashReporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240531D21C5680600FC9394 /* CrashReporting.swift */; };
 		F266B83821C77B9600D14417 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240532021C578AA00FC9394 /* Logger.swift */; };
-		F28162F721EFB99500A12B7A /* CrashReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F621EFB99500A12B7A /* CrashReportingTests.swift */; };
-		F28162F821EFB99500A12B7A /* CrashReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F621EFB99500A12B7A /* CrashReportingTests.swift */; };
 		F28162FA21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */; };
 		F28162FB21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */; };
 		F282075821CEA31F0017367F /* CrashModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075721CEA31F0017367F /* CrashModel.swift */; };
@@ -170,7 +168,6 @@
 		F266B82B21C77B4D00D14417 /* Backtrace_macOSTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Backtrace_macOSTests.swift; sourceTree = "<group>"; };
 		F266B82C21C77B4D00D14417 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F266B85421C77D8B00D14417 /* BacktraceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceTests.swift; sourceTree = "<group>"; };
-		F28162F621EFB99500A12B7A /* CrashReportingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportingTests.swift; sourceTree = "<group>"; };
 		F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceResponse.swift; sourceTree = "<group>"; };
 		F282075721CEA31F0017367F /* CrashModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashModel.swift; sourceTree = "<group>"; };
 		F282075A21CEA37A0017367F /* Repository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repository.swift; sourceTree = "<group>"; };
@@ -328,7 +325,6 @@
 			isa = PBXGroup;
 			children = (
 				F266B85421C77D8B00D14417 /* BacktraceTests.swift */,
-				F28162F621EFB99500A12B7A /* CrashReportingTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -1120,7 +1116,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F28162F821EFB99500A12B7A /* CrashReportingTests.swift in Sources */,
 				F25C0FC721C79EFB0083029C /* Backtrace_macOSTests.swift in Sources */,
 				F25C0FC521C797D60083029C /* BacktraceTests.swift in Sources */,
 			);
@@ -1158,7 +1153,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F28162F721EFB99500A12B7A /* CrashReportingTests.swift in Sources */,
 				F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */,
 				F25C0FC421C797D50083029C /* BacktraceTests.swift in Sources */,
 			);

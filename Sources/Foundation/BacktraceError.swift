@@ -27,3 +27,9 @@ enum RepositoryError: BacktraceError {
     case resourceNotFound
     case resourceAlreadyExists
 }
+
+extension BacktraceError {
+    var backtraceResult: BacktraceResult {
+        return BacktraceResult(.serverError)
+    }
+}
