@@ -7,8 +7,6 @@
 
 import Foundation
 
-@objc public protocol NetworkClientType {
-    typealias ResponseCompletion = (_ urlResponse: URLResponse?, _ responseError: Error?) -> Void
-    func send(_ data: Data, completion: ResponseCompletion?)
-    func send(_ report: Data) throws
+protocol NetworkClientType {
+    func send(_ report: Data) throws -> BacktraceResponse
 }
