@@ -34,6 +34,10 @@
 		F266B83621C77B9600D14417 /* CrashReporter+StringConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE3B21BD78D8007CFEFA /* CrashReporter+StringConvertible.swift */; };
 		F266B83721C77B9600D14417 /* CrashReporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240531D21C5680600FC9394 /* CrashReporting.swift */; };
 		F266B83821C77B9600D14417 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240532021C578AA00FC9394 /* Logger.swift */; };
+		F28162F721EFB99500A12B7A /* CrashReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F621EFB99500A12B7A /* CrashReportingTests.swift */; };
+		F28162F821EFB99500A12B7A /* CrashReportingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F621EFB99500A12B7A /* CrashReportingTests.swift */; };
+		F28162FA21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */; };
+		F28162FB21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */; };
 		F282075821CEA31F0017367F /* CrashModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075721CEA31F0017367F /* CrashModel.swift */; };
 		F282075921CEA31F0017367F /* CrashModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075721CEA31F0017367F /* CrashModel.swift */; };
 		F282075B21CEA37A0017367F /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075A21CEA37A0017367F /* Repository.swift */; };
@@ -166,6 +170,8 @@
 		F266B82B21C77B4D00D14417 /* Backtrace_macOSTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Backtrace_macOSTests.swift; sourceTree = "<group>"; };
 		F266B82C21C77B4D00D14417 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F266B85421C77D8B00D14417 /* BacktraceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceTests.swift; sourceTree = "<group>"; };
+		F28162F621EFB99500A12B7A /* CrashReportingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportingTests.swift; sourceTree = "<group>"; };
+		F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceResponse.swift; sourceTree = "<group>"; };
 		F282075721CEA31F0017367F /* CrashModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashModel.swift; sourceTree = "<group>"; };
 		F282075A21CEA37A0017367F /* Repository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repository.swift; sourceTree = "<group>"; };
 		F282075F21CEABBC0017367F /* NetworkClientType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClientType.swift; sourceTree = "<group>"; };
@@ -322,6 +328,7 @@
 			isa = PBXGroup;
 			children = (
 				F266B85421C77D8B00D14417 /* BacktraceTests.swift */,
+				F28162F621EFB99500A12B7A /* CrashReportingTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -371,6 +378,7 @@
 				F28F164221E28433008E4B96 /* BacktraceClientType.swift */,
 				F28F164521E28441008E4B96 /* BacktraceRegisteredClient.swift */,
 				F28F164821E2844A008E4B96 /* BacktraceUnregisteredClient.swift */,
+				F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */,
 			);
 			path = Client;
 			sourceTree = "<group>";
@@ -567,6 +575,7 @@
 				F266B80E21C77AC800D14417 /* Sources */,
 				F266B80F21C77AC800D14417 /* Frameworks */,
 				F266B81021C77AC800D14417 /* Resources */,
+				F28162F521EFB8FE00A12B7A /* Lint */,
 			);
 			buildRules = (
 			);
@@ -606,6 +615,7 @@
 				F2C2FA4C21BBD26300934744 /* Sources */,
 				F2C2FA4D21BBD26300934744 /* Frameworks */,
 				F2C2FA4E21BBD26300934744 /* Resources */,
+				F28162F421EFB8EC00A12B7A /* Lint */,
 			);
 			buildRules = (
 			);
@@ -859,10 +869,14 @@
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-Backtrace-iOSTests/Pods-Backtrace-iOSTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/PLCrashReporter-iOS/PLCrashReporter.framework",
+				"${BUILT_PRODUCTS_DIR}/Nimble-iOS/Nimble.framework",
+				"${BUILT_PRODUCTS_DIR}/Quick-iOS/Quick.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PLCrashReporter.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Nimble.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Quick.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -877,10 +891,14 @@
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/PLCrashReporter-macOS/PLCrashReporter.framework",
+				"${BUILT_PRODUCTS_DIR}/Nimble-macOS/Nimble.framework",
+				"${BUILT_PRODUCTS_DIR}/Quick-macOS/Quick.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PLCrashReporter.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Nimble.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Quick.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1013,6 +1031,42 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		F28162F421EFB8EC00A12B7A /* Lint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Lint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/SwiftLint/swiftlint\"\n";
+		};
+		F28162F521EFB8FE00A12B7A /* Lint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Lint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/SwiftLint/swiftlint\"\n";
+		};
 		FF565910BB0BCF93214E2E66 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1039,6 +1093,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F266B83721C77B9600D14417 /* CrashReporting.swift in Sources */,
+				F28162FB21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
 				F21771BE21E341CA0059896E /* Dispatcher.swift in Sources */,
 				F266B83821C77B9600D14417 /* Logger.swift in Sources */,
 				F28F164A21E2844A008E4B96 /* BacktraceUnregisteredClient.swift in Sources */,
@@ -1065,6 +1120,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F28162F821EFB99500A12B7A /* CrashReportingTests.swift in Sources */,
 				F25C0FC721C79EFB0083029C /* Backtrace_macOSTests.swift in Sources */,
 				F25C0FC521C797D60083029C /* BacktraceTests.swift in Sources */,
 			);
@@ -1075,6 +1131,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F240531E21C5680600FC9394 /* CrashReporting.swift in Sources */,
+				F28162FA21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
 				F240532121C578AA00FC9394 /* Logger.swift in Sources */,
 				F2CC8ACB21CF8D8400A68CAC /* Dispatcher.swift in Sources */,
 				F28F164C21E287F8008E4B96 /* InMemoryRepository.swift in Sources */,
@@ -1101,6 +1158,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F28162F721EFB99500A12B7A /* CrashReportingTests.swift in Sources */,
 				F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */,
 				F25C0FC421C797D50083029C /* BacktraceTests.swift in Sources */,
 			);

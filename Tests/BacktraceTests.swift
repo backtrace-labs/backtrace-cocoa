@@ -25,4 +25,6 @@ class BacktraceTests: XCTestCase {
         XCTAssertNoThrow(try reporter.enableCrashReporting())
         XCTAssertNoThrow(try reporter.generateLiveReport())
     }
+    
+    
 }

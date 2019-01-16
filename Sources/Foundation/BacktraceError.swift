@@ -13,8 +13,10 @@ enum FlowError: BacktraceError {
     case unexpectedState
 }
 
-enum UrlError: BacktraceError {
+enum HttpError: BacktraceError {
     case malformedUrl
+    case serverError(Error)
+    case unknownError
 }
 
 enum PLCrashReporterError: BacktraceError {
