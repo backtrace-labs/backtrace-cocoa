@@ -1,9 +1,3 @@
-//
-//  Backtrace.h
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 08/12/2018.
-//
 
 #import <UIKit/UIKit.h>
 

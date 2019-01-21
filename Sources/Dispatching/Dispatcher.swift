@@ -1,9 +1,3 @@
-//
-//  Dispatcher.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 23/12/2018.
-//
 
 import Foundation
 

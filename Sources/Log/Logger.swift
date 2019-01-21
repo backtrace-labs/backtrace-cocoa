@@ -1,9 +1,3 @@
-//
-//  Logger.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 15/12/2018.
-//
 
 import Foundation
 

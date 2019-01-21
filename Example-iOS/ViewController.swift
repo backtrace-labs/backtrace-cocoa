@@ -1,9 +1,3 @@
-//
-//  ViewController.swift
-//  Example-iOS
-//
-//  Created by Marcin Karmelita on 08/12/2018.
-//
 
 import UIKit
 import Backtrace

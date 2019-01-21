@@ -1,9 +1,3 @@
-//
-//  BacktraceClient.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 08/12/2018.
-//
 
 import Foundation
 

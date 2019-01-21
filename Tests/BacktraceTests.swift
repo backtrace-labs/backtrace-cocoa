@@ -1,9 +1,3 @@
-//
-//  BacktraceTests.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 17/12/2018.
-//
 
 import Nimble
 import Quick
