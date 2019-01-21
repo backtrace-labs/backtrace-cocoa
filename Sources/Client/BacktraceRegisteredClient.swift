@@ -11,7 +11,7 @@ class BacktraceRegisteredClient {
 
     private let reporter: CrashReporting
     private var networkClient: NetworkClientType
-    private let repository = InMemoryRepository<CrashModel>()
+    private let repository = InMemoryRepository<BacktraceCrashReport>()
 
     init(reporter: CrashReporting = CrashReporter(), networkClient: NetworkClientType) {
         self.reporter = reporter
@@ -36,7 +36,7 @@ extension BacktraceRegisteredClient: BacktraceClientType {
         }
         let resource = try reporter.pendingCrashReport()
         try repository.save(resource)
-        let result = try networkClient.send(resource.reportData)
+        try networkClient.send(resource.reportData)
         try repository.delete(resource)
         try reporter.purgePendingCrashReport()
     }

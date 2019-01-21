@@ -18,6 +18,7 @@ class BacktraceNetworkClient {
 }
 
 extension BacktraceNetworkClient: NetworkClientType {
+    @discardableResult
     func send(_ report: Data) throws -> BacktraceResponse {
         let urlRequest = try self.request.urlRequest()
         Logger.debug("Sending crash report:\n\(urlRequest.debugDescription)")

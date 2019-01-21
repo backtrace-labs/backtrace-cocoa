@@ -10,12 +10,15 @@ import Foundation
 /// Public BacktraceClient protocol.
 @objc public protocol BacktraceClientProviding {
 
-    /// Register to Backtrace services.
+    /// Registers to Backtrace services using provided credentials.
     ///
-    /// - Parameters:
-    ///   - endpoint: Backtrace API endpoint
-    ///   - token: Backtrace API token
-    @objc func register(endpoint: String, token: String)
+    /// - Parameter credentials: Backtrace API credentials.
+    @objc func register(credentials: BacktraceCredentials)
+    
+    /// Registers to Backtrace services using custom client configuration.
+    ///
+    /// - Parameter configuration: Custom Backtrace client configuration,
+    @objc func register(configuration: BacktraceClientConfiguration)
     
     /// Sends a crash report to Backtrace services.
     ///
@@ -49,6 +52,26 @@ import Foundation
 
 // MARK: - BacktraceClientProviding
 extension BacktraceClient: BacktraceClientProviding {
+    @objc public func register(credentials: BacktraceCredentials) {
+        register(configuration: BacktraceClientConfiguration(credentials: credentials))
+    }
+    
+    @objc public func register(configuration: BacktraceClientConfiguration) {
+        let networkClient = BacktraceNetworkClient(endpoint: configuration.credentials.endpoint,
+                                                   token: configuration.credentials.token)
+        client = BacktraceRegisteredClient(networkClient: networkClient)
+        dispatcher.dispatch({ [weak self] in
+            guard let self = self else { return }
+            do {
+                try self.client.handlePendingCrashes()
+            } catch {
+                Logger.error(error)
+            }
+            }, completion: {
+                Logger.debug("Finished")
+        })
+    }
+    
     @objc public func send(exception: NSException, completion: ((BacktraceResult) -> Void)?) {
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
@@ -57,25 +80,6 @@ extension BacktraceClient: BacktraceClientProviding {
             } catch {
                 Logger.error(error)
                 completion?(BacktraceResult(.serverError))
-            }
-            }, completion: {
-                Logger.debug("Finished")
-        })
-    }
-    
-    @objc public func register(endpoint: String, token: String) {
-        guard let url = URL(string: endpoint) else {
-            Logger.error("Invalid URL.")
-            return
-        }
-
-        client = BacktraceRegisteredClient(networkClient: BacktraceNetworkClient(endpoint: url, token: token))
-        dispatcher.dispatch({ [weak self] in
-            guard let self = self else { return }
-            do {
-                try self.client.handlePendingCrashes()
-            } catch {
-                Logger.error(error)
             }
             }, completion: {
                 Logger.debug("Finished")

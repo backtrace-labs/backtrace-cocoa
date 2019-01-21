@@ -27,10 +27,8 @@ final class BacktraceTests: QuickSpec {
             
             describe("Backtrace API") {
                 describe("Valid credentials", closure: {
-                    var networkClientWithValidCredentials: BacktraceNetworkClient {
-                        let endpoint = URL(string: "https://yolo.sp.backtrace.io:6098")!
-                        let token = "b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"
-                        return BacktraceNetworkClient(endpoint: endpoint, token: token)
+                    var networkClientWithValidCredentials: NetworkClientType {
+                        return BacktraceNetworkClientMock(config: .validCredentials)
                     }
                     it("sends crash report", closure: {
                         expect { try networkClientWithValidCredentials.send(try crashReporter.generateLiveReport().reportData)}
@@ -44,10 +42,8 @@ final class BacktraceTests: QuickSpec {
                     })
                 })
                 describe("Invalid endpoint", closure: {
-                    var networkClientWithInvalidEndpoint: BacktraceNetworkClient {
-                        let invalidEndpoint = URL(string: "https://not.exist.yolo.sp.backtrace.io:6098")!
-                        let token = "b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"
-                        return BacktraceNetworkClient(endpoint: invalidEndpoint, token: token)
+                    var networkClientWithInvalidEndpoint: NetworkClientType {
+                        return BacktraceNetworkClientMock(config: .invalidEndpoint)
                     }
                     it("fails to send crash report with invalid endpoint", closure: {
                         expect { try networkClientWithInvalidEndpoint.send(try crashReporter.generateLiveReport().reportData)}
@@ -61,10 +57,8 @@ final class BacktraceTests: QuickSpec {
                     })
                 })
                 describe("Invalid token", closure: {
-                    var networkClientWithInvalidToken: BacktraceNetworkClient {
-                        let endpoint = URL(string: "https://yolo.sp.backtrace.io:6098")!
-                        let invalidToken = "ba89a7a66b67f78c989c6aba89a7a66b67f78c989c6a"
-                        return BacktraceNetworkClient(endpoint: endpoint, token: invalidToken)
+                    var networkClientWithInvalidToken: NetworkClientType {
+                        return BacktraceNetworkClientMock(config: .invalidToken)
                     }
                     it("fails to send crash report with invalid token", closure: {
                         expect { try networkClientWithInvalidToken.send(try crashReporter.generateLiveReport().reportData)}
