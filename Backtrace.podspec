@@ -15,8 +15,7 @@ Pod::Spec.new do |s|
   s.homepage     = "https://backtrace.io/"
   s.license      = { :type => "MIT", :file => 'LICENSE' }
   s.author       = { "Backtrace I/O" => "info@backtrace.io" }
-  # s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa", :tag => "#{s.version}" }
-  s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa", :branch => "feature/rc" }
+  s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa", :tag => "#{s.version}" }
 
   s.ios.deployment_target = "10.0"
   s.osx.deployment_target = "10.10"
