@@ -1,10 +1,3 @@
-//
-//  BacktraceResponse.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 16/01/2019.
-//
-
 import Foundation
 
 struct BacktraceHtttpResponseDeserializer {

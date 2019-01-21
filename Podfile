@@ -9,6 +9,8 @@ def shared_test_pods
     pod 'Quick'
 end
 
+inhibit_all_warnings!
+
 # Framework iOS
 target 'Backtrace-iOS' do
     use_frameworks!

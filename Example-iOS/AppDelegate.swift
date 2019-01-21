@@ -1,10 +1,3 @@
-//
-//  AppDelegate.swift
-//  Example-iOS
-//
-//  Created by Marcin Karmelita on 08/12/2018.
-//
-
 import UIKit
 import Backtrace
 
@@ -15,8 +8,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        BacktraceClient.shared.register(endpoint: "",
-                                        token: "")
+        
+        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
+                                                        token: "")
+        BacktraceClient.shared.register(credentials: backtraceCredentials)
+
         return true
     }
 }

@@ -1,10 +1,3 @@
-//
-//  Backtrace.h
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 17/12/2018.
-//
-
 #import <Cocoa/Cocoa.h>
 
 //! Project version number for Backtrace.
