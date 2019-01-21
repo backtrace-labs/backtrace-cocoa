@@ -23,6 +23,8 @@ private extension BacktraceResultStatus {
             return "Unknown server error occurred."
         case .ok:
             return "Ok."
+        case .notRegisterd:
+            return "Backtrace client is not registered."
         }
     }
 }

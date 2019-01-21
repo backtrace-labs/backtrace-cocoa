@@ -3,7 +3,7 @@ import Foundation
 class BacktraceUnregisteredClient: BacktraceClientType {
     private static let printBlock = { () -> BacktraceResult in
         BacktraceLogger.error("Backtrace client is not regiestered.")
-        return BacktraceResult(.serverError)
+        return BacktraceResult(.notRegisterd)
     }
     
     func send(exception: NSException) throws -> BacktraceResult {

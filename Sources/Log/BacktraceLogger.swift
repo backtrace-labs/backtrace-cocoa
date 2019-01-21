@@ -2,11 +2,11 @@ import Foundation
 
 /// Logging levels.
 @objc public enum BacktraceLogLevel: Int {
-    case none
     case debug
     case warning
     case info
     case error
+    case none
 
     fileprivate func desc() -> String {
         switch self {
@@ -26,7 +26,7 @@ import Foundation
 
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
-    static var destinations: Set<BacktraceBaseDestination> = [BacktraceConsoleDestination(level: .error)]
+    static var destinations: Set<BacktraceBaseDestination> = [BacktraceConsoleDestination(level: .none)]
 
     /// Replaces the logging destinations
     ///
