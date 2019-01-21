@@ -24,7 +24,7 @@ extension BacktraceRegisteredClient: BacktraceClientType {
     func handlePendingCrashes() throws {
         try reporter.enableCrashReporting()
         guard reporter.hasPendingCrashes() else {
-            Logger.debug("No pending crashes")
+            BacktraceLogger.debug("No pending crashes")
             return
         }
         let resource = try reporter.pendingCrashReport()

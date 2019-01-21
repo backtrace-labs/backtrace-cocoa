@@ -23,7 +23,7 @@ extension CrashReporter: CrashReporting {
     func generateLiveReport() throws -> BacktraceCrashReport {
         let reportData = try reporter.generateLiveReportAndReturnError()
         let report = try PLCrashReport(data: reportData)
-        Logger.debug("Live report: \n\(report.info)")
+        BacktraceLogger.debug("Live report: \n\(report.info)")
         return BacktraceCrashReport(report: reportData, hashValue: report.uuidRef?.hashValue)
     }
 
@@ -34,7 +34,7 @@ extension CrashReporter: CrashReporting {
     func pendingCrashReport() throws -> BacktraceCrashReport {
         let reportData = try reporter.loadPendingCrashReportDataAndReturnError()
         let report = try PLCrashReport(data: reportData)
-        Logger.debug("Pending crash: \n\(report.info)")
+        BacktraceLogger.debug("Pending crash: \n\(report.info)")
         return BacktraceCrashReport(report: reportData, hashValue: report.uuidRef?.hashValue)
     }
 

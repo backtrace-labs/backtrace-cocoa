@@ -2,7 +2,7 @@ import Foundation
 
 class BacktraceUnregisteredClient: BacktraceClientType {
     private static let printBlock = { () -> BacktraceResult in
-        Logger.error("Backtrace client is not regiestered.")
+        BacktraceLogger.error("Backtrace client is not regiestered.")
         return BacktraceResult(.serverError)
     }
     

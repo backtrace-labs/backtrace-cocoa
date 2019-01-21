@@ -58,10 +58,10 @@ extension BacktraceClient: BacktraceClientProviding {
             do {
                 try self.client.handlePendingCrashes()
             } catch {
-                Logger.error(error)
+                BacktraceLogger.error(error)
             }
             }, completion: {
-                Logger.debug("Finished")
+                BacktraceLogger.debug("Finished")
         })
     }
     
@@ -71,11 +71,11 @@ extension BacktraceClient: BacktraceClientProviding {
             do {
                 completion?(try self.client.send(exception: exception))
             } catch {
-                Logger.error(error)
+                BacktraceLogger.error(error)
                 completion?(BacktraceResult(.serverError))
             }
             }, completion: {
-                Logger.debug("Finished")
+                BacktraceLogger.debug("Finished")
         })
     }
 
@@ -85,11 +85,11 @@ extension BacktraceClient: BacktraceClientProviding {
             do {
                 completion?(try self.client.send(error))
             } catch {
-                Logger.error(error)
+                BacktraceLogger.error(error)
                 completion?(BacktraceResult(.serverError))
             }
             }, completion: {
-                Logger.debug("Finished")
+                BacktraceLogger.debug("Finished")
         })
     }
 }

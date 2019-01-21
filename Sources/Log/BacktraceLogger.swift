@@ -1,7 +1,7 @@
 import Foundation
 
-// Logging levels.
-@objc public enum Level: Int {
+/// Logging levels.
+@objc public enum BacktraceLogLevel: Int {
     case none
     case debug
     case warning
@@ -25,10 +25,13 @@ import Foundation
 }
 
 /// Logs Backtrace events.
-@objc final class Logger: NSObject {
-    static var destinations: Set<BaseDestination> = [ConsoleDestination(level: .error)]
+@objc public class BacktraceLogger: NSObject {
+    static var destinations: Set<BacktraceBaseDestination> = [BacktraceConsoleDestination(level: .error)]
 
-    class func setDestinations(destinations: Set<BaseDestination>) {
+    /// Replaces the logging destinations
+    ///
+    /// - Parameter destinations: Logging destinations.
+    @objc public class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
         self.destinations = destinations
     }
     //swiftlint:disable line_length
@@ -48,7 +51,7 @@ import Foundation
         log(level: .error, msg: msg, file: file, function: function, line: line)
     }
 
-    private class func log(level: Level, msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
+    private class func log(level: BacktraceLogLevel, msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
         let message = String(describing: msg())
         destinations
             .filter { $0.shouldLog(level: level) }
@@ -58,15 +61,15 @@ import Foundation
 }
 
 /// Generic logging destination.
-@objc open class BaseDestination: NSObject {
+@objc open class BacktraceBaseDestination: NSObject {
 
-    private let level: Level
+    private let level: BacktraceLogLevel
 
-    init(level: Level) {
+    @objc public init(level: BacktraceLogLevel) {
         self.level = level
     }
 
-    func shouldLog(level: Level) -> Bool {
+    func shouldLog(level: BacktraceLogLevel) -> Bool {
         return self.level.rawValue <= level.rawValue
     }
     //swiftlint:disable line_length
@@ -79,14 +82,14 @@ import Foundation
     ///   - file: the name of the file in which it appears
     ///   - function: the name of the declaration in which it appears
     ///   - line: the line number on which it appears
-    @objc public func log(level: Level, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
+    @objc public func log(level: BacktraceLogLevel, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
         // abstract
     }
     //swiftlint:enable line_length
 }
 
 /// Provides the default console destination for logging.
-@objc final public class FencyConsoleDestination: BaseDestination {
+@objc final public class BacktraceFencyConsoleDestination: BacktraceBaseDestination {
 
     /// Used date formatter for logging.
     @objc public static var dateFormatter: DateFormatter {
@@ -98,17 +101,17 @@ import Foundation
     }
 
     //swiftlint:disable line_length
-    override public func log(level: Level, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
-        print("\(FencyConsoleDestination.dateFormatter.string(from: Date())) [\(level.desc()) Backtrace] [\(URL(fileURLWithPath: file).lastPathComponent)]:\(line) \(function) -> \(msg)")
+    override public func log(level: BacktraceLogLevel, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
+        print("\(BacktraceFencyConsoleDestination.dateFormatter.string(from: Date())) [\(level.desc()) Backtrace] [\(URL(fileURLWithPath: file).lastPathComponent)]:\(line) \(function) -> \(msg)")
     }
     //swiftlint:enable line_length
 }
 
 /// Provides the default console destination for logging.
-@objc final public class ConsoleDestination: BaseDestination {
+@objc final public class BacktraceConsoleDestination: BacktraceBaseDestination {
     
     //swiftlint:disable line_length
-    override public func log(level: Level, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
+    override public func log(level: BacktraceLogLevel, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
         print("\(Date()) [Backtrace]: \(msg)")
     }
     //swiftlint:enable line_length

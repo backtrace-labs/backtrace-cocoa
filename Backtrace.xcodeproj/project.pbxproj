@@ -19,7 +19,7 @@
 		F22D5C1E21F65EFF0099AE7F /* BacktraceIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22D5C1A21F65EEF0099AE7F /* BacktraceIntegrationTests.swift */; };
 		F22EB87721BBD36800DEE94E /* BacktraceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22EB87621BBD36800DEE94E /* BacktraceClient.swift */; };
 		F240531E21C5680600FC9394 /* CrashReporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240531D21C5680600FC9394 /* CrashReporting.swift */; };
-		F240532121C578AA00FC9394 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240532021C578AA00FC9394 /* Logger.swift */; };
+		F240532121C578AA00FC9394 /* BacktraceLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240532021C578AA00FC9394 /* BacktraceLogger.swift */; };
 		F25C0FC421C797D50083029C /* BacktraceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F266B85421C77D8B00D14417 /* BacktraceTests.swift */; };
 		F25C0FC521C797D60083029C /* BacktraceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F266B85421C77D8B00D14417 /* BacktraceTests.swift */; };
 		F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C2FA5E21BBD26300934744 /* Backtrace_iOSTests.swift */; };
@@ -35,7 +35,7 @@
 		F266B83521C77B9600D14417 /* BacktraceNetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE3921BD78A9007CFEFA /* BacktraceNetworkClient.swift */; };
 		F266B83621C77B9600D14417 /* CrashReporter+StringConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE3B21BD78D8007CFEFA /* CrashReporter+StringConvertible.swift */; };
 		F266B83721C77B9600D14417 /* CrashReporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240531D21C5680600FC9394 /* CrashReporting.swift */; };
-		F266B83821C77B9600D14417 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240532021C578AA00FC9394 /* Logger.swift */; };
+		F266B83821C77B9600D14417 /* BacktraceLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240532021C578AA00FC9394 /* BacktraceLogger.swift */; };
 		F28162FA21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */; };
 		F28162FB21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */; };
 		F282075821CEA31F0017367F /* BacktraceCrashReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075721CEA31F0017367F /* BacktraceCrashReport.swift */; };
@@ -193,7 +193,7 @@
 		F22D5C1A21F65EEF0099AE7F /* BacktraceIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceIntegrationTests.swift; sourceTree = "<group>"; };
 		F22EB87621BBD36800DEE94E /* BacktraceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClient.swift; sourceTree = "<group>"; };
 		F240531D21C5680600FC9394 /* CrashReporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporting.swift; sourceTree = "<group>"; };
-		F240532021C578AA00FC9394 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		F240532021C578AA00FC9394 /* BacktraceLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceLogger.swift; sourceTree = "<group>"; };
 		F25F9E9621EE84AF00236E04 /* BacktraceResultStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceResultStatus.swift; sourceTree = "<group>"; };
 		F25F9E9921EE84EA00236E04 /* BacktraceResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceResult.swift; sourceTree = "<group>"; };
 		F266B81221C77AC800D14417 /* Backtrace.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Backtrace.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -405,7 +405,7 @@
 			isa = PBXGroup;
 			children = (
 				F2D8BE3B21BD78D8007CFEFA /* CrashReporter+StringConvertible.swift */,
-				F240532021C578AA00FC9394 /* Logger.swift */,
+				F240532021C578AA00FC9394 /* BacktraceLogger.swift */,
 			);
 			path = Log;
 			sourceTree = "<group>";
@@ -1145,7 +1145,7 @@
 				F266B83721C77B9600D14417 /* CrashReporting.swift in Sources */,
 				F28162FB21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
 				F21771BE21E341CA0059896E /* Dispatcher.swift in Sources */,
-				F266B83821C77B9600D14417 /* Logger.swift in Sources */,
+				F266B83821C77B9600D14417 /* BacktraceLogger.swift in Sources */,
 				F28F164A21E2844A008E4B96 /* BacktraceUnregisteredClient.swift in Sources */,
 				F266B83321C77B9600D14417 /* BacktraceClient.swift in Sources */,
 				F25F9E9821EE84AF00236E04 /* BacktraceResultStatus.swift in Sources */,
@@ -1185,7 +1185,7 @@
 			files = (
 				F240531E21C5680600FC9394 /* CrashReporting.swift in Sources */,
 				F28162FA21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
-				F240532121C578AA00FC9394 /* Logger.swift in Sources */,
+				F240532121C578AA00FC9394 /* BacktraceLogger.swift in Sources */,
 				F2CC8ACB21CF8D8400A68CAC /* Dispatcher.swift in Sources */,
 				F28F164C21E287F8008E4B96 /* InMemoryRepository.swift in Sources */,
 				F28F164321E28433008E4B96 /* BacktraceClientType.swift in Sources */,
