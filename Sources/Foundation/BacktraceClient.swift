@@ -1,4 +1,3 @@
-
 import Foundation
 
 /// Public BacktraceClient protocol.

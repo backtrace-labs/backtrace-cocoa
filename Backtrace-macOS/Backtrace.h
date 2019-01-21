@@ -1,4 +1,3 @@
-
 #import <Cocoa/Cocoa.h>
 
 //! Project version number for Backtrace.

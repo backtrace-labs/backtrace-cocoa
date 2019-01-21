@@ -46,7 +46,7 @@ type_name:
   excluded: iPhone # excluded via string
 identifier_name:
   min_length: # only min_length
-    warning: 4
+    warning: 3
     error: 2 # only error
   excluded: # excluded via string array
     - ok

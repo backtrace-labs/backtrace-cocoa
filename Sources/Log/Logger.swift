@@ -1,4 +1,3 @@
-
 import Foundation
 
 // Logging levels.

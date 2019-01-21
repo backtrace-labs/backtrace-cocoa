@@ -1,4 +1,3 @@
-
 import Foundation
 
 /// Backtrace server API credentials.

@@ -1,4 +1,3 @@
-
 import Foundation
 
 @objc open class BacktraceResult: NSObject {
