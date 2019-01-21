@@ -8,7 +8,7 @@
     <a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/language-objective--c-brightgreen.svg" alt="Language: Objecive-C" /></a>
     <a href="https://cocoapods.org"><img src="https://img.shields.io/badge/pod-v1.0.0-blue.svg" alt="CocoaPods compatible" /></a>
     <img src="http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat" alt="License: MIT" />
-<img src="https://travis-ci.com/apptailors/backtrace-cocoa.svg?token=L3Pd8y7KzZM5pUyy8WqM&branch=develop"/>
+<img src="https://travis-ci.com/backtrace-labs/backtrace-cocoa.svg?token=L3Pd8y7KzZM5pUyy8WqM&branch=develop"/>
 </p>
 
 ## Minimal usage
@@ -88,8 +88,8 @@
 To use [CocoaPods](https://cocoapods.org) just add this to your Podfile:
 
 ```
-pod 'PLCrashReporter', :git => 'https://github.com/apptailors/plcrashreporter.git', :branch => 'backtrace'
-pod 'Backtrace', :git => 'git@github.com:apptailors/backtrace-cocoa.git', :branch => 'develop'
+pod 'PLCrashReporter', :git => 'https://github.com/backtrace-labs/plcrashreporter.git', :branch => 'backtrace'
+pod 'Backtrace', :git => 'git@github.com:backtrace-labs/backtrace-cocoa.git', :branch => 'develop'
 ```
 
 # Documentation  <a name="documentation"></a>
@@ -154,13 +154,13 @@ Make sure your project is configured to generate the debug symbols:
 * Go to your project target's build settings: `YourTarget -> Build Settings`.
 * Search for `Debug Information Format`.
 * Select `DWARF with dSYM File`.
-![alt text](https://github.com/apptailors/backtrace-cocoa/blob/master/docs/screenshots/xcode-debug-information-format.png)
+![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/develop/docs/screenshots/xcode-debug-information-format.png)
 
 ### Finding dSYMs while building project
 * Build the project.
 * Build products and dSYMs are placed into the `Products` directory.
-![alt text](https://github.com/apptailors/backtrace-cocoa/blob/master/docs/screenshots/xcode-products.png)
-![alt text](https://github.com/apptailors/backtrace-cocoa/blob/master/docs/screenshots/finder-dsyms-products.png)
+![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/develop/docs/screenshots/xcode-products.png)
+![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/develop/docs/screenshots/finder-dsyms-products.png)
 * Zip all the `dSYM` files and upload to Backtrace services (see: <a href="https://help.backtrace.io/product-guide/symbolification">Symbolification</a>)
 
 ### Finding dSYMs while archiving project
@@ -168,9 +168,9 @@ Make sure your project is configured to generate the debug symbols:
 * dSYMs are placed inside of an `.xcarchive` of your project.
 * Open Xcode -> Window -> Organizer
 * Click on archive and select `Show in Finder`
-![alt text](https://github.com/apptailors/backtrace-cocoa/blob/master/docs/screenshots/xcode-organizer.png)
+![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/develop/docs/screenshots/xcode-organizer.png)
 * Click on `Show Package Contents`
-![alt text](https://github.com/apptailors/backtrace-cocoa/blob/master/docs/screenshots/finder-xcarchive.png)
+![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/develop/docs/screenshots/finder-xcarchive.png)
 * Search for `dSYMs` directory
-![alt text](https://github.com/apptailors/backtrace-cocoa/blob/master/docs/screenshots/finder-dsyms-archive.png)
+![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/develop/docs/screenshots/finder-dsyms-archive.png)
 * Zip all the `dSYM` files and upload to Backtrace services (see: <a href="https://help.backtrace.io/product-guide/symbolification">Symbolification</a>)

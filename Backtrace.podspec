@@ -14,8 +14,9 @@ Pod::Spec.new do |s|
   s.description  = "Backtrace's integration with iOS and macOS for handling crashes"
   s.homepage     = "https://backtrace.io/"
   s.license      = { :type => "MIT", :file => 'LICENSE' }
-  s.author             = { "Backtrace I/O" => "info@backtrace.io" }
-  s.source       = { :git => "git@github.com:apptailors/backtrace.git", :tag => "#{s.version}" }
+  s.author       = { "Backtrace I/O" => "info@backtrace.io" }
+  # s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa", :branch => "feature/rc" }
 
   s.ios.deployment_target = "10.0"
   s.osx.deployment_target = "10.10"
