@@ -1,10 +1,3 @@
-//
-//  InMemoryRepository.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 06/01/2019.
-//
-
 import Foundation
 
 class InMemoryRepository<Resource: Equatable> {
@@ -22,7 +15,7 @@ extension InMemoryRepository: Repository {
             throw RepositoryError.resourceAlreadyExists
         }
         resources.append(resource)
-        Logger.debug("Added: \(resource)")
+        BacktraceLogger.debug("Added: \(resource)")
     }
 
     func delete(_ resource: Resource) throws {
@@ -30,7 +23,7 @@ extension InMemoryRepository: Repository {
             throw RepositoryError.resourceNotFound
         }
         resources.append(resource)
-        Logger.debug("Removed: \(resource)")
+        BacktraceLogger.debug("Removed: \(resource)")
     }
 
     func getAll() throws -> [Resource] {

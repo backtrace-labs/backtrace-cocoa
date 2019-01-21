@@ -1,10 +1,3 @@
-//
-//  BacktraceResult.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 15/01/2019.
-//
-
 import Foundation
 
 @objc open class BacktraceResult: NSObject {
@@ -30,6 +23,8 @@ private extension BacktraceResultStatus {
             return "Unknown server error occurred."
         case .ok:
             return "Ok."
+        case .notRegisterd:
+            return "Backtrace client is not registered."
         }
     }
 }

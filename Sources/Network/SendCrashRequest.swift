@@ -1,10 +1,3 @@
-//
-//  SendCrashRequest.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 07/01/2019.
-//
-
 import Foundation
 
 struct SendCrashRequest {

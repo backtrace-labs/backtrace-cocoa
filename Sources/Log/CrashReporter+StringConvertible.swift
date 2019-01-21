@@ -1,10 +1,3 @@
-//
-//  CrashReporter+StringConvertible.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 09/12/2018.
-//
-
 import Foundation
 import PLCrashReporter
 
@@ -129,8 +122,7 @@ extension PLCrashReportSystemInfo: Composite {
             "name": operatingSystem.rawValue,
             "version": operatingSystemVersion.orEmpty(),
             "build": operatingSystemBuild.orEmpty(),
-            "timestamp": timestamp?.timeIntervalSince1970 ?? 0,
-            "architecture": architecture.rawValue
+            "timestamp": timestamp?.timeIntervalSince1970 ?? 0
         ]
     }
 }

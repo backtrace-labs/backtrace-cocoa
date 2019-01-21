@@ -1,10 +1,3 @@
-//
-//  BacktraceNetworkClient.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 09/12/2018.
-//
-
 import Foundation
 
 class BacktraceNetworkClient {
@@ -18,9 +11,10 @@ class BacktraceNetworkClient {
 }
 
 extension BacktraceNetworkClient: NetworkClientType {
+    @discardableResult
     func send(_ report: Data) throws -> BacktraceResponse {
         let urlRequest = try self.request.urlRequest()
-        Logger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
+        BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
         let response = session.sync(urlRequest, data: report)
         if let responseError = response.reponseError {
             throw HttpError.serverError(responseError)
@@ -28,7 +22,7 @@ extension BacktraceNetworkClient: NetworkClientType {
         guard let httpRespone = response.urlResponse, let responseData = response.responseData else {
             throw HttpError.unknownError
         }
-        Logger.debug("Response: \n\(httpRespone.debugDescription)")
+        BacktraceLogger.debug("Response: \n\(httpRespone.debugDescription)")
         return try BacktraceHtttpResponseDeserializer(httpResponse: httpRespone, responseData: responseData).response
     }
 }
