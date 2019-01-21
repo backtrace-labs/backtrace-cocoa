@@ -86,7 +86,7 @@ import Foundation
 }
 
 /// Provides the default console destination for logging.
-@objc final public class ConsoleDestination: BaseDestination {
+@objc final public class FencyConsoleDestination: BaseDestination {
 
     /// Used date formatter for logging.
     @objc public static var dateFormatter: DateFormatter {
@@ -99,7 +99,17 @@ import Foundation
 
     //swiftlint:disable line_length
     override public func log(level: Level, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
-        print("\(ConsoleDestination.dateFormatter.string(from: Date())) [\(level.desc()) Backtrace] [\(URL(fileURLWithPath: file).lastPathComponent)]:\(line) \(function) -> \(msg)")
+        print("\(FencyConsoleDestination.dateFormatter.string(from: Date())) [\(level.desc()) Backtrace] [\(URL(fileURLWithPath: file).lastPathComponent)]:\(line) \(function) -> \(msg)")
+    }
+    //swiftlint:enable line_length
+}
+
+/// Provides the default console destination for logging.
+@objc final public class ConsoleDestination: BaseDestination {
+    
+    //swiftlint:disable line_length
+    override public func log(level: Level, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
+        print("\(Date()) [Backtrace]: \(msg)")
     }
     //swiftlint:enable line_length
 }
