@@ -88,9 +88,11 @@
 To use [CocoaPods](https://cocoapods.org) just add this to your Podfile:
 
 ```
-pod 'PLCrashReporter', :git => 'https://github.com/backtrace-labs/plcrashreporter.git', :branch => 'backtrace'
-pod 'Backtrace', :git => 'git@github.com:backtrace-labs/backtrace-cocoa.git', :branch => 'master'
+pod 'PLCrashReporter', :git => 'https://github.com/backtrace-labs/plcrashreporter.git'
+pod 'Backtrace', :git => 'git@github.com:backtrace-labs/backtrace-cocoa.git'
 ```
+
+**Note:** It is required to specify `use_frameworks!` in your Podfile.
 
 # Documentation  <a name="documentation"></a>
 
