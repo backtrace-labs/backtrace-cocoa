@@ -7,6 +7,7 @@ final class BacktraceIntegrationTests: QuickSpec {
     override func spec() {
         describe("Crash reporter") {
             describe("Backtrace API") {
+                let crashReporter = CrashReporter()
                 describe("Valid credentials", closure: {
                     var networkClientWithValidCredentials: BacktraceNetworkClient {
                         let endpoint = URL(string: "https://yolo.sp.backtrace.io:6098")!
