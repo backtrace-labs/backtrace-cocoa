@@ -13,7 +13,7 @@ class BacktraceRegisteredClient {
 }
 
 extension BacktraceRegisteredClient: BacktraceClientType {
-    
+
     func handlePendingCrashes() throws {
         try reporter.enableCrashReporting()
         guard reporter.hasPendingCrashes() else {
