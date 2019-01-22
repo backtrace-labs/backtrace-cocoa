@@ -1,5 +1,5 @@
 import Foundation
-import PLCrashReporter
+import Backtrace_PLCrashReporter
 
 protocol Composite {
     var children: [Composite] { get }
