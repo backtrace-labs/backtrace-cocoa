@@ -26,6 +26,6 @@ Pod::Spec.new do |s|
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
 
-  s.dependency "PLCrashReporter"
+  s.dependency "Backtrace-PLCrashReporter"
 
 end

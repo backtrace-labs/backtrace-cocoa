@@ -1,5 +1,5 @@
 import Foundation
-import PLCrashReporter
+import Backtrace_PLCrashReporter
 
 protocol CrashReporting {
     func generateLiveReport() throws -> BacktraceCrashReport
