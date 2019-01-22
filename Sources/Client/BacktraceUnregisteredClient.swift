@@ -6,15 +6,11 @@ class BacktraceUnregisteredClient: BacktraceClientType {
         return BacktraceResult(.notRegisterd)
     }
     
-    func send(exception: NSException) throws -> BacktraceResult {
-        return BacktraceUnregisteredClient.printBlock()
-    }
-
     func handlePendingCrashes() throws {
         _ = BacktraceUnregisteredClient.printBlock()
     }
 
-    func send(_ error: Error) throws -> BacktraceResult {
+    func send() throws -> BacktraceResult {
         return BacktraceUnregisteredClient.printBlock()
     }
 }
