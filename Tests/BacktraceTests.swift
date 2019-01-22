@@ -11,8 +11,8 @@ final class BacktraceTests: QuickSpec {
                 expect { try crashReporter.generateLiveReport() }
                     .toNot(throwError())
             })
-            it("generate live report 100 times", closure: {
-                for _ in 0...100 {
+            it("generate live report 10 times", closure: {
+                for _ in 0...10 {
                     expect{ try crashReporter.generateLiveReport() }
                         .toNot(throwError())
                 }
@@ -28,9 +28,8 @@ final class BacktraceTests: QuickSpec {
                             .toNotEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Crash report should be successfully sent.")
                     })
                     it("sends crash report", closure: {
-                        let error = HttpError.unknownError
                         let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithValidCredentials)
-                        expect { try registeredClient.send(error).status }
+                        expect { try registeredClient.send().status }
                             .toEventually(equal(.ok), timeout: 10, pollInterval: 0.5, description: "Should succeed to send a crash report")
                     })
                 })
@@ -45,7 +44,7 @@ final class BacktraceTests: QuickSpec {
                     it("throws error while trying to send crash report", closure: {
                         let error = HttpError.unknownError
                         let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithInvalidEndpoint)
-                        expect { try registeredClient.send(error) }
+                        expect { try registeredClient.send() }
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
                     })
                 })
@@ -58,9 +57,8 @@ final class BacktraceTests: QuickSpec {
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Status code should be 403 - Forbidden.")
                     })
                     it("throws error while trying to send crash report", closure: {
-                        let error = HttpError.unknownError
                         let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithInvalidToken)
-                        expect { try registeredClient.send(error) }
+                        expect { try registeredClient.send() }
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
                     })
                 })

@@ -10,22 +10,18 @@ import Foundation
     
     /// Registers to Backtrace services using custom client configuration.
     ///
-    /// - Parameter configuration: Custom Backtrace client configuration,
+    /// - Parameter configuration: Custom Backtrace client configuration.
     @objc func register(configuration: BacktraceClientConfiguration)
     
-    /// Sends a crash report to Backtrace services.
+    /// Automatically generates and sends a crash report to Backtrace services.
+    /// The services response is returned in a completion block.
     ///
     /// - Parameters:
-    ///   - error: catched error
-    ///   - completion:
-    @objc func send(_ error: Error, completion: ((_ result: BacktraceResult) -> Void)?)
+    ///   - completion: Bactrace services response.
+    @objc func send(completion: @escaping ((_ result: BacktraceResult) -> Void))
     
-    /// Sends a crash report to Backtrace services.
-    ///
-    /// - Parameters:
-    ///   - exception: NSException
-    ///   - completion:
-    @objc func send(exception: NSException, completion: ((_ result: BacktraceResult) -> Void)?)
+    /// Automatically generates and sends a crash report to Backtrace services.
+    @objc func send()
 }
 
 /// Provides the default implementation of BacktraceClientProviding protocol.
@@ -45,10 +41,17 @@ import Foundation
 
 // MARK: - BacktraceClientProviding
 extension BacktraceClient: BacktraceClientProviding {
+    
+    /// Registers to Backtrace services and then sends pending crashes.
+    ///
+    /// - Parameter credentials: Backtrace API credentials.
     @objc public func register(credentials: BacktraceCredentials) {
         register(configuration: BacktraceClientConfiguration(credentials: credentials))
     }
     
+    /// Registers to Backtrace services with custom configuration sends pending crashses.
+    ///
+    /// - Parameter configuration: Custom Backtrace client configuration.
     @objc public func register(configuration: BacktraceClientConfiguration) {
         let networkClient = BacktraceNetworkClient(endpoint: configuration.credentials.endpoint,
                                                    token: configuration.credentials.token)
@@ -65,28 +68,26 @@ extension BacktraceClient: BacktraceClientProviding {
         })
     }
     
-    @objc public func send(exception: NSException, completion: ((BacktraceResult) -> Void)?) {
-        dispatcher.dispatch({ [weak self] in
-            guard let self = self else { return }
-            do {
-                completion?(try self.client.send(exception: exception))
-            } catch {
-                BacktraceLogger.error(error)
-                completion?(BacktraceResult(.serverError))
-            }
-            }, completion: {
-                BacktraceLogger.debug("Finished")
-        })
+    /// Automatically generates and sends a crash report to Backtrace services.
+    @objc public func send() {
+        send(completion: { _ in })
     }
-
-    @objc public func send(_ error: Error, completion: ((_ result: BacktraceResult) -> Void)? = nil) {
+    
+    /// Automatically generates and sends a crash report to Backtrace services.
+    /// The services response is returned in a completion block.
+    ///
+    /// - Parameters:
+    ///   - completion: Bactrace services response.
+    @objc public func send(completion: @escaping ((_ result: BacktraceResult) -> Void)) {
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                completion?(try self.client.send(error))
+                completion(try self.client.send())
+            } catch let responseError as BacktraceErrorResponse {
+                completion(responseError.backtraceResult)
             } catch {
                 BacktraceLogger.error(error)
-                completion?(BacktraceResult(.serverError))
+                completion(BacktraceResult(.serverError))
             }
             }, completion: {
                 BacktraceLogger.debug("Finished")

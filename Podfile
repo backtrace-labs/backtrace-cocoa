@@ -1,5 +1,5 @@
 def shared_pods
-    pod 'PLCrashReporter', :git => 'https://github.com/backtrace-labs/plcrashreporter.git', :branch => 'backtrace'
+    pod 'Backtrace-PLCrashReporter'
     pod 'SwiftLint'
 end
 

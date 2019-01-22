@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "0.0.1"
+  s.version      = "1.0.0"
   s.summary      = "Backtrace's integration with iOS and macOS"
   s.description  = "Backtrace's integration with iOS and macOS for handling crashes"
   s.homepage     = "https://backtrace.io/"
@@ -26,6 +26,6 @@ Pod::Spec.new do |s|
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
 
-  s.dependency "PLCrashReporter"
+  s.dependency "Backtrace-PLCrashReporter"
 
 end

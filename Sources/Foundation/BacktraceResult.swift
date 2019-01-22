@@ -1,8 +1,12 @@
 import Foundation
 
+/// Backtrace result containing the status and message.
 @objc open class BacktraceResult: NSObject {
     
+    /// Backtrace result status.
     @objc public let status: BacktraceResultStatus
+    
+    /// Backtrace message.
     @objc public let message: String
     
     init(_ status: BacktraceResultStatus) {
