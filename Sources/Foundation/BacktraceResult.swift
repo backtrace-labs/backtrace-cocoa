@@ -1,5 +1,6 @@
 import Foundation
 
+/// Backtrace result containing the status and message.
 @objc open class BacktraceResult: NSObject {
 
     /// Backtrace message.

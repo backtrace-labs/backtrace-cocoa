@@ -23,7 +23,7 @@
 }
 
 - (IBAction)liveReportButtonAction:(id)sender {
-    
+
 }
 
 - (void)setRepresentedObject:(id)representedObject {

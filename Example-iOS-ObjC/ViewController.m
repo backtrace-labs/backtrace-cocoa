@@ -13,7 +13,7 @@
 
 }
 - (IBAction) liveReportAction: (id) sender {
-
+    
     [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
         NSLog(@"%@", result.message);
     }];

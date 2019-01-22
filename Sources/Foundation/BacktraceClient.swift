@@ -10,10 +10,11 @@ import Foundation
 
     /// Registers to Backtrace services using custom client configuration.
     ///
-    /// - Parameter configuration: Custom Backtrace client configuration,
+    /// - Parameter configuration: Custom Backtrace client configuration.
     @objc func register(configuration: BacktraceClientConfiguration)
 
-    /// Sends a crash report to Backtrace services.
+    /// Automatically generates and sends a crash report to Backtrace services.
+    /// The services response is returned in a completion block.
     ///
     /// - Parameters:
     ///   - completion: Bactrace services response.
