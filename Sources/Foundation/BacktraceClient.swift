@@ -70,7 +70,9 @@ extension BacktraceClient: BacktraceClientProviding {
             guard let self = self else { return }
             do {
                 completion?(try self.client.send(exception: exception))
-            } catch {
+            } catch let responseError as BacktraceErrorResponse {
+                completion?(responseError.backtraceResult)
+            }  catch {
                 BacktraceLogger.error(error)
                 completion?(BacktraceResult(.serverError))
             }
@@ -84,6 +86,8 @@ extension BacktraceClient: BacktraceClientProviding {
             guard let self = self else { return }
             do {
                 completion?(try self.client.send(error))
+            } catch let responseError as BacktraceErrorResponse {
+                completion?(responseError.backtraceResult)
             } catch {
                 BacktraceLogger.error(error)
                 completion?(BacktraceResult(.serverError))
