@@ -1,10 +1,3 @@
-//
-//  BacktraceRegisteredClient.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 06/01/2019.
-//
-
 import Foundation
 
 class BacktraceRegisteredClient {
@@ -20,18 +13,11 @@ class BacktraceRegisteredClient {
 }
 
 extension BacktraceRegisteredClient: BacktraceClientType {
-    func send(exception: NSException) throws -> BacktraceResult {
-        let resource = try reporter.generateLiveReport()
-        try repository.save(resource)
-        let result = try networkClient.send(resource.reportData)
-        try repository.delete(resource)
-        return result.backtraceResult
-    }
 
     func handlePendingCrashes() throws {
         try reporter.enableCrashReporting()
         guard reporter.hasPendingCrashes() else {
-            Logger.debug("No pending crashes")
+            BacktraceLogger.debug("No pending crashes")
             return
         }
         let resource = try reporter.pendingCrashReport()
@@ -41,7 +27,7 @@ extension BacktraceRegisteredClient: BacktraceClientType {
         try reporter.purgePendingCrashReport()
     }
 
-    func send(_ error: Error) throws -> BacktraceResult {
+    func send() throws -> BacktraceResult {
         let resource = try reporter.generateLiveReport()
         try repository.save(resource)
         let result = try networkClient.send(resource.reportData)

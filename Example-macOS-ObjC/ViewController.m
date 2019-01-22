@@ -1,10 +1,3 @@
-//
-//  ViewController.m
-//  Example-macOS-ObjC
-//
-//  Created by Marcin Karmelita on 09/12/2018.
-//
-
 #import "ViewController.h"
 @import Backtrace;
 
@@ -30,11 +23,7 @@
 }
 
 - (IBAction)liveReportButtonAction:(id)sender {
-    NSString *customErrorDomain = @"backtrace";
-    NSInteger errorCode = 100;
-    NSError *exampleError = [NSError errorWithDomain: customErrorDomain code: errorCode userInfo: nil];
-    
-    [[BacktraceClient shared] send: exampleError completion:^(BacktraceResult * _Nonnull result) {
+    [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
         NSLog(@"%@", result.message);
     }];
 }

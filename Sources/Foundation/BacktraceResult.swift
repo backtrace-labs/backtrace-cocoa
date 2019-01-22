@@ -1,15 +1,12 @@
-//
-//  BacktraceResult.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 15/01/2019.
-//
-
 import Foundation
 
+/// Backtrace result containing the status and message.
 @objc open class BacktraceResult: NSObject {
     
+    /// Backtrace result status.
     @objc public let status: BacktraceResultStatus
+    
+    /// Backtrace message.
     @objc public let message: String
     
     init(_ status: BacktraceResultStatus) {
@@ -30,6 +27,8 @@ private extension BacktraceResultStatus {
             return "Unknown server error occurred."
         case .ok:
             return "Ok."
+        case .notRegisterd:
+            return "Backtrace client is not registered."
         }
     }
 }

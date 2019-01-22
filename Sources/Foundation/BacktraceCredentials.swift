@@ -1,10 +1,3 @@
-//
-//  BacktraceCredentials.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 17/01/2019.
-//
-
 import Foundation
 
 /// Backtrace server API credentials.

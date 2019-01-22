@@ -1,5 +1,5 @@
 def shared_pods
-    pod 'PLCrashReporter', :git => 'https://github.com/apptailors/plcrashreporter.git', :branch => 'backtrace'
+    pod 'Backtrace-PLCrashReporter'
     pod 'SwiftLint'
 end
 
@@ -8,6 +8,8 @@ def shared_test_pods
     pod 'Nimble'
     pod 'Quick'
 end
+
+inhibit_all_warnings!
 
 # Framework iOS
 target 'Backtrace-iOS' do
