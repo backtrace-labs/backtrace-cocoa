@@ -1,17 +1,10 @@
-//
-//  Dispatcher.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 23/12/2018.
-//
-
 import Foundation
 
-@objc public protocol DispatcherType {
-    @objc func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void)
+protocol DispatcherType {
+    func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void)
 }
 
-@objc open class Dispatcher: NSObject {
+class Dispatcher: NSObject {
 
     static let operationQueueName = "backtrace.dispatching"
     static let underlyingQueue = DispatchQueue(label: operationQueueName, qos: .background)
@@ -26,7 +19,7 @@ import Foundation
 }
 
 extension Dispatcher: DispatcherType {
-    @objc public func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void) {
+    func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void) {
         let blockOperation = BlockOperation(block: block)
         blockOperation.completionBlock = completion
         workingQueue.addOperation(blockOperation)

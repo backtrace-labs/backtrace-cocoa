@@ -1,10 +1,3 @@
-//
-//  BacktraceError.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 09/12/2018.
-//
-
 import Foundation
 
 protocol BacktraceError: Error {}
@@ -13,8 +6,10 @@ enum FlowError: BacktraceError {
     case unexpectedState
 }
 
-enum UrlError: BacktraceError {
+enum HttpError: BacktraceError {
     case malformedUrl
+    case serverError(Error)
+    case unknownError
 }
 
 enum PLCrashReporterError: BacktraceError {
@@ -24,4 +19,10 @@ enum PLCrashReporterError: BacktraceError {
 enum RepositoryError: BacktraceError {
     case resourceNotFound
     case resourceAlreadyExists
+}
+
+extension BacktraceError {
+    var backtraceResult: BacktraceResult {
+        return BacktraceResult(.serverError)
+    }
 }

@@ -1,26 +1,16 @@
-//
-//  BacktraceUnregisteredClient.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 06/01/2019.
-//
-
 import Foundation
 
 class BacktraceUnregisteredClient: BacktraceClientType {
-    private static let printBlock = {
-        Logger.error("Backtrace client is not regiestered.")
+    private static let printBlock = { () -> BacktraceResult in
+        BacktraceLogger.error("Backtrace client is not regiestered.")
+        return BacktraceResult(.notRegisterd)
     }
     
-    func send(exception: NSException) throws {
-        BacktraceUnregisteredClient.printBlock()
-    }
-
     func handlePendingCrashes() throws {
-        BacktraceUnregisteredClient.printBlock()
+        _ = BacktraceUnregisteredClient.printBlock()
     }
 
-    func send(_ error: Error) throws {
-        BacktraceUnregisteredClient.printBlock()
+    func send() throws -> BacktraceResult {
+        return BacktraceUnregisteredClient.printBlock()
     }
 }

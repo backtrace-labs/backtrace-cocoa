@@ -1,10 +1,3 @@
-//
-//  ViewController.swift
-//  Example-iOS
-//
-//  Created by Marcin Karmelita on 08/12/2018.
-//
-
 import UIKit
 import Backtrace
 
@@ -21,12 +14,7 @@ class ViewController: UIViewController {
     }
 
     @IBAction func liveReportAction(_ sender: Any) {
-        BacktraceClient.shared.send(CustomError())
-        
-        let exception = NSException(name: NSExceptionName(rawValue: "backtrace.exception.name"), reason: "backtrace.exception.reason", userInfo: nil)
-        BacktraceClient.shared.send(exception: exception) { (result) in
-            print(result.message)
-        }
+        BacktraceClient.shared.send()
     }
 
     @IBAction func crashAppAction(_ sender: Any) {

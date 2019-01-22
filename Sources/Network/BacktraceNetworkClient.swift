@@ -1,13 +1,6 @@
-//
-//  BacktraceNetworkClient.swift
-//  Backtrace
-//
-//  Created by Marcin Karmelita on 09/12/2018.
-//
-
 import Foundation
 
-public class BacktraceNetworkClient {
+class BacktraceNetworkClient {
     private let request: SendCrashRequest
     private let session: URLSession
 
@@ -18,24 +11,18 @@ public class BacktraceNetworkClient {
 }
 
 extension BacktraceNetworkClient: NetworkClientType {
-    public func send(_ report: Data) throws {
-        Logger.debug("Sending crash report.")
+    @discardableResult
+    func send(_ report: Data) throws -> BacktraceResponse {
         let urlRequest = try self.request.urlRequest()
+        BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
         let response = session.sync(urlRequest, data: report)
-        Logger.debug("Response status code: \(response.urlResponse?.statusCode ?? -1)")
-    }
-
-    public func send(_ data: Data, completion: ResponseCompletion?) {
-        do {
-            let urlRequest = try self.request.urlRequest()
-            Logger.info(urlRequest.description)
-            let task = session.uploadTask(with: urlRequest, from: data) { (_, urlResponse, error) in
-                completion?(urlResponse, error)
-            }
-            task.resume()
-        } catch {
-            Logger.error(error.localizedDescription)
-            completion?(nil, error)
+        if let responseError = response.reponseError {
+            throw HttpError.serverError(responseError)
         }
+        guard let httpRespone = response.urlResponse, let responseData = response.responseData else {
+            throw HttpError.unknownError
+        }
+        BacktraceLogger.debug("Response: \n\(httpRespone.debugDescription)")
+        return try BacktraceHtttpResponseDeserializer(httpResponse: httpRespone, responseData: responseData).response
     }
 }

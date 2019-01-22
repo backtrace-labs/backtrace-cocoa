@@ -1,10 +1,3 @@
-//
-//  AppDelegate.m
-//  Example-macOS-ObjC
-//
-//  Created by Marcin Karmelita on 09/12/2018.
-//
-
 #import "AppDelegate.h"
 @import Backtrace;
 
@@ -16,7 +9,10 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Insert code here to initialize your application
-    [[BacktraceClient shared] registerWithEndpoint: @"https://yolo.sp.backtrace.io:6098" token: @"b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"];
+    BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
+                                         initWithEndpoint: [NSURL URLWithString: @"https://yolo.sp.backtrace.io:6098"]
+                                         token: @"b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"];
+    [BacktraceClient.shared registerWithCredentials: credentials];
     
 }
 
