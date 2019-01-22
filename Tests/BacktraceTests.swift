@@ -11,8 +11,8 @@ final class BacktraceTests: QuickSpec {
                 expect { try crashReporter.generateLiveReport() }
                     .toNot(throwError())
             })
-            it("generate live report 100 times", closure: {
-                for _ in 0...100 {
+            it("generate live report 10 times", closure: {
+                for _ in 0...10 {
                     expect{ try crashReporter.generateLiveReport() }
                         .toNot(throwError())
                 }
