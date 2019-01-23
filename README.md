@@ -23,25 +23,24 @@
   @UIApplicationMain
   class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
+      var window: UIWindow?
 
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://yolo.sp.backtrace.io:6098")!,
-                                                        token: "b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3")
-        BacktraceClient.shared.register(credentials: backtraceCredentials)
+      func application(_ application: UIApplication,
+                       didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+          let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "")!,
+                                                          token: "")
+          BacktraceClient.shared.register(credentials: backtraceCredentials)
 
-        //sending Swift.Error
-        do {
-            try throwingFunc()
-        } catch {
-            BacktraceClient.shared.send { (result) in
-                print(result.message)
-            }
-        }
+          do {
+              try throwingFunc()
+          } catch {
+              BacktraceClient.shared.send { (result) in
+                  print(result)
+              }
+          }
 
-        return true
-    }
+          return true
+      }
   }
 ```
 
@@ -68,7 +67,7 @@
         NSObject *object = array[1]; // will throw exception
     } @catch (NSException *exception) {
         [[BacktraceClient shared] sendWithException: exception completion:^(BacktraceResult * _Nonnull result) {
-            NSLog(@"%@", result.message);
+            NSLog(@"%@", result);
         }];
     } @finally {
 
@@ -77,7 +76,7 @@
     //sending NSError
     NSError *error = [NSError errorWithDomain: @"backtrace.domain" code: 100 userInfo: @{}];
     [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
-        NSLog(@"%@", result.message);
+        NSLog(@"%@", result);
     }];
 
     return YES;
