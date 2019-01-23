@@ -37,6 +37,11 @@
                BlueprintName = "Backtrace-macOSTests"
                ReferencedContainer = "container:Backtrace.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "BacktraceIntegrationTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
       <MacroExpansion>

@@ -16,8 +16,6 @@
 		F21771BE21E341CA0059896E /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CC8ACA21CF8D8400A68CAC /* Dispatcher.swift */; };
 		F21771C021E344C10059896E /* SendCrashRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21771BF21E344C10059896E /* SendCrashRequest.swift */; };
 		F21771C121E344C10059896E /* SendCrashRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21771BF21E344C10059896E /* SendCrashRequest.swift */; };
-		F22D5C1D21F65EFE0099AE7F /* BacktraceIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22D5C1A21F65EEF0099AE7F /* BacktraceIntegrationTests.swift */; };
-		F22D5C1E21F65EFF0099AE7F /* BacktraceIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22D5C1A21F65EEF0099AE7F /* BacktraceIntegrationTests.swift */; };
 		F22EB87721BBD36800DEE94E /* BacktraceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22EB87621BBD36800DEE94E /* BacktraceClient.swift */; };
 		F240531E21C5680600FC9394 /* CrashReporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240531D21C5680600FC9394 /* CrashReporting.swift */; };
 		F240532121C578AA00FC9394 /* BacktraceLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240532021C578AA00FC9394 /* BacktraceLogger.swift */; };
@@ -190,7 +188,6 @@
 		D0FD3E3727B2ED6C3130FFE5 /* Pods_Example_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF47A4A177C5A149E93E11E9 /* Pods_Backtrace_iOSTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_iOSTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F21771BF21E344C10059896E /* SendCrashRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendCrashRequest.swift; sourceTree = "<group>"; };
-		F22D5C1A21F65EEF0099AE7F /* BacktraceIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceIntegrationTests.swift; sourceTree = "<group>"; };
 		F22EB87621BBD36800DEE94E /* BacktraceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClient.swift; sourceTree = "<group>"; };
 		F240531D21C5680600FC9394 /* CrashReporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporting.swift; sourceTree = "<group>"; };
 		F240532021C578AA00FC9394 /* BacktraceLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceLogger.swift; sourceTree = "<group>"; };
@@ -343,14 +340,6 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
-		F22D5C1921F65ED60099AE7F /* Integration */ = {
-			isa = PBXGroup;
-			children = (
-				F22D5C1A21F65EEF0099AE7F /* BacktraceIntegrationTests.swift */,
-			);
-			path = Integration;
-			sourceTree = "<group>";
-		};
 		F266B81321C77AC800D14417 /* Backtrace-macOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -372,7 +361,6 @@
 		F266B85321C77D5D00D14417 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				F22D5C1921F65ED60099AE7F /* Integration */,
 				F266B85421C77D8B00D14417 /* BacktraceTests.swift */,
 				F2D7121D21F10461002D2A26 /* BacktraceNetworkClientMock.swift */,
 			);
@@ -1221,7 +1209,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				F25C0FC721C79EFB0083029C /* Backtrace_macOSTests.swift in Sources */,
-				F22D5C1E21F65EFF0099AE7F /* BacktraceIntegrationTests.swift in Sources */,
 				F25C0FC521C797D60083029C /* BacktraceTests.swift in Sources */,
 				F2D7121F21F10461002D2A26 /* BacktraceNetworkClientMock.swift in Sources */,
 			);
@@ -1262,7 +1249,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */,
-				F22D5C1D21F65EFE0099AE7F /* BacktraceIntegrationTests.swift in Sources */,
 				F25C0FC421C797D50083029C /* BacktraceTests.swift in Sources */,
 				F2D7121E21F10461002D2A26 /* BacktraceNetworkClientMock.swift in Sources */,
 			);
