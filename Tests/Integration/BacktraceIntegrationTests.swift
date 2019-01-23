@@ -10,8 +10,8 @@ final class BacktraceIntegrationTests: QuickSpec {
                 let crashReporter = CrashReporter()
                 describe("Valid credentials", closure: {
                     var networkClientWithValidCredentials: BacktraceNetworkClient {
-                        let endpoint = URL(string: "https://yolo.sp.backtrace.io:6098")!
-                        let token = "b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"
+                        let endpoint = URL(string: "")!
+                        let token = ""
                         return BacktraceNetworkClient(endpoint: endpoint, token: token)
                     }
                     it("sends crash report", closure: {
@@ -27,8 +27,8 @@ final class BacktraceIntegrationTests: QuickSpec {
                 })
                 describe("Invalid endpoint", closure: {
                     var networkClientWithInvalidEndpoint: BacktraceNetworkClient {
-                        let invalidEndpoint = URL(string: "https://not.exist.yolo.sp.backtrace.io:6098")!
-                        let token = "b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"
+                        let invalidEndpoint = URL(string: "")!
+                        let token = ""
                         return BacktraceNetworkClient(endpoint: invalidEndpoint, token: token)
                     }
                     it("fails to send crash report with invalid endpoint", closure: {
@@ -44,8 +44,8 @@ final class BacktraceIntegrationTests: QuickSpec {
                 })
                 describe("Invalid token", closure: {
                     var networkClientWithInvalidToken: BacktraceNetworkClient {
-                        let endpoint = URL(string: "https://yolo.sp.backtrace.io:6098")!
-                        let invalidToken = "ba89a7a66b67f78c989c6aba89a7a66b67f78c989c6a"
+                        let endpoint = URL(string: "")!
+                        let invalidToken = ""
                         return BacktraceNetworkClient(endpoint: endpoint, token: invalidToken)
                     }
                     it("fails to send crash report with invalid token", closure: {
