@@ -6,7 +6,7 @@
     <img src="https://img.shields.io/badge/platform-iOS%2010%2B%20%7C%20macOS%2010.10%2B-blue.svg" alt="Supported platforms"/>
     <a href="https://masterer.apple.com/swift"><img src="https://img.shields.io/badge/language-swift%204-brightgreen.svg" alt="Language: Swift 4" /></a>
     <a href="https://masterer.apple.com/swift"><img src="https://img.shields.io/badge/language-objective--c-brightgreen.svg" alt="Language: Objecive-C" /></a>
-    <a href="https://cocoapods.org/pods/Backtrace"><img src="https://img.shields.io/badge/pod-v1.0.0-blue.svg" alt="CocoaPods compatible" /></a>
+    <a href="https://cocoapods.org/pods/Backtrace"><img src="https://img.shields.io/cocoapods/v/Backtrace.svg?style=flat" alt="CocoaPods compatible" /></a>
     <img src="http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat" alt="License: MIT" />
     <img src="https://travis-ci.org/backtrace-labs/backtrace-cocoa.svg?branch=master"/>
 </p>
@@ -27,8 +27,8 @@
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://yolo.sp.backtrace.io:6098")!,
-                                                        token: "b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3")
+        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "endpoint")!,
+                                                        token: "token")
         BacktraceClient.shared.register(credentials: backtraceCredentials)
 
         do {
@@ -54,8 +54,8 @@
 
   - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
-                                         initWithEndpoint: [NSURL URLWithString: @"https://yolo.sp.backtrace.io:6098"]
-                                         token: @"b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"];
+                                         initWithEndpoint: [NSURL URLWithString: @"endpoint"]
+                                         token: @"token"];
     [BacktraceClient.shared registerWithCredentials: credentials];
 
     @try {

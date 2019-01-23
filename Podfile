@@ -31,19 +31,3 @@ target 'Backtrace-macOS' do
         shared_test_pods
     end
 end
-
-#Examples
-target 'Example-iOS' do
-    use_frameworks!
-    shared_pods
-end
-
-target 'Example-iOS-ObjC' do
-    use_frameworks!
-    shared_pods
-end
-
-target 'Example-macOS-ObjC' do
-    use_frameworks!
-    shared_pods
-end
