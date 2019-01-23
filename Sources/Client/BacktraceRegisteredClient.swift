@@ -27,7 +27,7 @@ extension BacktraceRegisteredClient: BacktraceClientType {
         try reporter.purgePendingCrashReport()
     }
 
-    func send(exception: NSException?) throws -> BacktraceResult {
+    func send(_ exception: NSException? = nil) throws -> BacktraceResult {
         let resource: BacktraceCrashReport
         if let exception = exception {
             resource = try reporter.generateLiveReport(exception: exception)
