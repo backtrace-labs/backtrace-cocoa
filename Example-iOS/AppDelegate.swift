@@ -1,6 +1,14 @@
 import UIKit
 import Backtrace
 
+enum CustomError: Error {
+    case runtimeError
+}
+
+func throwingFunc() throws {
+    throw CustomError.runtimeError
+}
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -12,6 +20,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
                                                         token: "")
         BacktraceClient.shared.register(credentials: backtraceCredentials)
+
+        do {
+            try throwingFunc()
+        } catch {
+            BacktraceClient.shared.send { (result) in
+                print(result)
+            }
+        }
 
         return true
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct BacktraceCrashReport {
+struct BacktraceCrashReport {
     //swiftlint:disable legacy_hashing
     let hashValue: Int
     //swiftlint:enable legacy_hashing

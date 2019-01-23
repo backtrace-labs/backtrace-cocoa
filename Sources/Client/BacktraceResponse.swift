@@ -28,7 +28,7 @@ struct BacktraceResponse: Codable {
 
 extension BacktraceResponse {
     var backtraceResult: BacktraceResult {
-        return BacktraceResult(status: .ok, message: self.response)
+        return BacktraceResult(.ok(response: response))
     }
 }
 
@@ -43,7 +43,7 @@ struct BacktraceErrorResponse: Codable, BacktraceError {
 
 extension BacktraceErrorResponse {
     var backtraceResult: BacktraceResult {
-        return BacktraceResult(status: .serverError, message: self.error.message)
+        return BacktraceResult(.serverError(message: error.message, code: error.code))
     }
 }
 
