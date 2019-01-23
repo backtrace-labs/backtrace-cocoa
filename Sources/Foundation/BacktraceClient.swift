@@ -21,7 +21,12 @@ import Foundation
     @objc func send(completion: @escaping ((_ result: BacktraceResult) -> Void))
     
     /// Automatically generates and sends a crash report to Backtrace services.
-    @objc func send()
+    /// The services response is returned in a completion block.
+    ///
+    /// - Parameters:
+    ///   - exception: instance of NSException,
+    ///   - completion: Bactrace services response.
+    @objc func send(exception: NSException, completion: @escaping ((_ result: BacktraceResult) -> Void))
 }
 
 /// Provides the default implementation of BacktraceClientProviding protocol.
@@ -69,8 +74,25 @@ extension BacktraceClient: BacktraceClientProviding {
     }
     
     /// Automatically generates and sends a crash report to Backtrace services.
-    @objc public func send() {
-        send(completion: { _ in })
+    /// The services response is returned in a completion block.
+    ///
+    /// - Parameters:
+    ///   - exception: instance of NSException,
+    ///   - completion: Bactrace services response.
+    @objc public func send(exception: NSException, completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        dispatcher.dispatch({ [weak self] in
+            guard let self = self else { return }
+            do {
+                completion(try self.client.send(exception))
+            } catch let responseError as BacktraceErrorResponse {
+                completion(responseError.backtraceResult)
+            } catch {
+                BacktraceLogger.error(error)
+                completion(BacktraceResult(.unknownError))
+            }
+            }, completion: {
+                BacktraceLogger.debug("Finished")
+        })
     }
     
     /// Automatically generates and sends a crash report to Backtrace services.
@@ -82,12 +104,12 @@ extension BacktraceClient: BacktraceClientProviding {
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                completion(try self.client.send())
+                completion(try self.client.send(nil))
             } catch let responseError as BacktraceErrorResponse {
                 completion(responseError.backtraceResult)
             } catch {
                 BacktraceLogger.error(error)
-                completion(BacktraceResult(.serverError))
+                completion(BacktraceResult(.unknownError))
             }
             }, completion: {
                 BacktraceLogger.debug("Finished")

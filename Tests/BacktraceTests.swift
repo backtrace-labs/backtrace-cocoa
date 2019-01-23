@@ -29,8 +29,8 @@ final class BacktraceTests: QuickSpec {
                     })
                     it("sends crash report", closure: {
                         let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithValidCredentials)
-                        expect { try registeredClient.send().status }
-                            .toEventually(equal(.ok), timeout: 10, pollInterval: 0.5, description: "Should succeed to send a crash report")
+                        expect { try registeredClient.send(nil).message }
+                            .toEventually(equal("Ok."), timeout: 10, pollInterval: 0.5, description: "Should succeed to send a crash report")
                     })
                 })
                 describe("Invalid endpoint", closure: {
@@ -44,7 +44,7 @@ final class BacktraceTests: QuickSpec {
                     it("throws error while trying to send crash report", closure: {
                         let error = HttpError.unknownError
                         let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithInvalidEndpoint)
-                        expect { try registeredClient.send() }
+                        expect { try registeredClient.send(nil) }
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
                     })
                 })
@@ -58,7 +58,7 @@ final class BacktraceTests: QuickSpec {
                     })
                     it("throws error while trying to send crash report", closure: {
                         let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithInvalidToken)
-                        expect { try registeredClient.send() }
+                        expect { try registeredClient.send(nil) }
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
                     })
                 })
