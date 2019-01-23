@@ -19,7 +19,7 @@
         NSObject *object = array[1]; //will throw exception
     } @catch (NSException *exception) {
         [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
-            NSLog(@"%@", result.message);
+            NSLog(@"%@", result);
         }];
     } @finally {
         

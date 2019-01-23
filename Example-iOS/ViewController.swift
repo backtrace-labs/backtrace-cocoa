@@ -11,7 +11,7 @@ class ViewController: UIViewController {
 
     @IBAction func liveReportAction(_ sender: Any) {
         BacktraceClient.shared.send { (result) in
-            print(result.message)
+            print(result)
         }
     }
 

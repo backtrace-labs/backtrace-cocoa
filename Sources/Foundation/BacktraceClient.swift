@@ -88,7 +88,7 @@ extension BacktraceClient: BacktraceClientProviding {
                 completion(responseError.backtraceResult)
             } catch {
                 BacktraceLogger.error(error)
-                completion(BacktraceResult(.serverError))
+                completion(BacktraceResult(.unknownError))
             }
             }, completion: {
                 BacktraceLogger.debug("Finished")
@@ -109,7 +109,7 @@ extension BacktraceClient: BacktraceClientProviding {
                 completion(responseError.backtraceResult)
             } catch {
                 BacktraceLogger.error(error)
-                completion(BacktraceResult(.serverError))
+                completion(BacktraceResult(.unknownError))
             }
             }, completion: {
                 BacktraceLogger.debug("Finished")

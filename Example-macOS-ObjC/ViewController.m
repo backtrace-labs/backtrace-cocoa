@@ -23,9 +23,7 @@
 }
 
 - (IBAction)liveReportButtonAction:(id)sender {
-//    [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
-//        NSLog(@"%@", result.message);
-//    }];
+    
 }
 
 - (void)setRepresentedObject:(id)representedObject {

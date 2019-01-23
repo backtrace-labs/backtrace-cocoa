@@ -1,21 +1,24 @@
 import Foundation
 
 /// Backtrace result statuses.
-@objc public enum BacktraceResultStatus: Int {
-    case serverError
-    case ok
+enum BacktraceResultStatus {
+    case serverError(message: String, code: Int)
+    case ok(response: String)
     case notRegisterd
+    case unknownError
 }
 
-extension BacktraceResultStatus {
-    var messageDescription: String {
+extension BacktraceResultStatus: CustomStringConvertible {
+    var description: String {
         switch self {
-        case .serverError:
-            return "Unknown server error occurred."
-        case .ok:
-            return "Ok."
+        case .serverError(let message, _):
+            return message
+        case .ok(let response):
+            return response
         case .notRegisterd:
             return "Backtrace client is not registered."
+        case .unknownError:
+            return "Unknown error."
         }
     }
 }
