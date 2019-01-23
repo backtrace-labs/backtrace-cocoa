@@ -6,7 +6,7 @@
     <img src="https://img.shields.io/badge/platform-iOS%2010%2B%20%7C%20macOS%2010.10%2B-blue.svg" alt="Supported platforms"/>
     <a href="https://masterer.apple.com/swift"><img src="https://img.shields.io/badge/language-swift%204-brightgreen.svg" alt="Language: Swift 4" /></a>
     <a href="https://masterer.apple.com/swift"><img src="https://img.shields.io/badge/language-objective--c-brightgreen.svg" alt="Language: Objecive-C" /></a>
-    <a href="https://cocoapods.org/pods/Backtrace"><img src="https://img.shields.io/badge/pod-v1.0.0-blue.svg" alt="CocoaPods compatible" /></a>
+    <a href="https://cocoapods.org/pods/Backtrace"><img src="https://img.shields.io/cocoapods/v/Backtrace.svg?style=flat" alt="CocoaPods compatible" /></a>
     <img src="http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat" alt="License: MIT" />
     <img src="https://travis-ci.org/backtrace-labs/backtrace-cocoa.svg?branch=master"/>
 </p>
@@ -23,21 +23,24 @@
   @UIApplicationMain
   class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
+      var window: UIWindow?
 
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://yolo.sp.backtrace.io:6098")!,
-                                                        token: "b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3")
-        BacktraceClient.shared.register(credentials: backtraceCredentials)
+      func application(_ application: UIApplication,
+                       didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+          let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "")!,
+                                                          token: "")
+          BacktraceClient.shared.register(credentials: backtraceCredentials)
 
-        do {
-            // do stuff
-        } catch {
-            BacktraceClient.shared.send()
-        }
-        return true
-    }
+          do {
+              try throwingFunc()
+          } catch {
+              BacktraceClient.shared.send { (result) in
+                  print(result)
+              }
+          }
+
+          return true
+      }
   }
 ```
 
@@ -54,17 +57,27 @@
 
   - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
-                                         initWithEndpoint: [NSURL URLWithString: @"https://yolo.sp.backtrace.io:6098"]
-                                         token: @"b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"];
+                                         initWithEndpoint: [NSURL URLWithString: @""]
+                                         token: @""];
     [BacktraceClient.shared registerWithCredentials: credentials];
 
+    // sending NSException
     @try {
-        // do stuff
+        NSArray *array = @[];
+        NSObject *object = array[1]; // will throw exception
     } @catch (NSException *exception) {
-        [[BacktraceClient shared] send];
+        [[BacktraceClient shared] sendWithException: exception completion:^(BacktraceResult * _Nonnull result) {
+            NSLog(@"%@", result);
+        }];
     } @finally {
-        // clean up
+
     }
+
+    //sending NSError
+    NSError *error = [NSError errorWithDomain: @"backtrace.domain" code: 100 userInfo: @{}];
+    [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
+        NSLog(@"%@", result);
+    }];
 
     return YES;
   }
@@ -111,18 +124,26 @@ BacktraceClient.shared.register(credentials: BacktraceCredentials)
 ```
 
 ## Sending an error report <a name="documentation-sending-report"></a>
-Registered `BacktraceClient` will be able to send an crash reports.
+Registered `BacktraceClient` will be able to send an crash reports. Error report is automatically generated based.
 
-### Sending `Error/NSError/NSException`
+### Sending `Error/NSError`
 - Swift
 ```swift
 @objc func send(completion: ((BacktraceResult) -> Void))
-@objc func send()
 ```
 - Objective-C
 ```objective-c
  - (void) sendWithCompletion: (void (^)(BacktraceResult * _Nonnull)) completion;
- - (void) send;
+```
+
+### Sending `NSException`
+- Swift
+```swift
+@objc func send(exception: NSException, completion: ((BacktraceResult) -> Void))
+```
+- Objective-C
+```objective-c
+ - (void) sendWithException: NSException completion: (void (^)(BacktraceResult * _Nonnull)) completion;
 ```
 
 # Architecture  <a name="architecture"></a>
