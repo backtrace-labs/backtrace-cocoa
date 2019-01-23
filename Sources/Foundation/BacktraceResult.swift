@@ -11,7 +11,7 @@ import Foundation
     
     init(_ status: BacktraceResultStatus) {
         self.status = status
-        self.message = status.description
+        self.message = status.messageDescription
     }
     
     init(status: BacktraceResultStatus, message: String) {
@@ -20,15 +20,13 @@ import Foundation
     }
 }
 
-private extension BacktraceResultStatus {
-    var description: String {
-        switch self {
-        case .serverError:
-            return "Unknown server error occurred."
-        case .ok:
-            return "Ok."
-        case .notRegisterd:
-            return "Backtrace client is not registered."
-        }
+extension BacktraceResult {
+    override open var description: String {
+        return
+            """
+            Backtrace result:
+            - message: \(message)
+            - status: \(status)
+            """
     }
 }

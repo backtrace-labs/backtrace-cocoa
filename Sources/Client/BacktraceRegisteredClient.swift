@@ -27,8 +27,13 @@ extension BacktraceRegisteredClient: BacktraceClientType {
         try reporter.purgePendingCrashReport()
     }
 
-    func send() throws -> BacktraceResult {
-        let resource = try reporter.generateLiveReport()
+    func send(exception: NSException?) throws -> BacktraceResult {
+        let resource: BacktraceCrashReport
+        if let exception = exception {
+            resource = try reporter.generateLiveReport(exception: exception)
+        } else {
+            resource = try reporter.generateLiveReport()
+        }
         try repository.save(resource)
         let result = try networkClient.send(resource.reportData)
         try repository.delete(resource)

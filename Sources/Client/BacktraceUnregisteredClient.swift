@@ -10,7 +10,7 @@ class BacktraceUnregisteredClient: BacktraceClientType {
         _ = BacktraceUnregisteredClient.printBlock()
     }
 
-    func send() throws -> BacktraceResult {
+    func send(exception: NSException?) throws -> BacktraceResult {
         return BacktraceUnregisteredClient.printBlock()
     }
 }

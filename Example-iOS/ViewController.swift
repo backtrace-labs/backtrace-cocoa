@@ -1,10 +1,6 @@
 import UIKit
 import Backtrace
 
-struct CustomError: Error {
-
-}
-
 class ViewController: UIViewController {
     @IBOutlet weak var textView: UITextView!
 
@@ -14,7 +10,9 @@ class ViewController: UIViewController {
     }
 
     @IBAction func liveReportAction(_ sender: Any) {
-        BacktraceClient.shared.send()
+        BacktraceClient.shared.send { (result) in
+            print(result.message)
+        }
     }
 
     @IBAction func crashAppAction(_ sender: Any) {

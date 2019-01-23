@@ -27,15 +27,19 @@
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "endpoint")!,
-                                                        token: "token")
+        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://yolo.sp.backtrace.io:6098")!,
+                                                        token: "b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3")
         BacktraceClient.shared.register(credentials: backtraceCredentials)
 
+        //sending Swift.Error
         do {
-            // do stuff
+            try throwingFunc()
         } catch {
-            BacktraceClient.shared.send()
+            BacktraceClient.shared.send { (result) in
+                print(result.message)
+            }
         }
+
         return true
     }
   }
@@ -54,17 +58,27 @@
 
   - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
-                                         initWithEndpoint: [NSURL URLWithString: @"endpoint"]
-                                         token: @"token"];
+                                         initWithEndpoint: [NSURL URLWithString: @""]
+                                         token: @""];
     [BacktraceClient.shared registerWithCredentials: credentials];
 
+    // sending NSException
     @try {
-        // do stuff
+        NSArray *array = @[];
+        NSObject *object = array[1]; // will throw exception
     } @catch (NSException *exception) {
-        [[BacktraceClient shared] send];
+        [[BacktraceClient shared] sendWithException: exception completion:^(BacktraceResult * _Nonnull result) {
+            NSLog(@"%@", result.message);
+        }];
     } @finally {
-        // clean up
+
     }
+
+    //sending NSError
+    NSError *error = [NSError errorWithDomain: @"backtrace.domain" code: 100 userInfo: @{}];
+    [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
+        NSLog(@"%@", result.message);
+    }];
 
     return YES;
   }
@@ -111,18 +125,26 @@ BacktraceClient.shared.register(credentials: BacktraceCredentials)
 ```
 
 ## Sending an error report <a name="documentation-sending-report"></a>
-Registered `BacktraceClient` will be able to send an crash reports.
+Registered `BacktraceClient` will be able to send an crash reports. Error report is automatically generated based.
 
-### Sending `Error/NSError/NSException`
+### Sending `Error/NSError`
 - Swift
 ```swift
 @objc func send(completion: ((BacktraceResult) -> Void))
-@objc func send()
 ```
 - Objective-C
 ```objective-c
  - (void) sendWithCompletion: (void (^)(BacktraceResult * _Nonnull)) completion;
- - (void) send;
+```
+
+### Sending `NSException`
+- Swift
+```swift
+@objc func send(exception: NSException, completion: ((BacktraceResult) -> Void))
+```
+- Objective-C
+```objective-c
+ - (void) sendWithException: NSException completion: (void (^)(BacktraceResult * _Nonnull)) completion;
 ```
 
 # Architecture  <a name="architecture"></a>
