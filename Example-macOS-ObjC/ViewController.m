@@ -15,15 +15,15 @@
     // Do any additional setup after loading the view.
 }
 - (IBAction)crashAction:(id)sender {
-
+    
 }
 
 - (IBAction)liveReportAction:(id)sender {
-
+    
 }
 
 - (IBAction)liveReportButtonAction:(id)sender {
-
+    
 }
 
 - (void)setRepresentedObject:(id)representedObject {

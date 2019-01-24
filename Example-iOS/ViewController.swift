@@ -6,7 +6,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
     }
 
     @IBAction func liveReportAction(_ sender: Any) {

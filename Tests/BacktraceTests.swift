@@ -3,7 +3,7 @@ import Quick
 @testable import Backtrace
 
 final class BacktraceTests: QuickSpec {
-
+    
     override func spec() {
         describe("Crash reporter") {
             let crashReporter = CrashReporter()
@@ -17,6 +17,7 @@ final class BacktraceTests: QuickSpec {
                         .toNot(throwError())
                 }
             })
+            
             describe("Backtrace API") {
                 describe("Valid credentials", closure: {
                     var networkClientWithValidCredentials: NetworkClientType {

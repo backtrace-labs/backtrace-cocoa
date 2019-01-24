@@ -5,7 +5,7 @@ class BacktraceUnregisteredClient: BacktraceClientType {
         BacktraceLogger.error("Backtrace client is not regiestered.")
         return BacktraceResult(.notRegisterd)
     }
-
+    
     func handlePendingCrashes() throws {
         _ = BacktraceUnregisteredClient.printBlock()
     }
