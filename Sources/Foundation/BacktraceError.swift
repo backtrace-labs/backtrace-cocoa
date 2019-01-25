@@ -23,6 +23,6 @@ enum RepositoryError: BacktraceError {
 
 extension BacktraceError {
     var backtraceResult: BacktraceResult {
-        return BacktraceResult(.serverError)
+        return BacktraceResult(.unknownError)
     }
 }

@@ -3,6 +3,7 @@ import Backtrace_PLCrashReporter
 
 protocol CrashReporting {
     func generateLiveReport() throws -> BacktraceCrashReport
+    func generateLiveReport(exception: NSException) throws -> BacktraceCrashReport
     func generateLiveReportDescription(reportData: Data) throws -> String
     func pendingCrashReport() throws -> BacktraceCrashReport
     func purgePendingCrashReport() throws
@@ -19,6 +20,12 @@ class CrashReporter: NSObject {
 }
 
 extension CrashReporter: CrashReporting {
+    func generateLiveReport(exception: NSException) throws -> BacktraceCrashReport {
+        let reportData = try reporter.generateLiveReport(with: exception)
+        let report = try PLCrashReport(data: reportData)
+        BacktraceLogger.debug("Live report: \n\(report.info)")
+        return BacktraceCrashReport(report: reportData, hashValue: report.uuidRef?.hashValue)
+    }
 
     func generateLiveReport() throws -> BacktraceCrashReport {
         let reportData = try reporter.generateLiveReportAndReturnError()

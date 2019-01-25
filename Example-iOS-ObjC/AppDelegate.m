@@ -9,9 +9,27 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
-                                         initWithEndpoint: [NSURL URLWithString: @"https://yolo.sp.backtrace.io:6098"]
-                                         token: @"b06c6083414bf7b8e200ad994c9c8ea5d6c8fa747b6608f821278c48a4d408c3"];
+                                         initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
+                                         token: @""];
     [BacktraceClient.shared registerWithCredentials: credentials];
+
+    // sending NSException
+    @try {
+        NSArray *array = @[];
+        NSObject *object = array[1]; // will throw exception
+    } @catch (NSException *exception) {
+        [[BacktraceClient shared] sendWithException: exception completion:^(BacktraceResult * _Nonnull result) {
+            NSLog(@"%@", result);
+        }];
+    } @finally {
+
+    }
+
+    //sending NSError
+    NSError *error = [NSError errorWithDomain: @"backtrace.domain" code: 100 userInfo: @{}];
+    [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
+        NSLog(@"%@", result);
+    }];
 
     return YES;
 }
