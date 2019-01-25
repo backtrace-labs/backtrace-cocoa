@@ -1,10 +1,3 @@
-//
-//  ViewController.m
-//  Example-iOS-ObjC
-//
-//  Created by Marcin Karmelita on 08/12/2018.
-//
-
 #import "ViewController.h"
 @import Backtrace;
 
@@ -21,9 +14,8 @@
 }
 - (IBAction) liveReportAction: (id) sender {
     [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
-        NSLog(@"%ld: %@", (long)result.status, result.message);
+        NSLog(@"%@", result.message);
     }];
-    
 }
 
 - (IBAction) crashAction: (id) sender {
