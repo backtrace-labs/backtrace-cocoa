@@ -26,7 +26,7 @@ import Foundation
 
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
-    static var destinations: Set<BacktraceBaseDestination> = [BacktraceConsoleDestination(level: .none)]
+    static var destinations: Set<BacktraceBaseDestination> = [BacktraceFencyConsoleDestination(level: .debug)]
 
     /// Replaces the logging destinations
     ///

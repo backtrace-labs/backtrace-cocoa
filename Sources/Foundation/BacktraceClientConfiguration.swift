@@ -6,10 +6,16 @@ import Foundation
     /// Client's credentials.
     @objc public let credentials: BacktraceCredentials
     
+    /// Database settings
+    @objc public let dbSettings: BacktraceDatabaseSettings
+    
     /// Produces Backtrace client configuration settings.
-    ///
-    /// - Parameter credentials: Backtrace server API credentials.
-    @objc public init(credentials: BacktraceCredentials) {
+    /// - Parameters:
+    ///   - credentials: Backtrace server API credentials.
+    ///   - dbSettings: Backtrace database settings
+    @objc public init(credentials: BacktraceCredentials,
+                      dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings()) {
         self.credentials = credentials
+        self.dbSettings = dbSettings
     }
 }

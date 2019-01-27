@@ -20,8 +20,7 @@ final class BacktraceIntegrationTests: QuickSpec {
                     })
                     it("sends crash report", closure: {
                         let error = HttpError.unknownError
-                        let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithValidCredentials)
-                        expect { try registeredClient.send().status }
+                        expect { try BacktraceRegisteredClient(networkClient: networkClientWithValidCredentials, dbSettings: BacktraceDatabaseSettings()).send().status }
                             .toEventually(equal(.ok), timeout: 10, pollInterval: 0.5, description: "Should succeed to send a crash report")
                     })
                 })
@@ -37,8 +36,7 @@ final class BacktraceIntegrationTests: QuickSpec {
                     })
                     it("throws error while trying to send crash report", closure: {
                         let error = HttpError.unknownError
-                        let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithInvalidEndpoint)
-                        expect { try registeredClient.send() }
+                        expect { try BacktraceRegisteredClient(networkClient: networkClientWithInvalidEndpoint, dbSettings: BacktraceDatabaseSettings()).send() }
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
                     })
                 })
@@ -53,8 +51,7 @@ final class BacktraceIntegrationTests: QuickSpec {
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Status code should be 403 - Forbidden.")
                     })
                     it("throws error while trying to send crash report", closure: {
-                        let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithInvalidToken)
-                        expect { try registeredClient.send() }
+                        expect { try BacktraceRegisteredClient(networkClient: networkClientWithInvalidToken, dbSettings: BacktraceDatabaseSettings()).send() }
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
                     })
                 })

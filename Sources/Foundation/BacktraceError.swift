@@ -19,6 +19,14 @@ enum PLCrashReporterError: BacktraceError {
 enum RepositoryError: BacktraceError {
     case resourceNotFound
     case resourceAlreadyExists
+    case persistenRepositoryInitError(details: String)
+    case canNotCreateEntityDescription
+}
+
+enum FileError: BacktraceError {
+    case unsupportedScheme
+    case fileNotExists
+    case resourceValueUnavailable
 }
 
 extension BacktraceError {

@@ -60,10 +60,11 @@ extension BacktraceClient: BacktraceClientProviding {
     @objc public func register(configuration: BacktraceClientConfiguration) {
         let networkClient = BacktraceNetworkClient(endpoint: configuration.credentials.endpoint,
                                                    token: configuration.credentials.token)
-        client = BacktraceRegisteredClient(networkClient: networkClient)
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
+                self.client = try BacktraceRegisteredClient(networkClient: networkClient,
+                                                            dbSettings: configuration.dbSettings)
                 try self.client.handlePendingCrashes()
             } catch {
                 BacktraceLogger.error(error)

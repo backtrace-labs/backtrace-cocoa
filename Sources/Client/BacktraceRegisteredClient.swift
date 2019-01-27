@@ -4,11 +4,16 @@ class BacktraceRegisteredClient {
 
     private let reporter: CrashReporting
     private var networkClient: NetworkClientType
-    private let repository = InMemoryRepository<BacktraceCrashReport>()
-
-    init(reporter: CrashReporting = CrashReporter(), networkClient: NetworkClientType) {
+    private let repository: PersistentRepository<BacktraceCrashReport>
+    private let watcher: BacktraceWatcher<PersistentRepository<BacktraceCrashReport>>
+    
+    init(reporter: CrashReporting = CrashReporter(),
+         networkClient: NetworkClientType,
+         dbSettings: BacktraceDatabaseSettings) throws {
         self.reporter = reporter
         self.networkClient = networkClient
+        self.repository = try PersistentRepository<BacktraceCrashReport>(settings: dbSettings)
+        self.watcher = try BacktraceWatcher(settings: dbSettings, networkClient: networkClient, repository: repository)
     }
 }
 
@@ -21,9 +26,7 @@ extension BacktraceRegisteredClient: BacktraceClientType {
             return
         }
         let resource = try reporter.pendingCrashReport()
-        try repository.save(resource)
-        try networkClient.send(resource.reportData)
-        try repository.delete(resource)
+        _ = try send(resource)
         try reporter.purgePendingCrashReport()
     }
 
@@ -34,9 +37,16 @@ extension BacktraceRegisteredClient: BacktraceClientType {
         } else {
             resource = try reporter.generateLiveReport()
         }
-        try repository.save(resource)
-        let result = try networkClient.send(resource.reportData)
-        try repository.delete(resource)
-        return result.backtraceResult
+        return try send(resource)
+    }
+    
+    private func send(_ resource: BacktraceCrashReport) throws -> BacktraceResult {
+        do {
+            let result = try networkClient.send(resource.reportData)
+            return result.backtraceResult
+        } catch let error as BacktraceErrorResponse {
+            try repository.save(resource)
+            throw error
+        }
     }
 }
