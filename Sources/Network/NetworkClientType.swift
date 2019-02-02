@@ -1,14 +1,7 @@
 import Foundation
 
 protocol NetworkClientType {
-    @discardableResult
-    func send(_ report: Data) throws -> BacktraceResponse
-}
-
-protocol NetworkClientDelegate {
-    func beforeSend()
-    func afterSend()
-    func requestHandler()
-    func onServerResponse()
-    func onServerError()
+    var successfulSendTimestamps: [TimeInterval] { get set }
+    func send(_ report: BacktraceCrashReport) throws -> BacktraceResult
+    var delegate: BacktraceClientDelegate? { get set }
 }

@@ -1,5 +1,6 @@
 import Foundation
 import CoreData
+import Backtrace_PLCrashReporter
 
 protocol PersistentStorable {
     associatedtype ManagedObjectType: NSManagedObject
@@ -23,29 +24,51 @@ class PersistentRepository<Resource: PersistentStorable> {
         
         let momdName = "Model"
         guard let modelURL = Bundle(for: type(of: self)).url(forResource: momdName, withExtension: "momd") else {
-            throw RepositoryError.persistenRepositoryInitError(details: "Couldn't find model url for name: \(momdName)")
+            throw RepositoryError
+                .persistentRepositoryInitError(details: "Couldn't find model url for name: \(momdName)")
         }
         guard let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
             // swiftlint:disable line_length
-            throw RepositoryError.persistenRepositoryInitError(details: "Couldn't create `NSManagedObjectModel` using model file at url: \(modelURL)")
+            throw RepositoryError.persistentRepositoryInitError(details: "Couldn't create `NSManagedObjectModel` using model file at url: \(modelURL)")
             // swiftlint:enable line_length
         }
-        let psc = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
-        let managedObjectContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
-        managedObjectContext.persistentStoreCoordinator = psc
-        let storeUrl = try PersistentRepository.storeUrl(modelName: momdName)
-        try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: storeUrl, options: nil)
-        BacktraceLogger.debug("Loaded persistent stores, sore description: \(psc.persistentStores)")
-        backgroundContext = managedObjectContext
-        url = storeUrl
-    }
-    
-    private class func storeUrl(modelName: String) throws -> URL {
-        guard let docURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            throw RepositoryError.persistenRepositoryInitError(details: "Unable to resolve document directory")
+        if #available(iOS 10.0, macOS 10.12, *) {
+            let persistentContainer = NSPersistentContainer(name: momdName, managedObjectModel: managedObjectModel)
+            let dispatch = DispatchSemaphore(value: 0)
+            var loadPersistentStoresError: Error?
+            var url: URL?
+            persistentContainer.loadPersistentStores { (storeDescription, error) in
+                BacktraceLogger.debug("Loaded persistent stores, sore description: \(storeDescription)")
+                loadPersistentStoresError = error
+                url = storeDescription.url
+                dispatch.signal()
+            }
+            
+            dispatch.wait()
+            if let error = loadPersistentStoresError {
+                throw RepositoryError.persistentRepositoryInitError(details: error.localizedDescription)
+            }
+            guard let storeUrl = url else {
+                throw RepositoryError.resourceNotFound
+            }
+            backgroundContext = persistentContainer.newBackgroundContext()
+            self.url = storeUrl
+            
+        } else {
+            let psc = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
+            let managedObjectContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+            managedObjectContext.persistentStoreCoordinator = psc
+            
+            guard let storeDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).last
+            else { throw RepositoryError
+                .persistentRepositoryInitError(details: "Unable to resolve document directory") }
+            let storeURL = storeDir.appendingPathComponent("Model.sqlite")
+            try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: storeURL, options: nil)
+            BacktraceLogger.debug("Loaded persistent stores, sore description: \(psc.persistentStores)")
+            backgroundContext = managedObjectContext
+            url = storeURL
         }
-        let storeURL = docURL.appendingPathComponent("\(modelName).sqlite")
-        return storeURL
+        try BacktraceFileManager.excludeFromBackup(url)
     }
 }
 
@@ -64,14 +87,11 @@ extension PersistentRepository: Repository {
         newManagedObject.setValue(Date(), forKey: "dateAdded")
         newManagedObject.setValue(0, forKey: "retryCount")
         try backgroundContext.save()
-        
-        let records = try countResources()
-        BacktraceLogger.debug("Number of records before removing last record: \(records)")
     }
     
     func delete(_ resource: Resource) throws {
         let predicate = NSPredicate(format: "hashProperty==\(resource.hashProperty)")
-        let fetchRequestResults = try getResources(predicate: predicate, fetchLimit: 1)
+        let fetchRequestResults = try getResources(predicate: predicate, fetchLimit: 100)
         try delete(managedObjects: fetchRequestResults)
     }
     
@@ -84,20 +104,23 @@ extension PersistentRepository: Repository {
         return try getResources().map(Resource.init)
     }
     
-    func get(sortDescriptors: [NSSortDescriptor]? = nil, predicate: NSPredicate? = nil) throws -> [Resource] {
-        return try getResources(sortDescriptors: sortDescriptors, predicate: predicate).map(Resource.init)
+    func get(sortDescriptors: [NSSortDescriptor]? = nil,
+             predicate: NSPredicate? = nil,
+             fetchLimit: Int? = nil) throws -> [Resource] {
+        return try getResources(sortDescriptors: sortDescriptors, predicate: predicate, fetchLimit: fetchLimit)
+            .map(Resource.init)
     }
     
-    func getLatest() throws -> Resource? {
+    func getLatest(count: Int = 1) throws -> [Resource] {
         let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: false)]
-        let latest = try getResources(sortDescriptors: sortDescriptors, fetchLimit: 1)
-        return try latest.map(Resource.init).first
+        let latest = try getResources(sortDescriptors: sortDescriptors, fetchLimit: count)
+        return try latest.map(Resource.init)
     }
     
-    func getOldest() throws -> Resource? {
+    func getOldest(count: Int = 1) throws -> [Resource] {
         let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
-        let latest = try getResources(sortDescriptors: sortDescriptors, fetchLimit: 1)
-        return try latest.map(Resource.init).first
+        let latest = try getResources(sortDescriptors: sortDescriptors, fetchLimit: count)
+        return try latest.map(Resource.init)
     }
     
     func incrementRetryCount(_ resource: Resource, limit: Int) throws {
@@ -113,7 +136,10 @@ extension PersistentRepository: Repository {
         if currentRetryCount >= limit {
             backgroundContext.delete(fetchedResult)
         } else {
+            // increment number of retires
             fetchedResult.setValue(currentRetryCount + 1, forKey: "retryCount")
+            // update report data (could be modified)
+            fetchedResult.setValue(resource.reportData, forKey: "reportData")
         }
         try backgroundContext.save()
     }
@@ -129,11 +155,7 @@ extension PersistentRepository: Repository {
         if settings.maxRecordCount != BacktraceDatabaseSettings.unlimited {
             // check number of records
             while try countResources() + 1 > settings.maxRecordCount {
-                var records = try countResources()
-                BacktraceLogger.debug("Number of records before removing last record: \(records)")
                 try removeOldestRecord()
-                records = try countResources()
-                BacktraceLogger.debug("Number of records before removing last record: \(records)")
             }
         }
         

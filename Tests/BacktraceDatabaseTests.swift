@@ -19,7 +19,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     do {
                         let report = try crashReporter.generateLiveReport()
                         try repository.save(report)
-                        if let fetchedReport = try repository.getLatest() {
+                        if let fetchedReport = try repository.getLatest().first {
                             expect(fetchedReport.reportData).to(equal(report.reportData))
                         }
                     } catch {

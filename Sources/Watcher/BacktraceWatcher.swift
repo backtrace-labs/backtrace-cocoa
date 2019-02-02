@@ -2,20 +2,25 @@ import Foundation
 
 final class BacktraceWatcher<BacktraceRepository: Repository>
 where BacktraceRepository.Resource == BacktraceCrashReport {
-    
+
     let settings: BacktraceDatabaseSettings
+    let reportsPerMin: Int
     let networkClient: NetworkClientType
     let repository: BacktraceRepository
     var timer: DispatchSourceTimer?
     let queue: DispatchQueue
+    let batchSize: Int
     
-    init(settings: BacktraceDatabaseSettings, networkClient: NetworkClientType,
+    init(settings: BacktraceDatabaseSettings, reportsPerMin: Int, networkClient: NetworkClientType,
          repository: BacktraceRepository,
-         dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background)) throws {
+         dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background),
+         batchSize: Int = 3) throws {
         self.settings = settings
+        self.reportsPerMin = reportsPerMin
         self.repository = repository
         self.networkClient = networkClient
         self.queue = dispatchQueue
+        self.batchSize = batchSize
         guard settings.retryBehaviour == .interval else { return }
         configureTimer()
     }
@@ -30,7 +35,7 @@ where BacktraceRepository.Resource == BacktraceCrashReport {
             self.timer?.suspend()
             defer { self.timer?.resume() }
             do {
-                BacktraceLogger.debug("Retrying to send ")
+                BacktraceLogger.debug("Retrying to send")
                 try self.batchRetry()
             } catch {
                 BacktraceLogger.error(error)
@@ -39,24 +44,47 @@ where BacktraceRepository.Resource == BacktraceCrashReport {
         timer.resume()
     }
     
-    private func getNextPendingCrash() throws -> BacktraceRepository.Resource? {
-        if settings.retryOrder == .queue {
-            return try repository.getLatest()
+    // Takes from `repository` reports to send
+    private func crashReportsToSend(limit: Int) throws -> [BacktraceRepository.Resource] {
+        switch settings.retryOrder {
+        case .queue: return try repository.getOldest(count: limit)
+        case .stack: return try repository.getLatest(count: limit)
         }
-        return try repository.getOldest()
     }
-    
+
     private func batchRetry() throws {
-        while let pendingCrashReport = try getNextPendingCrash() {
+        // prepare set of reports to send, considering limits
+        let reportsToSend = try crashReportsToSend(limit: batchSize)
+        let currentTimestamp = Date().timeIntervalSince1970
+        let numberOfSendsInLastOneMinute = networkClient.successfulSendTimestamps
+            .filter { currentTimestamp - $0 < 60.0 }.count
+        let maxReportsToSend = max(0, abs(reportsPerMin - numberOfSendsInLastOneMinute))
+        let limitedReportsToSend = reportsToSend.prefix(maxReportsToSend)
+        BacktraceLogger.debug("Number of limited reports to send: \(limitedReportsToSend.count)")
+        
+        for reportToSend in limitedReportsToSend {
             do {
-                try networkClient.send(pendingCrashReport.reportData)
-                try repository.delete(pendingCrashReport)
+                let result = try networkClient.send(reportToSend)
+                if let reportData = result.backtraceData {
+                    if result.backtraceStatus == .ok {
+                        try repository.delete(reportData)
+                    } else {
+                        try repository.incrementRetryCount(reportData, limit: settings.retryLimit)
+                    }
+                } else {
+                    try repository.incrementRetryCount(reportToSend, limit: settings.retryLimit)
+                }
+            } catch let error as HttpError {
+                BacktraceLogger.error(error)
+                // network connection error - do nothing.
             } catch {
-                try repository.incrementRetryCount(pendingCrashReport, limit: settings.retryLimit)
+                BacktraceLogger.error(error)
+                try repository.incrementRetryCount(reportToSend, limit: settings.retryLimit)
             }
         }
+        BacktraceLogger.debug("Finished (re)sending batch of reports")
     }
-    
+
     deinit {
         timer?.setEventHandler {}
         timer?.cancel()

@@ -19,6 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
                                                         token: "")
         BacktraceClient.shared.register(credentials: backtraceCredentials)
+        BacktraceClient.shared.delegate = self
 
         do {
             try throwingFunc()
@@ -29,5 +30,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         return true
+    }
+}
+
+extension AppDelegate: BacktraceClientDelegate {
+    func willSend(_ report: BacktraceCrashReport) -> (BacktraceCrashReport) {
+        return report
+    }
+    
+    func willSendRequest(_ request: URLRequest) -> URLRequest {
+        return request
+    }
+    
+    func serverDidFail(_ error: Error) {
+        
+    }
+    
+    func serverDidResponse(_ result: BacktraceResult) {
+        
+    }
+    
+    func didReachLimit(_ result: BacktraceResult) {
+        
     }
 }

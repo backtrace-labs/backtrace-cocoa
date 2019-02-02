@@ -15,9 +15,6 @@ import Foundation
     /// Maximum number of retries.
     @objc public var retryLimit: Int = 3
     
-    /// Resends reports when sending failed.
-    @objc public var autoSend: Bool = false
-    
     /// Retry behaviour.
     @objc public var retryBehaviour: RetryBehaviour = .interval
     
@@ -31,11 +28,13 @@ import Foundation
     static let unlimited: Int = 0
 }
 
+/// Backtrace retrying behaviour for not successfully sent crashes.
 @objc public enum RetryBehaviour: Int {
     case none
     case interval
 }
 
+/// Backtrace retrying order of not successfully sent crashes.
 @objc public enum RetryOder: Int {
     case queue
     case stack

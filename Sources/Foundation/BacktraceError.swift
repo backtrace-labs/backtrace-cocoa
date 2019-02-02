@@ -8,7 +8,7 @@ enum FlowError: BacktraceError {
 
 enum HttpError: BacktraceError {
     case malformedUrl
-    case serverError(Error)
+    case connectionError(Error)
     case unknownError
 }
 
@@ -19,7 +19,7 @@ enum PLCrashReporterError: BacktraceError {
 enum RepositoryError: BacktraceError {
     case resourceNotFound
     case resourceAlreadyExists
-    case persistenRepositoryInitError(details: String)
+    case persistentRepositoryInitError(details: String)
     case canNotCreateEntityDescription
 }
 
@@ -27,10 +27,4 @@ enum FileError: BacktraceError {
     case unsupportedScheme
     case fileNotExists
     case resourceValueUnavailable
-}
-
-extension BacktraceError {
-    var backtraceResult: BacktraceResult {
-        return BacktraceResult(.unknownError)
-    }
 }

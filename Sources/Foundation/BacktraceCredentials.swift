@@ -2,8 +2,12 @@ import Foundation
 
 /// Backtrace server API credentials.
 @objc public class BacktraceCredentials: NSObject {
-    let endpoint: URL
-    let token: String
+    
+    /// Endpoint to Backtrace services.
+    @objc public let endpoint: URL
+    
+    /// Access token to Backtrace services.
+    @objc public let token: String
     
     /// Produces Backtrace server API credentials.
     ///
