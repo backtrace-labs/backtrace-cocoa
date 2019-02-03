@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "1.0.0"
+  s.version      = "1.1.0"
   s.summary      = "Backtrace's integration with iOS and macOS"
   s.description  = "Backtrace's integration with iOS and macOS for handling crashes"
   s.homepage     = "https://backtrace.io/"
@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
 
   s.dependency "Backtrace-PLCrashReporter"
-
+  s.resources = 'Sources/**/*.xcdatamodeld'
 
   s.swift_version = '4.0'
 end

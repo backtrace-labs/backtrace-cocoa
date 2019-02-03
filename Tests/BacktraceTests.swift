@@ -24,27 +24,25 @@ final class BacktraceTests: QuickSpec {
                         return BacktraceNetworkClientMock(config: .validCredentials)
                     }
                     it("sends crash report", closure: {
-                        expect { try networkClientWithValidCredentials.send(try crashReporter.generateLiveReport().reportData)}
+                        expect { try networkClientWithValidCredentials.send(try crashReporter.generateLiveReport())}
                             .toNotEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Crash report should be successfully sent.")
                     })
-                    it("sends crash report", closure: {
-                        let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithValidCredentials)
-                        expect { try registeredClient.send(nil).message }
-                            .toEventually(equal("Ok."), timeout: 10, pollInterval: 0.5, description: "Should succeed to send a crash report")
-                    })
+//                    it("sends crash report", closure: {
+//                        expect { try BacktraceRegisteredClient(networkClient: networkClientWithValidCredentials, dbSettings: BacktraceDatabaseSettings()).send().description }
+//                            .toEventually(equal(BacktraceResult(.ok(response: "Ok.", "mes))), timeout: 10, pollInterval: 0.5, description: "Should succeed to send a crash report")
+//                    })
                 })
                 describe("Invalid endpoint", closure: {
                     var networkClientWithInvalidEndpoint: NetworkClientType {
                         return BacktraceNetworkClientMock(config: .invalidEndpoint)
                     }
                     it("fails to send crash report with invalid endpoint", closure: {
-                        expect { try networkClientWithInvalidEndpoint.send(try crashReporter.generateLiveReport().reportData)}
+                        expect { try networkClientWithInvalidEndpoint.send(try crashReporter.generateLiveReport())}
                             .toEventually(throwError())
                     })
                     it("throws error while trying to send crash report", closure: {
                         let error = HttpError.unknownError
-                        let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithInvalidEndpoint)
-                        expect { try registeredClient.send(nil) }
+                        expect { try BacktraceRegisteredClient(networkClient: networkClientWithInvalidEndpoint, dbSettings: BacktraceDatabaseSettings(), reportsPerMin: 3).send() }
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
                     })
                 })
@@ -53,13 +51,13 @@ final class BacktraceTests: QuickSpec {
                         return BacktraceNetworkClientMock(config: .invalidToken)
                     }
                     it("fails to send crash report with invalid token", closure: {
-                        expect { try networkClientWithInvalidToken.send(try crashReporter.generateLiveReport().reportData)}
-                            .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Status code should be 403 - Forbidden.")
-                    })
-                    it("throws error while trying to send crash report", closure: {
-                        let registeredClient = BacktraceRegisteredClient(networkClient: networkClientWithInvalidToken)
-                        expect { try registeredClient.send(nil) }
-                            .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
+                        do {
+                            let report = try crashReporter.generateLiveReport()
+                            expect { try networkClientWithInvalidToken.send(report).backtraceStatus}
+                                .toEventually(equal(BacktraceResultStatus.serverError), timeout: 10, pollInterval: 0.5, description: "Status code should be 403 - Forbidden.")
+                        } catch {
+                            fail(error.localizedDescription)
+                        }
                     })
                 })
             }

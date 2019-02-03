@@ -4,14 +4,32 @@ import Foundation
 @objc open class BacktraceResult: NSObject {
     
     /// Backtrace message.
-    @objc public let message: String
+    @objc public var message: String
     
-    init(_ status: BacktraceResultStatus) {
-        self.message = status.description
+    /// Report.
+    @objc public var backtraceData: BacktraceCrashReport?
+    
+    /// Result status.
+    @objc public var backtraceStatus: BacktraceResultStatus
+    
+    init(_ status: BacktraceResultStatus, message: String, backtraceReport: BacktraceCrashReport? = nil) {
+        self.message = message
+        self.backtraceStatus = status
+        self.backtraceData = backtraceReport
+        super.init()
     }
     
-    init(error: Error) {
-        self.message = error.localizedDescription
+    class func serverError(_ message: String, backtraceReport: BacktraceCrashReport? = nil) -> BacktraceResult {
+        return BacktraceResult(.serverError, message: message, backtraceReport: backtraceReport)
+    }
+    
+    class func unknownError(_ backtraceResult: BacktraceResult? = nil) -> BacktraceResult {
+        return BacktraceResult(.unknownError, message: "Unknown error",
+                               backtraceReport: backtraceResult?.backtraceData)
+    }
+    
+    class func limitReached(_ backtraceReport: BacktraceCrashReport? = nil) -> BacktraceResult {
+        return BacktraceResult(.limitReached, message: "Limit reached.", backtraceReport: backtraceReport)
     }
 }
 
@@ -21,6 +39,7 @@ extension BacktraceResult {
             """
             Backtrace result:
             - message: \(message)
+            - status: \(backtraceStatus.description)
             """
     }
 }
