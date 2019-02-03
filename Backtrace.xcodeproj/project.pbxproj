@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		18ABC4BAF017FF456E5E5186 /* Pods_Example_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FD3E3727B2ED6C3130FFE5 /* Pods_Example_iOS.framework */; };
 		27F936A322CFBB6FE46EDEFE /* Pods_Example_macOS_ObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 70856A4F8005B8D4E85C332B /* Pods_Example_macOS_ObjC.framework */; };
+		28AC773A21F8C29800FED661 /* PersistentRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C1513F21F7D8E30014F1B3 /* PersistentRepository.swift */; };
+		28AC773C21FA5A8400FED661 /* BacktraceDatabaseSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */; };
+		28AC773D21FA5A8900FED661 /* BacktraceDatabaseSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */; };
 		49457C1D713EE46AB68B8DB4 /* Pods_Backtrace_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CF3D5FE35B28DBBEE4FF32C /* Pods_Backtrace_macOS.framework */; };
 		722A9E367FDFA23769CB4418 /* Pods_Backtrace_iOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF47A4A177C5A149E93E11E9 /* Pods_Backtrace_iOSTests.framework */; };
 		7EE441EDD781250A50387BB8 /* Pods_Backtrace_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB1DDC29EB6DE43140A0290D /* Pods_Backtrace_iOS.framework */; };
@@ -49,14 +52,23 @@
 		F28F164721E28441008E4B96 /* BacktraceRegisteredClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F164521E28441008E4B96 /* BacktraceRegisteredClient.swift */; };
 		F28F164921E2844A008E4B96 /* BacktraceUnregisteredClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F164821E2844A008E4B96 /* BacktraceUnregisteredClient.swift */; };
 		F28F164A21E2844A008E4B96 /* BacktraceUnregisteredClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F164821E2844A008E4B96 /* BacktraceUnregisteredClient.swift */; };
-		F28F164C21E287F8008E4B96 /* InMemoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F164B21E287F8008E4B96 /* InMemoryRepository.swift */; };
-		F28F164D21E287F8008E4B96 /* InMemoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F164B21E287F8008E4B96 /* InMemoryRepository.swift */; };
 		F28F165121E2A08F008E4B96 /* Method.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165021E2A08F008E4B96 /* Method.swift */; };
 		F28F165221E2A08F008E4B96 /* Method.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165021E2A08F008E4B96 /* Method.swift */; };
 		F28F165421E2A097008E4B96 /* RequestType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165321E2A097008E4B96 /* RequestType.swift */; };
 		F28F165521E2A097008E4B96 /* RequestType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165321E2A097008E4B96 /* RequestType.swift */; };
 		F28F165821E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165721E2A0DA008E4B96 /* URLSession+Sync.swift */; };
 		F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165721E2A0DA008E4B96 /* URLSession+Sync.swift */; };
+		F29CD78A21FC5F8500216C59 /* BacktraceDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD78721FC5F6500216C59 /* BacktraceDatabaseTests.swift */; };
+		F29CD78B21FC5F8600216C59 /* BacktraceDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD78721FC5F6500216C59 /* BacktraceDatabaseTests.swift */; };
+		F29CD78D21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD78C21FC6BC700216C59 /* BacktraceFileManager.swift */; };
+		F29CD78E21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD78C21FC6BC700216C59 /* BacktraceFileManager.swift */; };
+		F29CD79121FCC25600216C59 /* BacktraceWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */; };
+		F29CD79221FCC25600216C59 /* BacktraceWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */; };
+		F29CD79421FDD5E900216C59 /* BacktraceClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */; };
+		F29CD79621FDD9DC00216C59 /* BacktraceClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */; };
+		F2C1514021F7D8E30014F1B3 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2C1513D21F7D8E30014F1B3 /* Model.xcdatamodeld */; };
+		F2C1514121F7D8E30014F1B3 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2C1513D21F7D8E30014F1B3 /* Model.xcdatamodeld */; };
+		F2C1514221F7D8E30014F1B3 /* PersistentRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C1513F21F7D8E30014F1B3 /* PersistentRepository.swift */; };
 		F2C2FA5A21BBD26300934744 /* Backtrace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2C2FA5021BBD26300934744 /* Backtrace.framework */; };
 		F2C2FA6121BBD26300934744 /* Backtrace.h in Headers */ = {isa = PBXBuildFile; fileRef = F2C2FA5321BBD26300934744 /* Backtrace.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F2CC8ACB21CF8D8400A68CAC /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CC8ACA21CF8D8400A68CAC /* Dispatcher.swift */; };
@@ -168,6 +180,7 @@
 /* Begin PBXFileReference section */
 		080261C779321096E82CBEA0 /* Pods-Backtrace-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.release.xcconfig"; sourceTree = "<group>"; };
 		0CAEB5685940F7A87F1D5269 /* Pods-Backtrace-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-macOS/Pods-Backtrace-macOS.release.xcconfig"; sourceTree = "<group>"; };
+		28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceDatabaseSettings.swift; sourceTree = "<group>"; };
 		34D9997A1948E63D0311201D /* Pods_Example_iOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3676E30A5B3FD2E883AB5D38 /* Pods-Backtrace-macOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOSTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		3BFE1A58A30C867A60163ED5 /* Pods-Backtrace-iOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOSTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-iOSTests/Pods-Backtrace-iOSTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -207,10 +220,16 @@
 		F28F164221E28433008E4B96 /* BacktraceClientType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClientType.swift; sourceTree = "<group>"; };
 		F28F164521E28441008E4B96 /* BacktraceRegisteredClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceRegisteredClient.swift; sourceTree = "<group>"; };
 		F28F164821E2844A008E4B96 /* BacktraceUnregisteredClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceUnregisteredClient.swift; sourceTree = "<group>"; };
-		F28F164B21E287F8008E4B96 /* InMemoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryRepository.swift; sourceTree = "<group>"; };
 		F28F165021E2A08F008E4B96 /* Method.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Method.swift; sourceTree = "<group>"; };
 		F28F165321E2A097008E4B96 /* RequestType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestType.swift; sourceTree = "<group>"; };
 		F28F165721E2A0DA008E4B96 /* URLSession+Sync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URLSession+Sync.swift"; sourceTree = "<group>"; };
+		F29CD78721FC5F6500216C59 /* BacktraceDatabaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceDatabaseTests.swift; sourceTree = "<group>"; };
+		F29CD78C21FC6BC700216C59 /* BacktraceFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceFileManager.swift; sourceTree = "<group>"; };
+		F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceWatcher.swift; sourceTree = "<group>"; };
+		F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClientDelegate.swift; sourceTree = "<group>"; };
+		F29CD79A21FE015700216C59 /* BacktraceDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceDatabase.swift; sourceTree = "<group>"; };
+		F2C1513E21F7D8E30014F1B3 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
+		F2C1513F21F7D8E30014F1B3 /* PersistentRepository.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistentRepository.swift; sourceTree = "<group>"; };
 		F2C2FA5021BBD26300934744 /* Backtrace.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Backtrace.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F2C2FA5321BBD26300934744 /* Backtrace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Backtrace.h; sourceTree = "<group>"; };
 		F2C2FA5421BBD26300934744 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -363,6 +382,7 @@
 			children = (
 				F266B85421C77D8B00D14417 /* BacktraceTests.swift */,
 				F2D7121D21F10461002D2A26 /* BacktraceNetworkClientMock.swift */,
+				F29CD78721FC5F6500216C59 /* BacktraceDatabaseTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -372,7 +392,9 @@
 			children = (
 				F28F164E21E28823008E4B96 /* Model */,
 				F282075A21CEA37A0017367F /* Repository.swift */,
-				F28F164B21E287F8008E4B96 /* InMemoryRepository.swift */,
+				F2C1513F21F7D8E30014F1B3 /* PersistentRepository.swift */,
+				F2C1513D21F7D8E30014F1B3 /* Model.xcdatamodeld */,
+				F29CD78C21FC6BC700216C59 /* BacktraceFileManager.swift */,
 			);
 			path = Repository;
 			sourceTree = "<group>";
@@ -434,6 +456,8 @@
 				F25F9E9921EE84EA00236E04 /* BacktraceResult.swift */,
 				F2D7122021F10C45002D2A26 /* BacktraceClientConfiguration.swift */,
 				F2D7122321F10E78002D2A26 /* BacktraceCredentials.swift */,
+				28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */,
+				F29CD79A21FE015700216C59 /* BacktraceDatabase.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -444,6 +468,22 @@
 				F28F165721E2A0DA008E4B96 /* URLSession+Sync.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		F29CD78F21FCC23800216C59 /* Watcher */ = {
+			isa = PBXGroup;
+			children = (
+				F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */,
+			);
+			path = Watcher;
+			sourceTree = "<group>";
+		};
+		F29CD79521FDD5EE00216C59 /* Event */ = {
+			isa = PBXGroup;
+			children = (
+				F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */,
+			);
+			path = Event;
 			sourceTree = "<group>";
 		};
 		F2C2FA4421BBD23B00934744 = {
@@ -499,6 +539,8 @@
 		F2C2FA8421BBD2AE00934744 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				F29CD79521FDD5EE00216C59 /* Event */,
+				F29CD78F21FCC23800216C59 /* Watcher */,
 				F28F165621E2A0BD008E4B96 /* Extensions */,
 				F28F164F21E28833008E4B96 /* Foundation */,
 				F28F164121E28421008E4B96 /* Client */,
@@ -1180,7 +1222,9 @@
 			files = (
 				F266B83721C77B9600D14417 /* CrashReporting.swift in Sources */,
 				F28162FB21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
+				F29CD79621FDD9DC00216C59 /* BacktraceClientDelegate.swift in Sources */,
 				F21771BE21E341CA0059896E /* Dispatcher.swift in Sources */,
+				28AC773D21FA5A8900FED661 /* BacktraceDatabaseSettings.swift in Sources */,
 				F266B83821C77B9600D14417 /* BacktraceLogger.swift in Sources */,
 				F28F164A21E2844A008E4B96 /* BacktraceUnregisteredClient.swift in Sources */,
 				F266B83321C77B9600D14417 /* BacktraceClient.swift in Sources */,
@@ -1189,17 +1233,20 @@
 				F25F9E9B21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F282076121CEABBC0017367F /* NetworkClientType.swift in Sources */,
 				F266B83421C77B9600D14417 /* BacktraceError.swift in Sources */,
+				F2C1514121F7D8E30014F1B3 /* Model.xcdatamodeld in Sources */,
 				F2D7122521F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
 				F28F164721E28441008E4B96 /* BacktraceRegisteredClient.swift in Sources */,
 				F282075921CEA31F0017367F /* BacktraceCrashReport.swift in Sources */,
+				28AC773A21F8C29800FED661 /* PersistentRepository.swift in Sources */,
 				F266B83521C77B9600D14417 /* BacktraceNetworkClient.swift in Sources */,
 				F28F164421E28433008E4B96 /* BacktraceClientType.swift in Sources */,
 				F266B83621C77B9600D14417 /* CrashReporter+StringConvertible.swift in Sources */,
 				F282075C21CEA37A0017367F /* Repository.swift in Sources */,
 				F28F165221E2A08F008E4B96 /* Method.swift in Sources */,
+				F29CD78E21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */,
 				F2D7122221F10C45002D2A26 /* BacktraceClientConfiguration.swift in Sources */,
-				F28F164D21E287F8008E4B96 /* InMemoryRepository.swift in Sources */,
 				F28F165521E2A097008E4B96 /* RequestType.swift in Sources */,
+				F29CD79221FCC25600216C59 /* BacktraceWatcher.swift in Sources */,
 				F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1211,6 +1258,7 @@
 				F25C0FC721C79EFB0083029C /* Backtrace_macOSTests.swift in Sources */,
 				F25C0FC521C797D60083029C /* BacktraceTests.swift in Sources */,
 				F2D7121F21F10461002D2A26 /* BacktraceNetworkClientMock.swift in Sources */,
+				F29CD78B21FC5F8600216C59 /* BacktraceDatabaseTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1220,26 +1268,31 @@
 			files = (
 				F240531E21C5680600FC9394 /* CrashReporting.swift in Sources */,
 				F28162FA21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
+				F29CD79421FDD5E900216C59 /* BacktraceClientDelegate.swift in Sources */,
 				F240532121C578AA00FC9394 /* BacktraceLogger.swift in Sources */,
+				28AC773C21FA5A8400FED661 /* BacktraceDatabaseSettings.swift in Sources */,
 				F2CC8ACB21CF8D8400A68CAC /* Dispatcher.swift in Sources */,
-				F28F164C21E287F8008E4B96 /* InMemoryRepository.swift in Sources */,
 				F28F164321E28433008E4B96 /* BacktraceClientType.swift in Sources */,
 				F25F9E9721EE84AF00236E04 /* BacktraceResultStatus.swift in Sources */,
 				F21771C021E344C10059896E /* SendCrashRequest.swift in Sources */,
 				F25F9E9A21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F28F165121E2A08F008E4B96 /* Method.swift in Sources */,
 				F22EB87721BBD36800DEE94E /* BacktraceClient.swift in Sources */,
+				F2C1514021F7D8E30014F1B3 /* Model.xcdatamodeld in Sources */,
 				F2D7122421F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
 				F28F165421E2A097008E4B96 /* RequestType.swift in Sources */,
 				F28F164621E28441008E4B96 /* BacktraceRegisteredClient.swift in Sources */,
+				F2C1514221F7D8E30014F1B3 /* PersistentRepository.swift in Sources */,
 				F282076021CEABBC0017367F /* NetworkClientType.swift in Sources */,
 				F2D8BE3821BD7894007CFEFA /* BacktraceError.swift in Sources */,
 				F282075821CEA31F0017367F /* BacktraceCrashReport.swift in Sources */,
 				F28F165821E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				F2D8BE3A21BD78A9007CFEFA /* BacktraceNetworkClient.swift in Sources */,
 				F2D7122121F10C45002D2A26 /* BacktraceClientConfiguration.swift in Sources */,
+				F29CD78D21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */,
 				F2D8BE3C21BD78D8007CFEFA /* CrashReporter+StringConvertible.swift in Sources */,
 				F28F164921E2844A008E4B96 /* BacktraceUnregisteredClient.swift in Sources */,
+				F29CD79121FCC25600216C59 /* BacktraceWatcher.swift in Sources */,
 				F282075B21CEA37A0017367F /* Repository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1251,6 +1304,7 @@
 				F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */,
 				F25C0FC421C797D50083029C /* BacktraceTests.swift in Sources */,
 				F2D7121E21F10461002D2A26 /* BacktraceNetworkClientMock.swift in Sources */,
+				F29CD78A21FC5F8500216C59 /* BacktraceDatabaseTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2486,6 +2540,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		F2C1513D21F7D8E30014F1B3 /* Model.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				F2C1513E21F7D8E30014F1B3 /* Model.xcdatamodel */,
+			);
+			currentVersion = F2C1513E21F7D8E30014F1B3 /* Model.xcdatamodel */;
+			path = Model.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = F2C2FA4521BBD23B00934744 /* Project object */;
 }

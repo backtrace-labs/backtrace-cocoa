@@ -1,7 +1,7 @@
 #import "AppDelegate.h"
 @import Backtrace;
 
-@interface AppDelegate ()
+@interface AppDelegate () <BacktraceClientDelegate>
 
 @end
 
@@ -12,6 +12,8 @@
                                          initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
                                          token: @""];
     [BacktraceClient.shared registerWithCredentials: credentials];
+    
+    BacktraceClient.shared.delegate = self;
 
     // sending NSException
     @try {
@@ -32,6 +34,27 @@
     }];
 
     return YES;
+}
+
+#pragma mark - BacktraceClientDelegate
+- (BacktraceCrashReport *)willSend:(BacktraceCrashReport *)report {
+    return report;
+}
+
+- (void)serverDidFail:(NSError *)error {
+    
+}
+
+- (void)serverDidResponse:(BacktraceResult *)result {
+    
+}
+
+- (NSURLRequest *)willSendRequest:(NSURLRequest *)request {
+    return request;
+}
+
+- (void)didReachLimit:(BacktraceResult *)result {
+    
 }
 
 @end

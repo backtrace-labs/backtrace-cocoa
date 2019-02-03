@@ -1,15 +1,19 @@
 import Foundation
 
-struct BacktraceHtttpResponseDeserializer {
-    let response: BacktraceResponse
+enum Result<T, E: Error> {
+    case success(T)
+    case error(E)
+}
+
+struct BacktraceHttpResponseDeserializer {
+    let result: Result<BacktraceResponse, BacktraceErrorResponse>
     
     init(httpResponse: HTTPURLResponse, responseData: Data) throws {
         let jsonDeserializer = JSONDecoder()
         if httpResponse.isSuccess {
-            self.response = (try jsonDeserializer.decode(BacktraceResponse.self, from: responseData))
+            self.result = .success(try jsonDeserializer.decode(BacktraceResponse.self, from: responseData))
         } else {
-            let errorResponse = try jsonDeserializer.decode(BacktraceErrorResponse.self, from: responseData)
-            throw errorResponse
+            self.result = .error(try jsonDeserializer.decode(BacktraceErrorResponse.self, from: responseData))
         }
     }
 }
@@ -27,8 +31,8 @@ struct BacktraceResponse: Codable {
 }
 
 extension BacktraceResponse {
-    var backtraceResult: BacktraceResult {
-        return BacktraceResult(.ok(response: response))
+    func result(backtraceReport: BacktraceCrashReport) -> BacktraceResult {
+        return BacktraceResult(.ok, message: "Ok.", backtraceReport: backtraceReport)
     }
 }
 
@@ -42,8 +46,8 @@ struct BacktraceErrorResponse: Codable, BacktraceError {
 }
 
 extension BacktraceErrorResponse {
-    var backtraceResult: BacktraceResult {
-        return BacktraceResult(.serverError(message: error.message, code: error.code))
+    func result(backtraceReport: BacktraceCrashReport) -> BacktraceResult {
+        return BacktraceResult(.serverError, message: error.message, backtraceReport: backtraceReport)
     }
 }
 
