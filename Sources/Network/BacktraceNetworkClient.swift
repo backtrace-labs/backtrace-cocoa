@@ -26,10 +26,10 @@ extension BacktraceNetworkClient: NetworkClientType {
         // modify before sending
         let modifiedBeforeSendingReport = self.delegate?.willSend?(report) ?? report
         // create request
-        let urlRequest = try self.request.urlRequest()
+        let urlRequest = try self.request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData)
         BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
         // send report
-        let response = session.sync(urlRequest, data: modifiedBeforeSendingReport.reportData)
+        let response = session.sync(urlRequest)
         // check network error
         if let responseError = response.reponseError {
             self.delegate?.connectionDidFail?(responseError)

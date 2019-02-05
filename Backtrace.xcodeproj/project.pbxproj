@@ -12,6 +12,8 @@
 		28AC773A21F8C29800FED661 /* PersistentRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C1513F21F7D8E30014F1B3 /* PersistentRepository.swift */; };
 		28AC773C21FA5A8400FED661 /* BacktraceDatabaseSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */; };
 		28AC773D21FA5A8900FED661 /* BacktraceDatabaseSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */; };
+		28AC773F220A2A2900FED661 /* MultipartRequestType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773E220A2A2900FED661 /* MultipartRequestType.swift */; };
+		28AC7740220A2A3300FED661 /* MultipartRequestType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773E220A2A2900FED661 /* MultipartRequestType.swift */; };
 		49457C1D713EE46AB68B8DB4 /* Pods_Backtrace_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CF3D5FE35B28DBBEE4FF32C /* Pods_Backtrace_macOS.framework */; };
 		722A9E367FDFA23769CB4418 /* Pods_Backtrace_iOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF47A4A177C5A149E93E11E9 /* Pods_Backtrace_iOSTests.framework */; };
 		7EE441EDD781250A50387BB8 /* Pods_Backtrace_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB1DDC29EB6DE43140A0290D /* Pods_Backtrace_iOS.framework */; };
@@ -181,6 +183,7 @@
 		080261C779321096E82CBEA0 /* Pods-Backtrace-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.release.xcconfig"; sourceTree = "<group>"; };
 		0CAEB5685940F7A87F1D5269 /* Pods-Backtrace-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-macOS/Pods-Backtrace-macOS.release.xcconfig"; sourceTree = "<group>"; };
 		28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceDatabaseSettings.swift; sourceTree = "<group>"; };
+		28AC773E220A2A2900FED661 /* MultipartRequestType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipartRequestType.swift; sourceTree = "<group>"; };
 		34D9997A1948E63D0311201D /* Pods_Example_iOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3676E30A5B3FD2E883AB5D38 /* Pods-Backtrace-macOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOSTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		3BFE1A58A30C867A60163ED5 /* Pods-Backtrace-iOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOSTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-iOSTests/Pods-Backtrace-iOSTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -406,6 +409,7 @@
 				F282075F21CEABBC0017367F /* NetworkClientType.swift */,
 				F28F165021E2A08F008E4B96 /* Method.swift */,
 				F28F165321E2A097008E4B96 /* RequestType.swift */,
+				28AC773E220A2A2900FED661 /* MultipartRequestType.swift */,
 				F21771BF21E344C10059896E /* SendCrashRequest.swift */,
 			);
 			path = Network;
@@ -1229,6 +1233,7 @@
 				F28F164A21E2844A008E4B96 /* BacktraceUnregisteredClient.swift in Sources */,
 				F266B83321C77B9600D14417 /* BacktraceClient.swift in Sources */,
 				F25F9E9821EE84AF00236E04 /* BacktraceResultStatus.swift in Sources */,
+				28AC7740220A2A3300FED661 /* MultipartRequestType.swift in Sources */,
 				F21771C121E344C10059896E /* SendCrashRequest.swift in Sources */,
 				F25F9E9B21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F282076121CEABBC0017367F /* NetworkClientType.swift in Sources */,
@@ -1275,6 +1280,7 @@
 				F28F164321E28433008E4B96 /* BacktraceClientType.swift in Sources */,
 				F25F9E9721EE84AF00236E04 /* BacktraceResultStatus.swift in Sources */,
 				F21771C021E344C10059896E /* SendCrashRequest.swift in Sources */,
+				28AC773F220A2A2900FED661 /* MultipartRequestType.swift in Sources */,
 				F25F9E9A21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F28F165121E2A08F008E4B96 /* Method.swift in Sources */,
 				F22EB87721BBD36800DEE94E /* BacktraceClient.swift in Sources */,
