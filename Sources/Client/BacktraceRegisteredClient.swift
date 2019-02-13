@@ -36,22 +36,24 @@ extension BacktraceRegisteredClient: BacktraceClientType {
             return
         }
         let resource = try reporter.pendingCrashReport()
-        _ = try send(resource)
+        _ = try send(resource, DefaultAttributes.current())
     }
 
-    func send(_ exception: NSException? = nil) throws -> BacktraceResult {
+    func send(_ exception: NSException? = nil,
+              _ attributes: [String: Any] = DefaultAttributes.current()) throws -> BacktraceResult {
+        
         let resource: BacktraceCrashReport
         if let exception = exception {
             resource = try reporter.generateLiveReport(exception: exception)
         } else {
             resource = try reporter.generateLiveReport()
         }
-        return try send(resource)
+        return try send(resource, attributes)
     }
     
-    private func send(_ resource: BacktraceCrashReport) throws -> BacktraceResult {
+    private func send(_ resource: BacktraceCrashReport, _ attributes: [String: Any]) throws -> BacktraceResult {
         do {
-            let result = try networkClient.send(resource)
+            let result = try networkClient.send(resource, attributes)
             if result.backtraceStatus != .ok, let report = result.backtraceData {
                 try repository.save(report)
             }

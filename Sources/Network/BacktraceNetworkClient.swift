@@ -16,7 +16,7 @@ class BacktraceNetworkClient {
 }
 
 extension BacktraceNetworkClient: NetworkClientType {
-    func send(_ report: BacktraceCrashReport) throws -> BacktraceResult {
+    func send(_ report: BacktraceCrashReport, _ attributes: [String: Any]) throws -> BacktraceResult {
         // check if can send
         let currentTimestamp = Date().timeIntervalSince1970
         let numberOfSendsInLastOneMinute = successfulSendTimestamps.filter { currentTimestamp - $0 < 60.0 }.count
@@ -26,7 +26,8 @@ extension BacktraceNetworkClient: NetworkClientType {
         // modify before sending
         let modifiedBeforeSendingReport = self.delegate?.willSend?(report) ?? report
         // create request
-        let urlRequest = try self.request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData)
+        let urlRequest = try self.request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData,
+                                                              attributes: attributes)
         BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
         // send report
         let response = session.sync(urlRequest)

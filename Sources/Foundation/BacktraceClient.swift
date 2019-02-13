@@ -94,10 +94,12 @@ extension BacktraceClient: BacktraceClientProviding {
     ///   - exception: instance of NSException,
     ///   - completion: Backtrace services response.
     @objc public func send(exception: NSException, completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        let defaultAttributes = DefaultAttributes.current()
+        BacktraceLogger.debug("Default attributes: \(defaultAttributes)")
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                completion(try self.client.send(exception))
+                completion(try self.client.send(exception, defaultAttributes))
             } catch {
                 BacktraceLogger.error(error)
                 completion(BacktraceResult.unknownError())
@@ -113,10 +115,12 @@ extension BacktraceClient: BacktraceClientProviding {
     /// - Parameters:
     ///   - completion: Backtrace services response.
     @objc public func send(completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        let defaultAttributes = DefaultAttributes.current()
+        BacktraceLogger.debug("Default attributes: \(defaultAttributes)")
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                completion(try self.client.send(nil))
+                completion(try self.client.send(nil, defaultAttributes))
             } catch {
                 BacktraceLogger.error(error)
                 completion(BacktraceResult.unknownError())

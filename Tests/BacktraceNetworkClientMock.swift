@@ -22,7 +22,7 @@ final class BacktraceNetworkClientMock: NetworkClientType {
         return BacktraceResponse(response: "Ok.", rxid: "xx-xx", fingerprint: "xx-xx", unique: true).result(backtraceReport: report)
     }
     
-    func send(_ report: BacktraceCrashReport) throws -> BacktraceResult {
+    func send(_ report: BacktraceCrashReport, _ attributes: [String : Any]) throws -> BacktraceResult {
         switch config {
         case .invalidToken:
             return BacktraceNetworkClientMock.invalidTokenResponse(report)

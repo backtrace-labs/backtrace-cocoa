@@ -64,7 +64,7 @@ where BacktraceRepository.Resource == BacktraceCrashReport {
         
         for reportToSend in limitedReportsToSend {
             do {
-                let result = try networkClient.send(reportToSend)
+                let result = try networkClient.send(reportToSend, [:])
                 if let reportData = result.backtraceData {
                     if result.backtraceStatus == .ok {
                         try repository.delete(reportData)
