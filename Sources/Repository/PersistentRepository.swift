@@ -6,7 +6,7 @@ protocol PersistentStorable {
     associatedtype ManagedObjectType: NSManagedObject
     
     static var entityName: String { get }
-    var hashProperty: Int { get }
+    var identifier: UUID { get }
     var reportData: Data { get }
     
     init(managedObject: ManagedObjectType) throws
@@ -34,34 +34,33 @@ class PersistentRepository<Resource: PersistentStorable> {
         }
         if #available(iOS 10.0, macOS 10.12, *) {
             let persistentContainer = NSPersistentContainer(name: momdName, managedObjectModel: managedObjectModel)
+            try PersistentRepository.migration(coordinator: persistentContainer.persistentStoreCoordinator,
+                                               storeDir: NSPersistentContainer.defaultDirectoryURL(),
+                                               managedObject: managedObjectModel)
             let dispatch = DispatchSemaphore(value: 0)
             var loadPersistentStoresError: Error?
             var url: URL?
             persistentContainer.loadPersistentStores { (storeDescription, error) in
-                BacktraceLogger.debug("Loaded persistent stores, sore description: \(storeDescription)")
+                BacktraceLogger.debug("Loaded persistent stores, store description: \(storeDescription)")
                 loadPersistentStoresError = error
                 url = storeDescription.url
                 dispatch.signal()
             }
-            
             dispatch.wait()
             if let error = loadPersistentStoresError {
                 throw RepositoryError.persistentRepositoryInitError(details: error.localizedDescription)
             }
-            guard let storeUrl = url else {
-                throw RepositoryError.resourceNotFound
-            }
+            guard let storeUrl = url else { throw RepositoryError.resourceNotFound }
             backgroundContext = persistentContainer.newBackgroundContext()
             self.url = storeUrl
-            
         } else {
             let psc = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
             let managedObjectContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
             managedObjectContext.persistentStoreCoordinator = psc
-            
-            guard let storeDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).last
-            else { throw RepositoryError
-                .persistentRepositoryInitError(details: "Unable to resolve document directory") }
+            guard let storeDir =
+                FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).last else {
+                throw RepositoryError.persistentRepositoryInitError(details: "Unable to resolve document directory") }
+            try PersistentRepository.migration(coordinator: psc, storeDir: storeDir, managedObject: managedObjectModel)
             let storeURL = storeDir.appendingPathComponent("Model.sqlite")
             try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: storeURL, options: nil)
             BacktraceLogger.debug("Loaded persistent stores, sore description: \(psc.persistentStores)")
@@ -69,6 +68,18 @@ class PersistentRepository<Resource: PersistentStorable> {
             url = storeURL
         }
         try BacktraceFileManager.excludeFromBackup(url)
+    }
+    
+    static func migration(coordinator: NSPersistentStoreCoordinator,
+                          storeDir: URL,
+                          managedObject: NSManagedObjectModel) throws {
+        let storeUrl = storeDir.appendingPathComponent("Model.sqlite")
+        
+        guard FileManager.default.fileExists(atPath: storeUrl.path),
+            let metadata = try? NSPersistentStoreCoordinator
+            .metadataForPersistentStore(ofType: NSSQLiteStoreType, at: storeUrl, options: nil),
+            !managedObject.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) else { return }
+        try coordinator.destroyPersistentStore(at: storeUrl, ofType: NSSQLiteStoreType, options: nil)
     }
 }
 
@@ -82,7 +93,7 @@ extension PersistentRepository: Repository {
             throw RepositoryError.canNotCreateEntityDescription
         }
         let newManagedObject = NSManagedObject(entity: entity, insertInto: backgroundContext)
-        newManagedObject.setValue(resource.hashProperty, forKey: "hashProperty")
+        newManagedObject.setValue(resource.identifier.uuidString, forKey: "hashProperty")
         newManagedObject.setValue(resource.reportData, forKey: "reportData")
         newManagedObject.setValue(Date(), forKey: "dateAdded")
         newManagedObject.setValue(0, forKey: "retryCount")
@@ -90,13 +101,18 @@ extension PersistentRepository: Repository {
     }
     
     func delete(_ resource: Resource) throws {
-        let predicate = NSPredicate(format: "hashProperty==\(resource.hashProperty)")
+        let predicate = NSPredicate(format: "hashProperty==%@", resource.identifier.uuidString)
         let fetchRequestResults = try getResources(predicate: predicate, fetchLimit: 100)
         try delete(managedObjects: fetchRequestResults)
     }
     
     private func delete(managedObjects: [Resource.ManagedObjectType]) throws {
-        managedObjects.forEach { backgroundContext.delete($0) }
+        managedObjects.forEach {
+            if let fileName = $0.value(forKey: "hashProperty") as? String, let uuid = UUID(uuidString: fileName) {
+                try? AttributesStorage.remove(fileName: uuid.uuidString)
+            }
+            backgroundContext.delete($0)
+        }
         try backgroundContext.save()
     }
     
@@ -124,8 +140,7 @@ extension PersistentRepository: Repository {
     }
     
     func incrementRetryCount(_ resource: Resource, limit: Int) throws {
-        // TODO: Remove all associated files stored on disk.
-        let predicate = NSPredicate(format: "hashProperty==\(resource.hashProperty)")
+        let predicate = NSPredicate(format: "hashProperty==%@", resource.identifier.uuidString)
         let fetchRequestResults = try getResources(predicate: predicate, fetchLimit: 1)
         
         guard let fetchedResult = fetchRequestResults.first,
@@ -135,6 +150,7 @@ extension PersistentRepository: Repository {
         // if exceeds limit, remove from db, otherwise just increment retryCount property
         if currentRetryCount >= limit {
             backgroundContext.delete(fetchedResult)
+            try? AttributesStorage.remove(fileName: resource.identifier.uuidString)
         } else {
             // increment number of retires
             fetchedResult.setValue(currentRetryCount + 1, forKey: "retryCount")
@@ -151,7 +167,6 @@ extension PersistentRepository: Repository {
     
     /// Remove oldest result if max number of records is exceeded or total database size is exceeded.
     private func removeOldestRecordIfNeeded() throws {
-        // TODO: Make internal and remove all associated files stored on disk.
         if settings.maxRecordCount != BacktraceDatabaseSettings.unlimited {
             // check number of records
             while try countResources() + 1 > settings.maxRecordCount {

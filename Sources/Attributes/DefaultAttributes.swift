@@ -11,7 +11,6 @@ struct DefaultAttributes {
         currentAttributes += DeviceInfo.current()
         currentAttributes += ScreenInfo.current()
         currentAttributes += LocaleInfo.current()
-        currentAttributes += ApplicationInfo.current()
         #if os(iOS)
         currentAttributes += TelephoneInfo.current()
         #endif
@@ -146,46 +145,30 @@ struct TelephoneInfo: AttributesSourceType {
 struct LocaleInfo: AttributesSourceType {
     
     enum Key: String {
-        case languageCode
-        case regionCode
+        case languageCode = "device.lang.code"
+        case language = "device.lang"
+        case regionCode = "device.region.code"
+        case region = "device.region"
     }
     
     static func current() -> [String: Any] {
         var localeAttributes: [String: Any] = [:]
         if let languageCode = Locale.current.languageCode {
             localeAttributes[Key.languageCode.rawValue] = languageCode
+            if let language = Locale.current.localizedString(forLanguageCode: languageCode) {
+                localeAttributes[Key.language.rawValue] = language
+            }
         }
         if let regionCode = Locale.current.regionCode {
             localeAttributes[Key.regionCode.rawValue] = regionCode
+            if let region = Locale.current.localizedString(forRegionCode: regionCode) {
+                localeAttributes[Key.region.rawValue] = region
+            }
         }
         return localeAttributes
     }
 }
 
-struct ApplicationInfo: AttributesSourceType {
-    
-    enum Key: String {
-        #if os(iOS)
-        case state = "apllication.state"
-        #elseif os(macOS)
-        case isActive = "application.isActive"
-        case isHidden = "application.isHidden"
-        case isRunning = "application.isRunning"
-        #endif
-    }
-    
-    static func current() -> [String: Any] {
-        var applicationAttributes: [String: Any] = [:]
-        #if os(iOS)
-        applicationAttributes[Key.state.rawValue] = UIApplication.shared.applicationState.name
-        #elseif os(macOS)
-        applicationAttributes[Key.isActive.rawValue] = NSApplication.shared.isActive
-        applicationAttributes[Key.isHidden.rawValue] = NSApplication.shared.isHidden
-        applicationAttributes[Key.isRunning.rawValue] = NSApplication.shared.isRunning
-        #endif
-        return applicationAttributes
-    }
-}
 // swiftlint:enable type_name
 
 private extension Dictionary {

@@ -24,7 +24,7 @@ final class BacktraceTests: QuickSpec {
                         return BacktraceNetworkClientMock(config: .validCredentials)
                     }
                     it("sends crash report", closure: {
-                        expect { try networkClientWithValidCredentials.send(try crashReporter.generateLiveReport(), [:])}
+                        expect { try networkClientWithValidCredentials.send(try crashReporter.generateLiveReport())}
                             .toNotEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Crash report should be successfully sent.")
                     })
 //                    it("sends crash report", closure: {
@@ -37,7 +37,7 @@ final class BacktraceTests: QuickSpec {
                         return BacktraceNetworkClientMock(config: .invalidEndpoint)
                     }
                     it("fails to send crash report with invalid endpoint", closure: {
-                        expect { try networkClientWithInvalidEndpoint.send(try crashReporter.generateLiveReport(), [:])}
+                        expect { try networkClientWithInvalidEndpoint.send(try crashReporter.generateLiveReport())}
                             .toEventually(throwError())
                     })
                     it("throws error while trying to send crash report", closure: {
@@ -53,7 +53,7 @@ final class BacktraceTests: QuickSpec {
                     it("fails to send crash report with invalid token", closure: {
                         do {
                             let report = try crashReporter.generateLiveReport()
-                            expect { try networkClientWithInvalidToken.send(report, [:]).backtraceStatus}
+                            expect { try networkClientWithInvalidToken.send(report).backtraceStatus}
                                 .toEventually(equal(BacktraceResultStatus.serverError), timeout: 10, pollInterval: 0.5, description: "Status code should be 403 - Forbidden.")
                         } catch {
                             fail(error.localizedDescription)

@@ -16,18 +16,19 @@ class BacktraceNetworkClient {
 }
 
 extension BacktraceNetworkClient: NetworkClientType {
-    func send(_ report: BacktraceCrashReport, _ attributes: [String: Any]) throws -> BacktraceResult {
+    func send(_ report: BacktraceCrashReport) throws -> BacktraceResult {
         // check if can send
         let currentTimestamp = Date().timeIntervalSince1970
         let numberOfSendsInLastOneMinute = successfulSendTimestamps.filter { currentTimestamp - $0 < 60.0 }.count
         guard numberOfSendsInLastOneMinute < reportsPerMin else {
             return BacktraceResult.limitReached(report)
         }
+        let attributes = try? AttributesStorage.retrieve(fileName: report.identifier.uuidString)
         // modify before sending
         let modifiedBeforeSendingReport = self.delegate?.willSend?(report) ?? report
         // create request
         let urlRequest = try self.request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData,
-                                                              attributes: attributes)
+                                                              attributes: attributes ?? [:])
         BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
         // send report
         let response = session.sync(urlRequest)
@@ -52,6 +53,7 @@ extension BacktraceNetworkClient: NetworkClientType {
             // did send successfully
             self.successfulSendTimestamps.append(Date().timeIntervalSince1970)
             self.delegate?.serverDidResponse?(response.result(backtraceReport: modifiedBeforeSendingReport))
+            try? AttributesStorage.remove(fileName: report.identifier.uuidString)
             return response.result(backtraceReport: modifiedBeforeSendingReport)
         }
     }

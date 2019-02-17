@@ -5,19 +5,24 @@ import Backtrace_PLCrashReporter
     
     let reportData: Data
     let plCrashReport: PLCrashReport
+    let identifier: UUID
     
     init(report: Data) throws {
         self.plCrashReport = try PLCrashReport(data: report)
         reportData = report
+        identifier = UUID()
         super.init()
     }
     
     init(managedObject: Crash) throws {
-        guard let reportData = managedObject.reportData else {
+        guard let reportData = managedObject.reportData,
+        let identifierString = managedObject.hashProperty,
+        let identifier = UUID(uuidString: identifierString) else {
             throw RepositoryError.canNotCreateEntityDescription
         }
         self.reportData = reportData
         self.plCrashReport = try PLCrashReport(data: reportData)
+        self.identifier = identifier
         super.init()
     }
 }
@@ -25,19 +30,5 @@ import Backtrace_PLCrashReporter
 extension BacktraceCrashReport: PersistentStorable {
     typealias ManagedObjectType = Crash
     
-    var hashProperty: Int {
-        let uuid: UUID
-        if var cfUuid = plCrashReport.uuidRef {
-            uuid = withUnsafePointer(to: &cfUuid) { (cfUuidPointer) -> UUID in
-                return cfUuidPointer
-                    .withMemoryRebound(to: UUID.self, capacity: MemoryLayout<UUID>.size, { (uuidPointer) -> UUID in
-                    return uuidPointer.pointee
-                })
-            }
-        } else {
-            uuid = UUID()
-        }
-        return uuid.hashValue
-    }
     static var entityName: String { return "Crash" }
 }

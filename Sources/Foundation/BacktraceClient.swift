@@ -94,19 +94,7 @@ extension BacktraceClient: BacktraceClientProviding {
     ///   - exception: instance of NSException,
     ///   - completion: Backtrace services response.
     @objc public func send(exception: NSException, completion: @escaping ((_ result: BacktraceResult) -> Void)) {
-        let defaultAttributes = DefaultAttributes.current()
-        BacktraceLogger.debug("Default attributes: \(defaultAttributes)")
-        dispatcher.dispatch({ [weak self] in
-            guard let self = self else { return }
-            do {
-                completion(try self.client.send(exception, defaultAttributes))
-            } catch {
-                BacktraceLogger.error(error)
-                completion(BacktraceResult.unknownError())
-            }
-            }, completion: {
-                BacktraceLogger.debug("Finished")
-        })
+        _send(exception: exception, completion: completion)
     }
     
     /// Automatically generates and sends a crash report to Backtrace services.
@@ -115,12 +103,16 @@ extension BacktraceClient: BacktraceClientProviding {
     /// - Parameters:
     ///   - completion: Backtrace services response.
     @objc public func send(completion: @escaping ((_ result: BacktraceResult) -> Void)) {
-        let defaultAttributes = DefaultAttributes.current()
-        BacktraceLogger.debug("Default attributes: \(defaultAttributes)")
+        _send(completion: completion)
+    }
+    
+    private func _send(exception: NSException? = nil, completion: @escaping ((_ result: BacktraceResult) -> Void)) {
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                completion(try self.client.send(nil, defaultAttributes))
+                let defaultAttributes = DefaultAttributes.current()
+                BacktraceLogger.debug("Default attributes: \(defaultAttributes)")
+                completion(try self.client.send(exception, defaultAttributes))
             } catch {
                 BacktraceLogger.error(error)
                 completion(BacktraceResult.unknownError())
