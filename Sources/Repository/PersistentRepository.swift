@@ -79,7 +79,13 @@ class PersistentRepository<Resource: PersistentStorable> {
             let metadata = try? NSPersistentStoreCoordinator
             .metadataForPersistentStore(ofType: NSSQLiteStoreType, at: storeUrl, options: nil),
             !managedObject.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) else { return }
-        try coordinator.destroyPersistentStore(at: storeUrl, ofType: NSSQLiteStoreType, options: nil)
+        if #available(macOS 10.11, *) {
+            try coordinator.destroyPersistentStore(at: storeUrl, ofType: NSSQLiteStoreType, options: nil)
+        } else {
+            for store in coordinator.persistentStores {
+                try coordinator.remove(store)
+            }
+        }
     }
 }
 

@@ -29,7 +29,7 @@ class AttributesStorage {
                                                     attributes: nil)
         }
         
-        if #available(iOS 11.0, *) {
+        if #available(iOS 11.0, macOS 10.13, *) {
             try (attributes as NSDictionary).write(to: config.fileUrl)
         } else {
             guard (attributes as NSDictionary).write(to: config.fileUrl, atomically: true) else {
@@ -46,7 +46,7 @@ class AttributesStorage {
         }
         // load file to NSDictionar
         let dictionary: NSDictionary
-        if #available(iOS 11.0, *) {
+        if #available(iOS 11.0, macOS 10.13, *) {
             dictionary = try NSDictionary(contentsOf: config.fileUrl, error: ())
         } else {
             guard let dictionaryFromFile = NSDictionary(contentsOf: config.fileUrl) else {
