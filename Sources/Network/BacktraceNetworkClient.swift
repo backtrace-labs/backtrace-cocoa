@@ -23,13 +23,15 @@ extension BacktraceNetworkClient: NetworkClientType {
         guard numberOfSendsInLastOneMinute < reportsPerMin else {
             return BacktraceResult.limitReached(report)
         }
+        let attributes = try? AttributesStorage.retrieve(fileName: report.identifier.uuidString)
         // modify before sending
         let modifiedBeforeSendingReport = self.delegate?.willSend?(report) ?? report
         // create request
-        let urlRequest = try self.request.urlRequest()
+        let urlRequest = try self.request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData,
+                                                              attributes: attributes ?? [:])
         BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
         // send report
-        let response = session.sync(urlRequest, data: modifiedBeforeSendingReport.reportData)
+        let response = session.sync(urlRequest)
         // check network error
         if let responseError = response.reponseError {
             self.delegate?.connectionDidFail?(responseError)
@@ -51,6 +53,7 @@ extension BacktraceNetworkClient: NetworkClientType {
             // did send successfully
             self.successfulSendTimestamps.append(Date().timeIntervalSince1970)
             self.delegate?.serverDidResponse?(response.result(backtraceReport: modifiedBeforeSendingReport))
+            try? AttributesStorage.remove(fileName: report.identifier.uuidString)
             return response.result(backtraceReport: modifiedBeforeSendingReport)
         }
     }

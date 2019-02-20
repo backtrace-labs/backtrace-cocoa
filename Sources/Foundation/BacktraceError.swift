@@ -27,4 +27,7 @@ enum FileError: BacktraceError {
     case unsupportedScheme
     case fileNotExists
     case resourceValueUnavailable
+    case noCacheDirectory
+    case fileNotWritten
+    case invalidPropertyList
 }

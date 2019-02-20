@@ -8,7 +8,9 @@ final class BacktraceFileManager {
         guard url.isFileURL else {
             throw FileError.unsupportedScheme
         }
-        //TODO: Check if file exists
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw FileError.fileNotExists
+        }
         let resourceKeys = Set([URLResourceKey.fileSizeKey])
         let values = try url.resourceValues(forKeys: resourceKeys)
         guard let fileSize = values.fileSize else { throw FileError.resourceValueUnavailable }
@@ -23,7 +25,9 @@ final class BacktraceFileManager {
         guard url.isFileURL else {
             throw FileError.unsupportedScheme
         }
-        //TODO: Check if file exists
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw FileError.fileNotExists
+        }
         var resourceValues = URLResourceValues()
         resourceValues.isExcludedFromBackup = true
         try url.setResourceValues(resourceValues)
