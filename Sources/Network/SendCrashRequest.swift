@@ -11,7 +11,7 @@ struct SendCrashRequest {
     }
 }
 
-extension SendCrashRequest: RequestType {
+extension SendCrashRequest: MultipartRequestType {
     var baseURL: URL {
         return endpoint
     }
