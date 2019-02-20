@@ -35,7 +35,7 @@ struct DeviceInfo: AttributesSourceType {
         case batteryLevel = "battery.level"
         #elseif os(macOS)
         case systemUptime = "system.uptime"
-        case physicalMemory
+        case physicalMemory = "memory.physical"
         case processorCount = "processor.count"
         #endif
     }
