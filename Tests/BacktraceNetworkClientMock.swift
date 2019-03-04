@@ -2,7 +2,7 @@ import Foundation
 
 @testable import Backtrace
 
-final class BacktraceNetworkClientMock: NetworkClientType {
+final class BacktraceNetworkClientMock: BacktraceApiProtocol {
     var delegate: BacktraceClientDelegate?
     
     var successfulSendTimestamps: [TimeInterval] = []
@@ -13,16 +13,16 @@ final class BacktraceNetworkClientMock: NetworkClientType {
         case validCredentials
     }
     
-    static func invalidTokenResponse(_ report: BacktraceCrashReport) -> BacktraceResult {
+    static func invalidTokenResponse(_ report: BacktraceReport) -> BacktraceResult {
         return BacktraceErrorResponse(error: BacktraceErrorResponse.ResponseError(code: 1897, message: "Forbidden"))
             .result(backtraceReport: report)
     }
     
-    static func invalidCredentials(_ report: BacktraceCrashReport) -> BacktraceResult {
+    static func invalidCredentials(_ report: BacktraceReport) -> BacktraceResult {
         return BacktraceResponse(response: "Ok.", rxid: "xx-xx", fingerprint: "xx-xx", unique: true).result(backtraceReport: report)
     }
     
-    func send(_ report: BacktraceCrashReport) throws -> BacktraceResult {
+    func send(_ report: BacktraceReport) throws -> BacktraceResult {
         switch config {
         case .invalidToken:
             return BacktraceNetworkClientMock.invalidTokenResponse(report)

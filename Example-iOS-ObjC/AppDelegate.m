@@ -10,9 +10,7 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
-                                         token: @""];
-    [BacktraceClient.shared registerWithCredentials: credentials];
-    
+                                         token: @"token"];
     BacktraceClient.shared.delegate = self;
 
     // sending NSException
@@ -37,7 +35,7 @@
 }
 
 #pragma mark - BacktraceClientDelegate
-- (BacktraceCrashReport *)willSend:(BacktraceCrashReport *)report {
+- (BacktraceReport *)willSend:(BacktraceReport *)report {
     return report;
 }
 

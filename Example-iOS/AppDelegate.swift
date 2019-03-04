@@ -17,14 +17,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
-                                                        token: "")
-        BacktraceClient.shared.register(credentials: backtraceCredentials)
-        BacktraceClient.shared.delegate = self
+                                                        token: "token")
+        let configuration = BacktraceClientConfiguration(credentials: backtraceCredentials)
+        
+        BacktraceClient.shared = try? BacktraceClient(configuration: configuration)
+        BacktraceClient.shared?.delegate = self
+        BacktraceClient.shared?.clientAttributes = ["foo": "bar", "testing": true]
 
         do {
             try throwingFunc()
         } catch {
-            BacktraceClient.shared.send { (result) in
+            BacktraceClient.shared?.send { (result) in
                 print(result)
             }
         }
@@ -34,7 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 
 extension AppDelegate: BacktraceClientDelegate {
-    func willSend(_ report: BacktraceCrashReport) -> (BacktraceCrashReport) {
+    func willSend(_ report: BacktraceReport) -> (BacktraceReport) {
         return report
     }
     
