@@ -197,24 +197,6 @@ Registered `BacktraceClient` will be able to send an crash reports. Error report
  - (void) sendWithException: NSException completion: (void (^)(BacktraceResult * _Nonnull)) completion;
 ```
 
-# Architecture  <a name="architecture"></a>
-
-The library is written in pure Swift and Objective-C is fully supported as Swift codebase can be automatically exposed just by adding annotations:
-
-```swift
-// pure swift class - cannot be exposed to Objective-C
-class PureSwiftClass {
-
-}
-
-// swift class with Objective-C support
-@objc class SwiftClass: NSObject {
-
-}
-```
-
-As Swift is meant to be open-source and platform independent the library relies on `protocols` which allows to provide default implementation but simultaneously gives you a lot of place for customisation.
-
 # FAQ
 ## Missing dSYM files
 Make sure your project is configured to generate the debug symbols:
