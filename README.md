@@ -174,6 +174,46 @@ You can add custom user attributes that should be send alongside crash and erros
 BacktraceClient.shared?.userAttributes = ["foo": "bar", "testing": true]
 ```
 
+## Backtrace client configuration
+For more advanced usage of BacktraceClient, you can supply BacktraceClientConfiguration as a parameter. See the following example:
+```swift
+let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "backtrace_endpoint_url")!,
+                                                token: "token")
+let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
+                                                          dbSettings: BacktraceDatabaseSettings(),
+                                                          reportsPerMin: 10)
+BacktraceClient.shared.register(configuration: backtraceConfiguration)
+```
+
+### Database settings
+BacktraceClient allows you to customize the initialization of BacktraceDatabase for local storage of error reports by supplying a BacktraceDatabaseSettings parameter, as follows:
+```swift
+let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "backtrace_endpoint_url")!,
+                                                token: "token")
+let backtraceDatabaseSettings = BacktraceDatabaseSettings()
+backtraceDatabaseSettings.maxRecordCount = 1000
+backtraceDatabaseSettings.maxDatabaseSize = 10
+backtraceDatabaseSettings.retryInterval = 5
+backtraceDatabaseSettings.retryLimit = 3
+backtraceDatabaseSettings.retryBehaviour = RetryBehaviour.interval
+backtraceDatabaseSettings.retryOrder = RetryOder.queue
+let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
+                                                          dbSettings: backtraceDatabaseSettings,
+                                                          reportsPerMin: 10)
+BacktraceClient.shared.register(configuration: backtraceConfiguration)
+```
+
+### Events handling
+BacktraceClient allows you to subscribe for events produced before and after sending error report:
+- Swift
+```swift
+func willSend(_ report: BacktraceCrashReport) -> (BacktraceCrashReport)
+func willSendRequest(_ request: URLRequest) -> URLRequest
+func serverDidFail(_ error: Error)
+func serverDidResponse(_ result: BacktraceResult)
+func didReachLimit(_ result: BacktraceResult)
+```
+
 ## Sending an error report <a name="documentation-sending-report"></a>
 Registered `BacktraceClient` will be able to send an crash reports. Error report is automatically generated based.
 
