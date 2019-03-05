@@ -14,7 +14,7 @@ import Foundation
     /// - Parameters:
     ///   - endpoint: Endpoint to Backtrace services,
     ///   - token: Access token to Backtrace services,
-    /// - Throws: Error thrown when passes invalid URL.
+    /// - Throws: Error thrown when passed invalid URL.
     @objc public init(endpoint: URL, token: String) {
         self.token = token
         self.endpoint = endpoint

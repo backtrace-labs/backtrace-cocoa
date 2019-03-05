@@ -1,6 +1,6 @@
 import Foundation
 
-struct SendCrashRequest {
+struct SendReportRequest {
 
     private let endpoint: URL
     private let token: String
@@ -11,7 +11,7 @@ struct SendCrashRequest {
     }
 }
 
-extension SendCrashRequest: MultipartRequestType {
+extension SendReportRequest: MultipartRequestType {
     var baseURL: URL {
         return endpoint
     }
@@ -20,7 +20,7 @@ extension SendCrashRequest: MultipartRequestType {
         return "/post"
     }
 
-    var method: Method {
+    var method: HttpMethod {
         return .post
     }
 

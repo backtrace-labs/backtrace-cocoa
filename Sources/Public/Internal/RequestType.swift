@@ -3,7 +3,7 @@ import Foundation
 protocol RequestType {
     var baseURL: URL { get }
     var path: String { get }
-    var method: Method { get }
+    var method: HttpMethod { get }
     var queryItems: [String: String] { get }
 }
 

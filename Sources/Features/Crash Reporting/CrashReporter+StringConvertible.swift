@@ -3,7 +3,7 @@ import Backtrace_PLCrashReporter
 
 protocol Composite {
     var children: [Composite] { get }
-    var customDebugAttributes: [String: Any] { get }
+    var customDebugAttributes: Attributes { get }
     var customDebugName: String { get }
 }
 
@@ -30,7 +30,7 @@ extension PLCrashReport: Composite {
             .compactMap { $0 }
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
         return [
             "has machine info": hasMachineInfo,
             "has process info": hasProcessInfo,
@@ -71,7 +71,7 @@ extension PLCrashReportProcessInfo: Composite {
         return "Process"
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
         return [
             "name": processName.orEmpty(),
             "id": processID,
@@ -86,7 +86,7 @@ extension PLCrashReportProcessInfo: Composite {
 
 extension PLCrashReportSignalInfo: Composite {
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
         return [
             "name": name.orEmpty(),
             "code": code.orEmpty(),
@@ -103,7 +103,7 @@ extension PLCrashReportApplicationInfo: Composite {
     var customDebugName: String {
         return "Application"
     }
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
         return [
             "identifier": applicationIdentifier.orEmpty(),
             "version": applicationVersion.orEmpty()
@@ -116,7 +116,7 @@ extension PLCrashReportSystemInfo: Composite {
         return "System"
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
 
         return [
             "name": operatingSystem.rawValue,
@@ -132,7 +132,7 @@ extension PLCrashReportMachineInfo: Composite {
         return "Machine"
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
 
         return [
             "model name": modelName.orEmpty(),
@@ -147,7 +147,7 @@ extension PLCrashReportProcessorInfo: Composite {
         return "Processor"
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
 
         return [
             "type": type,
@@ -162,7 +162,7 @@ extension PLCrashReportMachExceptionInfo: Composite {
         return "Mach exception"
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
         let codes = self.codes as? [UInt] ?? []
         return [
             "type": type,
@@ -181,7 +181,7 @@ extension PLCrashReportExceptionInfo: Composite {
             .compactMap { $0 }
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
         return [
             "name": exceptionName.orEmpty(),
             "reason": exceptionReason.orEmpty()
@@ -194,7 +194,7 @@ extension PLCrashReportSymbolInfo: Composite {
         return "Symbol"
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
         return [
             "symbol name": symbolName.orEmpty(),
             "start address": startAddress,
@@ -213,7 +213,7 @@ extension PLCrashReportStackFrameInfo: Composite {
             .compactMap { $0 }
     }
 
-    var customDebugAttributes: [String: Any] {
+    var customDebugAttributes: Attributes {
         return [
             "instruction pointer": instructionPointer
         ]

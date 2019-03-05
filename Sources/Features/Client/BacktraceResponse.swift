@@ -1,10 +1,5 @@
 import Foundation
 
-enum Result<T, E: Error> {
-    case success(T)
-    case error(E)
-}
-
 struct BacktraceHttpResponseDeserializer {
     let result: Result<BacktraceResponse, BacktraceErrorResponse>
     
@@ -31,7 +26,7 @@ struct BacktraceResponse: Codable {
 }
 
 extension BacktraceResponse {
-    func result(backtraceReport: BacktraceCrashReport) -> BacktraceResult {
+    func result(backtraceReport: BacktraceReport) -> BacktraceResult {
         return BacktraceResult(.ok, message: "Ok.", backtraceReport: backtraceReport)
     }
 }
@@ -46,7 +41,7 @@ struct BacktraceErrorResponse: Codable, BacktraceError {
 }
 
 extension BacktraceErrorResponse {
-    func result(backtraceReport: BacktraceCrashReport) -> BacktraceResult {
+    func result(backtraceReport: BacktraceReport) -> BacktraceResult {
         return BacktraceResult(.serverError, message: error.message, backtraceReport: backtraceReport)
     }
 }
