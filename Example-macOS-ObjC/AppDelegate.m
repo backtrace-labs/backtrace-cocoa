@@ -8,11 +8,14 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    // Insert code here to initialize your application
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
-                                         token: @""];
-    [BacktraceClient.shared registerWithCredentials: credentials];
+                                         token: @"token"];
+    BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc] initWithCredentials: credentials
+                                                                                                 dbSettings: [BacktraceDatabaseSettings new]
+                                                                                              reportsPerMin: 3];
+    BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
+    [BacktraceClient.shared setUserAttributes: @{@"foo": @"bar"}];
 
     @try {
         NSArray *array = @[];
@@ -31,6 +34,5 @@
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     // Insert code here to tear down your application
 }
-
 
 @end

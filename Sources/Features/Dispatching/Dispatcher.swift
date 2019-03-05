@@ -1,9 +1,5 @@
 import Foundation
 
-protocol DispatcherType {
-    func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void)
-}
-
 class Dispatcher: NSObject {
 
     static let operationQueueName = "backtrace.dispatching"
@@ -18,7 +14,7 @@ class Dispatcher: NSObject {
     }()
 }
 
-extension Dispatcher: DispatcherType {
+extension Dispatcher: Dispatching {
     func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void) {
         let blockOperation = BlockOperation(block: block)
         blockOperation.completionBlock = completion

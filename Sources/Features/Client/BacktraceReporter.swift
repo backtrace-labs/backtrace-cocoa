@@ -1,0 +1,82 @@
+import Foundation
+
+final class BacktraceReporter {
+
+    private let reporter: CrashReporting
+    private var api: BacktraceApiProtocol
+    private let repository: PersistentRepository<BacktraceReport>
+    private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
+    private var attributesProvider: SignalContext
+    
+    init(reporter: CrashReporting, api: BacktraceApiProtocol,
+         dbSettings: BacktraceDatabaseSettings, reportsPerMin: Int) throws {
+        self.reporter = reporter
+        self.api = api
+        self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
+        self.watcher = try BacktraceWatcher(settings: dbSettings,
+                                            reportsPerMin: reportsPerMin,
+                                            networkClient: api,
+                                            repository: repository)
+        self.attributesProvider = AttributesProvider()
+        self.reporter.signalContext(&attributesProvider)
+    }
+}
+
+extension BacktraceReporter {
+    
+    func enableCrashReporter() throws {
+        try reporter.enableCrashReporting()
+    }
+    
+    func handlePendingCrashes() throws {
+        // always try to remove pending crash report from disk
+        defer { try? reporter.purgePendingCrashReport() }
+
+        // try to send pending crash report
+        guard reporter.hasPendingCrashes() else {
+            BacktraceLogger.debug("No pending crashes")
+            return
+        }
+        let resource = try reporter.pendingCrashReport()
+        _ = try send(resource: resource)
+    }
+}
+
+extension BacktraceReporter: BacktraceClientCustomizing {
+    var delegate: BacktraceClientDelegate? {
+        get {
+            return api.delegate
+        }
+        set {
+            api.delegate = newValue
+        }
+    }
+    
+    var userAttributes: Attributes {
+        get {
+            return attributesProvider.userAttributes
+        } set {
+            attributesProvider.userAttributes = newValue
+        }
+    }
+}
+
+extension BacktraceReporter {
+    func send(resource: BacktraceReport) throws -> BacktraceResult {
+        do {
+            let result = try api.send(resource)
+            if result.backtraceStatus != .ok, let report = result.report {
+                try repository.save(report)
+            }
+            return result
+        } catch let error as BacktraceErrorResponse {
+            try repository.save(resource)
+            throw error
+        }
+    }
+    
+    func send(exception: NSException? = nil) throws -> BacktraceResult {
+        let resource = try reporter.generateLiveReport(exception: exception, attributes: attributesProvider.attributes)
+        return try send(resource: resource)
+    }
+}
