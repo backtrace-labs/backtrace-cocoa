@@ -13,16 +13,16 @@ final class AttributesTests: QuickSpec {
                 
                 expect(attributesProvider.defaultAttributes).toNot(beEmpty())
                 expect(attributesProvider.attributes).toNot(beEmpty())
-                expect(attributesProvider.clientAttributes).to(beEmpty())
+                expect(attributesProvider.userAttributes).to(beEmpty())
             })
             
             it("Appends client attribute", closure: {
                 let attributesProvider = AttributesProvider()
-                attributesProvider.clientAttributes["foo"] = "bar"
+                attributesProvider.userAttributes["foo"] = "bar"
                 
                 expect(attributesProvider.defaultAttributes).toNot(beEmpty())
                 expect(attributesProvider.attributes).toNot(beEmpty())
-                expect(attributesProvider.clientAttributes).toNot(beEmpty())
+                expect(attributesProvider.userAttributes).toNot(beEmpty())
             })
         }
     }
