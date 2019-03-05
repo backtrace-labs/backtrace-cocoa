@@ -13,53 +13,55 @@
 
 ## Minimal usage
 
-### Register the `BacktraceClient` using `register(endpoint:,token:)` method and then send error/exception just by calling method `send`:
+### Create the `BacktraceClient` using `init(credentials:)` initializer and then send error/exception just by calling method `send`:
 
 - Swift
 ```swift
-  import UIKit
-  import Backtrace
+import UIKit
+import Backtrace
 
-  @UIApplicationMain
-  class AppDelegate: UIResponder, UIApplicationDelegate {
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
 
-      var window: UIWindow?
+    var window: UIWindow?
+    
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+                     
+        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
+                                                        token: "token")
+        BacktraceClient.shared = try? BacktraceClient(credentials: backtraceCredentials)
 
-      func application(_ application: UIApplication,
-                       didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-          let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "")!,
-                                                          token: "")
-          BacktraceClient.shared.register(credentials: backtraceCredentials)
+        do {
+            try throwingFunc()
+        } catch {
+            BacktraceClient.shared?.send { (result) in
+                print(result)
+            }
+        }
 
-          do {
-              try throwingFunc()
-          } catch {
-              BacktraceClient.shared.send { (result) in
-                  print(result)
-              }
-          }
-
-          return true
-      }
-  }
+        return true
+    }
+}
 ```
 
 - Objective-C
 ```objective-c
-  #import "AppDelegate.h"
-  @import Backtrace;
+#import "AppDelegate.h"
+@import Backtrace;
 
-  @interface AppDelegate ()
+@interface AppDelegate ()
 
-  @end
+@end
 
-  @implementation AppDelegate
+@implementation AppDelegate
 
-  - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
-                                         initWithEndpoint: [NSURL URLWithString: @""]
-                                         token: @""];
-    [BacktraceClient.shared registerWithCredentials: credentials];
+                                         initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
+                                         token: @"token"];
+    BacktraceClient.shared = [[BacktraceClient alloc] initWithCredentials: credentials error: nil];
 
     // sending NSException
     @try {
@@ -80,9 +82,9 @@
     }];
 
     return YES;
-  }
+}
 
-  @end
+@end
 ```
 
 # Features Summary <a name="features-summary"></a>
@@ -116,29 +118,29 @@ Register to Backtrace services using provided submission url (see: <a href="http
 
 - Swift
 ```swift
-BacktraceClient.shared.register(credentials: BacktraceCredentials)
+BacktraceClient.shared = try? BacktraceClient(credentials: BacktraceCredentials)
 ```
 - Objective-C
 ```objective-c
-[[BacktraceClient shared] registerWithCredentials: BacktraceCredentials];
+BacktraceClient.shared = [[BacktraceClient alloc] initWithCredentials: BacktraceCredentials error: error];
 ```
 
 ## Backtrace client configuration
 For more advanced usage of BacktraceClient, you can supply BacktraceClientConfiguration as a parameter. See the following example:
 ```swift
-let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "backtrace_endpoint_url")!,
-                                                token: "token")
-let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
-                                                          dbSettings: BacktraceDatabaseSettings(),
-                                                          reportsPerMin: 10)
-BacktraceClient.shared.register(configuration: backtraceConfiguration)
+let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
+                                                        token: "token")
+let configuration = BacktraceClientConfiguration(credentials: backtraceCredentials,
+                                                 dbSettings: BacktraceDatabaseSettings(),
+                                                 reportsPerMin: 10)
+BacktraceClient.shared = try? BacktraceClient(configuration: configuration)
 ```
 
 ### Database settings
 BacktraceClient allows you to customize the initialization of BacktraceDatabase for local storage of error reports by supplying a BacktraceDatabaseSettings parameter, as follows:
 ```swift
-let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "backtrace_endpoint_url")!,
-                                                token: "token")
+let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
+                                                        token: "token")
 let backtraceDatabaseSettings = BacktraceDatabaseSettings()
 backtraceDatabaseSettings.maxRecordCount = 1000
 backtraceDatabaseSettings.maxDatabaseSize = 10
@@ -149,18 +151,27 @@ backtraceDatabaseSettings.retryOrder = RetryOder.queue
 let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
                                                           dbSettings: backtraceDatabaseSettings,
                                                           reportsPerMin: 10)
-BacktraceClient.shared.register(configuration: backtraceConfiguration)
+BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
 ```
 
 ### Events handling
 BacktraceClient allows you to subscribe for events produced before and after sending error report:
 - Swift
 ```swift
+BacktraceClient.shared?.delegate = self
+
 func willSend(_ report: BacktraceCrashReport) -> (BacktraceCrashReport)
 func willSendRequest(_ request: URLRequest) -> URLRequest
 func serverDidFail(_ error: Error)
 func serverDidResponse(_ result: BacktraceResult)
 func didReachLimit(_ result: BacktraceResult)
+```
+
+### User attributes
+You can add custom user attributes that should be send alongside crash and erros/exceptions:
+- Swift
+```swift
+BacktraceClient.shared?.userAttributes = ["foo": "bar", "testing": true]
 ```
 
 ## Sending an error report <a name="documentation-sending-report"></a>

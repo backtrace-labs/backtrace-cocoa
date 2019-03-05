@@ -22,7 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         BacktraceClient.shared = try? BacktraceClient(configuration: configuration)
         BacktraceClient.shared?.delegate = self
-        BacktraceClient.shared?.clientAttributes = ["foo": "bar", "testing": true]
+        BacktraceClient.shared?.userAttributes = ["foo": "bar", "testing": true]
 
         do {
             try throwingFunc()

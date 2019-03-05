@@ -11,8 +11,11 @@
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
                                          token: @"token"];
-    BacktraceClient.shared = [[BacktraceClient alloc] initWithCredentials: credentials error: NULL];
-    [BacktraceClient.shared setClientAttributes: @{@"foo": @"bar"}];
+    BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc] initWithCredentials: credentials
+                                                                                                 dbSettings: [BacktraceDatabaseSettings new]
+                                                                                              reportsPerMin: 3];
+    BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
+    [BacktraceClient.shared setUserAttributes: @{@"foo": @"bar"}];
 
     @try {
         NSArray *array = @[];
