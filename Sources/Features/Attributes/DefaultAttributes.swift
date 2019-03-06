@@ -11,6 +11,7 @@ struct DefaultAttributes {
             + DeviceInfo.current()
             + ScreenInfo.current()
             + LocaleInfo.current()
+            + NetworkInfo.current()
     }
 }
 
@@ -123,6 +124,19 @@ struct LocaleInfo: AttributesSourceType {
             }
         }
         return localeAttributes
+    }
+}
+
+struct NetworkInfo: AttributesSourceType {
+    
+    enum Key: String {
+        case status = "network.status"
+    }
+    
+    static func current() -> Attributes {
+        var networkAttributes: Attributes = [:]
+        networkAttributes[Key.status.rawValue] = NetworkReachability().statusName
+        return networkAttributes
     }
 }
 
