@@ -9,3 +9,4 @@ script:
   - bundle exec pod update
   - bundle exec fastlane ios tests
   - bundle exec fastlane mac tests
+  - bundle exec fastlane lint_pod

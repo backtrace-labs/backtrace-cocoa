@@ -20,6 +20,11 @@ or alternatively using `brew cask install fastlane`
 fastlane common_tests
 ```
 Run tests
+### lint_pod
+```
+fastlane lint_pod
+```
+Lint pod
 
 ----
 
