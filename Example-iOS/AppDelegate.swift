@@ -27,7 +27,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         do {
             try throwingFunc()
         } catch {
-            BacktraceClient.shared?.send { (result) in
+            let filePath = Bundle.main.path(forResource: "test", ofType: "txt")!
+            BacktraceClient.shared?.send(attachmentPaths: [filePath]) { (result) in
                 print(result)
             }
         }

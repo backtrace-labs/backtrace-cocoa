@@ -75,8 +75,10 @@ extension BacktraceReporter {
         }
     }
     
-    func send(exception: NSException? = nil) throws -> BacktraceResult {
-        let resource = try reporter.generateLiveReport(exception: exception, attributes: attributesProvider.attributes)
+    func send(exception: NSException? = nil, attachmentPaths: [String] = []) throws -> BacktraceResult {
+        let resource = try reporter.generateLiveReport(exception: exception,
+                                                       attributes: attributesProvider.attributes,
+                                                       attachmentPaths: attachmentPaths)
         return try send(resource: resource)
     }
 }

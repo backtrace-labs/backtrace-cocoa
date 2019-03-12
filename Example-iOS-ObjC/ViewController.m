@@ -13,7 +13,8 @@
     
 }
 - (IBAction) liveReportAction: (id) sender {
-    [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
+    NSArray *paths = @[@"/home/test.txt"];
+    [[BacktraceClient shared] sendWithAttachmentPaths:paths completion:^(BacktraceResult * _Nonnull result) {
         NSLog(@"%@", result.message);
     }];
 }

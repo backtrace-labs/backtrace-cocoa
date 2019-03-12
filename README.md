@@ -174,6 +174,23 @@ You can add custom user attributes that should be send alongside crash and erros
 BacktraceClient.shared?.userAttributes = ["foo": "bar", "testing": true]
 ```
 
+### Attachments
+For each report you can attach files by supplying an array of file paths. 
+- Swift
+```swift
+let filePath = Bundle.main.path(forResource: "test", ofType: "txt")!
+BacktraceClient.shared?.send(attachmentPaths: [filePath]) { (result) in
+    print(result)
+}
+```
+- Objectice-C
+```objective-c
+NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
+[[BacktraceClient shared] sendWithAttachmentPaths:paths completion:^(BacktraceResult * _Nonnull result) {
+    NSLog(@"%@", result);
+}];
+```
+
 ## Sending an error report <a name="documentation-sending-report"></a>
 Registered `BacktraceClient` will be able to send an crash reports. Error report is automatically generated based.
 

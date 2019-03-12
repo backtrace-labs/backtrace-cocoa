@@ -25,9 +25,11 @@ extension BacktraceApi: BacktraceApiProtocol {
         }
         // modify before sending
         let modifiedBeforeSendingReport = self.delegate?.willSend?(report) ?? report
+        let attachments = modifiedBeforeSendingReport.attachmentPaths.compactMap { Attachment(filePath: $0) }
         // create request
         let urlRequest = try self.request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData,
-                                                              attributes: modifiedBeforeSendingReport.attributes)
+                                                              attributes: modifiedBeforeSendingReport.attributes,
+                                                              attachments: attachments)
         BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
         // send report
         let response = session.sync(urlRequest)

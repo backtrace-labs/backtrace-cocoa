@@ -1,0 +1,3 @@
+test from macOS
+test Example-macOS-ObjC
+backtrace sample text file

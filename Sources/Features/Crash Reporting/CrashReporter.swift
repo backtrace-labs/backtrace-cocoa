@@ -25,9 +25,12 @@ extension CrashReporter: CrashReporting {
         reporter.setCrash(&callbacks)
     }
     
-    func generateLiveReport(exception: NSException? = nil, attributes: Attributes) throws -> BacktraceReport {
+    func generateLiveReport(exception: NSException? = nil,
+                            attributes: Attributes,
+                            attachmentPaths: [String] = []) throws -> BacktraceReport {
+        
         let reportData = try reporter.generateLiveReport(with: exception)
-        return try BacktraceReport(report: reportData, attributes: attributes)
+        return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
 
     func enableCrashReporting() throws {
@@ -37,7 +40,8 @@ extension CrashReporter: CrashReporting {
     func pendingCrashReport() throws -> BacktraceReport {
         let reportData = try reporter.loadPendingCrashReportDataAndReturnError()
         let attributes = (try? AttributesStorage.retrieve(fileName: CrashReporter.crashName)) ?? [:]
-        return try BacktraceReport(report: reportData, attributes: attributes)
+        // NOTE: - no attachments in crash reports
+        return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: [])
     }
     
     func hasPendingCrashes() -> Bool {

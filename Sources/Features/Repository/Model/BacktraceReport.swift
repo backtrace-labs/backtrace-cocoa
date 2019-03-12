@@ -6,12 +6,14 @@ import Backtrace_PLCrashReporter
     let reportData: Data
     let plCrashReport: PLCrashReport
     let identifier: UUID
+    var attachmentPaths: [String]
     var attributes: Attributes
     
-    init(report: Data, attributes: Attributes) throws {
+    init(report: Data, attributes: Attributes, attachmentPaths: [String]) throws {
         self.plCrashReport = try PLCrashReport(data: report)
         reportData = report
         identifier = UUID()
+        self.attachmentPaths = attachmentPaths
         self.attributes = attributes
         super.init()
     }
@@ -19,12 +21,14 @@ import Backtrace_PLCrashReporter
     init(managedObject: Crash) throws {
         guard let reportData = managedObject.reportData,
         let identifierString = managedObject.hashProperty,
+        let attachmentPaths = managedObject.attachmentPaths,
         let identifier = UUID(uuidString: identifierString) else {
             throw RepositoryError.canNotCreateEntityDescription
         }
         self.reportData = reportData
         self.plCrashReport = try PLCrashReport(data: reportData)
         self.identifier = identifier
+        self.attachmentPaths = attachmentPaths
         self.attributes = (try? AttributesStorage.retrieve(fileName: identifier.uuidString)) ?? [:]
         super.init()
     }
