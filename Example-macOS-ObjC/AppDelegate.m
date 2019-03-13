@@ -21,7 +21,8 @@
         NSArray *array = @[];
         NSObject *object = array[1]; //will throw exception
     } @catch (NSException *exception) {
-        [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
+        NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
+        [[BacktraceClient shared] sendWithAttachmentPaths: paths completion: ^(BacktraceResult * _Nonnull result) {
             NSLog(@"%@", result);
         }];
     } @finally {

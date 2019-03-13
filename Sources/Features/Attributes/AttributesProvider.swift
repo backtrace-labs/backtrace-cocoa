@@ -4,8 +4,12 @@ final class AttributesProvider {
     // attributes can be modified on runtime
     var userAttributes: Attributes = [:]
     var defaultAttributes: Attributes {
-         return DefaultAttributes.current()
+        var defaultAttributes = DefaultAttributes.current()
+        defaultAttributes["bluetooth.state"] = bluetoothStatusListener.currentState
+        return defaultAttributes
     }
+    
+    private var bluetoothStatusListener = BluetoothStatusListener()
 }
 
 extension AttributesProvider: SignalContext {

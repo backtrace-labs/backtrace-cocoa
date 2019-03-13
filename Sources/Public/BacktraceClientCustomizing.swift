@@ -19,16 +19,18 @@ public typealias Attributes = [String: Any]
     /// The services response is returned in a completion block.
     ///
     /// - Parameters:
+    ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report
     ///   - completion: Backtrace services response.
-    @objc func send(completion: @escaping ((_ result: BacktraceResult) -> Void))
+    @objc func send(attachmentPaths: [String], completion: @escaping ((_ result: BacktraceResult) -> Void))
     
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
     ///
     /// - Parameters:
     ///   - exception: instance of NSException,
+    ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report
     ///   - completion: Backtrace services response.
-    @objc func send(exception: NSException?, completion: @escaping ((_ result: BacktraceResult) -> Void))
+    @objc func send(exception: NSException?, attachmentPaths: [String], completion: @escaping ((_ result: BacktraceResult) -> Void))
 }
 
 @objc public protocol BacktraceLogging {

@@ -10,9 +10,9 @@ class ViewController: UIViewController {
     }
 
     @IBAction func liveReportAction(_ sender: Any) {
-        BacktraceClient.shared?.send { (result) in
+        BacktraceClient.shared?.send(attachmentPaths: [], completion: { (result) in
             print(result)
-        }
+        })
     }
 
     @IBAction func crashAppAction(_ sender: Any) {

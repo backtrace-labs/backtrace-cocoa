@@ -49,11 +49,14 @@ extension BacktraceClient: BacktraceClientCustomizing {
 
 // MARK: - BacktraceReporting
 extension BacktraceClient: BacktraceReporting {
-    @objc public func send(exception: NSException?, completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+    @objc public func send(exception: NSException?,
+                           attachmentPaths: [String] = [],
+                           completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                completion(try self.reporter.send(exception: exception))
+                completion(try self.reporter.send(exception: exception, attachmentPaths: attachmentPaths))
             } catch {
                 BacktraceLogger.error(error)
                 completion(BacktraceResult.unknownError())
@@ -63,8 +66,10 @@ extension BacktraceClient: BacktraceReporting {
         })
     }
     
-    @objc public func send(completion: @escaping ((_ result: BacktraceResult) -> Void)) {
-        send(exception: nil, completion: completion)
+    @objc public func send(attachmentPaths: [String] = [],
+                           completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        
+        send(exception: nil, attachmentPaths: attachmentPaths, completion: completion)
     }
     
     func startCrashReporter() throws {

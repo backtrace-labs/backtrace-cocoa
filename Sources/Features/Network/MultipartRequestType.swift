@@ -4,7 +4,7 @@ protocol MultipartRequestType: RequestType {}
 
 extension MultipartRequestType {
     
-    func multipartUrlRequest(data: Data, attributes: Attributes) throws -> URLRequest {
+    func multipartUrlRequest(data: Data, attributes: Attributes, attachments: [Attachment]) throws -> URLRequest {
         var multipartRequest = try urlRequest()
         let boundary = generateBoundaryString()
         multipartRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -23,6 +23,16 @@ extension MultipartRequestType {
         body.appendString("Content-Type: application/octet-stream\r\n\r\n")
         body.append(data)
         body.appendString("\r\n")
+        // attachments
+        for attachment in attachments {
+            body.appendString(boundaryPrefix)
+            // swiftlint:disable line_length
+            body.appendString("Content-Disposition: form-data; name=\"\(attachment.name)\"; filename=\"\(attachment.name)\"\r\n")
+            // swiftlint:enable line_length
+            body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
+            body.append(attachment.data)
+            body.appendString("\r\n")
+        }
         body.appendString("\(boundaryPrefix)--")
         multipartRequest.httpBody = body as Data
         

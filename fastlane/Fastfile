@@ -39,3 +39,8 @@ lane :common_tests do |options|
     open_report: true
   )
 end
+
+desc "Lint pod"
+lane :lint_pod do
+  pod_lib_lint(allow_warnings: true, verbose: true)
+end
