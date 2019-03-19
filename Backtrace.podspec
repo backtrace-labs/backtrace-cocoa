@@ -20,8 +20,8 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "10.0"
   s.osx.deployment_target = "10.10"
 
-  s.ios.source_files  = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.h*"]
-  s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.h*"]
+  s.ios.source_files  = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.{h*,swift}"]
+  s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.{h*,swift}"]
 
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]

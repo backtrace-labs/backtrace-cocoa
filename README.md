@@ -214,6 +214,18 @@ Registered `BacktraceClient` will be able to send an crash reports. Error report
  - (void) sendWithException: NSException completion: (void (^)(BacktraceResult * _Nonnull)) completion;
 ```
 
+### macOS note
+If you want to catch additional exceptions on macOS which are not forwarded by macOS runtime, set `NSPrincipalClass` to `Backtrace.BacktraceCrashExceptionApplication` in your `Info.plist`.
+
+Alternatively, you can set:
+```swift
+UserDefaults.standard.register(defaults: ["NSApplicationCrashOnExceptions": true])
+```
+```Objective-C
+[[NSUserDefaults standardUserDefaults] registerDefaults:@{ @"NSApplicationCrashOnExceptions": @YES }];
+```
+but it crashes your app if you don't use `@try ... @catch`.
+
 # FAQ
 ## Missing dSYM files
 Make sure your project is configured to generate the debug symbols:

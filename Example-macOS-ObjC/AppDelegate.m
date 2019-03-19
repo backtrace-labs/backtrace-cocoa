@@ -8,6 +8,7 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
                                          token: @"token"];
@@ -28,7 +29,6 @@
     } @finally {
 
     }
-
 }
 
 
