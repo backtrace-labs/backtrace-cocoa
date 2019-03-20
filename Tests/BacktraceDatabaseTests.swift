@@ -23,9 +23,27 @@ final class BacktraceDatabaseTests: QuickSpec {
                             expect(fetchedReport.reportData).to(equal(report.reportData))
                         }
                     } catch {
-                        
+                        fail(error.localizedDescription)
                     }
                 })
+                it("Last report", closure: {
+                    do {
+                        try repository.clear()
+                        let report = try crashReporter.generateLiveReport(attributes: [:])
+                        try repository.save(report)
+                        expect { try repository.countResources() }.to(equal(1))
+                        if let fetchedReport = try repository.getLatest().first {
+                            expect(fetchedReport.reportData).to(equal(report.reportData))
+                            try repository.delete(fetchedReport)
+                            expect { try repository.countResources() }.to(equal(0))
+                        } else {
+                            fail()
+                        }
+                    } catch {
+                        fail(error.localizedDescription)
+                    }
+                })
+                
             } catch {
                 fail(error.localizedDescription)
             }

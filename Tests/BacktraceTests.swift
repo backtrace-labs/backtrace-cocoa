@@ -19,7 +19,7 @@ final class BacktraceTests: QuickSpec {
             })
             
             describe("Backtrace API") {
-                describe("Valid credentials", closure: {
+                context("has valid credentials", closure: {
                     var networkClientWithValidCredentials: BacktraceApiProtocol {
                         return BacktraceNetworkClientMock(config: .validCredentials)
                     }
@@ -28,7 +28,7 @@ final class BacktraceTests: QuickSpec {
                             .toNotEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Crash report should be successfully sent.")
                     })
                 })
-                describe("Invalid endpoint", closure: {
+                context("has invalid endpoint", closure: {
                     var networkClientWithInvalidEndpoint: BacktraceApiProtocol {
                         return BacktraceNetworkClientMock(config: .invalidEndpoint)
                     }
@@ -42,18 +42,16 @@ final class BacktraceTests: QuickSpec {
                             .toEventually(throwError(), timeout: 10, pollInterval: 0.5, description: "Should fail to send a crash report")
                     })
                 })
-                describe("Invalid token", closure: {
+                context("has invalid token", closure: {
                     var networkClientWithInvalidToken: BacktraceApiProtocol {
                         return BacktraceNetworkClientMock(config: .invalidToken)
                     }
                     it("fails to send crash report with invalid token", closure: {
-                        do {
+                        expect {
                             let report = try crashReporter.generateLiveReport(attributes: [:])
-                            expect { try networkClientWithInvalidToken.send(report).backtraceStatus}
-                                .toEventually(equal(BacktraceReportStatus.serverError), timeout: 10, pollInterval: 0.5, description: "Status code should be 403 - Forbidden.")
-                        } catch {
-                            fail(error.localizedDescription)
-                        }
+                            return try networkClientWithInvalidToken.send(report).backtraceStatus
+                            }
+                            .toEventually(equal(BacktraceReportStatus.serverError), timeout: 10, pollInterval: 0.5, description: "Status code should be 403 - Forbidden.")
                     })
                 })
             }

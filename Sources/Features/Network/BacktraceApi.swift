@@ -41,7 +41,6 @@ extension BacktraceApi: BacktraceApiProtocol {
         guard let httpResponse = response.urlResponse, let responseData = response.responseData else {
             throw HttpError.unknownError
         }
-        BacktraceLogger.debug("Sent crash: \(modifiedBeforeSendingReport.plCrashReport.info)")
         BacktraceLogger.debug("Response: \n\(httpResponse.debugDescription)")
         // check result
         let result = try BacktraceHttpResponseDeserializer(httpResponse: httpResponse, responseData: responseData)

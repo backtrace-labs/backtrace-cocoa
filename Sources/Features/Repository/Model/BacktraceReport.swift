@@ -3,11 +3,11 @@ import Backtrace_PLCrashReporter
 
 @objc final public class BacktraceReport: NSObject {
     
-    let reportData: Data
+    @objc public let reportData: Data
     let plCrashReport: PLCrashReport
     let identifier: UUID
-    var attachmentPaths: [String]
-    var attributes: Attributes
+    @objc public var attachmentPaths: [String]
+    @objc public var attributes: Attributes
     
     init(report: Data, attributes: Attributes, attachmentPaths: [String]) throws {
         self.plCrashReport = try PLCrashReport(data: report)
