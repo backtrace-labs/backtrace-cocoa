@@ -11,6 +11,7 @@ final class BacktraceNetworkClientMock: BacktraceApiProtocol {
         case invalidToken
         case invalidEndpoint
         case validCredentials
+        case limitReached
     }
     
     static func invalidTokenResponse(_ report: BacktraceReport) -> BacktraceResult {
@@ -22,6 +23,10 @@ final class BacktraceNetworkClientMock: BacktraceApiProtocol {
         return BacktraceResponse(response: "Ok.", rxid: "xx-xx", fingerprint: "xx-xx", unique: true).result(backtraceReport: report)
     }
     
+    static func limitReachedResponse(_ report: BacktraceReport) -> BacktraceResult {
+        return BacktraceResult.limitReached(report)
+    }
+    
     func send(_ report: BacktraceReport) throws -> BacktraceResult {
         switch config {
         case .invalidToken:
@@ -30,6 +35,8 @@ final class BacktraceNetworkClientMock: BacktraceApiProtocol {
             throw HttpError.unknownError
         case .validCredentials:
             return BacktraceNetworkClientMock.invalidCredentials(report)
+        case .limitReached:
+            return BacktraceNetworkClientMock.limitReachedResponse(report)
         }
     }
     

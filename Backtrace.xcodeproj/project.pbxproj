@@ -10,6 +10,8 @@
 		18ABC4BAF017FF456E5E5186 /* Pods_Example_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FD3E3727B2ED6C3130FFE5 /* Pods_Example_iOS.framework */; };
 		27F936A322CFBB6FE46EDEFE /* Pods_Example_macOS_ObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 70856A4F8005B8D4E85C332B /* Pods_Example_macOS_ObjC.framework */; };
 		282C85E7223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */; };
+		282C85EA22419C560014FE75 /* BacktraceWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */; };
+		282C85EB22419C600014FE75 /* BacktraceWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */; };
 		2846E1F8222F1DE60035F98C /* NetworkReachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1F7222F1DE50035F98C /* NetworkReachability.swift */; };
 		2846E1F9222F1DE60035F98C /* NetworkReachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1F7222F1DE50035F98C /* NetworkReachability.swift */; };
 		2846E1FB222F2C850035F98C /* BluetoothStatusListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1FA222F2C850035F98C /* BluetoothStatusListener.swift */; };
@@ -95,6 +97,8 @@
 		F29CD79221FCC25600216C59 /* BacktraceWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */; };
 		F29CD79421FDD5E900216C59 /* BacktraceClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */; };
 		F29CD79621FDD9DC00216C59 /* BacktraceClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */; };
+		F2AB636A2244243500939BC9 /* Quick+Throws.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63692244243500939BC9 /* Quick+Throws.swift */; };
+		F2AB636B2244243500939BC9 /* Quick+Throws.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63692244243500939BC9 /* Quick+Throws.swift */; };
 		F2AFB5912225E5D000AAA1D7 /* Foundation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFB5902225E5D000AAA1D7 /* Foundation+Extensions.swift */; };
 		F2AFB5922225E5D000AAA1D7 /* Foundation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFB5902225E5D000AAA1D7 /* Foundation+Extensions.swift */; };
 		F2AFB59A22274E5400AAA1D7 /* BacktraceClientCustomizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFB59922274E5400AAA1D7 /* BacktraceClientCustomizing.swift */; };
@@ -215,6 +219,7 @@
 		080261C779321096E82CBEA0 /* Pods-Backtrace-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.release.xcconfig"; sourceTree = "<group>"; };
 		0CAEB5685940F7A87F1D5269 /* Pods-Backtrace-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-Backtrace-macOS/Pods-Backtrace-macOS.release.xcconfig"; sourceTree = "<group>"; };
 		282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceCrashExceptionApplication.swift; sourceTree = "<group>"; };
+		282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceWatcherTests.swift; sourceTree = "<group>"; };
 		2846E1F7222F1DE50035F98C /* NetworkReachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkReachability.swift; sourceTree = "<group>"; };
 		2846E1FA222F2C850035F98C /* BluetoothStatusListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothStatusListener.swift; sourceTree = "<group>"; };
 		2846E1FD223070CB0035F98C /* Attachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Attachment.swift; sourceTree = "<group>"; };
@@ -277,6 +282,7 @@
 		F29CD78C21FC6BC700216C59 /* BacktraceFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceFileManager.swift; sourceTree = "<group>"; };
 		F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceWatcher.swift; sourceTree = "<group>"; };
 		F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClientDelegate.swift; sourceTree = "<group>"; };
+		F2AB63692244243500939BC9 /* Quick+Throws.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Quick+Throws.swift"; sourceTree = "<group>"; };
 		F2AFB5902225E5D000AAA1D7 /* Foundation+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Foundation+Extensions.swift"; sourceTree = "<group>"; };
 		F2AFB5932225E9D400AAA1D7 /* Annotations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotations.swift; sourceTree = "<group>"; };
 		F2AFB59922274E5400AAA1D7 /* BacktraceClientCustomizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClientCustomizing.swift; sourceTree = "<group>"; };
@@ -453,6 +459,8 @@
 				F229D7842239A172008EC851 /* BacktraceClientTests.swift */,
 				F229D789223A56ED008EC851 /* UrlSessionMock.swift */,
 				F229D78E223A5F6A008EC851 /* BacktraceApiTests.swift */,
+				282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */,
+				F2AB63692244243500939BC9 /* Quick+Throws.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -1358,8 +1366,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2AB636B2244243500939BC9 /* Quick+Throws.swift in Sources */,
 				F25C0FC721C79EFB0083029C /* Backtrace_macOSTests.swift in Sources */,
 				F229D7862239A172008EC851 /* BacktraceClientTests.swift in Sources */,
+				282C85EB22419C600014FE75 /* BacktraceWatcherTests.swift in Sources */,
 				F229D78C223A591F008EC851 /* UrlSessionMock.swift in Sources */,
 				F25C0FC521C797D60083029C /* BacktraceTests.swift in Sources */,
 				F2D7121F21F10461002D2A26 /* BacktraceNetworkClientMock.swift in Sources */,
@@ -1419,8 +1429,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2AB636A2244243500939BC9 /* Quick+Throws.swift in Sources */,
 				F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */,
 				F229D7852239A172008EC851 /* BacktraceClientTests.swift in Sources */,
+				282C85EA22419C560014FE75 /* BacktraceWatcherTests.swift in Sources */,
 				F229D78D223A5920008EC851 /* UrlSessionMock.swift in Sources */,
 				F25C0FC421C797D50083029C /* BacktraceTests.swift in Sources */,
 				F2D7121E21F10461002D2A26 /* BacktraceNetworkClientMock.swift in Sources */,

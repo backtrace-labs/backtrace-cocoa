@@ -22,47 +22,14 @@ where BacktraceRepository.Resource == BacktraceReport {
         self.queue = dispatchQueue
         self.batchSize = batchSize
         guard settings.retryBehaviour == .interval else { return }
-        configureTimer()
-    }
-    
-    private func configureTimer() {
-        let timer = DispatchSource.makeTimerSource(queue: queue)
-        self.timer = timer
-        let repeating: DispatchTimeInterval = .seconds(settings.retryInterval)
-        timer.schedule(deadline: DispatchTime.now() + repeating, repeating: repeating)
-        timer.setEventHandler { [weak self] in
-            guard let self = self else { return }
-            self.timer?.suspend()
-            defer { self.timer?.resume() }
-            do {
-                BacktraceLogger.debug("Retrying to send")
-                try self.batchRetry()
-            } catch {
-                BacktraceLogger.error(error)
-            }
-        }
-        timer.resume()
-    }
-    
-    // Takes from `repository` reports to send
-    private func crashReportsToSend(limit: Int) throws -> [BacktraceRepository.Resource] {
-        switch settings.retryOrder {
-        case .queue: return try repository.getOldest(count: limit)
-        case .stack: return try repository.getLatest(count: limit)
-        }
+        configureTimer(with: DispatchWorkItem(block: timerEventHandler))
     }
 
-    private func batchRetry() throws {
-        // prepare set of reports to send, considering limits
-        let reportsToSend = try crashReportsToSend(limit: batchSize)
-        let currentTimestamp = Date().timeIntervalSince1970
-        let numberOfSendsInLastOneMinute = networkClient.successfulSendTimestamps
-            .filter { currentTimestamp - $0 < 60.0 }.count
-        let maxReportsToSend = max(0, abs(reportsPerMin - numberOfSendsInLastOneMinute))
-        let limitedReportsToSend = reportsToSend.prefix(maxReportsToSend)
-        BacktraceLogger.debug("Number of limited reports to send: \(limitedReportsToSend.count)")
+    internal func batchRetry() throws {
+        let reportsToSend = try limitedReportsToSend()
+        BacktraceLogger.debug("Number of limited reports to send: \(reportsToSend.count)")
         
-        for reportToSend in limitedReportsToSend {
+        for reportToSend in reportsToSend {
             do {
                 let result = try networkClient.send(reportToSend)
                 if let reportData = result.report {
@@ -86,7 +53,57 @@ where BacktraceRepository.Resource == BacktraceReport {
     }
 
     deinit {
+        resetTimer()
+    }
+}
+
+// MARK: - Timer
+extension BacktraceWatcher {
+    
+    internal func configureTimer(with handler: DispatchWorkItem) {
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        self.timer = timer
+        let repeating: DispatchTimeInterval = .seconds(settings.retryInterval)
+        timer.schedule(deadline: DispatchTime.now() + repeating, repeating: repeating)
+        timer.setEventHandler(handler: handler)
+        timer.resume()
+    }
+    
+    internal func timerEventHandler() {
+        self.timer?.suspend()
+        defer { self.timer?.resume() }
+        do {
+            BacktraceLogger.debug("Retrying to send")
+            try self.batchRetry()
+        } catch {
+            BacktraceLogger.error(error)
+        }
+    }
+    
+    internal func resetTimer() {
         timer?.setEventHandler {}
         timer?.cancel()
+    }
+}
+
+// MARK: - Reports retrieving
+extension BacktraceWatcher {
+    
+    // Takes from `repository` reports to send
+    internal func crashReportsFromRepository(limit: Int) throws -> [BacktraceRepository.Resource] {
+        switch settings.retryOrder {
+        case .queue: return try repository.getOldest(count: limit)
+        case .stack: return try repository.getLatest(count: limit)
+        }
+    }
+    
+    internal func limitedReportsToSend() throws -> [BacktraceRepository.Resource] {
+        // prepare set of reports to send, considering limits
+        let reportsFromRepository = try crashReportsFromRepository(limit: batchSize)
+        let currentTimestamp = Date().timeIntervalSince1970
+        let numberOfSendsInLastOneMinute = networkClient.successfulSendTimestamps
+            .filter { currentTimestamp - $0 < 60.0 }.count
+        let maxReportsToSend = max(0, abs(reportsPerMin - numberOfSendsInLastOneMinute))
+        return Array(reportsFromRepository.prefix(maxReportsToSend))
     }
 }
