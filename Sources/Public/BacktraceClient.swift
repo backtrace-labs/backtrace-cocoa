@@ -52,7 +52,9 @@ extension BacktraceClient: BacktraceReporting {
     @objc public func send(exception: NSException?,
                            attachmentPaths: [String] = [],
                            completion: @escaping ((_ result: BacktraceResult) -> Void)) {
-        
+        guard DebuggerChecker.isAttached() else {
+            return
+        }
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
@@ -68,11 +70,14 @@ extension BacktraceClient: BacktraceReporting {
     
     @objc public func send(attachmentPaths: [String] = [],
                            completion: @escaping ((_ result: BacktraceResult) -> Void)) {
-        
         send(exception: nil, attachmentPaths: attachmentPaths, completion: completion)
     }
     
     func startCrashReporter() throws {
+        guard DebuggerChecker.isAttached() else {
+            return
+        }
+        
         try reporter.enableCrashReporter()
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
