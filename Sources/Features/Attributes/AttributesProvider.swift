@@ -9,7 +9,7 @@ final class AttributesProvider {
         return defaultAttributes
     }
     
-    private var bluetoothStatusListener = BluetoothStatusListener()
+    private let bluetoothStatusListener = BluetoothStatusListener()
 }
 
 extension AttributesProvider: SignalContext {
