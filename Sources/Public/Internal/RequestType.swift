@@ -13,7 +13,7 @@ extension RequestType {
         urlComponents?.queryItems = queryItems.map(URLQueryItem.init)
 
         guard let finalUrl = urlComponents?.url else {
-            BacktraceLogger.error("Malformed error")
+            BacktraceLogger.error("Malformed url")
             throw HttpError.malformedUrl
         }
         var request = URLRequest(url: finalUrl)

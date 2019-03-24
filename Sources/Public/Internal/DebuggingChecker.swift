@@ -1,6 +1,10 @@
 import Foundation
 
-struct DebuggerChecker {
+protocol DebuggerChecking {
+    static func isAttached() -> Bool
+}
+
+struct DebuggingChecker: DebuggerChecking {
     
     /// Check if the debugger is attachedto the current process.
     /// - see more: https://stackoverflow.com/a/4746378/6651241
@@ -9,7 +13,7 @@ struct DebuggerChecker {
     static func isAttached() -> Bool {
         
         var kinfo = kinfo_proc()
-        var size  = MemoryLayout<kinfo_proc>.stride
+        var size = MemoryLayout<kinfo_proc>.stride
         var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
         
         sysctl(&mib, u_int(mib.count), &kinfo, &size, nil, 0)

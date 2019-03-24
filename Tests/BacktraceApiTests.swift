@@ -5,7 +5,7 @@ import Quick
 @testable import Backtrace
 
 final class BatraceApiTests: QuickSpec {
-    
+    //swiftlint:disable function_body_length
     override func spec() {
         describe("Api") {
             context("has valid endpoint and token", closure: {
@@ -89,4 +89,5 @@ final class BatraceApiTests: QuickSpec {
             })
         }
     }
+    //swiftlint:enable function_body_length
 }

@@ -21,7 +21,7 @@ extension BacktraceApi: BacktraceApiProtocol {
         let currentTimestamp = Date().timeIntervalSince1970
         let numberOfSendsInLastOneMinute = successfulSendTimestamps.filter { currentTimestamp - $0 < 60.0 }.count
         guard numberOfSendsInLastOneMinute < reportsPerMin else {
-            return BacktraceResult.limitReached(report)
+            return BacktraceResult(.limitReached, report: report)
         }
         // modify before sending
         let modifiedBeforeSendingReport = self.delegate?.willSend?(report) ?? report
@@ -47,13 +47,13 @@ extension BacktraceApi: BacktraceApiProtocol {
             .result
         switch result {
         case .error(let error):
-            self.delegate?.serverDidResponse?(error.result(backtraceReport: modifiedBeforeSendingReport))
-            return error.result(backtraceReport: modifiedBeforeSendingReport)
+            self.delegate?.serverDidResponse?(error.result(report: modifiedBeforeSendingReport))
+            return error.result(report: modifiedBeforeSendingReport)
         case .success(let response):
             // did send successfully
             self.successfulSendTimestamps.append(Date().timeIntervalSince1970)
-            self.delegate?.serverDidResponse?(response.result(backtraceReport: modifiedBeforeSendingReport))
-            return response.result(backtraceReport: modifiedBeforeSendingReport)
+            self.delegate?.serverDidResponse?(response.result(report: modifiedBeforeSendingReport))
+            return response.result(report: modifiedBeforeSendingReport)
         }
     }
 }

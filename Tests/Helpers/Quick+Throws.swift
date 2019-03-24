@@ -49,7 +49,8 @@ public func throwingContext(_ description: String, flags: FilterFlags = [:], clo
     })
 }
 
-public func throwingIt(_ description: String, flags: FilterFlags = [:], file: String = #file, line: UInt = #line, closure: @escaping () throws -> Void) {
+public func throwingIt(_ description: String, flags: FilterFlags = [:], file: String = #file, line: UInt = #line,
+                       closure: @escaping () throws -> Void) {
     it(description, flags: flags, file: file, line: line) {
         do {
             try closure()
@@ -154,4 +155,3 @@ public func throwingAfterSuite(_ closure: @escaping ThrowingAfterSuiteClosure) {
         }
     }
 }
-

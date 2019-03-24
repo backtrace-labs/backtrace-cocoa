@@ -6,8 +6,8 @@ import Foundation
     case serverError
     /// Successfully sent data to server
     case ok
-    /// Client is not registered.
-    case notRegistered
+    /// Debugger is attached.
+    case debuggerAttached
     /// Unknown error occurred.
     case unknownError
     /// Client limit reached.
@@ -21,8 +21,8 @@ extension BacktraceReportStatus: CustomStringConvertible {
             return "serverError"
         case .ok:
             return "ok"
-        case .notRegistered:
-            return "notRegistered"
+        case .debuggerAttached:
+            return "Application does not allow for attaching the debugger"
         case .unknownError:
             return "unknownError"
         case .limitReached:

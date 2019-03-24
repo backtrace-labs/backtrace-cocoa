@@ -2,21 +2,26 @@ import XCTest
 
 import Nimble
 import Quick
+import Backtrace_PLCrashReporter
 @testable import Backtrace
 
 final class BacktraceClientTests: QuickSpec {
     
+    //swiftlint:disable function_body_length
     override func spec() {
+        
         describe("Backtrace client") {
-            it("has all fields equal to specified", closure: {
-                let endpoint = URL(string: "https://wwww.backtrace.io")!
+            throwingContext("Initalized with default values", closure: {
+                guard let endpoint = URL(string: "https://wwww.backtrace.io") else { fail(); return }
                 let token = "token"
                 let credentials = BacktraceCredentials(endpoint: endpoint, token: token)
-                expect(credentials.endpoint).to(be(endpoint))
-                expect(credentials.token).to(be(token))
-            })
-            describe("Database settings", {
-                it("has default values", closure: {
+                
+                it("has all valid credentials", closure: {
+                    expect(credentials.endpoint).to(be(endpoint))
+                    expect(credentials.token).to(be(token))
+                })
+                
+                it("has default database settings", closure: {
                     let defaultDbSettings = BacktraceDatabaseSettings()
                     expect(defaultDbSettings.maxDatabaseSize).to(be(0))
                     expect(defaultDbSettings.maxRecordCount).to(be(0))
@@ -25,6 +30,20 @@ final class BacktraceClientTests: QuickSpec {
                     expect(defaultDbSettings.retryBehaviour.rawValue).to(be(RetryBehaviour.interval.rawValue))
                     expect(defaultDbSettings.retryOrder.rawValue).to(be(RetryOder.queue.rawValue))
                     expect(defaultDbSettings.maxDatabaseSizeInBytes).to(be(0))
+                })
+                
+                it("has default configuration", closure: {
+                    let dbSettings = BacktraceDatabaseSettings()
+                    let reportsPerMin = 3
+                    let configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings,
+                                                                     reportsPerMin: reportsPerMin)
+                    expect(configuration.credentials).to(be(credentials))
+                    expect(configuration.reportsPerMin).to(be(reportsPerMin))
+                    expect(configuration.dbSettings).to(be(dbSettings))
+                })
+                
+                it("can create instance of BacktraceClient", closure: {
+                    expect { try BacktraceClient(credentials: credentials) }.notTo(throwError())
                 })
                 
                 it("modifies the default values", closure: {
@@ -52,28 +71,7 @@ final class BacktraceClientTests: QuickSpec {
                     expect(customDbSettings.maxDatabaseSizeInBytes).to(be(1024 * 1024 * maxDatabaseSize))
                 })
             })
-            describe("Client configuration", {
-                it("has default values", closure: {
-                    let endpoint = URL(string: "https://wwww.backtrace.io")!
-                    let token = "token"
-                    let credentials = BacktraceCredentials(endpoint: endpoint, token: token)
-                    let dbSettings = BacktraceDatabaseSettings()
-                    let reportsPerMin = 3
-                    let configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings, reportsPerMin: reportsPerMin)
-                    expect(configuration.credentials).to(be(credentials))
-                    expect(configuration.reportsPerMin).to(be(reportsPerMin))
-                    expect(configuration.dbSettings).to(be(dbSettings))
-                })
-            })
-            
-            describe("Client", {
-                context("has valid configuration", closure: {
-                    let endpoint = URL(string: "https://wwww.backtrace.io")!
-                    let token = "token"
-                    let credentials = BacktraceCredentials(endpoint: endpoint, token: token)
-                    expect { try BacktraceClient(credentials: credentials) }.notTo(throwError())
-                })
-            })
         }
     }
+    //swiftlint:enable function_body_length
 }

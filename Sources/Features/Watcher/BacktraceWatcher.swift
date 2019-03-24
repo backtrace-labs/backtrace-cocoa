@@ -5,20 +5,20 @@ where BacktraceRepository.Resource == BacktraceReport {
 
     let settings: BacktraceDatabaseSettings
     let reportsPerMin: Int
-    let networkClient: BacktraceApiProtocol
+    let api: BacktraceApiProtocol
     let repository: BacktraceRepository
     var timer: DispatchSourceTimer?
     let queue: DispatchQueue
     let batchSize: Int
     
-    init(settings: BacktraceDatabaseSettings, reportsPerMin: Int, networkClient: BacktraceApiProtocol,
+    init(settings: BacktraceDatabaseSettings, reportsPerMin: Int, api: BacktraceApiProtocol,
          repository: BacktraceRepository,
          dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background),
          batchSize: Int = 3) throws {
         self.settings = settings
         self.reportsPerMin = reportsPerMin
         self.repository = repository
-        self.networkClient = networkClient
+        self.api = api
         self.queue = dispatchQueue
         self.batchSize = batchSize
         guard settings.retryBehaviour == .interval else { return }
@@ -31,7 +31,7 @@ where BacktraceRepository.Resource == BacktraceReport {
         
         for reportToSend in reportsToSend {
             do {
-                let result = try networkClient.send(reportToSend)
+                let result = try api.send(reportToSend)
                 if let reportData = result.report {
                     if result.backtraceStatus == .ok {
                         try repository.delete(reportData)
@@ -101,7 +101,7 @@ extension BacktraceWatcher {
         // prepare set of reports to send, considering limits
         let reportsFromRepository = try crashReportsFromRepository(limit: batchSize)
         let currentTimestamp = Date().timeIntervalSince1970
-        let numberOfSendsInLastOneMinute = networkClient.successfulSendTimestamps
+        let numberOfSendsInLastOneMinute = api.successfulSendTimestamps
             .filter { currentTimestamp - $0 < 60.0 }.count
         let maxReportsToSend = max(0, abs(reportsPerMin - numberOfSendsInLastOneMinute))
         return Array(reportsFromRepository.prefix(maxReportsToSend))
