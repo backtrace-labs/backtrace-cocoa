@@ -12,24 +12,11 @@ import Foundation
     /// Result status.
     @objc public var backtraceStatus: BacktraceReportStatus
     
-    init(_ status: BacktraceReportStatus, message: String, backtraceReport: BacktraceReport? = nil) {
-        self.message = message
+    init(_ status: BacktraceReportStatus, report: BacktraceReport? = nil, message: String? = nil) {
+        self.message = message ?? status.description
         self.backtraceStatus = status
-        self.report = backtraceReport
+        self.report = report
         super.init()
-    }
-    
-    class func serverError(_ message: String, backtraceReport: BacktraceReport? = nil) -> BacktraceResult {
-        return BacktraceResult(.serverError, message: message, backtraceReport: backtraceReport)
-    }
-    
-    class func unknownError(_ backtraceResult: BacktraceResult? = nil) -> BacktraceResult {
-        return BacktraceResult(.unknownError, message: "Unknown error",
-                               backtraceReport: backtraceResult?.report)
-    }
-    
-    class func limitReached(_ backtraceReport: BacktraceReport? = nil) -> BacktraceResult {
-        return BacktraceResult(.limitReached, message: "Limit reached.", backtraceReport: backtraceReport)
     }
 }
 

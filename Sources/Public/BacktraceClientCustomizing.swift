@@ -30,7 +30,9 @@ public typealias Attributes = [String: Any]
     ///   - exception: instance of NSException,
     ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report
     ///   - completion: Backtrace services response.
-    @objc func send(exception: NSException?, attachmentPaths: [String], completion: @escaping ((_ result: BacktraceResult) -> Void))
+    @objc func send(exception: NSException?,
+                    attachmentPaths: [String],
+                    completion: @escaping ((_ result: BacktraceResult) -> Void))
 }
 
 @objc public protocol BacktraceLogging {

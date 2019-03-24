@@ -15,7 +15,7 @@ final class BacktraceReporter {
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
         self.watcher = try BacktraceWatcher(settings: dbSettings,
                                             reportsPerMin: reportsPerMin,
-                                            networkClient: api,
+                                            api: api,
                                             repository: repository)
         self.attributesProvider = AttributesProvider()
         self.reporter.signalContext(&attributesProvider)

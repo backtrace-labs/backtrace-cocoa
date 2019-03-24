@@ -1,7 +1,7 @@
 import Foundation
 import Backtrace_PLCrashReporter
 
-class CrashReporter: NSObject {
+final class CrashReporter {
     private let reporter: PLCrashReporter
     static private let crashName = "live_report"
     public init(config: PLCrashReporterConfig = PLCrashReporterConfig.defaultConfiguration()) {

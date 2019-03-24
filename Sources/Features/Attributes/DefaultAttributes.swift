@@ -1,6 +1,8 @@
 // swiftlint:disable type_name
 import Foundation
+import CoreLocation
 #if os(iOS)
+import CoreNFC
 import CoreTelephony
 #endif
 
@@ -12,6 +14,7 @@ struct DefaultAttributes {
             + ScreenInfo.current()
             + LocaleInfo.current()
             + NetworkInfo.current()
+            + LocationInfo.current()
     }
 }
 
@@ -29,6 +32,7 @@ struct DeviceInfo: AttributesSourceType {
         case deviceOrientation = "device.orientation"
         case batteryState = "battery.state"
         case batteryLevel = "battery.level"
+        case nfcReadingAvailable = "device.nfc.readingAvailable"
         #elseif os(macOS)
         case systemUptime = "system.uptime"
         case physicalMemory = "memory.physical"
@@ -46,6 +50,11 @@ struct DeviceInfo: AttributesSourceType {
         if currentDevice.isBatteryMonitoringEnabled {
             deviceAttributes[Key.batteryState.rawValue] = currentDevice.batteryState.name
             deviceAttributes[Key.batteryLevel.rawValue] = currentDevice.batteryLevel
+        }
+        if #available(iOS 11.0, *) {
+            deviceAttributes[Key.nfcReadingAvailable.rawValue] = NFCNDEFReaderSession.readingAvailable
+        } else {
+            deviceAttributes[Key.nfcReadingAvailable.rawValue] = false
         }
         #elseif os(macOS)
         let processinfo = ProcessInfo.processInfo
@@ -140,7 +149,34 @@ struct NetworkInfo: AttributesSourceType {
     }
 }
 
+struct LocationInfo: AttributesSourceType {
+    
+    enum Key: String {
+        case locationServicesEnabled = "location.servicesEnabled"
+        case locationAuthorizationStatus = "location.authorizationStatus"
+    }
+    static func current() -> [String: Any] {
+        var locationAttributes: [String: Any] = [:]
+        locationAttributes[Key.locationServicesEnabled.rawValue] = CLLocationManager.locationServicesEnabled()
+        locationAttributes[Key.locationAuthorizationStatus.rawValue] = CLLocationManager.authorizationStatus().name
+        return locationAttributes
+    }
+}
+
 // swiftlint:enable type_name
+
+extension CLAuthorizationStatus {
+    
+    var name: String {
+        switch self {
+        case .authorizedAlways: return "Always"
+        case .authorizedWhenInUse: return "WhenInUse"
+        case .denied: return "Denied"
+        case .notDetermined: return "notDetermined"
+        case .restricted: return "restricted"
+        }
+    }
+}
 
 #if os(iOS)
 extension UIDeviceOrientation {

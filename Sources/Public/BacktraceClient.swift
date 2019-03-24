@@ -5,22 +5,34 @@ import Foundation
     
     /// Shared instance of BacktraceClient class.
     @objc public static var shared: BacktraceClientProtocol?
+    @objc public let configuration: BacktraceClientConfiguration
     
-    private var reporter: BacktraceReporter
-    private let dispatcher: Dispatcher
+    private let reporter: BacktraceReporter
+    private let dispatcher: Dispatching
+    private let reportingPolicy: ReportingPolicy
     
     @objc public convenience init(credentials: BacktraceCredentials) throws {
         try self.init(configuration: BacktraceClientConfiguration(credentials: credentials))
     }
     
-    @objc public init(configuration: BacktraceClientConfiguration) throws {
-        dispatcher = Dispatcher()
+    @objc public convenience init(configuration: BacktraceClientConfiguration) throws {
         let api = BacktraceApi(endpoint: configuration.credentials.endpoint,
                                token: configuration.credentials.token,
                                reportsPerMin: configuration.reportsPerMin)
-        reporter = try BacktraceReporter(reporter: CrashReporter(), api: api,
-                                         dbSettings: configuration.dbSettings,
-                                         reportsPerMin: configuration.reportsPerMin)
+        let reporter = try BacktraceReporter(reporter: CrashReporter(), api: api, dbSettings: configuration.dbSettings,
+                                             reportsPerMin: configuration.reportsPerMin)
+        try self.init(configuration: configuration, debugger: DebuggingChecker.self, reporter: reporter,
+                      dispatcher: Dispatcher(), api: api)
+    }
+    
+    init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggingChecker.self,
+         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApiProtocol) throws {
+
+        self.dispatcher = dispatcher
+        self.reporter = reporter
+        self.configuration = configuration
+        self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
+        
         super.init()
         try startCrashReporter()
     }
@@ -52,14 +64,17 @@ extension BacktraceClient: BacktraceReporting {
     @objc public func send(exception: NSException?,
                            attachmentPaths: [String] = [],
                            completion: @escaping ((_ result: BacktraceResult) -> Void)) {
-        
+        guard reportingPolicy.allowsReporting else {
+            completion(BacktraceResult(.debuggerAttached))
+            return
+        }
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
                 completion(try self.reporter.send(exception: exception, attachmentPaths: attachmentPaths))
             } catch {
                 BacktraceLogger.error(error)
-                completion(BacktraceResult.unknownError())
+                completion(BacktraceResult(.unknownError))
             }
             }, completion: {
                 BacktraceLogger.debug("Finished")
@@ -68,11 +83,14 @@ extension BacktraceClient: BacktraceReporting {
     
     @objc public func send(attachmentPaths: [String] = [],
                            completion: @escaping ((_ result: BacktraceResult) -> Void)) {
-        
         send(exception: nil, attachmentPaths: attachmentPaths, completion: completion)
     }
     
     func startCrashReporter() throws {
+        guard reportingPolicy.allowsReporting else {
+            return
+        }
+        
         try reporter.enableCrashReporter()
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
