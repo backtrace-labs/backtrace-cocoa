@@ -7,13 +7,20 @@ import Foundation
     @objc public let credentials: BacktraceCredentials
     
     /// Database settings
-    @objc public let dbSettings: BacktraceDatabaseSettings
+    @objc public var dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings()
     
     /// Number of records sent in 1 minute. Default: 3.
-    @objc public let reportsPerMin: Int
+    @objc public var reportsPerMin: Int = 3
     
     /// Flag indicating if the Backtrace client should raport reports when the debugger is attached.
-    @objc public let allowsAttachingDebugger: Bool
+    @objc public var allowsAttachingDebugger: Bool = false
+    
+    /// Produces Backtrace client configuration settings.
+    /// - Parameters:
+    ///   - credentials: Backtrace server API credentials.
+    @objc public init(credentials: BacktraceCredentials) {
+        self.credentials = credentials
+    }
     
     /// Produces Backtrace client configuration settings.
     /// - Parameters:
