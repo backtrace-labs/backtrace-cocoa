@@ -148,7 +148,8 @@ BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
 BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
                                                initWithCredentials: credentials
                                                dbSettings: [[BacktraceDatabaseSettings alloc] init]
-                                               reportsPerMin: 3];
+                                               reportsPerMin: 3
+                                               allowsAttachingDebugger: NO];
 
 BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
 ```
@@ -191,7 +192,8 @@ backtraceDatabaseSettings.retryOrder = RetryOderStack;
 BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
                                                initWithCredentials: credentials
                                                dbSettings: backtraceDatabaseSettings
-                                               reportsPerMin: 3];
+                                               reportsPerMin: 3
+                                               allowsAttachingDebugger: NO];
 
 BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
 ```
@@ -280,10 +282,12 @@ Registered `BacktraceClient` will be able to send an crash reports. Error report
 If you want to catch additional exceptions on macOS which are not forwarded by macOS runtime, set `NSPrincipalClass` to `Backtrace.BacktraceCrashExceptionApplication` in your `Info.plist`.
 
 Alternatively, you can set:
+- Swift 
 ```swift
 UserDefaults.standard.register(defaults: ["NSApplicationCrashOnExceptions": true])
 ```
-```Objective-C
+-Objective-C
+```objective-c
 [[NSUserDefaults standardUserDefaults] registerDefaults:@{ @"NSApplicationCrashOnExceptions": @YES }];
 ```
 but it crashes your app if you don't use `@try ... @catch`.
