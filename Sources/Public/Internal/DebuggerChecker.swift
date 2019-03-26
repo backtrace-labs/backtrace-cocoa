@@ -4,7 +4,7 @@ protocol DebuggerChecking {
     static func isAttached() -> Bool
 }
 
-struct DebuggingChecker: DebuggerChecking {
+struct DebuggerChecker: DebuggerChecking {
     
     /// Check if the debugger is attachedto the current process.
     /// - see more: https://stackoverflow.com/a/4746378/6651241

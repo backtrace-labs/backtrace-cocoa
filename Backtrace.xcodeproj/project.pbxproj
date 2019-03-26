@@ -41,6 +41,8 @@
 		F21771BE21E341CA0059896E /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CC8ACA21CF8D8400A68CAC /* Dispatcher.swift */; };
 		F21771C021E344C10059896E /* SendReportRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21771BF21E344C10059896E /* SendReportRequest.swift */; };
 		F21771C121E344C10059896E /* SendReportRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21771BF21E344C10059896E /* SendReportRequest.swift */; };
+		F21D302B224A18D60013B5D7 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21D302A224A18D50013B5D7 /* Store.swift */; };
+		F21D302C224A18D60013B5D7 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21D302A224A18D50013B5D7 /* Store.swift */; };
 		F229D7852239A172008EC851 /* BacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F229D7842239A172008EC851 /* BacktraceClientTests.swift */; };
 		F229D7862239A172008EC851 /* BacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F229D7842239A172008EC851 /* BacktraceClientTests.swift */; };
 		F229D7872239B888008EC851 /* test.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2846E2042238189A0035F98C /* test.txt */; };
@@ -95,8 +97,8 @@
 		F29CD79621FDD9DC00216C59 /* BacktraceClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */; };
 		F2AB636A2244243500939BC9 /* Quick+Throws.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63692244243500939BC9 /* Quick+Throws.swift */; };
 		F2AB636B2244243500939BC9 /* Quick+Throws.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63692244243500939BC9 /* Quick+Throws.swift */; };
-		F2AB636D22442B5100939BC9 /* DebuggingChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB636C22442B5100939BC9 /* DebuggingChecker.swift */; };
-		F2AB636E22442B5100939BC9 /* DebuggingChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB636C22442B5100939BC9 /* DebuggingChecker.swift */; };
+		F2AB636D22442B5100939BC9 /* DebuggerChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */; };
+		F2AB636E22442B5100939BC9 /* DebuggerChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */; };
 		F2AB63722246481100939BC9 /* AttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63712246481100939BC9 /* AttachmentTests.swift */; };
 		F2AB63732246481100939BC9 /* AttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63712246481100939BC9 /* AttachmentTests.swift */; };
 		F2AB63752246484100939BC9 /* WatcherRepositoryMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */; };
@@ -270,6 +272,7 @@
 		F21211A4222348AC000B3692 /* CrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporter.swift; sourceTree = "<group>"; };
 		F21211A7222348C2000B3692 /* SignalContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalContext.swift; sourceTree = "<group>"; };
 		F21771BF21E344C10059896E /* SendReportRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendReportRequest.swift; sourceTree = "<group>"; };
+		F21D302A224A18D50013B5D7 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		F229D7842239A172008EC851 /* BacktraceClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClientTests.swift; sourceTree = "<group>"; };
 		F229D789223A56ED008EC851 /* UrlSessionMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlSessionMock.swift; sourceTree = "<group>"; };
 		F229D78E223A5F6A008EC851 /* BacktraceApiTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceApiTests.swift; sourceTree = "<group>"; };
@@ -300,7 +303,7 @@
 		F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceWatcher.swift; sourceTree = "<group>"; };
 		F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClientDelegate.swift; sourceTree = "<group>"; };
 		F2AB63692244243500939BC9 /* Quick+Throws.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Quick+Throws.swift"; sourceTree = "<group>"; };
-		F2AB636C22442B5100939BC9 /* DebuggingChecker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DebuggingChecker.swift; sourceTree = "<group>"; };
+		F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DebuggerChecker.swift; sourceTree = "<group>"; };
 		F2AB63712246481100939BC9 /* AttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentTests.swift; sourceTree = "<group>"; };
 		F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatcherRepositoryMock.swift; sourceTree = "<group>"; };
 		F2AB637722464ACF00939BC9 /* BacktraceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceTests.swift; sourceTree = "<group>"; };
@@ -631,7 +634,8 @@
 		F2AFB5A022274F1000AAA1D7 /* Internal */ = {
 			isa = PBXGroup;
 			children = (
-				F2AB636C22442B5100939BC9 /* DebuggingChecker.swift */,
+				F21D302A224A18D50013B5D7 /* Store.swift */,
+				F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */,
 				F240531D21C5680600FC9394 /* CrashReporting.swift */,
 				F2AFB59C22274EDA00AAA1D7 /* Dispatching.swift */,
 				F282075F21CEABBC0017367F /* BacktraceApiProtocol.swift */,
@@ -1400,6 +1404,7 @@
 				F2AB63822246E16400939BC9 /* ReportingPolicy.swift in Sources */,
 				F25F9E9B21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F282076121CEABBC0017367F /* BacktraceApiProtocol.swift in Sources */,
+				F21D302C224A18D60013B5D7 /* Store.swift in Sources */,
 				F266B83421C77B9600D14417 /* BacktraceError.swift in Sources */,
 				28966EFB2214BBDC00E6E891 /* AttributesStorage.swift in Sources */,
 				F259E4D72229A41400F282C7 /* Result.swift in Sources */,
@@ -1419,7 +1424,7 @@
 				282C85E7223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift in Sources */,
 				F2AFB59B22274E5400AAA1D7 /* BacktraceClientCustomizing.swift in Sources */,
 				F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
-				F2AB636E22442B5100939BC9 /* DebuggingChecker.swift in Sources */,
+				F2AB636E22442B5100939BC9 /* DebuggerChecker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1485,10 +1490,11 @@
 				F28F165821E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				28614F9E220B6D7C00D35EFB /* DefaultAttributes.swift in Sources */,
 				F2D8BE3A21BD78A9007CFEFA /* BacktraceApi.swift in Sources */,
-				F2AB636D22442B5100939BC9 /* DebuggingChecker.swift in Sources */,
+				F2AB636D22442B5100939BC9 /* DebuggerChecker.swift in Sources */,
 				F2D7122121F10C45002D2A26 /* BacktraceClientConfiguration.swift in Sources */,
 				F29CD78D21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */,
 				F29CD79121FCC25600216C59 /* BacktraceWatcher.swift in Sources */,
+				F21D302B224A18D60013B5D7 /* Store.swift in Sources */,
 				F2AFB59A22274E5400AAA1D7 /* BacktraceClientCustomizing.swift in Sources */,
 				F282075B21CEA37A0017367F /* Repository.swift in Sources */,
 			);

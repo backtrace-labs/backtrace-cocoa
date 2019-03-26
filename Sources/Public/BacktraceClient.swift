@@ -21,13 +21,13 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: CrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              reportsPerMin: configuration.reportsPerMin)
-        try self.init(configuration: configuration, debugger: DebuggingChecker.self, reporter: reporter,
+        try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)
     }
     
-    init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggingChecker.self,
+    init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
          reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApiProtocol) throws {
-
+        
         self.dispatcher = dispatcher
         self.reporter = reporter
         self.configuration = configuration
@@ -61,17 +61,42 @@ extension BacktraceClient: BacktraceClientCustomizing {
 
 // MARK: - BacktraceReporting
 extension BacktraceClient: BacktraceReporting {
+    @objc public func send(error: Error,
+                           attachmentPaths: [String],
+                           completion: @escaping ((BacktraceResult) -> Void)) {
+        reportCrash(faultMessage: error.localizedDescription, attachmentPaths: attachmentPaths, completion: completion)
+    }
+    
+    @objc public func send(message: String,
+                           attachmentPaths: [String],
+                           completion: @escaping ((BacktraceResult) -> Void)) {
+        reportCrash(faultMessage: message, attachmentPaths: attachmentPaths, completion: completion)
+    }
+    
     @objc public func send(exception: NSException?,
                            attachmentPaths: [String] = [],
                            completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        reportCrash(faultMessage: exception?.name.rawValue ?? "Unknown exception", exception: exception,
+                    attachmentPaths: attachmentPaths, completion: completion)
+    }
+    
+    @objc public func send(attachmentPaths: [String] = [],
+                           completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        reportCrash(attachmentPaths: attachmentPaths, completion: completion)
+    }
+    
+    private func reportCrash(faultMessage: String? = nil, exception: NSException? = nil, attachmentPaths: [String] = [],
+                             completion: @escaping ((_ result: BacktraceResult) -> Void)) {
         guard reportingPolicy.allowsReporting else {
             completion(BacktraceResult(.debuggerAttached))
             return
         }
+        
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                completion(try self.reporter.send(exception: exception, attachmentPaths: attachmentPaths))
+                completion(try self.reporter.send(exception: exception, attachmentPaths: attachmentPaths,
+                                                  faultMessage: faultMessage))
             } catch {
                 BacktraceLogger.error(error)
                 completion(BacktraceResult(.unknownError))
@@ -79,11 +104,6 @@ extension BacktraceClient: BacktraceReporting {
             }, completion: {
                 BacktraceLogger.debug("Finished")
         })
-    }
-    
-    @objc public func send(attachmentPaths: [String] = [],
-                           completion: @escaping ((_ result: BacktraceResult) -> Void)) {
-        send(exception: nil, attachmentPaths: attachmentPaths, completion: completion)
     }
     
     func startCrashReporter() throws {

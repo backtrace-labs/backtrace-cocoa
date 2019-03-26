@@ -14,11 +14,13 @@ extension CrashReporter: CrashReporting {
         let rawMutablePointer = UnsafeMutableRawPointer(&mutableContext)
         let handler: @convention(c) (_ signalInfo: UnsafeMutablePointer<siginfo_t>?,
             _ uContext: UnsafeMutablePointer<ucontext_t>?,
-            _ context: UnsafeMutableRawPointer?) -> Void = { _, _, context in
-                guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee else {
+            _ context: UnsafeMutableRawPointer?) -> Void = { signalInfoPointer, _, context in
+                guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee,
+                    let signalInfo = signalInfoPointer?.pointee else {
                     return
                 }
                 BacktraceLogger.debug("Saving custom attributes:\n\(attributesProvider.description)")
+                attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
                 try? AttributesStorage.store(attributesProvider.attributes, fileName: CrashReporter.crashName)
         }
         var callbacks = PLCrashReporterCallbacks(version: 0, context: rawMutablePointer, handleSignal: handler)

@@ -1,8 +1,7 @@
 import Foundation
 
 protocol CrashReporting {
-    func generateLiveReport(exception: NSException?,
-                            attributes: Attributes,
+    func generateLiveReport(exception: NSException?, attributes: Attributes,
                             attachmentPaths: [String]) throws -> BacktraceReport
     func pendingCrashReport() throws -> BacktraceReport
     func purgePendingCrashReport() throws

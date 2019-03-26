@@ -4,7 +4,7 @@ struct ReportingPolicy {
     let configuration: BacktraceClientConfiguration
     let debuggerChecker: DebuggerChecking.Type
     
-    init(configuration: BacktraceClientConfiguration, debuggerChecker: DebuggerChecking.Type = DebuggingChecker.self) {
+    init(configuration: BacktraceClientConfiguration, debuggerChecker: DebuggerChecking.Type = DebuggerChecker.self) {
         self.configuration = configuration
         self.debuggerChecker = debuggerChecker
     }
