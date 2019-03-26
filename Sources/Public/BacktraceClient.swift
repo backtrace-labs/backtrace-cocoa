@@ -1,20 +1,33 @@
 import Foundation
 
-/// Provides the default implementation of BacktraceClientProviding protocol.
+/// Provides the default implementation of `BacktraceClientProtocol` protocol.
 @objc open class BacktraceClient: NSObject {
     
-    /// Shared instance of BacktraceClient class.
+    /// Shared instance of BacktraceClient class. Should be created before send any report.
     @objc public static var shared: BacktraceClientProtocol?
+    
+    /// `BacktraceClient`'s configuration. Allows to configure `BacktraceClient` in custom way.
     @objc public let configuration: BacktraceClientConfiguration
     
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
     
+    /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
+    /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
+    /// and https://help.backtrace.io/troubleshooting/what-is-a-submission-token .
+    ///
+    /// - Parameter credentials: Credentials to register in Backtrace services
+    /// - Throws: throws an error in cases of failure.
     @objc public convenience init(credentials: BacktraceCredentials) throws {
         try self.init(configuration: BacktraceClientConfiguration(credentials: credentials))
     }
     
+    /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
+    /// in custom way.
+    ///
+    /// - Parameter configuration: `BacktraceClient`s configuration
+    /// - Throws: throws an error in cases of failure.
     @objc public convenience init(configuration: BacktraceClientConfiguration) throws {
         let api = BacktraceApi(endpoint: configuration.credentials.endpoint,
                                token: configuration.credentials.token,
@@ -40,7 +53,8 @@ import Foundation
 
 // MARK: - BacktraceClientProviding
 extension BacktraceClient: BacktraceClientCustomizing {
-    /// BacktraceClientDelegate. Subscribe to receive all the events.
+    
+    /// The object that acts as the delegate of the `BacktraceClient`. Provide delegate to receive all the events.
     @objc public weak var delegate: BacktraceClientDelegate? {
         set {
             reporter.delegate = newValue
@@ -49,6 +63,7 @@ extension BacktraceClient: BacktraceClientCustomizing {
         }
     }
     
+    /// Additional user attributes which are automatically added to each report.
     @objc public var userAttributes: Attributes {
         get {
             return reporter.userAttributes
@@ -61,6 +76,7 @@ extension BacktraceClient: BacktraceClientCustomizing {
 
 // MARK: - BacktraceReporting
 extension BacktraceClient: BacktraceReporting {
+
     @objc public func send(error: Error,
                            attachmentPaths: [String],
                            completion: @escaping ((BacktraceResult) -> Void)) {
@@ -127,6 +143,8 @@ extension BacktraceClient: BacktraceReporting {
 
 // MARK: - BacktraceLogging
 extension BacktraceClient: BacktraceLogging {
+    
+    /// Set of logging destinations
     public var destinations: Set<BacktraceBaseDestination> {
         get {
             return BacktraceLogger.destinations

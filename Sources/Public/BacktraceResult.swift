@@ -21,6 +21,8 @@ import Foundation
 }
 
 extension BacktraceResult {
+    
+    /// Description of `BacktraceResult`
     override open var description: String {
         return
             """
