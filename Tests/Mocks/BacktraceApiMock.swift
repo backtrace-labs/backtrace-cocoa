@@ -2,8 +2,8 @@ import Foundation
 
 @testable import Backtrace
 
-final class BacktraceNetworkClientMock: BacktraceApiProtocol {
-    var delegate: BacktraceClientDelegate?
+final class BacktraceApiMock: BacktraceApiProtocol {
+    weak var delegate: BacktraceClientDelegate?
     
     var successfulSendTimestamps: [TimeInterval] = []
     
@@ -11,25 +11,33 @@ final class BacktraceNetworkClientMock: BacktraceApiProtocol {
         case invalidToken
         case invalidEndpoint
         case validCredentials
+        case limitReached
     }
     
     static func invalidTokenResponse(_ report: BacktraceReport) -> BacktraceResult {
         return BacktraceErrorResponse(error: BacktraceErrorResponse.ResponseError(code: 1897, message: "Forbidden"))
-            .result(backtraceReport: report)
+            .result(report: report)
     }
     
     static func invalidCredentials(_ report: BacktraceReport) -> BacktraceResult {
-        return BacktraceResponse(response: "Ok.", rxid: "xx-xx", fingerprint: "xx-xx", unique: true).result(backtraceReport: report)
+        return BacktraceResponse(response: "Ok.", rxid: "xx-xx", fingerprint: "xx-xx", unique: true)
+            .result(report: report)
+    }
+    
+    static func limitReachedResponse(_ report: BacktraceReport) -> BacktraceResult {
+        return BacktraceResult(.limitReached, report: report)
     }
     
     func send(_ report: BacktraceReport) throws -> BacktraceResult {
         switch config {
         case .invalidToken:
-            return BacktraceNetworkClientMock.invalidTokenResponse(report)
+            return BacktraceApiMock.invalidTokenResponse(report)
         case .invalidEndpoint:
             throw HttpError.unknownError
         case .validCredentials:
-            return BacktraceNetworkClientMock.invalidCredentials(report)
+            return BacktraceApiMock.invalidCredentials(report)
+        case .limitReached:
+            return BacktraceApiMock.limitReachedResponse(report)
         }
     }
     

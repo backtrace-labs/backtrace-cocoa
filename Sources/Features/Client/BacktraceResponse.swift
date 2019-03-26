@@ -26,8 +26,8 @@ struct BacktraceResponse: Codable {
 }
 
 extension BacktraceResponse {
-    func result(backtraceReport: BacktraceReport) -> BacktraceResult {
-        return BacktraceResult(.ok, message: "Ok.", backtraceReport: backtraceReport)
+    func result(report: BacktraceReport) -> BacktraceResult {
+        return BacktraceResult(.ok, report: report)
     }
 }
 
@@ -41,8 +41,8 @@ struct BacktraceErrorResponse: Codable, BacktraceError {
 }
 
 extension BacktraceErrorResponse {
-    func result(backtraceReport: BacktraceReport) -> BacktraceResult {
-        return BacktraceResult(.serverError, message: error.message, backtraceReport: backtraceReport)
+    func result(report: BacktraceReport) -> BacktraceResult {
+        return BacktraceResult(.serverError, report: report, message: error.message)
     }
 }
 

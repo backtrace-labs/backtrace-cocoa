@@ -15,7 +15,7 @@ final class BacktraceReporter {
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
         self.watcher = try BacktraceWatcher(settings: dbSettings,
                                             reportsPerMin: reportsPerMin,
-                                            networkClient: api,
+                                            api: api,
                                             repository: repository)
         self.attributesProvider = AttributesProvider()
         self.reporter.signalContext(&attributesProvider)
@@ -75,8 +75,12 @@ extension BacktraceReporter {
         }
     }
     
-    func send(exception: NSException? = nil) throws -> BacktraceResult {
-        let resource = try reporter.generateLiveReport(exception: exception, attributes: attributesProvider.attributes)
+    func send(exception: NSException? = nil, attachmentPaths: [String] = [],
+              faultMessage: String? = nil) throws -> BacktraceResult {
+        attributesProvider.set(faultMessage: faultMessage)
+        let resource = try reporter.generateLiveReport(exception: exception,
+                                                       attributes: attributesProvider.attributes,
+                                                       attachmentPaths: attachmentPaths)
         return try send(resource: resource)
     }
 }

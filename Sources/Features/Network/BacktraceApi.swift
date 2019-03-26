@@ -21,13 +21,15 @@ extension BacktraceApi: BacktraceApiProtocol {
         let currentTimestamp = Date().timeIntervalSince1970
         let numberOfSendsInLastOneMinute = successfulSendTimestamps.filter { currentTimestamp - $0 < 60.0 }.count
         guard numberOfSendsInLastOneMinute < reportsPerMin else {
-            return BacktraceResult.limitReached(report)
+            return BacktraceResult(.limitReached, report: report)
         }
         // modify before sending
         let modifiedBeforeSendingReport = self.delegate?.willSend?(report) ?? report
+        let attachments = modifiedBeforeSendingReport.attachmentPaths.compactMap { Attachment(filePath: $0) }
         // create request
         let urlRequest = try self.request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData,
-                                                              attributes: modifiedBeforeSendingReport.attributes)
+                                                              attributes: modifiedBeforeSendingReport.attributes,
+                                                              attachments: attachments)
         BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
         // send report
         let response = session.sync(urlRequest)
@@ -39,20 +41,19 @@ extension BacktraceApi: BacktraceApiProtocol {
         guard let httpResponse = response.urlResponse, let responseData = response.responseData else {
             throw HttpError.unknownError
         }
-        BacktraceLogger.debug("Sent crash: \(modifiedBeforeSendingReport.plCrashReport.info)")
         BacktraceLogger.debug("Response: \n\(httpResponse.debugDescription)")
         // check result
         let result = try BacktraceHttpResponseDeserializer(httpResponse: httpResponse, responseData: responseData)
             .result
         switch result {
         case .error(let error):
-            self.delegate?.serverDidResponse?(error.result(backtraceReport: modifiedBeforeSendingReport))
-            return error.result(backtraceReport: modifiedBeforeSendingReport)
+            self.delegate?.serverDidResponse?(error.result(report: modifiedBeforeSendingReport))
+            return error.result(report: modifiedBeforeSendingReport)
         case .success(let response):
             // did send successfully
             self.successfulSendTimestamps.append(Date().timeIntervalSince1970)
-            self.delegate?.serverDidResponse?(response.result(backtraceReport: modifiedBeforeSendingReport))
-            return response.result(backtraceReport: modifiedBeforeSendingReport)
+            self.delegate?.serverDidResponse?(response.result(report: modifiedBeforeSendingReport))
+            return response.result(report: modifiedBeforeSendingReport)
         }
     }
 }

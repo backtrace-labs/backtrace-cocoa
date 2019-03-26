@@ -1,16 +1,28 @@
 import Foundation
 
 final class AttributesProvider {
+    
     // attributes can be modified on runtime
     var userAttributes: Attributes = [:]
-    var defaultAttributes: Attributes {
-         return DefaultAttributes.current()
-    }
+    
+    private let bluetoothStatusListener = BluetoothStatusListener()
+    private var faultMessage: String?
 }
 
 extension AttributesProvider: SignalContext {
+    func set(faultMessage: String?) {
+        self.faultMessage = faultMessage
+    }
+    
     var attributes: Attributes {
         return userAttributes + defaultAttributes
+    }
+    
+    var defaultAttributes: Attributes {
+        var defaultAttributes = DefaultAttributes.current()
+        defaultAttributes["bluetooth.state"] = bluetoothStatusListener.currentState
+        defaultAttributes["error.message"] = faultMessage
+        return defaultAttributes
     }
 }
 

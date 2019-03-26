@@ -1,7 +1,7 @@
 import Foundation
 import Backtrace_PLCrashReporter
 
-class CrashReporter: NSObject {
+final class CrashReporter {
     private let reporter: PLCrashReporter
     static private let crashName = "live_report"
     public init(config: PLCrashReporterConfig = PLCrashReporterConfig.defaultConfiguration()) {
@@ -14,20 +14,25 @@ extension CrashReporter: CrashReporting {
         let rawMutablePointer = UnsafeMutableRawPointer(&mutableContext)
         let handler: @convention(c) (_ signalInfo: UnsafeMutablePointer<siginfo_t>?,
             _ uContext: UnsafeMutablePointer<ucontext_t>?,
-            _ context: UnsafeMutableRawPointer?) -> Void = { _, _, context in
-                guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee else {
+            _ context: UnsafeMutableRawPointer?) -> Void = { signalInfoPointer, _, context in
+                guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee,
+                    let signalInfo = signalInfoPointer?.pointee else {
                     return
                 }
                 BacktraceLogger.debug("Saving custom attributes:\n\(attributesProvider.description)")
+                attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
                 try? AttributesStorage.store(attributesProvider.attributes, fileName: CrashReporter.crashName)
         }
         var callbacks = PLCrashReporterCallbacks(version: 0, context: rawMutablePointer, handleSignal: handler)
         reporter.setCrash(&callbacks)
     }
     
-    func generateLiveReport(exception: NSException? = nil, attributes: Attributes) throws -> BacktraceReport {
+    func generateLiveReport(exception: NSException? = nil,
+                            attributes: Attributes,
+                            attachmentPaths: [String] = []) throws -> BacktraceReport {
+        
         let reportData = try reporter.generateLiveReport(with: exception)
-        return try BacktraceReport(report: reportData, attributes: attributes)
+        return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
 
     func enableCrashReporting() throws {
@@ -37,7 +42,8 @@ extension CrashReporter: CrashReporting {
     func pendingCrashReport() throws -> BacktraceReport {
         let reportData = try reporter.loadPendingCrashReportDataAndReturnError()
         let attributes = (try? AttributesStorage.retrieve(fileName: CrashReporter.crashName)) ?? [:]
-        return try BacktraceReport(report: reportData, attributes: attributes)
+        // NOTE: - no attachments in crash reports
+        return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: [])
     }
     
     func hasPendingCrashes() -> Bool {

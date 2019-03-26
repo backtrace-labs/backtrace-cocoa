@@ -7,6 +7,7 @@ protocol PersistentStorable {
     static var entityName: String { get }
     var identifier: UUID { get }
     var reportData: Data { get }
+    var attachmentPaths: [String] { get set }
     var attributes: Attributes { get }
     
     init(managedObject: ManagedObjectType) throws
@@ -103,6 +104,7 @@ extension PersistentRepository: Repository {
         newManagedObject.setValue(resource.reportData, forKey: "reportData")
         newManagedObject.setValue(Date(), forKey: "dateAdded")
         newManagedObject.setValue(0, forKey: "retryCount")
+        newManagedObject.setValue(resource.attachmentPaths, forKey: "attachmentPaths")
         try backgroundContext.save()
         try AttributesStorage.store(resource.attributes, fileName: resource.identifier.uuidString)
     }

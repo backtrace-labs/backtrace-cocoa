@@ -4,11 +4,11 @@ import Nimble
 import Quick
 @testable import Backtrace
 
-final class AttributesTests: QuickSpec {
+final class AttributesProviderTests: QuickSpec {
     
     override func spec() {
-        describe("Collecting attributes") {
-            it("Collects default attributes", closure: {
+        describe("Attributes provider") {
+            it("has default values", closure: {
                 let attributesProvider = AttributesProvider()
                 
                 expect(attributesProvider.defaultAttributes).toNot(beEmpty())
@@ -16,7 +16,7 @@ final class AttributesTests: QuickSpec {
                 expect(attributesProvider.userAttributes).to(beEmpty())
             })
             
-            it("Appends client attribute", closure: {
+            it("allows the user add new attributes", closure: {
                 let attributesProvider = AttributesProvider()
                 attributesProvider.userAttributes["foo"] = "bar"
                 

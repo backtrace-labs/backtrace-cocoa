@@ -18,16 +18,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
                                                         token: "token")
-        let configuration = BacktraceClientConfiguration(credentials: backtraceCredentials)
+        let backtraceDatabaseSettings = BacktraceDatabaseSettings()
+        backtraceDatabaseSettings.maxRecordCount = 1000
+        backtraceDatabaseSettings.maxDatabaseSize = 10
+        backtraceDatabaseSettings.retryInterval = 5
+        backtraceDatabaseSettings.retryLimit = 3
+        backtraceDatabaseSettings.retryBehaviour = RetryBehaviour.interval
+        backtraceDatabaseSettings.retryOrder = RetryOder.queue
+        let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
+                                                                  dbSettings: backtraceDatabaseSettings,
+                                                                  reportsPerMin: 10,
+                                                                  allowsAttachingDebugger: true)
         
-        BacktraceClient.shared = try? BacktraceClient(configuration: configuration)
+        BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.userAttributes = ["foo": "bar", "testing": true]
 
         do {
             try throwingFunc()
         } catch {
-            BacktraceClient.shared?.send { (result) in
+            let filePath = Bundle.main.path(forResource: "test", ofType: "txt")!
+            BacktraceClient.shared?.send(attachmentPaths: [filePath]) { (result) in
                 print(result)
             }
         }
@@ -38,6 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 extension AppDelegate: BacktraceClientDelegate {
     func willSend(_ report: BacktraceReport) -> (BacktraceReport) {
+        report.attributes["added"] = "just before send"
         return report
     }
     

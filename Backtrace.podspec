@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "1.3.0"
+  s.version      = "1.4.0"
   s.summary      = "Backtrace's integration with iOS and macOS"
   s.description  = "Backtrace's integration with iOS and macOS for handling crashes"
   s.homepage     = "https://backtrace.io/"
@@ -20,8 +20,8 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "10.0"
   s.osx.deployment_target = "10.10"
 
-  s.ios.source_files  = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.h*"]
-  s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.h*"]
+  s.ios.source_files  = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.{h*,swift}"]
+  s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.{h*,swift}"]
 
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]

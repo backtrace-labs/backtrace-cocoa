@@ -1,16 +1,20 @@
 // swiftlint:disable type_name
 import Foundation
+import CoreLocation
 #if os(iOS)
+import CoreNFC
 import CoreTelephony
 #endif
 
 struct DefaultAttributes {
-
+    
     static func current() -> Attributes {
-        return ["backtrace.version": BacktraceVersionNumber]
-            + DeviceInfo.current()
+        return DeviceInfo.current()
             + ScreenInfo.current()
             + LocaleInfo.current()
+            + NetworkInfo.current()
+            + LocationInfo.current()
+            + LibInfo.current()
     }
 }
 
@@ -20,7 +24,7 @@ protocol AttributesSourceType {
 
 struct DeviceInfo: AttributesSourceType {
     
-    enum Key: String {
+    private enum Key: String {
         // String enum values can be omitted when they are equal to the enumcase name.
         #if os(iOS)
         case deviceName = "device.name"
@@ -28,10 +32,12 @@ struct DeviceInfo: AttributesSourceType {
         case deviceOrientation = "device.orientation"
         case batteryState = "battery.state"
         case batteryLevel = "battery.level"
+        case nfcReadingAvailable = "device.nfc.readingAvailable"
         #elseif os(macOS)
         case systemUptime = "system.uptime"
         case physicalMemory = "memory.physical"
         case processorCount = "processor.count"
+        case hostname = "hostname"
         #endif
     }
     
@@ -46,11 +52,17 @@ struct DeviceInfo: AttributesSourceType {
             deviceAttributes[Key.batteryState.rawValue] = currentDevice.batteryState.name
             deviceAttributes[Key.batteryLevel.rawValue] = currentDevice.batteryLevel
         }
+        if #available(iOS 11.0, *) {
+            deviceAttributes[Key.nfcReadingAvailable.rawValue] = NFCNDEFReaderSession.readingAvailable
+        } else {
+            deviceAttributes[Key.nfcReadingAvailable.rawValue] = false
+        }
         #elseif os(macOS)
         let processinfo = ProcessInfo.processInfo
         deviceAttributes[Key.systemUptime.rawValue] = processinfo.systemUptime
         deviceAttributes[Key.physicalMemory.rawValue] = processinfo.physicalMemory
         deviceAttributes[Key.processorCount.rawValue] = processinfo.processorCount
+        deviceAttributes[Key.hostname.rawValue] = Host.current().name
         #endif
         return deviceAttributes
     }
@@ -58,7 +70,7 @@ struct DeviceInfo: AttributesSourceType {
 
 struct ScreenInfo: AttributesSourceType {
     
-    enum Key: String {
+    private enum Key: String {
         #if os(iOS)
         case scale = "screen.scale"
         case width = "screen.width"
@@ -101,7 +113,7 @@ struct ScreenInfo: AttributesSourceType {
 
 struct LocaleInfo: AttributesSourceType {
     
-    enum Key: String {
+    private enum Key: String {
         case languageCode = "device.lang.code"
         case language = "device.lang"
         case regionCode = "device.region.code"
@@ -126,10 +138,77 @@ struct LocaleInfo: AttributesSourceType {
     }
 }
 
+struct NetworkInfo: AttributesSourceType {
+    
+    private enum Key: String {
+        case status = "network.status"
+    }
+    
+    static func current() -> Attributes {
+        var networkAttributes: Attributes = [:]
+        networkAttributes[Key.status.rawValue] = NetworkReachability().statusName
+        return networkAttributes
+    }
+}
+
+struct LocationInfo: AttributesSourceType {
+    
+    private enum Key: String {
+        case locationServicesEnabled = "location.servicesEnabled"
+        case locationAuthorizationStatus = "location.authorizationStatus"
+    }
+    static func current() -> [String: Any] {
+        var locationAttributes: [String: Any] = [:]
+        locationAttributes[Key.locationServicesEnabled.rawValue] = CLLocationManager.locationServicesEnabled()
+        locationAttributes[Key.locationAuthorizationStatus.rawValue] = CLLocationManager.authorizationStatus().name
+        return locationAttributes
+    }
+}
+
+struct LibInfo: AttributesSourceType {
+    
+    private static let applicationGuidKey = "backtrace.unique.user.identifier"
+    private static let applicationLangName = "backtrace-cocoa"
+    
+    private enum Key: String {
+        case guid = "guid"
+        case langName = "lang.name"
+        case langVersion = "lang.version"
+    }
+    
+    static func current() -> Attributes {
+        return [Key.guid.rawValue: guid(store: UserDefaultsStore.self).uuidString,
+                Key.langName.rawValue: applicationLangName,
+                Key.langVersion.rawValue: BacktraceVersionNumber]
+    }
+    
+    static private func guid(store: UserDefaultsStore.Type) -> UUID {
+        if let uuidString: String = store.value(forKey: applicationGuidKey), let uuid = UUID(uuidString: uuidString) {
+            return uuid
+        } else {
+            let uuid = UUID()
+            store.store(uuid.uuidString, forKey: applicationGuidKey)
+            return uuid
+        }
+    }
+}
 // swiftlint:enable type_name
 
+private extension CLAuthorizationStatus {
+    
+    var name: String {
+        switch self {
+        case .authorizedAlways: return "Always"
+        case .authorizedWhenInUse: return "WhenInUse"
+        case .denied: return "Denied"
+        case .notDetermined: return "notDetermined"
+        case .restricted: return "restricted"
+        }
+    }
+}
+
 #if os(iOS)
-extension UIDeviceOrientation {
+private extension UIDeviceOrientation {
     
     var name: String {
         switch self {
@@ -146,7 +225,7 @@ extension UIDeviceOrientation {
 #endif
 
 #if os(iOS)
-extension UIDevice.BatteryState {
+private extension UIDevice.BatteryState {
     
     var name: String {
         switch self {
@@ -160,7 +239,7 @@ extension UIDevice.BatteryState {
 #endif
 
 #if os(iOS)
-extension UIApplication.State {
+private extension UIApplication.State {
     
     var name: String {
         switch self {

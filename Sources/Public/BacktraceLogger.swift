@@ -2,10 +2,15 @@ import Foundation
 
 /// Logging levels.
 @objc public enum BacktraceLogLevel: Int {
+    /// All logs logged to the desination.
     case debug
+    /// Warnings, info and errors logged to the desination.
     case warning
+    /// Info and errors logged to the desination.
     case info
+    /// Only errors logged to the desination.
     case error
+    /// No logs logged to the desination.
     case none
 
     fileprivate func desc() -> String {
@@ -26,9 +31,12 @@ import Foundation
 
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
+    
+    /// Set of logging destinations. Defaultly, only Xcode console. Use `setDestinations(destinations:)` to replace
+    /// destiantions.
     static var destinations: Set<BacktraceBaseDestination> = [BacktraceFencyConsoleDestination(level: .debug)]
 
-    /// Replaces the logging destinations
+    /// Replaces the logging destinations.
     ///
     /// - Parameter destinations: Logging destinations.
     @objc public class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
@@ -64,7 +72,11 @@ import Foundation
 @objc open class BacktraceBaseDestination: NSObject {
 
     private let level: BacktraceLogLevel
-
+    
+    /// Initialize `BacktraceBaseDestination` with given level.
+    ///
+    /// - Parameters:
+    ///   - level: logging level
     @objc public init(level: BacktraceLogLevel) {
         self.level = level
     }
@@ -101,6 +113,14 @@ import Foundation
     }
 
     //swiftlint:disable line_length
+    /// Logs the event to console destination. Formats log in custom, fency way.
+    ///
+    /// - Parameters:
+    ///   - level: logging level
+    ///   - msg: message to log
+    ///   - file: the name of the file in which it appears
+    ///   - function: the name of the declaration in which it appears
+    ///   - line: the line number on which it appears
     override public func log(level: BacktraceLogLevel, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
         print("\(BacktraceFencyConsoleDestination.dateFormatter.string(from: Date())) [\(level.desc()) Backtrace] [\(URL(fileURLWithPath: file).lastPathComponent)]:\(line) \(function) -> \(msg)")
     }
@@ -111,6 +131,14 @@ import Foundation
 @objc final public class BacktraceConsoleDestination: BacktraceBaseDestination {
     
     //swiftlint:disable line_length
+    /// Logs the event to console destination.
+    ///
+    /// - Parameters:
+    ///   - level: logging level
+    ///   - msg: message to log
+    ///   - file: the name of the file in which it appears
+    ///   - function: the name of the declaration in which it appears
+    ///   - line: the line number on which it appears
     override public func log(level: BacktraceLogLevel, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
         print("\(Date()) [Backtrace]: \(msg)")
     }

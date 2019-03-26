@@ -1,36 +1,69 @@
 import Foundation
 
+/// Typealias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing & BacktraceLogging
 
+/// Typealias of passing atributes to library. 
 public typealias Attributes = [String: Any]
 
-/// Public BacktraceClient protocol.
+/// Protocol describes report customizing functionality of `BacktraceClient`.
 @objc public protocol BacktraceClientCustomizing {
     
     /// Additional user attributes which are automatically added to each report.
     @objc var userAttributes: Attributes { get set }
     
-    /// Delegates methods.
+    /// The object that acts as the delegate of the `BacktraceClient`.
     @objc weak var delegate: BacktraceClientDelegate? { get set }
 }
 
+/// Protocol describes sending functionality of `BacktraceClient`.
 @objc public protocol BacktraceReporting {
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
     ///
     /// - Parameters:
+    ///   - error: Error which occurred
+    ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report
     ///   - completion: Backtrace services response.
-    @objc func send(completion: @escaping ((_ result: BacktraceResult) -> Void))
+    @objc func send(error: Error,
+                    attachmentPaths: [String],
+                    completion: @escaping ((_ result: BacktraceResult) -> Void))
     
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
     ///
     /// - Parameters:
-    ///   - exception: instance of NSException,
+    ///   - message: Custom message which will be sent alongsite report
+    ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report
     ///   - completion: Backtrace services response.
-    @objc func send(exception: NSException?, completion: @escaping ((_ result: BacktraceResult) -> Void))
+    @objc func send(message: String,
+                    attachmentPaths: [String],
+                    completion: @escaping ((_ result: BacktraceResult) -> Void))
+    
+    /// Automatically generates and sends a crash report to Backtrace services.
+    /// The services response is returned in a completion block.
+    ///
+    /// - Parameters:
+    ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report
+    ///   - completion: Backtrace services response.
+    @objc func send(attachmentPaths: [String],
+                    completion: @escaping ((_ result: BacktraceResult) -> Void))
+    
+    /// Automatically generates and sends a crash report to Backtrace services.
+    /// The services response is returned in a completion block.
+    ///
+    /// - Parameters:
+    ///   - exception: instance of NSException
+    ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report
+    ///   - completion: Backtrace services response.
+    @objc func send(exception: NSException?,
+                    attachmentPaths: [String],
+                    completion: @escaping ((_ result: BacktraceResult) -> Void))
 }
 
+/// Protocol describes logging functionality of `BacktraceClient`.
 @objc public protocol BacktraceLogging {
+    
+    /// Set of logging destinations.
     @objc var destinations: Set<BacktraceBaseDestination> { get set }
 }
