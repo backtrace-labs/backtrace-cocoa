@@ -11,8 +11,19 @@
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
                                          token: @"token"];
+    BacktraceDatabaseSettings *backtraceDatabaseSettings = [[BacktraceDatabaseSettings alloc] init];
+    backtraceDatabaseSettings.maxRecordCount = 1000;
+    backtraceDatabaseSettings.maxDatabaseSize = 10;
+    backtraceDatabaseSettings.retryInterval = 5;
+    backtraceDatabaseSettings.retryLimit = 3;
+    backtraceDatabaseSettings.retryBehaviour = RetryBehaviourInterval;
+    backtraceDatabaseSettings.retryOrder = RetryOderStack;
+    
     BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
-                                                   initWithCredentials: credentials];
+                                                   initWithCredentials: credentials
+                                                   dbSettings: backtraceDatabaseSettings
+                                                   reportsPerMin: 3
+                                                   allowsAttachingDebugger: TRUE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     BacktraceClient.shared.delegate = self;
 
@@ -41,6 +52,9 @@
 
 #pragma mark - BacktraceClientDelegate
 - (BacktraceReport *)willSend:(BacktraceReport *)report {
+    NSMutableDictionary *dict = [report.attributes mutableCopy];
+    [dict setObject: @"just before send" forKey: @"added"];
+    report.attributes = dict;
     return report;
 }
 

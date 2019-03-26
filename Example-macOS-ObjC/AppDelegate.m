@@ -1,7 +1,7 @@
 #import "AppDelegate.h"
 @import Backtrace;
 
-@interface AppDelegate ()
+@interface AppDelegate () <BacktraceClientDelegate>
 
 @end
 
@@ -12,10 +12,22 @@
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
                                          token: @"token"];
+    BacktraceDatabaseSettings *backtraceDatabaseSettings = [[BacktraceDatabaseSettings alloc] init];
+    backtraceDatabaseSettings.maxRecordCount = 1000;
+    backtraceDatabaseSettings.maxDatabaseSize = 10;
+    backtraceDatabaseSettings.retryInterval = 5;
+    backtraceDatabaseSettings.retryLimit = 3;
+    backtraceDatabaseSettings.retryBehaviour = RetryBehaviourInterval;
+    backtraceDatabaseSettings.retryOrder = RetryOderStack;
+    
     BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
-                                                   initWithCredentials: credentials];
+                                                   initWithCredentials: credentials
+                                                   dbSettings: backtraceDatabaseSettings
+                                                   reportsPerMin: 3
+                                                   allowsAttachingDebugger: TRUE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     [BacktraceClient.shared setUserAttributes: @{@"foo": @"bar"}];
+    BacktraceClient.shared.delegate = self;
 
     @try {
         NSArray *array = @[];
@@ -33,6 +45,30 @@
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     // Insert code here to tear down your application
+}
+
+#pragma mark - BacktraceClientDelegate
+- (BacktraceReport *)willSend:(BacktraceReport *)report {
+    NSMutableDictionary *dict = [report.attributes mutableCopy];
+    [dict setObject: @"just before send" forKey: @"added"];
+    report.attributes = dict;
+    return report;
+}
+
+- (void)serverDidFail:(NSError *)error {
+    
+}
+
+- (void)serverDidResponse:(BacktraceResult *)result {
+    
+}
+
+- (NSURLRequest *)willSendRequest:(NSURLRequest *)request {
+    return request;
+}
+
+- (void)didReachLimit:(BacktraceResult *)result {
+    
 }
 
 @end
