@@ -3,10 +3,12 @@ import Foundation
 /// Backtrace server API credentials.
 @objc public class BacktraceCredentials: NSObject {
     
-    /// Endpoint to Backtrace services.
+    /// Endpoint to Backtrace services. To learn more, see
+    /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
     @objc public let endpoint: URL
     
-    /// Access token to Backtrace services.
+    /// Access token to Backtrace services. To learn more, see
+    /// https://help.backtrace.io/troubleshooting/what-is-a-submission-token
     @objc public let token: String
     
     /// Produces Backtrace server API credentials.
