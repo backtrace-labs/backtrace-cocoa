@@ -1,6 +1,8 @@
 import Foundation
 #if os(iOS)
 import MobileCoreServices
+#elseif os(tvOS)
+import CoreServices
 #endif
 
 struct Attachment {
