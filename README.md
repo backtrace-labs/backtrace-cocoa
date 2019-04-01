@@ -92,7 +92,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     2. [Configure client](#documentation-client-configuration)
         * [Database settings](#documentation-database-settings)
     3. [Events handling](#documentation-events-handling)
-    4. [User attributes](#documentation-user-attributes)
+    4. [Attributes](#documentation-attributes)
     5. [Attachments](#documentation-attachments)
     6. [Sending reports](#documentation-sending-report)
         1. [Error/NSError](#documentation-sending-error)
@@ -212,7 +212,7 @@ BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configu
 ```
 
 ## Events handling <a name="documentation-events-handling"></a>
-`BacktraceClient` allows you to subscribe for events produced before and after sending each report. You have to only attach object which confirm to `BacktraceClientDelegate` protocol. 
+`BacktraceClient` allows you to subscribe for events produced before and after sending each report. You have to only attach object which confirm to `BacktraceClientDelegate` protocol.
 - Swift
 ```swift
 // assign `self` or any other object as a `BacktraceClientDelegate`
@@ -256,18 +256,18 @@ func willSend(_ report: BacktraceReport) -> (BacktraceReport) {
 }
 ```
 
-## User attributes <a name="documentation-user-attributes"></a>
-You can add custom user attributes that should be send alongside crash and erros/exceptions:
+## Attributes <a name="documentation-attributes"></a>
+You can add custom attributes that should be send alongside crash and erros/exceptions:
 - Swift
 ```swift
-BacktraceClient.shared?.userAttributes = ["foo": "bar", "testing": true]
+BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
 ```
 
 - Objective-C
 ```objective-c
-BacktraceClient.shared.userAttributes = @{@"foo": @"bar", @"testing": YES};
+BacktraceClient.shared.attributes = @{@"foo": @"bar", @"testing": YES};
 ```
-Set user attributes are attached to each report. You can specify unique set of user attributes for specific report in `willSend(_:)` method of `BacktraceClientDelegate`. See [events handling](#documentation-events-handling) for more information.
+Set attributes are attached to each report. You can specify unique set of attributes for specific report in `willSend(_:)` method of `BacktraceClientDelegate`. See [events handling](#documentation-events-handling) for more information.
 
 ## Attachments <a name="documentation-attachments"></a>
 For each report you can attach files by supplying an array of file paths.
@@ -314,7 +314,7 @@ Registered `BacktraceClient` will be able to send an crash reports. Error report
 If you want to catch additional exceptions on macOS which are not forwarded by macOS runtime, set `NSPrincipalClass` to `Backtrace.BacktraceCrashExceptionApplication` in your `Info.plist`.
 
 Alternatively, you can set:
-- Swift 
+- Swift
 ```swift
 UserDefaults.standard.register(defaults: ["NSApplicationCrashOnExceptions": true])
 ```
