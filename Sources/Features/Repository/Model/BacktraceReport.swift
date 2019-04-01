@@ -1,12 +1,19 @@
 import Foundation
 import Backtrace_PLCrashReporter
 
+/// Model represents single crash report which can be send to Backtrace services.
 @objc final public class BacktraceReport: NSObject {
     
+    /// Encoded informations about report like stack trace etc.
     @objc public let reportData: Data
+    
     let plCrashReport: PLCrashReport
     let identifier: UUID
+    
+    /// Array of files paths attached to the report.
     @objc public var attachmentPaths: [String]
+    
+    /// `Attributes` attached to the report.
     @objc public var attributes: Attributes
     
     init(report: Data, attributes: Attributes, attachmentPaths: [String]) throws {

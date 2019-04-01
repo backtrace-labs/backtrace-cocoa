@@ -77,17 +77,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     }
 
-    //sending NSError
-    NSError *error = [NSError errorWithDomain: @"backtrace.domain" code: 100 userInfo: @{}];
-    [[BacktraceClient shared] sendWithCompletion:^(BacktraceResult * _Nonnull result) {
-        NSLog(@"%@", result);
-    }];
-
     return YES;
 }
 
 @end
 ```
+
+# Table of contents
+1. [Features Summary](#features-summary)
+2. [Installation](#installation)
+    * [Cocoapods](#installation-cocoapods)
+3. [Documentation](#documentation)
+    1. [Initialize client](#documentation-client-initialization)
+    2. [Configure client](#documentation-client-configuration)
+        * [Database settings](#documentation-database-settings)
+    3. [Events handling](#documentation-events-handling)
+    4. [Attributes](#documentation-attributes)
+    5. [Attachments](#documentation-attachments)
+    6. [Sending reports](#documentation-sending-report)
+        1. [Error/NSError](#documentation-sending-error)
+        2. [NSException](#documentation-sending-exception)
+        3. [macOS note](#documentatio-sending-report-macOS)
+4. [FAQ](#faq)
+    1. [Missing dSYM files](#faq-missing-dsym)
+        * [Finding dSYMs while building project](#faq-finding-dsym-building)
+        * [Finding dSYMs while archiving project](#faq-finding-dsym-archiving)
 
 # Features Summary <a name="features-summary"></a>
 * Light-weight client library written in Swift with full Objective-C support that quickly submits exceptions/errors and crashes to your Backtrace dashboard includes:
@@ -102,7 +116,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 # Installation <a name="installation"></a>
 
-## via CocoaPods
+## via CocoaPods <a name="installation-cocoapods"></a>
 
 To use [CocoaPods](https://cocoapods.org) just add this to your Podfile:
 
@@ -112,11 +126,10 @@ pod 'Backtrace'
 
 **Note:** It is required to specify `use_frameworks!` in your Podfile.
 
-# Documentation  <a name="documentation"></a>
+# Documentation <a name="documentation"></a>
 
-## Register with Backtrace credentials<a name="documentation-initialization"></a>
-
-Register to Backtrace services using provided submission url (see: <a href="https://help.backtrace.io/troubleshooting/what-is-a-submission-url">What is a submission url?</a>) and token (see: <a href="https://help.backtrace.io/troubleshooting/what-is-a-submission-token">What is a submission token?</a>).
+## Initialize Backtrace client <a name="documentation-client-initialization"></a>
+Initializing Backtrace clinet requires registration to Backtrace services. You can register to Backtrace services using provided submission url (see: <a href="https://help.backtrace.io/troubleshooting/what-is-a-submission-url">What is a submission url?</a>) and token (see: <a href="https://help.backtrace.io/troubleshooting/what-is-a-submission-token">What is a submission token?</a>). These credentials you can supply using `BacktraceCredentials`.
 
 - Swift
 ```swift
@@ -127,8 +140,8 @@ BacktraceClient.shared = try? BacktraceClient(credentials: BacktraceCredentials)
 BacktraceClient.shared = [[BacktraceClient alloc] initWithCredentials: BacktraceCredentials error: error];
 ```
 
-## Backtrace client configuration
-For more advanced usage of BacktraceClient, you can supply BacktraceClientConfiguration as a parameter. See the following example:
+## Configure Backtrace client <a name="documentation-client-configuration"></a>
+For more advanced usage of `BacktraceClient`, you can supply `BacktraceClientConfiguration` as a parameter. See the following example:
 - Swift
 ```swift
 let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!, token: "token")
@@ -156,7 +169,7 @@ BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configu
 
 **Note:** Backtrace library will *not* send any reports if the `allowsAttachingDebugger` flag is set to `false`.
 
-### Database settings
+### Database settings <a name="documentation-database-settings"></a>
 BacktraceClient allows you to customize the initialization of BacktraceDatabase for local storage of error reports by supplying a BacktraceDatabaseSettings parameter, as follows:
 
 - Swift
@@ -198,8 +211,8 @@ BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration all
 BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
 ```
 
-### Events handling
-`BacktraceClient` allows you to subscribe for events produced before and after sending each report.
+## Events handling <a name="documentation-events-handling"></a>
+`BacktraceClient` allows you to subscribe for events produced before and after sending each report. You have to only attach object which confirm to `BacktraceClientDelegate` protocol.
 - Swift
 ```swift
 // assign `self` or any other object as a `BacktraceClientDelegate`
@@ -225,20 +238,38 @@ BacktraceClient.shared.delegate = self;
 - (NSURLRequest *)willSendRequest:(NSURLRequest *)request;
 - (void)didReachLimit:(BacktraceResult *)result;
 ```
-
-### User attributes
-You can add custom user attributes that should be send alongside crash and erros/exceptions:
+Attaching `BacktraceClientDelegate` allows you to e.g. modify report before send:
 - Swift
 ```swift
-BacktraceClient.shared?.userAttributes = ["foo": "bar", "testing": true]
+func willSend(_ report: BacktraceReport) -> (BacktraceReport) {
+    report.attributes["added"] = "just before send"
+    return report
+}
+```
+- Objctive-C
+```objective-c
+- (BacktraceReport *)willSend:(BacktraceReport *)report {
+    NSMutableDictionary *dict = [report.attributes mutableCopy];
+    [dict setObject: @"just before send" forKey: @"added"];
+    report.attributes = dict;
+    return report;
+}
+```
+
+## Attributes <a name="documentation-attributes"></a>
+You can add custom attributes that should be send alongside crash and erros/exceptions:
+- Swift
+```swift
+BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
 ```
 
 - Objective-C
 ```objective-c
-BacktraceClient.shared.userAttributes = @{@"foo": @"bar", @"testing": YES};
+BacktraceClient.shared.attributes = @{@"foo": @"bar", @"testing": YES};
 ```
+Set attributes are attached to each report. You can specify unique set of attributes for specific report in `willSend(_:)` method of `BacktraceClientDelegate`. See [events handling](#documentation-events-handling) for more information.
 
-### Attachments
+## Attachments <a name="documentation-attachments"></a>
 For each report you can attach files by supplying an array of file paths.
 - Swift
 ```swift
@@ -254,11 +285,12 @@ NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt
     NSLog(@"%@", result);
 }];
 ```
+Supplied files are attached for each report. You can specify unique set of files for specific report in `willSend(_:)` method of `BacktraceClientDelegate`. See [events handling](#documentation-events-handling) for more information.
 
 ## Sending an error report <a name="documentation-sending-report"></a>
 Registered `BacktraceClient` will be able to send an crash reports. Error report is automatically generated based.
 
-### Sending `Error/NSError`
+### Sending `Error/NSError` <a name="documentation-sending-error"></a>
 - Swift
 ```swift
 @objc func send(completion: ((BacktraceResult) -> Void))
@@ -268,7 +300,7 @@ Registered `BacktraceClient` will be able to send an crash reports. Error report
  - (void) sendWithCompletion: (void (^)(BacktraceResult * _Nonnull)) completion;
 ```
 
-### Sending `NSException`
+### Sending `NSException` <a name="documentation-sending-exception"></a>
 - Swift
 ```swift
 @objc func send(exception: NSException, completion: ((BacktraceResult) -> Void))
@@ -278,36 +310,36 @@ Registered `BacktraceClient` will be able to send an crash reports. Error report
  - (void) sendWithException: NSException completion: (void (^)(BacktraceResult * _Nonnull)) completion;
 ```
 
-### macOS note
+### macOS note <a name="documentatio-sending-report-macOS"></a>
 If you want to catch additional exceptions on macOS which are not forwarded by macOS runtime, set `NSPrincipalClass` to `Backtrace.BacktraceCrashExceptionApplication` in your `Info.plist`.
 
 Alternatively, you can set:
-- Swift 
+- Swift
 ```swift
 UserDefaults.standard.register(defaults: ["NSApplicationCrashOnExceptions": true])
 ```
--Objective-C
+- Objective-C
 ```objective-c
 [[NSUserDefaults standardUserDefaults] registerDefaults:@{ @"NSApplicationCrashOnExceptions": @YES }];
 ```
 but it crashes your app if you don't use `@try ... @catch`.
 
-# FAQ
-## Missing dSYM files
+# FAQ <a name="faq"></a>
+## Missing dSYM files <a name="faq-missing-dsym"></a>
 Make sure your project is configured to generate the debug symbols:
 * Go to your project target's build settings: `YourTarget -> Build Settings`.
 * Search for `Debug Information Format`.
 * Select `DWARF with dSYM File`.
 ![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/master/docs/screenshots/xcode-debug-information-format.png)
 
-### Finding dSYMs while building project
+### Finding dSYMs while building project <a name="faq-finding-dsym-building"></a>
 * Build the project.
 * Build products and dSYMs are placed into the `Products` directory.
 ![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/master/docs/screenshots/xcode-products.png)
 ![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/master/docs/screenshots/finder-dsyms-products.png)
 * Zip all the `dSYM` files and upload to Backtrace services (see: <a href="https://help.backtrace.io/product-guide/symbolification">Symbolification</a>)
 
-### Finding dSYMs while archiving project
+### Finding dSYMs while archiving project <a name="faq-finding-dsym-archiving"></a>
 * Archive the project.
 * dSYMs are placed inside of an `.xcarchive` of your project.
 * Open Xcode -> Window -> Organizer

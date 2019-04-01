@@ -52,11 +52,11 @@ extension BacktraceReporter: BacktraceClientCustomizing {
         }
     }
     
-    var userAttributes: Attributes {
+    var attributes: Attributes {
         get {
-            return attributesProvider.userAttributes
+            return attributesProvider.attributes
         } set {
-            attributesProvider.userAttributes = newValue
+            attributesProvider.attributes = newValue
         }
     }
 }
@@ -79,7 +79,7 @@ extension BacktraceReporter {
               faultMessage: String? = nil) throws -> BacktraceResult {
         attributesProvider.set(faultMessage: faultMessage)
         let resource = try reporter.generateLiveReport(exception: exception,
-                                                       attributes: attributesProvider.attributes,
+                                                       attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths)
         return try send(resource: resource)
     }

@@ -3,7 +3,7 @@ import Foundation
 final class AttributesProvider {
     
     // attributes can be modified on runtime
-    var userAttributes: Attributes = [:]
+    var attributes: Attributes = [:]
     
     private let bluetoothStatusListener = BluetoothStatusListener()
     private var faultMessage: String?
@@ -14,8 +14,8 @@ extension AttributesProvider: SignalContext {
         self.faultMessage = faultMessage
     }
     
-    var attributes: Attributes {
-        return userAttributes + defaultAttributes
+    var allAttributes: Attributes {
+        return attributes + defaultAttributes
     }
     
     var defaultAttributes: Attributes {
@@ -28,6 +28,6 @@ extension AttributesProvider: SignalContext {
 
 extension AttributesProvider: CustomStringConvertible {
     var description: String {
-        return attributes.compactMap { "\($0.key): \($0.value)"}.joined(separator: "\n")
+        return allAttributes.compactMap { "\($0.key): \($0.value)"}.joined(separator: "\n")
     }
 }

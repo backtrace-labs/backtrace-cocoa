@@ -12,17 +12,17 @@ final class AttributesProviderTests: QuickSpec {
                 let attributesProvider = AttributesProvider()
                 
                 expect(attributesProvider.defaultAttributes).toNot(beEmpty())
-                expect(attributesProvider.attributes).toNot(beEmpty())
-                expect(attributesProvider.userAttributes).to(beEmpty())
+                expect(attributesProvider.allAttributes).toNot(beEmpty())
+                expect(attributesProvider.attributes).to(beEmpty())
             })
             
             it("allows the user add new attributes", closure: {
                 let attributesProvider = AttributesProvider()
-                attributesProvider.userAttributes["foo"] = "bar"
+                attributesProvider.attributes["foo"] = "bar"
                 
                 expect(attributesProvider.defaultAttributes).toNot(beEmpty())
+                expect(attributesProvider.allAttributes).toNot(beEmpty())
                 expect(attributesProvider.attributes).toNot(beEmpty())
-                expect(attributesProvider.userAttributes).toNot(beEmpty())
             })
         }
     }
