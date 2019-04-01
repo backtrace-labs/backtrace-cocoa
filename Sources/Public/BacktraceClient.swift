@@ -63,13 +63,13 @@ extension BacktraceClient: BacktraceClientCustomizing {
         }
     }
     
-    /// Additional user attributes which are automatically added to each report.
-    @objc public var userAttributes: Attributes {
+    /// Additional attributes which are automatically added to each report.
+    @objc public var attributes: Attributes {
         get {
-            return reporter.userAttributes
+            return reporter.attributes
         }
         set {
-            reporter.userAttributes = newValue
+            reporter.attributes = newValue
         }
     }
 }

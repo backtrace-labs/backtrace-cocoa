@@ -9,8 +9,8 @@ public typealias Attributes = [String: Any]
 /// Protocol describes report customizing functionality of `BacktraceClient`.
 @objc public protocol BacktraceClientCustomizing {
     
-    /// Additional user attributes which are automatically added to each report.
-    @objc var userAttributes: Attributes { get set }
+    /// Additional attributes which are automatically added to each report.
+    @objc var attributes: Attributes { get set }
     
     /// The object that acts as the delegate of the `BacktraceClient`.
     @objc weak var delegate: BacktraceClientDelegate? { get set }

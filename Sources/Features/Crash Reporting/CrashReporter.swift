@@ -21,7 +21,7 @@ extension CrashReporter: CrashReporting {
                 }
                 BacktraceLogger.debug("Saving custom attributes:\n\(attributesProvider.description)")
                 attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
-                try? AttributesStorage.store(attributesProvider.attributes, fileName: CrashReporter.crashName)
+                try? AttributesStorage.store(attributesProvider.allAttributes, fileName: CrashReporter.crashName)
         }
         var callbacks = PLCrashReporterCallbacks(version: 0, context: rawMutablePointer, handleSignal: handler)
         reporter.setCrash(&callbacks)

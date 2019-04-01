@@ -26,7 +26,7 @@
                                                    reportsPerMin: 3
                                                    allowsAttachingDebugger: TRUE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
-    [BacktraceClient.shared setUserAttributes: @{@"foo": @"bar"}];
+    [BacktraceClient.shared setAttributes: @{@"foo": @"bar"}];
     BacktraceClient.shared.delegate = self;
 
     @try {
