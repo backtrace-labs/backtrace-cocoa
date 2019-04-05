@@ -19,12 +19,15 @@ Pod::Spec.new do |s|
 
   s.ios.deployment_target = "10.0"
   s.osx.deployment_target = "10.10"
+  s.tvos.deployment_target = "10.0"
 
-  s.ios.source_files  = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.{h*,swift}"]
+  s.ios.source_files = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.{h*,swift}"]
   s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.{h*,swift}"]
+  s.tvos.source_files = ["Sources/**/*.{swift}", "Backtrace-tvOS/**/*.{h*,swift}"]
 
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
+  s.tvos.source_files = ["Backtrace-tvOS/**/*.h*"]
 
   s.dependency "Backtrace-PLCrashReporter"
   s.resources = 'Sources/**/*.xcdatamodeld'

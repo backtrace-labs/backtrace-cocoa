@@ -13,7 +13,7 @@ public typealias Attributes = [String: Any]
     @objc var attributes: Attributes { get set }
     
     /// The object that acts as the delegate of the `BacktraceClient`.
-    @objc weak var delegate: BacktraceClientDelegate? { get set }
+    @objc var delegate: BacktraceClientDelegate? { get set }
 }
 
 /// Protocol describes sending functionality of `BacktraceClient`.

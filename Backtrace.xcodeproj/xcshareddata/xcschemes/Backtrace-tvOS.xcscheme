@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "28F95BAF22525DCC003936E0"
-               BuildableName = "Backtrace_tvOS.framework"
+               BuildableName = "Backtrace.framework"
                BlueprintName = "Backtrace-tvOS"
                ReferencedContainer = "container:Backtrace.xcodeproj">
             </BuildableReference>
@@ -28,7 +28,26 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "28F95BB722525DCC003936E0"
+               BuildableName = "Backtrace-tvOSTests.xctest"
+               BlueprintName = "Backtrace-tvOSTests"
+               ReferencedContainer = "container:Backtrace.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "28F95BAF22525DCC003936E0"
+            BuildableName = "Backtrace.framework"
+            BlueprintName = "Backtrace-tvOS"
+            ReferencedContainer = "container:Backtrace.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -46,7 +65,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "28F95BAF22525DCC003936E0"
-            BuildableName = "Backtrace_tvOS.framework"
+            BuildableName = "Backtrace.framework"
             BlueprintName = "Backtrace-tvOS"
             ReferencedContainer = "container:Backtrace.xcodeproj">
          </BuildableReference>
@@ -64,7 +83,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "28F95BAF22525DCC003936E0"
-            BuildableName = "Backtrace_tvOS.framework"
+            BuildableName = "Backtrace.framework"
             BlueprintName = "Backtrace-tvOS"
             ReferencedContainer = "container:Backtrace.xcodeproj">
          </BuildableReference>
