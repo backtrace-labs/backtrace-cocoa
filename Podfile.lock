@@ -5,7 +5,7 @@ PODS:
   - SwiftLint (0.31.0)
 
 DEPENDENCIES:
-  - Backtrace-PLCrashReporter (from `/Users/marcinkarmelita/AppTailors/Code/plcrashreporter/Backtrace-PLCrashReporter.podspec`)
+  - Backtrace-PLCrashReporter (from `../plcrashreporter/Backtrace-PLCrashReporter.podspec`)
   - Nimble
   - Quick
   - SwiftLint
@@ -18,7 +18,7 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   Backtrace-PLCrashReporter:
-    :path: "/Users/marcinkarmelita/AppTailors/Code/plcrashreporter/Backtrace-PLCrashReporter.podspec"
+    :path: "../plcrashreporter/Backtrace-PLCrashReporter.podspec"
 
 SPEC CHECKSUMS:
   Backtrace-PLCrashReporter: bd356ffc73836f7d6a51ccdbc41568945f943b70
@@ -26,6 +26,6 @@ SPEC CHECKSUMS:
   Quick: ce1276c7c27ba2da3cb2fd0cde053c3648b3b22d
   SwiftLint: 7a0227733d786395817373b2d0ca799fd0093ff3
 
-PODFILE CHECKSUM: 38b8f3801c161186c376249ab785c073aa2de078
+PODFILE CHECKSUM: 6acb08688f999973e40c8b99e6f964adddc350fa
 
 COCOAPODS: 1.5.3
