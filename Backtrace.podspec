@@ -9,8 +9,8 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "1.4.0"
-  s.summary      = "Backtrace's integration with iOS and macOS"
+  s.version      = "1.5.0"
+  s.summary      = "Backtrace's integration with iOS, macOS and tvOS"
   s.description  = "Backtrace's integration with iOS and macOS for handling crashes"
   s.homepage     = "https://backtrace.io/"
   s.license      = { :type => "MIT", :file => 'LICENSE' }
@@ -27,10 +27,10 @@ Pod::Spec.new do |s|
 
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
-  s.tvos.source_files = ["Backtrace-tvOS/**/*.h*"]
+  s.tvos.public_header_files = ["Backtrace-tvOS/**/*.h*"]
 
   s.dependency "Backtrace-PLCrashReporter"
   s.resources = 'Sources/**/*.xcdatamodeld'
 
-  s.swift_version = '4.0'
+  s.swift_version = '4.2'
 end
