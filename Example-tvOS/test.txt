@@ -1,0 +1,3 @@
+test from tvOS simulator
+test Example-tvOS
+backtrace sample text file

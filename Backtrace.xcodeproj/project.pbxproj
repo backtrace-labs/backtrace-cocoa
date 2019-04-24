@@ -21,6 +21,7 @@
 		2846E201223818550035F98C /* test.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2846E200223818550035F98C /* test.txt */; };
 		2846E203223818920035F98C /* test.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2846E202223818920035F98C /* test.txt */; };
 		2846E2052238189A0035F98C /* test.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2846E2042238189A0035F98C /* test.txt */; };
+		284F92762270DFB4001377F1 /* test.txt in Resources */ = {isa = PBXBuildFile; fileRef = 284F92752270DF8E001377F1 /* test.txt */; };
 		28614F9E220B6D7C00D35EFB /* DefaultAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28614F9D220B6D7C00D35EFB /* DefaultAttributes.swift */; };
 		28614F9F220B900300D35EFB /* DefaultAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28614F9D220B6D7C00D35EFB /* DefaultAttributes.swift */; };
 		28966EFA2214BBD200E6E891 /* AttributesStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28966EF92214BBD200E6E891 /* AttributesStorage.swift */; };
@@ -30,6 +31,8 @@
 		28AC773D21FA5A8900FED661 /* BacktraceDatabaseSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */; };
 		28AC773F220A2A2900FED661 /* MultipartRequestType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773E220A2A2900FED661 /* MultipartRequestType.swift */; };
 		28AC7740220A2A3300FED661 /* MultipartRequestType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773E220A2A2900FED661 /* MultipartRequestType.swift */; };
+		28C74A2D226FBD7700CE713A /* Backtrace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28F95BB022525DCC003936E0 /* Backtrace.framework */; };
+		28C74A2E226FBD7700CE713A /* Backtrace.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 28F95BB022525DCC003936E0 /* Backtrace.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		28F95BB922525DCC003936E0 /* Backtrace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28F95BB022525DCC003936E0 /* Backtrace.framework */; };
 		28F95BBE22525DCC003936E0 /* Backtrace_tvOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F95BBD22525DCC003936E0 /* Backtrace_tvOSTests.swift */; };
 		28F95BC022525DCC003936E0 /* Backtrace.h in Headers */ = {isa = PBXBuildFile; fileRef = 28F95BB222525DCC003936E0 /* Backtrace.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -88,7 +91,6 @@
 		F21771C121E344C10059896E /* SendReportRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21771BF21E344C10059896E /* SendReportRequest.swift */; };
 		F21D302B224A18D60013B5D7 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21D302A224A18D50013B5D7 /* Store.swift */; };
 		F21D302C224A18D60013B5D7 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21D302A224A18D50013B5D7 /* Store.swift */; };
-		F21DD39C225545DD00404CC3 /* test.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2846E200223818550035F98C /* test.txt */; };
 		F21DD39D2255666F00404CC3 /* Quick+Throws.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63692244243500939BC9 /* Quick+Throws.swift */; };
 		F21DD39E2255666F00404CC3 /* BacktraceApiMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637822464AD000939BC9 /* BacktraceApiMock.swift */; };
 		F21DD39F2255666F00404CC3 /* WatcherRepositoryMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */; };
@@ -284,6 +286,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		28C74A2F226FBD7700CE713A /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				28C74A2E226FBD7700CE713A /* Backtrace.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F289085621C532D9002B813E /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -334,6 +347,7 @@
 		2846E200223818550035F98C /* test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.txt; sourceTree = "<group>"; };
 		2846E202223818920035F98C /* test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.txt; sourceTree = "<group>"; };
 		2846E2042238189A0035F98C /* test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.txt; sourceTree = "<group>"; };
+		284F92752270DF8E001377F1 /* test.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = test.txt; sourceTree = "<group>"; };
 		28614F9D220B6D7C00D35EFB /* DefaultAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultAttributes.swift; sourceTree = "<group>"; };
 		28966EF92214BBD200E6E891 /* AttributesStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributesStorage.swift; sourceTree = "<group>"; };
 		28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceDatabaseSettings.swift; sourceTree = "<group>"; };
@@ -507,6 +521,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BCF65362E23BAFD10082CA73 /* Pods_Example_tvOS.framework in Frameworks */,
+				28C74A2D226FBD7700CE713A /* Backtrace.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -742,6 +757,7 @@
 				F2A11BFD22553C2800354640 /* Main.storyboard */,
 				F2A11C0022553C2A00354640 /* Assets.xcassets */,
 				F2A11C0222553C2A00354640 /* Info.plist */,
+				284F92752270DF8E001377F1 /* test.txt */,
 			);
 			path = "Example-tvOS";
 			sourceTree = "<group>";
@@ -1083,6 +1099,7 @@
 				F2A11BF422553C2800354640 /* Frameworks */,
 				F2A11BF522553C2800354640 /* Resources */,
 				600A7989D1BAC62A18B773FE /* [CP] Embed Pods Frameworks */,
+				28C74A2F226FBD7700CE713A /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -1302,7 +1319,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F2A11C0122553C2A00354640 /* Assets.xcassets in Resources */,
-				F21DD39C225545DD00404CC3 /* test.txt in Resources */,
+				284F92762270DFB4001377F1 /* test.txt in Resources */,
 				F2A11BFF22553C2800354640 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2758,6 +2775,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = B408D88CD1B72E78F0A2F711 /* Pods-Example-tvOS.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -2818,6 +2836,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "Backtrace.io.Example-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2831,6 +2850,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7A22D41205ECFC59B476668C /* Pods-Example-tvOS.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -2884,6 +2904,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "Backtrace.io.Example-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -3287,6 +3308,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "Backtrace.io.Example-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -3355,6 +3377,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "Backtrace.io.Example-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
