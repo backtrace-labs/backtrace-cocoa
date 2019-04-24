@@ -28,11 +28,21 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gPz-1q-PTQ">
+                                <rect key="frame" x="867" y="618" width="187" height="86"/>
+                                <inset key="contentEdgeInsets" minX="40" minY="20" maxX="40" maxY="20"/>
+                                <state key="normal" title="crash!"/>
+                                <connections>
+                                    <action selector="crashButtonTapped:" destination="BYZ-38-t0r" eventType="primaryActionTriggered" id="ZM4-I6-LK8"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="veV-HX-OPH" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="17k-zz-Pug"/>
+                            <constraint firstItem="gPz-1q-PTQ" firstAttribute="centerX" secondItem="veV-HX-OPH" secondAttribute="centerX" id="QGb-qr-5bA"/>
                             <constraint firstItem="veV-HX-OPH" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="hk3-YU-TgW"/>
+                            <constraint firstItem="gPz-1q-PTQ" firstAttribute="top" secondItem="veV-HX-OPH" secondAttribute="bottom" constant="55" id="m11-Tg-aLY"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="wu6-TO-1qx"/>
                     </view>
