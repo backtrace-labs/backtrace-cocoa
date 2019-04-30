@@ -1,11 +1,10 @@
 # Backtrace
 
-[Backtrace](http://backtrace.io/)'s integration with iOS and macOS applications allows customers to capture and report handled and unhandled exceptions to their Backtrace instance, instantly offering the ability to prioritise and debug software errors.
+[Backtrace](http://backtrace.io/)'s integration with iOS, macOS and tvOS applications allows customers to capture and report handled and unhandled exceptions to their Backtrace instance, instantly offering the ability to prioritise and debug software errors.
 
 <p align="center">
-    <img src="https://img.shields.io/badge/platform-iOS%2010%2B%20%7C%20macOS%2010.10%2B-blue.svg" alt="Supported platforms"/>
-    <a href="https://masterer.apple.com/swift"><img src="https://img.shields.io/badge/language-swift%204-brightgreen.svg" alt="Language: Swift 4" /></a>
-    <a href="https://masterer.apple.com/swift"><img src="https://img.shields.io/badge/language-objective--c-brightgreen.svg" alt="Language: Objecive-C" /></a>
+    <img src="https://img.shields.io/badge/platform-iOS%2010%2B%20%7C%20tvOS%2010%2B%20%7C%20macOS%2010.10%2B-blue.svg" alt="Supported platforms"/>
+    <a href="https://masterer.apple.com/swift"><img src="https://img.shields.io/badge/language-swift%204%20%7C%20objective--c-brigthgreen.svg" alt="Supported languages" /></a>
     <a href="https://cocoapods.org/pods/Backtrace"><img src="https://img.shields.io/cocoapods/v/Backtrace.svg?style=flat" alt="CocoaPods compatible" /></a>
     <img src="http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat" alt="License: MIT" />
     <img src="https://travis-ci.org/backtrace-labs/backtrace-cocoa.svg?branch=master"/>
@@ -97,7 +96,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     6. [Sending reports](#documentation-sending-report)
         1. [Error/NSError](#documentation-sending-error)
         2. [NSException](#documentation-sending-exception)
-        3. [macOS note](#documentatio-sending-report-macOS)
+        3. [macOS note](#documentation-sending-report-macOS)
 4. [FAQ](#faq)
     1. [Missing dSYM files](#faq-missing-dsym)
         * [Finding dSYMs while building project](#faq-finding-dsym-building)
@@ -111,7 +110,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   * exception metadata,
   * thread metadata,
   * process metadata.
-* Supports iOS and macOS platforms.
+* Supports iOS, macOS and tvOS platforms.
 * Swift first protocol-oriented framework.
 
 # Installation <a name="installation"></a>
@@ -129,7 +128,7 @@ pod 'Backtrace'
 # Documentation <a name="documentation"></a>
 
 ## Initialize Backtrace client <a name="documentation-client-initialization"></a>
-Initializing Backtrace clinet requires registration to Backtrace services. You can register to Backtrace services using provided submission url (see: <a href="https://help.backtrace.io/troubleshooting/what-is-a-submission-url">What is a submission url?</a>) and token (see: <a href="https://help.backtrace.io/troubleshooting/what-is-a-submission-token">What is a submission token?</a>). These credentials you can supply using `BacktraceCredentials`.
+Initializing Backtrace client requires registration to Backtrace services. You can register to Backtrace services using provided submission url (see: <a href="https://help.backtrace.io/troubleshooting/what-is-a-submission-url">What is a submission url?</a>) and token (see: <a href="https://help.backtrace.io/troubleshooting/what-is-a-submission-token">What is a submission token?</a>). These credentials you can supply using `BacktraceCredentials`.
 
 - Swift
 ```swift
@@ -257,7 +256,7 @@ func willSend(_ report: BacktraceReport) -> (BacktraceReport) {
 ```
 
 ## Attributes <a name="documentation-attributes"></a>
-You can add custom attributes that should be send alongside crash and erros/exceptions:
+You can add custom attributes that should be send alongside crash and errors/exceptions:
 - Swift
 ```swift
 BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
@@ -288,7 +287,7 @@ NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt
 Supplied files are attached for each report. You can specify unique set of files for specific report in `willSend(_:)` method of `BacktraceClientDelegate`. See [events handling](#documentation-events-handling) for more information.
 
 ## Sending an error report <a name="documentation-sending-report"></a>
-Registered `BacktraceClient` will be able to send an crash reports. Error report is automatically generated based.
+Registered `BacktraceClient` will be able to send a crash reports. Error report is automatically generated based.
 
 ### Sending `Error/NSError` <a name="documentation-sending-error"></a>
 - Swift
@@ -310,7 +309,7 @@ Registered `BacktraceClient` will be able to send an crash reports. Error report
  - (void) sendWithException: NSException completion: (void (^)(BacktraceResult * _Nonnull)) completion;
 ```
 
-### macOS note <a name="documentatio-sending-report-macOS"></a>
+### macOS note <a name="documentation-sending-report-macOS"></a>
 If you want to catch additional exceptions on macOS which are not forwarded by macOS runtime, set `NSPrincipalClass` to `Backtrace.BacktraceCrashExceptionApplication` in your `Info.plist`.
 
 Alternatively, you can set:

@@ -32,6 +32,16 @@ target 'Backtrace-macOS' do
     end
 end
 
+# Framework tvOS
+target 'Backtrace-tvOS' do
+    use_frameworks!
+    shared_pods
+    target 'Backtrace-tvOSTests' do
+        inherit! :search_paths
+        shared_test_pods
+    end
+end
+
 #Examples
 target 'Example-iOS' do
     use_frameworks!
@@ -44,6 +54,11 @@ target 'Example-iOS-ObjC' do
 end
 
 target 'Example-macOS-ObjC' do
+    use_frameworks!
+    shared_pods
+end
+
+target 'Example-tvOS' do
     use_frameworks!
     shared_pods
 end

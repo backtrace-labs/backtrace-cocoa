@@ -33,6 +33,9 @@ struct DeviceInfo: AttributesSourceType {
         case batteryState = "battery.state"
         case batteryLevel = "battery.level"
         case nfcReadingAvailable = "device.nfc.readingAvailable"
+        #elseif os(tvOS)
+        case deviceName = "device.name"
+        case deviceModel = "device.model"
         #elseif os(macOS)
         case systemUptime = "system.uptime"
         case physicalMemory = "memory.physical"
@@ -57,6 +60,10 @@ struct DeviceInfo: AttributesSourceType {
         } else {
             deviceAttributes[Key.nfcReadingAvailable.rawValue] = false
         }
+        #elseif os(tvOS)
+        let currentDevice = UIDevice.current
+        deviceAttributes[Key.deviceName.rawValue] = currentDevice.name
+        deviceAttributes[Key.deviceModel.rawValue] = currentDevice.model
         #elseif os(macOS)
         let processinfo = ProcessInfo.processInfo
         deviceAttributes[Key.systemUptime.rawValue] = processinfo.systemUptime
@@ -71,7 +78,7 @@ struct DeviceInfo: AttributesSourceType {
 struct ScreenInfo: AttributesSourceType {
     
     private enum Key: String {
-        #if os(iOS)
+        #if os(iOS) || os(tvOS)
         case scale = "screen.scale"
         case width = "screen.width"
         case height = "screen.height"
@@ -89,7 +96,7 @@ struct ScreenInfo: AttributesSourceType {
     
     static func current() -> Attributes {
         var screenAttributes: Attributes = [:]
-        #if os(iOS)
+        #if os(iOS) || os(tvOS)
         let mainScreen = UIScreen.main
         screenAttributes[Key.scale.rawValue] = mainScreen.scale
         screenAttributes[Key.width.rawValue] = mainScreen.bounds.width
@@ -97,7 +104,6 @@ struct ScreenInfo: AttributesSourceType {
         screenAttributes[Key.nativeScale.rawValue] = mainScreen.nativeScale
         screenAttributes[Key.nativeWidth.rawValue] = mainScreen.nativeBounds.width
         screenAttributes[Key.nativeHeight.rawValue] = mainScreen.nativeBounds.height
-        screenAttributes[Key.brightness.rawValue] = mainScreen.brightness
         #elseif os(macOS)
         screenAttributes[Key.number.rawValue] = NSScreen.screens.count
         if let mainScreen = NSScreen.main {
@@ -106,6 +112,10 @@ struct ScreenInfo: AttributesSourceType {
             screenAttributes[Key.mainScreenScale.rawValue] = mainScreen.backingScaleFactor
             
         }
+        #endif
+        // Available onnly on iOS
+        #if os(iOS)
+        screenAttributes[Key.brightness.rawValue] = UIScreen.main.brightness
         #endif
         return screenAttributes
     }
