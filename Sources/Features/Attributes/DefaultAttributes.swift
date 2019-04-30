@@ -2,7 +2,6 @@
 import Foundation
 import CoreLocation
 #if os(iOS)
-import CoreNFC
 import CoreTelephony
 #endif
 
@@ -32,7 +31,7 @@ struct DeviceInfo: AttributesSourceType {
         case deviceOrientation = "device.orientation"
         case batteryState = "battery.state"
         case batteryLevel = "battery.level"
-        case nfcReadingAvailable = "device.nfc.readingAvailable"
+        case nfcSupported = "device.nfc.supported"
         #elseif os(tvOS)
         case deviceName = "device.name"
         case deviceModel = "device.model"
@@ -56,9 +55,9 @@ struct DeviceInfo: AttributesSourceType {
             deviceAttributes[Key.batteryLevel.rawValue] = currentDevice.batteryLevel
         }
         if #available(iOS 11.0, *) {
-            deviceAttributes[Key.nfcReadingAvailable.rawValue] = NFCNDEFReaderSession.readingAvailable
+            deviceAttributes[Key.nfcSupported.rawValue] = true
         } else {
-            deviceAttributes[Key.nfcReadingAvailable.rawValue] = false
+            deviceAttributes[Key.nfcSupported.rawValue] = false
         }
         #elseif os(tvOS)
         let currentDevice = UIDevice.current
