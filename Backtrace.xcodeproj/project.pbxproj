@@ -800,6 +800,7 @@
 				28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */,
 				F2D7122021F10C45002D2A26 /* BacktraceClientConfiguration.swift */,
 				F2D7122321F10E78002D2A26 /* BacktraceCredentials.swift */,
+				F25F9E9621EE84AF00236E04 /* BacktraceReportStatus.swift */,
 				F2AFB5A022274F1000AAA1D7 /* Internal */,
 			);
 			path = Public;
@@ -834,7 +835,6 @@
 				F282075A21CEA37A0017367F /* Repository.swift */,
 				F21211A7222348C2000B3692 /* SignalContext.swift */,
 				F259E4D52229A40C00F282C7 /* Result.swift */,
-				F25F9E9621EE84AF00236E04 /* BacktraceReportStatus.swift */,
 				F2AB63802246E16400939BC9 /* ReportingPolicy.swift */,
 			);
 			path = Internal;
