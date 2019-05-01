@@ -85,6 +85,7 @@ struct ScreenInfo: AttributesSourceType {
         case nativeWidth = "screen.width.native"
         case nativeHeight = "screen.height.native"
         case brightness = "screen.brightness"
+        case number = "screens.number"
         #elseif os(macOS)
         case number = "screens.number"
         case mainScreenWidth = "screen.main.width"
@@ -103,6 +104,7 @@ struct ScreenInfo: AttributesSourceType {
         screenAttributes[Key.nativeScale.rawValue] = mainScreen.nativeScale
         screenAttributes[Key.nativeWidth.rawValue] = mainScreen.nativeBounds.width
         screenAttributes[Key.nativeHeight.rawValue] = mainScreen.nativeBounds.height
+        screenAttributes[Key.number.rawValue] = UIScreen.screens.count
         #elseif os(macOS)
         screenAttributes[Key.number.rawValue] = NSScreen.screens.count
         if let mainScreen = NSScreen.main {
