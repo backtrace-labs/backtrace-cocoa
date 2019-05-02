@@ -188,7 +188,7 @@ extension PersistentRepository: Repository {
         
         if settings.maxDatabaseSize != BacktraceDatabaseSettings.unlimited {
             // check database size
-            while try BacktraceFileManager.sizeOfFile(at: url) > settings.maxDatabaseSize {
+            while try BacktraceFileManager.sizeOfFile(at: url) > settings.maxDatabaseSizeInBytes {
                 let size = try BacktraceFileManager.sizeOfFile(at: url)
                 BacktraceLogger.debug("Database size before removing last record: \(size)")
                 try removeOldestRecord()

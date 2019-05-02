@@ -226,7 +226,7 @@ private extension UIDeviceOrientation {
         case .faceDown: return "FaceDown"
         case .faceUp: return "FaceUp"
         case .landscapeLeft: return "LandscapeLeft"
-        case .landscapeRight: return "LandsscapeRight"
+        case .landscapeRight: return "LandscapeRight"
         case .portrait: return "Portrait"
         case .portraitUpsideDown: return "PortraitUpsideDown"
         case .unknown: return "Unknown"
