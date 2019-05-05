@@ -25,7 +25,7 @@ extension BacktraceApi: BacktraceApiProtocol {
         }
         // modify before sending
         let modifiedBeforeSendingReport = self.delegate?.willSend?(report) ?? report
-        let attachments = modifiedBeforeSendingReport.attachmentPaths.compactMap { Attachment(filePath: $0) }
+        let attachments = modifiedBeforeSendingReport.attachmentPaths.compactMap(Attachment.init(filePath:))
         // create request
         let urlRequest = try self.request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData,
                                                               attributes: modifiedBeforeSendingReport.attributes,
@@ -41,16 +41,17 @@ extension BacktraceApi: BacktraceApiProtocol {
         guard let httpResponse = response.urlResponse, let responseData = response.responseData else {
             throw HttpError.unknownError
         }
-        BacktraceLogger.debug("Response: \n\(httpResponse.debugDescription)")
         // check result
         let result = try BacktraceHttpResponseDeserializer(httpResponse: httpResponse, responseData: responseData)
             .result
         switch result {
         case .error(let error):
+            BacktraceLogger.debug("Response: \n\(error)")
             self.delegate?.serverDidResponse?(error.result(report: modifiedBeforeSendingReport))
             return error.result(report: modifiedBeforeSendingReport)
         case .success(let response):
             // did send successfully
+            BacktraceLogger.debug("Response: \n\(response)")
             self.successfulSendTimestamps.append(Date().timeIntervalSince1970)
             self.delegate?.serverDidResponse?(response.result(report: modifiedBeforeSendingReport))
             return response.result(report: modifiedBeforeSendingReport)

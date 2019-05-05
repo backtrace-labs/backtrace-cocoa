@@ -9,25 +9,28 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "1.4.1"
-  s.summary      = "Backtrace's integration with iOS and macOS"
+  s.version      = "1.5.0"
+  s.summary      = "Backtrace's integration with iOS, macOS and tvOS"
   s.description  = "Backtrace's integration with iOS and macOS for handling crashes"
   s.homepage     = "https://backtrace.io/"
   s.license      = { :type => "MIT", :file => 'LICENSE' }
   s.author       = { "Backtrace I/O" => "info@backtrace.io" }
-  s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa.git", :tag => "#{s.version}" }
 
   s.ios.deployment_target = "10.0"
   s.osx.deployment_target = "10.10"
+  s.tvos.deployment_target = "10.0"
 
-  s.ios.source_files  = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.{h*,swift}"]
+  s.ios.source_files = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.{h*,swift}"]
   s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.{h*,swift}"]
+  s.tvos.source_files = ["Sources/**/*.{swift}", "Backtrace-tvOS/**/*.{h*,swift}"]
 
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
+  s.tvos.public_header_files = ["Backtrace-tvOS/**/*.h*"]
 
   s.dependency "Backtrace-PLCrashReporter"
   s.resources = 'Sources/**/*.xcdatamodeld'
 
-  s.swift_version = '4.0'
+  s.swift_version = '4.2'
 end

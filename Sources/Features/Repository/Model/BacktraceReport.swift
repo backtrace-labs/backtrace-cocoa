@@ -27,10 +27,10 @@ import Backtrace_PLCrashReporter
     
     init(managedObject: Crash) throws {
         guard let reportData = managedObject.reportData,
-        let identifierString = managedObject.hashProperty,
-        let attachmentPaths = managedObject.attachmentPaths,
-        let identifier = UUID(uuidString: identifierString) else {
-            throw RepositoryError.canNotCreateEntityDescription
+            let identifierString = managedObject.hashProperty,
+            let attachmentPaths = managedObject.attachmentPaths,
+            let identifier = UUID(uuidString: identifierString) else {
+                throw RepositoryError.canNotCreateEntityDescription
         }
         self.reportData = reportData
         self.plCrashReport = try PLCrashReport(data: reportData)

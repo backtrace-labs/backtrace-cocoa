@@ -34,7 +34,7 @@ import Foundation
     
     /// Set of logging destinations. Defaultly, only Xcode console. Use `setDestinations(destinations:)` to replace
     /// destiantions.
-    static var destinations: Set<BacktraceBaseDestination> = [BacktraceFencyConsoleDestination(level: .debug)]
+    static var destinations: Set<BacktraceBaseDestination> = [BacktraceFencyConsoleDestination(level: .none)]
 
     /// Replaces the logging destinations.
     ///
