@@ -25,13 +25,7 @@ extension SendReportRequest: MultipartRequestType {
     }
 
     var queryItems: [String: String] {
-        #if DEBUG
-        return ["format": "plcrash",
-                "token": token,
-                "mod_sync": "1"]
-        #else
         return ["format": "plcrash",
                 "token": token]
-        #endif
     }
 }

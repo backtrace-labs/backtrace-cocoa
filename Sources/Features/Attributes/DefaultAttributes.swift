@@ -2,7 +2,6 @@
 import Foundation
 import CoreLocation
 #if os(iOS)
-import CoreNFC
 import CoreTelephony
 #endif
 
@@ -32,7 +31,10 @@ struct DeviceInfo: AttributesSourceType {
         case deviceOrientation = "device.orientation"
         case batteryState = "battery.state"
         case batteryLevel = "battery.level"
-        case nfcReadingAvailable = "device.nfc.readingAvailable"
+        case nfcSupported = "device.nfc.supported"
+        #elseif os(tvOS)
+        case deviceName = "device.name"
+        case deviceModel = "device.model"
         #elseif os(macOS)
         case systemUptime = "system.uptime"
         case physicalMemory = "memory.physical"
@@ -53,10 +55,14 @@ struct DeviceInfo: AttributesSourceType {
             deviceAttributes[Key.batteryLevel.rawValue] = currentDevice.batteryLevel
         }
         if #available(iOS 11.0, *) {
-            deviceAttributes[Key.nfcReadingAvailable.rawValue] = NFCNDEFReaderSession.readingAvailable
+            deviceAttributes[Key.nfcSupported.rawValue] = true
         } else {
-            deviceAttributes[Key.nfcReadingAvailable.rawValue] = false
+            deviceAttributes[Key.nfcSupported.rawValue] = false
         }
+        #elseif os(tvOS)
+        let currentDevice = UIDevice.current
+        deviceAttributes[Key.deviceName.rawValue] = currentDevice.name
+        deviceAttributes[Key.deviceModel.rawValue] = currentDevice.model
         #elseif os(macOS)
         let processinfo = ProcessInfo.processInfo
         deviceAttributes[Key.systemUptime.rawValue] = processinfo.systemUptime
@@ -71,7 +77,7 @@ struct DeviceInfo: AttributesSourceType {
 struct ScreenInfo: AttributesSourceType {
     
     private enum Key: String {
-        #if os(iOS)
+        #if os(iOS) || os(tvOS)
         case scale = "screen.scale"
         case width = "screen.width"
         case height = "screen.height"
@@ -79,6 +85,7 @@ struct ScreenInfo: AttributesSourceType {
         case nativeWidth = "screen.width.native"
         case nativeHeight = "screen.height.native"
         case brightness = "screen.brightness"
+        case number = "screens.number"
         #elseif os(macOS)
         case number = "screens.number"
         case mainScreenWidth = "screen.main.width"
@@ -89,7 +96,7 @@ struct ScreenInfo: AttributesSourceType {
     
     static func current() -> Attributes {
         var screenAttributes: Attributes = [:]
-        #if os(iOS)
+        #if os(iOS) || os(tvOS)
         let mainScreen = UIScreen.main
         screenAttributes[Key.scale.rawValue] = mainScreen.scale
         screenAttributes[Key.width.rawValue] = mainScreen.bounds.width
@@ -97,7 +104,7 @@ struct ScreenInfo: AttributesSourceType {
         screenAttributes[Key.nativeScale.rawValue] = mainScreen.nativeScale
         screenAttributes[Key.nativeWidth.rawValue] = mainScreen.nativeBounds.width
         screenAttributes[Key.nativeHeight.rawValue] = mainScreen.nativeBounds.height
-        screenAttributes[Key.brightness.rawValue] = mainScreen.brightness
+        screenAttributes[Key.number.rawValue] = UIScreen.screens.count
         #elseif os(macOS)
         screenAttributes[Key.number.rawValue] = NSScreen.screens.count
         if let mainScreen = NSScreen.main {
@@ -106,6 +113,10 @@ struct ScreenInfo: AttributesSourceType {
             screenAttributes[Key.mainScreenScale.rawValue] = mainScreen.backingScaleFactor
             
         }
+        #endif
+        // Available onnly on iOS
+        #if os(iOS)
+        screenAttributes[Key.brightness.rawValue] = UIScreen.main.brightness
         #endif
         return screenAttributes
     }
@@ -215,7 +226,7 @@ private extension UIDeviceOrientation {
         case .faceDown: return "FaceDown"
         case .faceUp: return "FaceUp"
         case .landscapeLeft: return "LandscapeLeft"
-        case .landscapeRight: return "LandsscapeRight"
+        case .landscapeRight: return "LandscapeRight"
         case .portrait: return "Portrait"
         case .portraitUpsideDown: return "PortraitUpsideDown"
         case .unknown: return "Unknown"

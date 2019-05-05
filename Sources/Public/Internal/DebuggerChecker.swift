@@ -6,7 +6,7 @@ protocol DebuggerChecking {
 
 struct DebuggerChecker: DebuggerChecking {
     
-    /// Check if the debugger is attachedto the current process.
+    /// Check if the debugger is attached to the current process.
     /// - see more: https://stackoverflow.com/a/4746378/6651241
     ///
     /// - Returns: `true` if the debugger is attached, `false` otherwise

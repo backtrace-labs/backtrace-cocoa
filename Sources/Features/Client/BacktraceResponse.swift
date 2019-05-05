@@ -18,7 +18,7 @@ struct BacktraceResponse: Codable {
     let fingerprint: String?
     let unique: Bool?
     
-    enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case response
         case rxid = "_rxid"
         case fingerprint, unique

@@ -55,7 +55,7 @@ import Foundation
 extension BacktraceClient: BacktraceClientCustomizing {
     
     /// The object that acts as the delegate of the `BacktraceClient`. Provide delegate to receive all the events.
-    @objc public weak var delegate: BacktraceClientDelegate? {
+    @objc public var delegate: BacktraceClientDelegate? {
         set {
             reporter.delegate = newValue
         } get {

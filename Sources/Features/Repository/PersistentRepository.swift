@@ -33,7 +33,7 @@ class PersistentRepository<Resource: PersistentStorable> {
             throw RepositoryError.persistentRepositoryInitError(details: "Couldn't create `NSManagedObjectModel` using model file at url: \(modelURL)")
             // swiftlint:enable line_length
         }
-        if #available(iOS 10.0, macOS 10.12, *) {
+        if #available(iOS 10.0, tvOS 10.0, macOS 10.12, *) {
             let persistentContainer = NSPersistentContainer(name: momdName, managedObjectModel: managedObjectModel)
             try PersistentRepository.migration(coordinator: persistentContainer.persistentStoreCoordinator,
                                                storeDir: NSPersistentContainer.defaultDirectoryURL(),
@@ -188,7 +188,7 @@ extension PersistentRepository: Repository {
         
         if settings.maxDatabaseSize != BacktraceDatabaseSettings.unlimited {
             // check database size
-            while try BacktraceFileManager.sizeOfFile(at: url) > settings.maxDatabaseSize {
+            while try BacktraceFileManager.sizeOfFile(at: url) > settings.maxDatabaseSizeInBytes {
                 let size = try BacktraceFileManager.sizeOfFile(at: url)
                 BacktraceLogger.debug("Database size before removing last record: \(size)")
                 try removeOldestRecord()
