@@ -24,27 +24,25 @@ protocol AttributesSourceType {
 struct DeviceInfo: AttributesSourceType {
     
     private enum Key: String {
-        // String enum values can be omitted when they are equal to the enumcase name.
         #if os(iOS)
-        case deviceName = "device.name"
-        case deviceModel = "device.model"
         case deviceOrientation = "device.orientation"
         case batteryState = "battery.state"
         case batteryLevel = "battery.level"
         case nfcSupported = "device.nfc.supported"
-        #elseif os(tvOS)
+        #endif
+        case hostname = "hostname"
         case deviceName = "device.name"
         case deviceModel = "device.model"
-        #elseif os(macOS)
-        case systemUptime = "system.uptime"
-        case physicalMemory = "memory.physical"
-        case processorCount = "processor.count"
-        case hostname = "hostname"
-        #endif
+        case systemUptime = "cpu.boottime"
+        case processorCount = "cpu.count"
     }
     
     static func current() -> Attributes {
         var deviceAttributes: Attributes = [:]
+        let processinfo = ProcessInfo.processInfo
+        deviceAttributes[Key.hostname.rawValue] = processinfo.hostName
+        deviceAttributes[Key.systemUptime.rawValue] = processinfo.systemUptime
+        deviceAttributes[Key.processorCount.rawValue] = processinfo.processorCount
         #if os(iOS)
         let currentDevice = UIDevice.current
         deviceAttributes[Key.deviceName.rawValue] = currentDevice.name
@@ -63,12 +61,6 @@ struct DeviceInfo: AttributesSourceType {
         let currentDevice = UIDevice.current
         deviceAttributes[Key.deviceName.rawValue] = currentDevice.name
         deviceAttributes[Key.deviceModel.rawValue] = currentDevice.model
-        #elseif os(macOS)
-        let processinfo = ProcessInfo.processInfo
-        deviceAttributes[Key.systemUptime.rawValue] = processinfo.systemUptime
-        deviceAttributes[Key.physicalMemory.rawValue] = processinfo.physicalMemory
-        deviceAttributes[Key.processorCount.rawValue] = processinfo.processorCount
-        deviceAttributes[Key.hostname.rawValue] = Host.current().name
         #endif
         return deviceAttributes
     }
@@ -85,9 +77,9 @@ struct ScreenInfo: AttributesSourceType {
         case nativeWidth = "screen.width.native"
         case nativeHeight = "screen.height.native"
         case brightness = "screen.brightness"
-        case number = "screens.number"
+        case count = "screens.count"
         #elseif os(macOS)
-        case number = "screens.number"
+        case count = "screens.count"
         case mainScreenWidth = "screen.main.width"
         case mainScreenHeight = "screen.main.height"
         case mainScreenScale = "screen.main.scale"
@@ -104,17 +96,16 @@ struct ScreenInfo: AttributesSourceType {
         screenAttributes[Key.nativeScale.rawValue] = mainScreen.nativeScale
         screenAttributes[Key.nativeWidth.rawValue] = mainScreen.nativeBounds.width
         screenAttributes[Key.nativeHeight.rawValue] = mainScreen.nativeBounds.height
-        screenAttributes[Key.number.rawValue] = UIScreen.screens.count
+        screenAttributes[Key.count.rawValue] = UIScreen.screens.count
         #elseif os(macOS)
-        screenAttributes[Key.number.rawValue] = NSScreen.screens.count
+        screenAttributes[Key.count.rawValue] = NSScreen.screens.count
         if let mainScreen = NSScreen.main {
             screenAttributes[Key.mainScreenWidth.rawValue] = mainScreen.frame.width
             screenAttributes[Key.mainScreenHeight.rawValue] = mainScreen.frame.height
             screenAttributes[Key.mainScreenScale.rawValue] = mainScreen.backingScaleFactor
-            
         }
         #endif
-        // Available onnly on iOS
+        
         #if os(iOS)
         screenAttributes[Key.brightness.rawValue] = UIScreen.main.brightness
         #endif
@@ -165,8 +156,8 @@ struct NetworkInfo: AttributesSourceType {
 struct LocationInfo: AttributesSourceType {
     
     private enum Key: String {
-        case locationServicesEnabled = "location.servicesEnabled"
-        case locationAuthorizationStatus = "location.authorizationStatus"
+        case locationServicesEnabled = "location.enabled"
+        case locationAuthorizationStatus = "location.authorization.status"
     }
     static func current() -> [String: Any] {
         var locationAttributes: [String: Any] = [:]
