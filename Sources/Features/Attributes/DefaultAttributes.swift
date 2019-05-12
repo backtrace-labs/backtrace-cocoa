@@ -8,17 +8,64 @@ import CoreTelephony
 struct DefaultAttributes {
     
     static func current() -> Attributes {
-        return DeviceInfo.current()
-            + ScreenInfo.current()
-            + LocaleInfo.current()
-            + NetworkInfo.current()
-            + LocationInfo.current()
-            + LibInfo.current()
+        return [DeviceInfo.current(),
+                ScreenInfo.current(),
+                LocaleInfo.current(),
+                NetworkInfo.current(),
+                LocationInfo.current(),
+                LibInfo.current(),
+                ProcessorInfo.current()]
+            .reduce([:], +)
     }
 }
 
 protocol AttributesSourceType {
     static func current() -> Attributes
+}
+
+struct ProcessorInfo: AttributesSourceType {
+    
+    private enum Key: String {
+        case cpuContext = "cpu.context"
+        case cpuIdle = "cpu.idle"
+        case cpuIowait = "cpu.iowait"
+        case cpuIrq = "cpu.irq"
+        case cpuKernel = "cpu.kernel"
+        case cpuNice = "cpu.nice"
+        case cpuProcessBlocked = "cpu.process.blocked"
+        case cpuProcessCount = "cpu.process.count"
+        case cpuProcessRunning = "cpu.process.running"
+        case cpuSoftirq = "cpu.softirq"
+        case cpuUser = "cpu.user"
+        case cpuSystem = "cpu.system"
+        case descriptorCount = "descriptor.count"
+        case cpuThreadsCount = "cpu.threads.count"
+        case systemBoottime = "cpu.boottime"
+        case processorCount = "cpu.count"
+        case processorActive = "cpu.active"
+        case hostname = "hostname"
+    }
+    
+    static func current() -> Attributes {
+        let processor = try? Processor()
+        let processinfo = ProcessInfo.processInfo
+        
+        let keyValuePairs: [String: Any?] = [
+            Key.cpuIdle.rawValue: processor?.cpuTicks.idle,
+            Key.cpuNice.rawValue: processor?.cpuTicks.nice,
+            Key.cpuUser.rawValue: processor?.cpuTicks.user,
+            Key.cpuSystem.rawValue: processor?.cpuTicks.system,
+            Key.descriptorCount.rawValue: getdtablesize(),
+            Key.cpuProcessCount.rawValue: processor?.processorSetLoadInfo.task_count,
+            Key.cpuThreadsCount.rawValue: processor?.processorSetLoadInfo.thread_count,
+            Key.hostname.rawValue: processinfo.hostName,
+            Key.systemBoottime.rawValue: try? processinfo.boottime(),
+            Key.processorCount.rawValue: processinfo.processorCount,
+            Key.processorActive.rawValue: processinfo.activeProcessorCount,
+            Key.cpuContext.rawValue: processor?.taskEventsInfo.csw]
+        
+        return keyValuePairs.compactMapValues { $0 }
+    }
 }
 
 struct DeviceInfo: AttributesSourceType {
@@ -30,19 +77,12 @@ struct DeviceInfo: AttributesSourceType {
         case batteryLevel = "battery.level"
         case nfcSupported = "device.nfc.supported"
         #endif
-        case hostname = "hostname"
         case deviceName = "device.name"
         case deviceModel = "device.model"
-        case systemUptime = "cpu.boottime"
-        case processorCount = "cpu.count"
     }
     
     static func current() -> Attributes {
         var deviceAttributes: Attributes = [:]
-        let processinfo = ProcessInfo.processInfo
-        deviceAttributes[Key.hostname.rawValue] = processinfo.hostName
-        deviceAttributes[Key.systemUptime.rawValue] = processinfo.systemUptime
-        deviceAttributes[Key.processorCount.rawValue] = processinfo.processorCount
         #if os(iOS)
         let currentDevice = UIDevice.current
         deviceAttributes[Key.deviceName.rawValue] = currentDevice.name

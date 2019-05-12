@@ -144,6 +144,15 @@
 		F282075B21CEA37A0017367F /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075A21CEA37A0017367F /* Repository.swift */; };
 		F282075C21CEA37A0017367F /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075A21CEA37A0017367F /* Repository.swift */; };
 		F282076121CEABBC0017367F /* BacktraceApiProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075F21CEABBC0017367F /* BacktraceApiProtocol.swift */; };
+		F286353A2283685100F45412 /* Map+KeyPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28635392283685100F45412 /* Map+KeyPath.swift */; };
+		F286353B2283685100F45412 /* Map+KeyPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28635392283685100F45412 /* Map+KeyPath.swift */; };
+		F286353C2283685100F45412 /* Map+KeyPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28635392283685100F45412 /* Map+KeyPath.swift */; };
+		F2863542228887C700F45412 /* Processor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2863541228887C700F45412 /* Processor.swift */; };
+		F2863543228887C700F45412 /* Processor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2863541228887C700F45412 /* Processor.swift */; };
+		F2863544228887C700F45412 /* Processor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2863541228887C700F45412 /* Processor.swift */; };
+		F28635472288958C00F45412 /* System.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28635462288958C00F45412 /* System.swift */; };
+		F28635482288958C00F45412 /* System.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28635462288958C00F45412 /* System.swift */; };
+		F28635492288958C00F45412 /* System.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28635462288958C00F45412 /* System.swift */; };
 		F28F164621E28441008E4B96 /* BacktraceReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F164521E28441008E4B96 /* BacktraceReporter.swift */; };
 		F28F164721E28441008E4B96 /* BacktraceReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F164521E28441008E4B96 /* BacktraceReporter.swift */; };
 		F28F165121E2A08F008E4B96 /* HttpMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165021E2A08F008E4B96 /* HttpMethod.swift */; };
@@ -406,6 +415,9 @@
 		F282075721CEA31F0017367F /* BacktraceReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceReport.swift; sourceTree = "<group>"; };
 		F282075A21CEA37A0017367F /* Repository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repository.swift; sourceTree = "<group>"; };
 		F282075F21CEABBC0017367F /* BacktraceApiProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceApiProtocol.swift; sourceTree = "<group>"; };
+		F28635392283685100F45412 /* Map+KeyPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Map+KeyPath.swift"; sourceTree = "<group>"; };
+		F2863541228887C700F45412 /* Processor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Processor.swift; sourceTree = "<group>"; };
+		F28635462288958C00F45412 /* System.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = System.swift; sourceTree = "<group>"; };
 		F28F164521E28441008E4B96 /* BacktraceReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceReporter.swift; sourceTree = "<group>"; };
 		F28F165021E2A08F008E4B96 /* HttpMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpMethod.swift; sourceTree = "<group>"; };
 		F28F165321E2A097008E4B96 /* RequestType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestType.swift; sourceTree = "<group>"; };
@@ -580,6 +592,8 @@
 				F259E4E12229C29A00F282C7 /* AttributesProvider.swift */,
 				2846E1F7222F1DE50035F98C /* NetworkReachability.swift */,
 				2846E1FA222F2C850035F98C /* BluetoothStatusListener.swift */,
+				F2863541228887C700F45412 /* Processor.swift */,
+				F28635462288958C00F45412 /* System.swift */,
 			);
 			path = Attributes;
 			sourceTree = "<group>";
@@ -836,6 +850,7 @@
 				F21211A7222348C2000B3692 /* SignalContext.swift */,
 				F259E4D52229A40C00F282C7 /* Result.swift */,
 				F2AB63802246E16400939BC9 /* ReportingPolicy.swift */,
+				F28635392283685100F45412 /* Map+KeyPath.swift */,
 			);
 			path = Internal;
 			sourceTree = "<group>";
@@ -1826,6 +1841,7 @@
 				28F95BCF22526061003936E0 /* BacktraceLogger.swift in Sources */,
 				28F95BD022526064003936E0 /* BacktraceClient.swift in Sources */,
 				28F95BCD2252605A003936E0 /* BacktraceClientDelegate.swift in Sources */,
+				F2863544228887C700F45412 /* Processor.swift in Sources */,
 				28F95BC92252602C003936E0 /* Foundation+Extensions.swift in Sources */,
 				28F95BE5225260AA003936E0 /* SendReportRequest.swift in Sources */,
 				28F95BD622526078003936E0 /* DebuggerChecker.swift in Sources */,
@@ -1853,6 +1869,7 @@
 				28F95BDE22526091003936E0 /* ReportingPolicy.swift in Sources */,
 				28F95BEC225260C9003936E0 /* AttributesStorage.swift in Sources */,
 				28F95BCA22526041003936E0 /* Dispatcher.swift in Sources */,
+				F28635492288958C00F45412 /* System.swift in Sources */,
 				28F95BE2225260A2003936E0 /* BacktraceApi.swift in Sources */,
 				28F95BD82252607F003936E0 /* BacktraceApiProtocol.swift in Sources */,
 				28F95BDC2252608B003936E0 /* Result.swift in Sources */,
@@ -1861,6 +1878,7 @@
 				28F95BD22252606B003936E0 /* BacktraceDatabaseSettings.swift in Sources */,
 				F29959AC2255399B0085B5C3 /* BacktraceReport.swift in Sources */,
 				28F95BE02252609C003936E0 /* BacktraceResponse.swift in Sources */,
+				F286353C2283685100F45412 /* Map+KeyPath.swift in Sources */,
 				28F95BD922526082003936E0 /* RequestType.swift in Sources */,
 				28F95BEA225260C2003936E0 /* BacktraceError.swift in Sources */,
 			);
@@ -1919,6 +1937,7 @@
 				F266B83421C77B9600D14417 /* BacktraceError.swift in Sources */,
 				28966EFB2214BBDC00E6E891 /* AttributesStorage.swift in Sources */,
 				F259E4D72229A41400F282C7 /* Result.swift in Sources */,
+				F28635482288958C00F45412 /* System.swift in Sources */,
 				2846E1FF223070CB0035F98C /* Attachment.swift in Sources */,
 				F2D7122521F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
 				F28F164721E28441008E4B96 /* BacktraceReporter.swift in Sources */,
@@ -1932,10 +1951,12 @@
 				F2D7122221F10C45002D2A26 /* BacktraceClientConfiguration.swift in Sources */,
 				F28F165521E2A097008E4B96 /* RequestType.swift in Sources */,
 				F29CD79221FCC25600216C59 /* BacktraceWatcher.swift in Sources */,
+				F2863543228887C700F45412 /* Processor.swift in Sources */,
 				282C85E7223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift in Sources */,
 				F2AFB59B22274E5400AAA1D7 /* BacktraceClientCustomizing.swift in Sources */,
 				F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				F2AB636E22442B5100939BC9 /* DebuggerChecker.swift in Sources */,
+				F286353B2283685100F45412 /* Map+KeyPath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1980,6 +2001,7 @@
 				F240531E21C5680600FC9394 /* CrashReporting.swift in Sources */,
 				F28162FA21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
 				F29CD79421FDD5E900216C59 /* BacktraceClientDelegate.swift in Sources */,
+				F2863542228887C700F45412 /* Processor.swift in Sources */,
 				F240532121C578AA00FC9394 /* BacktraceLogger.swift in Sources */,
 				28AC773C21FA5A8400FED661 /* BacktraceDatabaseSettings.swift in Sources */,
 				F2CC8ACB21CF8D8400A68CAC /* Dispatcher.swift in Sources */,
@@ -2007,6 +2029,7 @@
 				F2C1514221F7D8E30014F1B3 /* PersistentRepository.swift in Sources */,
 				F2D8BE3821BD7894007CFEFA /* BacktraceError.swift in Sources */,
 				F282075821CEA31F0017367F /* BacktraceReport.swift in Sources */,
+				F28635472288958C00F45412 /* System.swift in Sources */,
 				F28F165821E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				28614F9E220B6D7C00D35EFB /* DefaultAttributes.swift in Sources */,
 				F2D8BE3A21BD78A9007CFEFA /* BacktraceApi.swift in Sources */,
@@ -2015,6 +2038,7 @@
 				F29CD78D21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */,
 				F29CD79121FCC25600216C59 /* BacktraceWatcher.swift in Sources */,
 				F21D302B224A18D60013B5D7 /* Store.swift in Sources */,
+				F286353A2283685100F45412 /* Map+KeyPath.swift in Sources */,
 				F2AFB59A22274E5400AAA1D7 /* BacktraceClientCustomizing.swift in Sources */,
 				F282075B21CEA37A0017367F /* Repository.swift in Sources */,
 			);
