@@ -12,8 +12,8 @@ struct Processor {
             .map(\.cpu_ticks)
             .map(CpuTicks.init(cpu_tick:))
             .reduce(CpuTicks(), +)
-        self.taskBasicInfo = try Processor.taskInfo()
-        self.taskEventsInfo = try Processor.taskInfo()
+        self.taskBasicInfo = try Processor.machTaskBasicInfo()
+        self.taskEventsInfo = try Processor.taskEventsInfo()
         self.processorSetLoadInfo = try Processor.processorSetLoadInfo()
     }
 }
@@ -24,42 +24,39 @@ enum KernError: Error {
     case unexpected
 }
 
-// MARK: - Task info protocol
-protocol TaskInfoType {
-    init()
-    static var flavor: Int32 { get }
-}
-
-extension mach_task_basic_info: TaskInfoType {
-    static var flavor: Int32 {
-        return MACH_TASK_BASIC_INFO
-    }
-}
-
-extension task_events_info: TaskInfoType {
-    static var flavor: Int32 {
-        return TASK_EVENTS_INFO
-    }
-}
-
 // MARK: - Low level API functions 
 extension Processor {
     
-    static func taskInfo<T: TaskInfoType>() throws -> T {
-        var info = T()
+    private static func taskInfo<T>(_ taskInfoType: inout T, _ taskFlavor: Int32) throws {
         var count = mach_msg_type_number_t(MemoryLayout<T>.stride / MemoryLayout<natural_t>.stride)
         
-        let kerr: kern_return_t = withUnsafeMutablePointer(to: &info) { (pointer) -> kern_return_t in
+        let kerr: kern_return_t = withUnsafeMutablePointer(to: &taskInfoType) { (pointer) -> kern_return_t in
             task_info(mach_task_self_,
-                      task_flavor_t(T.flavor),
+                      task_flavor_t(taskFlavor),
                       pointer.withMemoryRebound(to: Int32.self, capacity: 1) { task_info_t($0) },
                       &count)
         }
         guard kerr == KERN_SUCCESS else {
             throw KernError.code(kerr)
         }
-        
-        return info
+    }
+    
+    static func taskVmInfo() throws -> task_vm_info {
+        var taskVmInfo = task_vm_info()
+        try taskInfo(&taskVmInfo, TASK_VM_INFO)
+        return taskVmInfo
+    }
+    
+    static func machTaskBasicInfo() throws -> mach_task_basic_info {
+        var machTaskBasicInfo = mach_task_basic_info()
+        try taskInfo(&machTaskBasicInfo, MACH_TASK_BASIC_INFO)
+        return machTaskBasicInfo
+    }
+    
+    static func taskEventsInfo() throws -> task_events_info {
+        var taskEventsInfo = task_events_info()
+        try taskInfo(&taskEventsInfo, TASK_EVENTS_INFO)
+        return taskEventsInfo
     }
     
     static func processorSetLoadInfo() throws -> processor_set_load_info {

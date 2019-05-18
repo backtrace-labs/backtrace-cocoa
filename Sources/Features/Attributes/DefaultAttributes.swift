@@ -1,9 +1,6 @@
 // swiftlint:disable type_name
 import Foundation
 import CoreLocation
-#if os(iOS)
-import CoreTelephony
-#endif
 
 struct DefaultAttributes {
     
@@ -39,7 +36,7 @@ struct ProcessorInfo: AttributesSourceType {
         case cpuUser = "cpu.user"
         case cpuSystem = "cpu.system"
         case descriptorCount = "descriptor.count"
-        case cpuThreadsCount = "cpu.threads.count"
+        case processThreadCount = "process.thread.count"
         case systemBoottime = "cpu.boottime"
         case processorCount = "cpu.count"
         case processorActive = "cpu.active"
@@ -57,9 +54,9 @@ struct ProcessorInfo: AttributesSourceType {
             Key.cpuSystem.rawValue: processor?.cpuTicks.system,
             Key.descriptorCount.rawValue: getdtablesize(),
             Key.cpuProcessCount.rawValue: processor?.processorSetLoadInfo.task_count,
-            Key.cpuThreadsCount.rawValue: processor?.processorSetLoadInfo.thread_count,
+            Key.processThreadCount.rawValue: processor?.processorSetLoadInfo.thread_count,
             Key.hostname.rawValue: processinfo.hostName,
-            Key.systemBoottime.rawValue: try? processinfo.boottime(),
+            Key.systemBoottime.rawValue: try? System.boottime(),
             Key.processorCount.rawValue: processinfo.processorCount,
             Key.processorActive.rawValue: processinfo.activeProcessorCount,
             Key.cpuContext.rawValue: processor?.taskEventsInfo.csw]
