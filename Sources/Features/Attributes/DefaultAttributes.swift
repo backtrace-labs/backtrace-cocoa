@@ -25,8 +25,9 @@ struct ProcessorInfo: AttributesSourceType {
     static func current() -> Attributes {
         let processor = try? Processor()
         let processinfo = ProcessInfo.processInfo
-        let virtualMemory = try? Memory.Virtual()
-        let swapMemory = try? Memory.Swap()
+        let systemVmMemory = try? MemoryInfo.System()
+        let systemSwapMemory = try? MemoryInfo.Swap()
+        let processVmMemory = try? MemoryInfo.Process()
         
         let keyValuePairs: [String: Any?] = [
             // hostanme
@@ -39,28 +40,32 @@ struct ProcessorInfo: AttributesSourceType {
             "cpu.user": processor?.cpuTicks.user,
             "cpu.system": processor?.cpuTicks.system,
             "cpu.process.count": processor?.processorSetLoadInfo.task_count,
+            "cpu.thread.count": processor?.processorSetLoadInfo.thread_count,
             "cpu.boottime": try? System.boottime(),
+            "cpu.uptime": try? System.uptime(),
             "cpu.count": processinfo.processorCount,
             "cpu.count.active": processinfo.activeProcessorCount,
             "cpu.context": processor?.taskEventsInfo.csw,
             // process
-            "process.thread.count": processor?.processorSetLoadInfo.thread_count,
+            "process.thread.count": try? ProcessInfo.numberOfThreads(),
+            "process.age": try? ProcessInfo.age(),
+            "process.starttime": try? ProcessInfo.startTime(),
             // system
-            "system.memory.active": virtualMemory?.active,
-            "system.memory.inactive": virtualMemory?.inactive,
-            "system.memory.free": virtualMemory?.free,
-            "system.memory.used": virtualMemory?.used,
-            "system.memory.total": virtualMemory?.total,
-            "system.memory.wired": virtualMemory?.wired,
-            "system.memory.swapins": virtualMemory?.swapins,
-            "system.memory.swapouts": virtualMemory?.swapouts,
-            "system.memory.swap.total": swapMemory?.total,
-            "system.memory.swap.used": swapMemory?.used,
-            "system.memory.swap.free": swapMemory?.free,
+            "system.memory.active": systemVmMemory?.active,
+            "system.memory.inactive": systemVmMemory?.inactive,
+            "system.memory.free": systemVmMemory?.free,
+            "system.memory.used": systemVmMemory?.used,
+            "system.memory.total": systemVmMemory?.total,
+            "system.memory.wired": systemVmMemory?.wired,
+            "system.memory.swapins": systemVmMemory?.swapins,
+            "system.memory.swapouts": systemVmMemory?.swapouts,
+            "system.memory.swap.total": systemSwapMemory?.total,
+            "system.memory.swap.used": systemSwapMemory?.used,
+            "system.memory.swap.free": systemSwapMemory?.free,
             // vm
-            "vm.rss.size": virtualMemory?.resident,
-            "vm.rss.peak": virtualMemory?.residentPeak,
-            "vm.vma.size": virtualMemory?.virtual
+            "process.vm.rss.size": processVmMemory?.resident,
+            "process.vm.rss.peak": processVmMemory?.residentPeak,
+            "process.vm.vma.size": processVmMemory?.virtual
         ]
         
         return keyValuePairs.compactMapValues { $0 }
