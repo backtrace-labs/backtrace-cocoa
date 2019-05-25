@@ -2,38 +2,23 @@
 import Foundation
 import CoreLocation
 
-struct DefaultAttributes {
-    
-    static func current() -> Attributes {
-        return [DeviceInfo.current(),
-                ScreenInfo.current(),
-                LocaleInfo.current(),
-                NetworkInfo.current(),
-                LocationInfo.current(),
-                LibInfo.current(),
-                ProcessorInfo.current()]
-            .reduce([:], +)
+final class FaultInfo: AttributesSource {
+    var faultMessage: String?
+    var immutable: [String: Any?] {
+        return ["error.message": faultMessage]
     }
 }
 
-protocol AttributesSourceType {
-    static func current() -> Attributes
-}
-
-struct ProcessorInfo: AttributesSourceType {
+struct ProcessorInfo: AttributesSource {
     
-    static func current() -> Attributes {
+    var mutable: [String: Any?] {
         let processor = try? Processor()
         let processinfo = ProcessInfo.processInfo
         let systemVmMemory = try? MemoryInfo.System()
         let systemSwapMemory = try? MemoryInfo.Swap()
         let processVmMemory = try? MemoryInfo.Process()
         
-        let keyValuePairs: [String: Any?] = [
-            // hostanme
-            "hostname": processinfo.hostName,
-            // descriptor
-            "descriptor.count": getdtablesize(),
+        return [
             // cpu
             "cpu.idle": processor?.cpuTicks.idle,
             "cpu.nice": processor?.cpuTicks.nice,
@@ -41,7 +26,6 @@ struct ProcessorInfo: AttributesSourceType {
             "cpu.system": processor?.cpuTicks.system,
             "cpu.process.count": processor?.processorSetLoadInfo.task_count,
             "cpu.thread.count": processor?.processorSetLoadInfo.thread_count,
-            "cpu.boottime": try? System.boottime(),
             "cpu.uptime": try? System.uptime(),
             "cpu.count": processinfo.processorCount,
             "cpu.count.active": processinfo.activeProcessorCount,
@@ -49,7 +33,6 @@ struct ProcessorInfo: AttributesSourceType {
             // process
             "process.thread.count": try? ProcessInfo.numberOfThreads(),
             "process.age": try? ProcessInfo.age(),
-            "process.starttime": try? ProcessInfo.startTime(),
             // system
             "system.memory.active": systemVmMemory?.active,
             "system.memory.inactive": systemVmMemory?.inactive,
@@ -67,50 +50,50 @@ struct ProcessorInfo: AttributesSourceType {
             "process.vm.rss.peak": processVmMemory?.residentPeak,
             "process.vm.vma.size": processVmMemory?.virtual
         ]
-        
-        return keyValuePairs.compactMapValues { $0 }
+    }
+    
+    var immutable: [String: Any?] {
+        return [
+            "cpu.boottime": try? System.boottime(),
+            // hostanme
+            "hostname": ProcessInfo.processInfo.hostName,
+            // descriptor
+            "descriptor.count": getdtablesize(),
+            "process.starttime": try? ProcessInfo.startTime()
+        ]
     }
 }
 
-struct DeviceInfo: AttributesSourceType {
+struct Device: AttributesSource {
     
-    private enum Key: String {
+    var mutable: [String: Any?] {
         #if os(iOS)
-        case deviceOrientation = "device.orientation"
-        case batteryState = "battery.state"
-        case batteryLevel = "battery.level"
-        case nfcSupported = "device.nfc.supported"
-        #endif
-        case deviceName = "device.name"
-        case deviceModel = "device.model"
-    }
-    
-    static func current() -> Attributes {
-        var deviceAttributes: Attributes = [:]
-        #if os(iOS)
-        let currentDevice = UIDevice.current
-        deviceAttributes[Key.deviceName.rawValue] = currentDevice.name
-        deviceAttributes[Key.deviceModel.rawValue] = currentDevice.model
-        deviceAttributes[Key.deviceOrientation.rawValue] = currentDevice.orientation.name
-        if currentDevice.isBatteryMonitoringEnabled {
-            deviceAttributes[Key.batteryState.rawValue] = currentDevice.batteryState.name
-            deviceAttributes[Key.batteryLevel.rawValue] = currentDevice.batteryLevel
+        let device = UIDevice.current
+        var attributes: [String: Any?] = ["device.orientation": device.orientation.name]
+        if device.isBatteryMonitoringEnabled {
+            attributes["battery.state"] = device.batteryState.name
+            attributes["battery.level"] = device.batteryLevel
         }
         if #available(iOS 11.0, *) {
-            deviceAttributes[Key.nfcSupported.rawValue] = true
+            attributes["device.nfc.supported"] = true
         } else {
-            deviceAttributes[Key.nfcSupported.rawValue] = false
+            attributes["device.nfc.supported"] = false
         }
-        #elseif os(tvOS)
-        let currentDevice = UIDevice.current
-        deviceAttributes[Key.deviceName.rawValue] = currentDevice.name
-        deviceAttributes[Key.deviceModel.rawValue] = currentDevice.model
+        return attributes
+        #else
+        return [:]
         #endif
-        return deviceAttributes
+    }
+
+    var immutable: [String: Any?] {
+        return [
+            "device.machine": try? System.machine(),
+            "device.model": try? System.model()
+        ]
     }
 }
 
-struct ScreenInfo: AttributesSourceType {
+struct ScreenInfo: AttributesSource {
     
     private enum Key: String {
         #if os(iOS) || os(tvOS)
@@ -130,7 +113,7 @@ struct ScreenInfo: AttributesSourceType {
         #endif
     }
     
-    static func current() -> Attributes {
+    var immutable: [String: Any?] {
         var screenAttributes: Attributes = [:]
         #if os(iOS) || os(tvOS)
         let mainScreen = UIScreen.main
@@ -157,75 +140,52 @@ struct ScreenInfo: AttributesSourceType {
     }
 }
 
-struct LocaleInfo: AttributesSourceType {
+struct LocaleInfo: AttributesSource {
     
-    private enum Key: String {
-        case languageCode = "device.lang.code"
-        case language = "device.lang"
-        case regionCode = "device.region.code"
-        case region = "device.region"
-    }
-    
-    static func current() -> Attributes {
+   var immutable: [String: Any?] {
         var localeAttributes: Attributes = [:]
         if let languageCode = Locale.current.languageCode {
-            localeAttributes[Key.languageCode.rawValue] = languageCode
+            localeAttributes["device.lang.code"] = languageCode
             if let language = Locale.current.localizedString(forLanguageCode: languageCode) {
-                localeAttributes[Key.language.rawValue] = language
+                localeAttributes["device.lang"] = language
             }
         }
         if let regionCode = Locale.current.regionCode {
-            localeAttributes[Key.regionCode.rawValue] = regionCode
+            localeAttributes["device.region.code"] = regionCode
             if let region = Locale.current.localizedString(forRegionCode: regionCode) {
-                localeAttributes[Key.region.rawValue] = region
+                localeAttributes["device.region"] = region
             }
         }
         return localeAttributes
     }
 }
 
-struct NetworkInfo: AttributesSourceType {
+struct NetworkInfo: AttributesSource {
     
-    private enum Key: String {
-        case status = "network.status"
-    }
-    
-    static func current() -> Attributes {
-        var networkAttributes: Attributes = [:]
-        networkAttributes[Key.status.rawValue] = NetworkReachability().statusName
-        return networkAttributes
+     var mutable: [String: Any?] {
+        return ["network.status": NetworkReachability().statusName]
     }
 }
 
-struct LocationInfo: AttributesSourceType {
-    
-    private enum Key: String {
-        case locationServicesEnabled = "location.enabled"
-        case locationAuthorizationStatus = "location.authorization.status"
-    }
-    static func current() -> [String: Any] {
-        var locationAttributes: [String: Any] = [:]
-        locationAttributes[Key.locationServicesEnabled.rawValue] = CLLocationManager.locationServicesEnabled()
-        locationAttributes[Key.locationAuthorizationStatus.rawValue] = CLLocationManager.authorizationStatus().name
-        return locationAttributes
+struct LocationInfo: AttributesSource {
+
+    var mutable: [String: Any?] {
+        return [
+            "location.enabled": CLLocationManager.locationServicesEnabled(),
+            "location.authorization.status": CLLocationManager.authorizationStatus().name
+        ]
     }
 }
 
-struct LibInfo: AttributesSourceType {
+struct LibInfo: AttributesSource {
     
     private static let applicationGuidKey = "backtrace.unique.user.identifier"
     private static let applicationLangName = "backtrace-cocoa"
     
-    private enum Key: String {
-        case guid = "guid"
-        case langName = "lang.name"
-        case langVersion = "lang.version"
-    }
-    
-    static func current() -> Attributes {
-        return [Key.guid.rawValue: guid(store: UserDefaultsStore.self).uuidString,
-                Key.langName.rawValue: applicationLangName,
-                Key.langVersion.rawValue: BacktraceVersionNumber]
+    var immutable: [String: Any?] {
+        return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
+                "lang.name": LibInfo.applicationLangName,
+                "lang.version": BacktraceVersionNumber]
     }
     
     static private func guid(store: UserDefaultsStore.Type) -> UUID {

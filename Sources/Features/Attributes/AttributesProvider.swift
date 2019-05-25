@@ -1,17 +1,43 @@
 import Foundation
 
+protocol AttributesSource {
+    var immutable: [String: Any?] { get }
+    var mutable: [String: Any?] { get }
+}
+
+extension AttributesSource {
+    var immutable: [String: Any?] { return [:] }
+    var mutable: [String: Any?] { return [:] }
+}
+
 final class AttributesProvider {
     
     // attributes can be modified on runtime
     var attributes: Attributes = [:]
+    private let attributesSources: [AttributesSource]
+    private let faultInfo: FaultInfo
     
-    private let bluetoothStatusListener = BluetoothStatusListener()
-    private var faultMessage: String?
+    lazy var immutable: Attributes = {
+        return self.attributesSources.map(\.immutable).merging()
+    }()
+    
+    init() {
+        self.faultInfo = FaultInfo()
+        self.attributesSources = [BluetoothStatusListener(),
+                                  ProcessorInfo(),
+                                  Device(),
+                                  ScreenInfo(),
+                                  LocaleInfo(),
+                                  NetworkInfo(),
+                                  LibInfo(),
+                                  LocationInfo(),
+                                  faultInfo]
+    }
 }
 
 extension AttributesProvider: SignalContext {
     func set(faultMessage: String?) {
-        self.faultMessage = faultMessage
+        self.faultInfo.faultMessage = faultMessage
     }
     
     var allAttributes: Attributes {
@@ -19,15 +45,18 @@ extension AttributesProvider: SignalContext {
     }
     
     var defaultAttributes: Attributes {
-        var defaultAttributes = DefaultAttributes.current()
-        defaultAttributes["bluetooth.state"] = bluetoothStatusListener.currentState
-        defaultAttributes["error.message"] = faultMessage
-        return defaultAttributes
+        return immutable + self.attributesSources.map(\.mutable).merging()
     }
 }
 
 extension AttributesProvider: CustomStringConvertible {
     var description: String {
         return allAttributes.compactMap { "\($0.key): \($0.value)"}.joined(separator: "\n")
+    }
+}
+
+extension Array where Element == [String: Any?] {
+    func merging() -> [String: Any] {
+        return reduce([:], +).compactMapValues { $0 }
     }
 }

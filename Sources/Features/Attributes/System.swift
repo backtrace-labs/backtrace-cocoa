@@ -206,6 +206,18 @@ struct System {
         }
         return currentTime.tv_sec - bootTime
     }
+    
+    static func machine() throws -> String {
+        var machine = String()
+        try Statistics.systemControl(mib: [CTL_HW, HW_MACHINE], returnType: &machine)
+        return machine
+    }
+    
+    static func model() throws -> String {
+        var model = String()
+        try Statistics.systemControl(mib: [CTL_HW, HW_MODEL], returnType: &model)
+        return model
+    }
 }
 
 // MARK: - Processor statistics
