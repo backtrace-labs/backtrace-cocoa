@@ -92,6 +92,10 @@ struct Statistics {
         }
         return vmStatInfo
     }
+    
+    static func toKb(_ bytes: UInt64) -> UInt64 {
+        return bytes / 1024
+    }
 }
 
 struct MemoryInfo {
@@ -109,12 +113,12 @@ struct MemoryInfo {
         init() throws {
             let vmStatistics64 = try Statistics.vmStatistics64()
             let pageSize = UInt64(getpagesize())
-            
-            self.active = UInt64(vmStatistics64.active_count) * pageSize
-            self.free = UInt64(vmStatistics64.free_count) * pageSize
-            self.inactive = UInt64(vmStatistics64.inactive_count) * pageSize
-            self.wired = UInt64(vmStatistics64.wire_count) * pageSize
-            self.compressed = UInt64(vmStatistics64.compressor_page_count) * pageSize
+            let pageSizeKb = Statistics.toKb(pageSize)
+            self.active = UInt64(vmStatistics64.active_count) * pageSizeKb
+            self.free = UInt64(vmStatistics64.free_count) * pageSizeKb
+            self.inactive = UInt64(vmStatistics64.inactive_count) * pageSizeKb
+            self.wired = UInt64(vmStatistics64.wire_count) * pageSizeKb
+            self.compressed = UInt64(vmStatistics64.compressor_page_count) * pageSizeKb
             self.used = self.active + self.inactive + self.wired
             self.total = self.used + self.free
             
@@ -131,9 +135,9 @@ struct MemoryInfo {
         init() throws {
             let taskVmInfo = try Statistics.taskVmInfo()
             
-            self.resident = UInt64(taskVmInfo.resident_size)
-            self.residentPeak = UInt64(taskVmInfo.resident_size_peak)
-            self.virtual = UInt64(taskVmInfo.virtual_size)
+            self.resident = Statistics.toKb(UInt64(taskVmInfo.resident_size))
+            self.residentPeak = Statistics.toKb(UInt64(taskVmInfo.resident_size_peak))
+            self.virtual = Statistics.toKb(UInt64(taskVmInfo.virtual_size))
         }
     }
     
@@ -145,9 +149,9 @@ struct MemoryInfo {
         init() throws {
             var usage = xsw_usage()
             try Statistics.systemControl(mib: [CTL_VM, VM_SWAPUSAGE], returnType: &usage)
-            self.total = UInt64(usage.xsu_total)
-            self.free = UInt64(usage.xsu_avail)
-            self.used = UInt64(usage.xsu_used)
+            self.total = Statistics.toKb(UInt64(usage.xsu_total))
+            self.free = Statistics.toKb(UInt64(usage.xsu_avail))
+            self.used = Statistics.toKb(UInt64(usage.xsu_used))
         }
     }
 }
