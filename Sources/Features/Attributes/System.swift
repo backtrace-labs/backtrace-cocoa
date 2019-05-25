@@ -20,6 +20,7 @@ struct System {
     static func startTime() throws -> time_t {
         var kinfo: kinfo_proc = kinfo_proc()
         try systemControl(mib: [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()], returnType: &kinfo)
+    
         return kinfo.kp_proc.p_starttime.tv_sec
     }
 }

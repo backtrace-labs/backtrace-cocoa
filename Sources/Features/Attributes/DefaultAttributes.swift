@@ -25,7 +25,7 @@ struct ProcessorInfo: AttributesSourceType {
     static func current() -> Attributes {
         let processor = try? Processor()
         let processinfo = ProcessInfo.processInfo
-        let memory = try? Memory()
+        let virtualMemory = try? Memory.Virtual()
         let swapMemory = try? Memory.Swap()
         
         let keyValuePairs: [String: Any?] = [
@@ -46,20 +46,22 @@ struct ProcessorInfo: AttributesSourceType {
             // process
             "process.thread.count": processor?.processorSetLoadInfo.thread_count,
             // system
-            "system.memory.active": memory?.active,
-            "system.memory.inactive": memory?.inactive,
-            "system.memory.free": memory?.free,
-            "system.memory.used": memory?.used,
-            "system.memory.total": memory?.total,
+            "system.memory.active": virtualMemory?.active,
+            "system.memory.inactive": virtualMemory?.inactive,
+            "system.memory.free": virtualMemory?.free,
+            "system.memory.used": virtualMemory?.used,
+            "system.memory.total": virtualMemory?.total,
+            "system.memory.wired": virtualMemory?.wired,
+            "system.memory.swapins": virtualMemory?.swapins,
+            "system.memory.swapouts": virtualMemory?.swapouts,
             "system.memory.swap.total": swapMemory?.total,
             "system.memory.swap.used": swapMemory?.used,
             "system.memory.swap.free": swapMemory?.free,
             // vm
-            "vm.rss.size": memory?.resident,
-            "vm.rss.peak": memory?.residentPeak,
-            "vm.vma.size": memory?.virtual,
+            "vm.rss.size": virtualMemory?.resident,
+            "vm.rss.peak": virtualMemory?.residentPeak,
+            "vm.vma.size": virtualMemory?.virtual
         ]
-        
         
         return keyValuePairs.compactMapValues { $0 }
     }

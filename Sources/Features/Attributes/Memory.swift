@@ -1,29 +1,42 @@
 import Foundation
+import Darwin
 
 struct Memory {
-    let active: UInt
-    let free: UInt
-    let inactive: UInt
-    let resident: UInt
-    let residentPeak: UInt
-    let virtual: UInt
-    let used: UInt
-    let total: UInt
-    
-    init() throws {
-        let vmStatistics64 = try Memory.vmStatistics64()
-        let taskVmInfo = try Processor.taskVmInfo()
-        let pageSize = UInt(getpagesize())
-        let taskInfo = try Processor.machTaskBasicInfo()
-        self.active = UInt(vmStatistics64.active_count) * pageSize
-        self.free = UInt(vmStatistics64.free_count) * pageSize
-        self.inactive = UInt(vmStatistics64.inactive_count) * pageSize
-        self.resident = UInt(taskVmInfo.resident_size)
-        self.residentPeak = UInt(taskVmInfo.resident_size_peak)
-        self.virtual = UInt(taskVmInfo.virtual_size)
-        let wire = UInt(vmStatistics64.wire_count) * pageSize
-        self.used = self.active + self.inactive + wire
-        self.total = self.used + self.free
+    struct Virtual {
+        let active: UInt64
+        let free: UInt64
+        let inactive: UInt64
+        let wired: UInt64
+        let compressed: UInt64
+        
+        let resident: UInt64
+        let residentPeak: UInt64
+        let virtual: UInt64
+        let used: UInt64
+        let total: UInt64
+        
+        let swapins: UInt64
+        let swapouts: UInt64
+        
+        init() throws {
+            let vmStatistics64 = try Memory.vmStatistics64()
+            let taskVmInfo = try Processor.taskVmInfo()
+            let pageSize = UInt64(getpagesize())
+            
+            self.active = UInt64(vmStatistics64.active_count) * pageSize
+            self.free = UInt64(vmStatistics64.free_count) * pageSize
+            self.inactive = UInt64(vmStatistics64.inactive_count) * pageSize
+            self.virtual = UInt64(taskVmInfo.virtual_size)
+            self.wired = UInt64(vmStatistics64.wire_count) * pageSize
+            self.compressed = UInt64(vmStatistics64.compressor_page_count) * pageSize
+            self.swapins = vmStatistics64.swapins
+            self.swapouts = vmStatistics64.swapouts
+            self.used = self.active + self.inactive + self.wired
+            self.total = self.used + self.free
+            
+            self.resident = UInt64(taskVmInfo.resident_size)
+            self.residentPeak = UInt64(taskVmInfo.resident_size_peak)
+        }
     }
     
     static func vmStatistics64() throws -> vm_statistics64 {
@@ -43,17 +56,16 @@ struct Memory {
     }
     
     struct Swap {
-        let total: UInt
-        let used: UInt
-        let free: UInt
+        let total: UInt64
+        let used: UInt64
+        let free: UInt64
         
         init() throws {
             var usage = xsw_usage()
             try System.systemControl(mib: [CTL_VM, VM_SWAPUSAGE], returnType: &usage)
-            
-            self.total = UInt(usage.xsu_total)
-            self.free = UInt(usage.xsu_avail)
-            self.used = UInt(usage.xsu_used)
+            self.total = UInt64(usage.xsu_total)
+            self.free = UInt64(usage.xsu_avail)
+            self.used = UInt64(usage.xsu_used)
         }
     }
 }
