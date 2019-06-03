@@ -18,20 +18,20 @@ final class AttributesProvider {
     private let faultInfo: FaultInfo
     
     lazy var immutable: Attributes = {
-        return self.attributesSources.map(\.immutable).merging()
+        return attributesSources.map(\.immutable).merging()
     }()
     
     init() {
-        self.faultInfo = FaultInfo()
-        self.attributesSources = [BluetoothStatusListener(),
-                                  ProcessorInfo(),
-                                  Device(),
-                                  ScreenInfo(),
-                                  LocaleInfo(),
-                                  NetworkInfo(),
-                                  LibInfo(),
-                                  LocationInfo(),
-                                  faultInfo]
+        faultInfo = FaultInfo()
+        attributesSources = [BluetoothStatusListener(),
+                             ProcessorInfo(),
+                             Device(),
+                             ScreenInfo(),
+                             LocaleInfo(),
+                             NetworkInfo(),
+                             LibInfo(),
+                             LocationInfo(),
+                             faultInfo]
     }
 }
 
@@ -45,7 +45,7 @@ extension AttributesProvider: SignalContext {
     }
     
     var defaultAttributes: Attributes {
-        return immutable + self.attributesSources.map(\.mutable).merging()
+        return immutable + attributesSources.map(\.mutable).merging()
     }
 }
 
