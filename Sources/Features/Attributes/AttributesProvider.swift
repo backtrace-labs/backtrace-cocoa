@@ -57,6 +57,12 @@ extension AttributesProvider: CustomStringConvertible {
 
 extension Array where Element == [String: Any?] {
     func merging() -> [String: Any] {
-        return reduce([:], +).compactMapValues { $0 }
+        let keyValuePairs = reduce([:], +).compactMap({ (key: String, value: Any?) -> (key: String, value: Any)? in
+            guard let value = value else {
+                return nil
+            }
+            return (key, value)
+        })
+        return Dictionary(keyValuePairs) { (lhs, _) in lhs }
     }
 }
