@@ -11,18 +11,18 @@ final class AttributesProviderTests: QuickSpec {
             it("has default values", closure: {
                 let attributesProvider = AttributesProvider()
                 
-                expect(attributesProvider.defaultAttributes).toNot(beEmpty())
-                expect(attributesProvider.allAttributes).toNot(beEmpty())
-                expect(attributesProvider.attributes).to(beEmpty())
+                expect(attributesProvider.defaultAttributes.isEmpty).to(beFalse())
+                expect(attributesProvider.attributes.isEmpty).to(beTrue())
+                expect(attributesProvider.allAttributes.isEmpty).to(beFalse())
             })
-            
+
             it("allows the user add new attributes", closure: {
                 let attributesProvider = AttributesProvider()
                 attributesProvider.attributes["foo"] = "bar"
-                
-                expect(attributesProvider.defaultAttributes).toNot(beEmpty())
-                expect(attributesProvider.allAttributes).toNot(beEmpty())
-                expect(attributesProvider.attributes).toNot(beEmpty())
+
+                expect(attributesProvider.defaultAttributes.isEmpty).to(beFalse())
+                expect(attributesProvider.allAttributes.isEmpty).to(beFalse())
+                expect(attributesProvider.attributes.isEmpty).to(beFalse())
             })
         }
     }

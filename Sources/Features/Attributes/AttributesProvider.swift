@@ -49,9 +49,13 @@ extension AttributesProvider: SignalContext {
     }
 }
 
-extension AttributesProvider: CustomStringConvertible {
+extension AttributesProvider: CustomStringConvertible, CustomDebugStringConvertible {
     var description: String {
         return allAttributes.compactMap { "\($0.key): \($0.value)"}.joined(separator: "\n")
+    }
+    
+    var debugDescription: String {
+        return description
     }
 }
 
