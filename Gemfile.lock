@@ -237,7 +237,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  cocoapods
+  cocoapods (>= 1.7.1)
   fastlane
   travis
 
