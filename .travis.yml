@@ -7,6 +7,7 @@ before_install:
   - bundle exec pod repo update
   - bundle exec pod update
 script:
+  - bundle install
   - bundle exec fastlane ios tests
   - bundle exec fastlane mac tests
   - bundle exec fastlane tvos tests
