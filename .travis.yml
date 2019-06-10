@@ -1,10 +1,11 @@
 language: swift
 os: osx
 osx_image: xcode10.2
-script:
+before_install:
   - bundle install
   - bundle exec pod repo update
-  - bundle exec pod install
+  - bundle exec pod update
+script:
   - bundle exec fastlane ios tests
   - bundle exec fastlane mac tests
   - bundle exec fastlane tvos tests
