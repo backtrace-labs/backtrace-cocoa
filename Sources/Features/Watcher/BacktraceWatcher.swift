@@ -9,25 +9,24 @@ where BacktraceRepository.Resource == BacktraceReport {
     let repository: BacktraceRepository
     var timer: DispatchSourceTimer?
     let queue: DispatchQueue
-    let batchSize: Int
     
     init(settings: BacktraceDatabaseSettings, reportsPerMin: Int, api: BacktraceApiProtocol,
          repository: BacktraceRepository,
-         dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background),
-         batchSize: Int = 3) throws {
+         dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background)) throws {
         self.settings = settings
         self.reportsPerMin = reportsPerMin
         self.repository = repository
         self.api = api
         self.queue = dispatchQueue
-        self.batchSize = batchSize
         guard settings.retryBehaviour == .interval else { return }
         configureTimer(with: DispatchWorkItem(block: timerEventHandler))
     }
 
     internal func batchRetry() throws {
         let reportsToSend = try limitedReportsToSend()
-        BacktraceLogger.debug("Number of limited reports to send: \(reportsToSend.count)")
+        if !reportsToSend.isEmpty {
+            BacktraceLogger.debug("Resending reporting. Batch size: \(reportsToSend.count)")
+        }
         
         for reportToSend in reportsToSend {
             do {
@@ -49,7 +48,6 @@ where BacktraceRepository.Resource == BacktraceReport {
                 try repository.incrementRetryCount(reportToSend, limit: settings.retryLimit)
             }
         }
-        BacktraceLogger.debug("Finished (re)sending batch of reports")
     }
 
     deinit {
@@ -73,7 +71,6 @@ extension BacktraceWatcher {
         self.timer?.suspend()
         defer { self.timer?.resume() }
         do {
-            BacktraceLogger.debug("Retrying to send")
             try self.batchRetry()
         } catch {
             BacktraceLogger.error(error)
@@ -99,11 +96,11 @@ extension BacktraceWatcher {
     
     internal func limitedReportsToSend() throws -> [BacktraceRepository.Resource] {
         // prepare set of reports to send, considering limits
-        let reportsFromRepository = try crashReportsFromRepository(limit: batchSize)
+        
         let currentTimestamp = Date().timeIntervalSince1970
         let numberOfSendsInLastOneMinute = api.successfulSendTimestamps
             .filter { currentTimestamp - $0 < 60.0 }.count
         let maxReportsToSend = max(0, abs(reportsPerMin - numberOfSendsInLastOneMinute))
-        return Array(reportsFromRepository.prefix(maxReportsToSend))
+        return try crashReportsFromRepository(limit: maxReportsToSend)
     }
 }

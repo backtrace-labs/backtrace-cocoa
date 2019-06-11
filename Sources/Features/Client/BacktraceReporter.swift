@@ -83,4 +83,13 @@ extension BacktraceReporter {
                                                        attachmentPaths: attachmentPaths)
         return try send(resource: resource)
     }
+    
+    func generate(exception: NSException? = nil, attachmentPaths: [String] = [],
+                  faultMessage: String? = nil) throws -> BacktraceReport {
+        attributesProvider.set(faultMessage: faultMessage)
+        let resource = try reporter.generateLiveReport(exception: exception,
+                                                       attributes: attributesProvider.allAttributes,
+                                                       attachmentPaths: attachmentPaths)
+        return resource
+    }
 }

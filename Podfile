@@ -1,6 +1,5 @@
 def shared_pods
     pod 'Backtrace-PLCrashReporter'
-    pod 'SwiftLint'
 end
 
 def shared_test_pods

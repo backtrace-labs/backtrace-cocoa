@@ -19,7 +19,6 @@ extension CrashReporter: CrashReporting {
                     let signalInfo = signalInfoPointer?.pointee else {
                     return
                 }
-                BacktraceLogger.debug("Saving custom attributes:\n\(attributesProvider.description)")
                 attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
                 try? AttributesStorage.store(attributesProvider.allAttributes, fileName: CrashReporter.crashName)
         }
