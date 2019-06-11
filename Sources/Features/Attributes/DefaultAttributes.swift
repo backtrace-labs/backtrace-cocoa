@@ -96,6 +96,7 @@ struct Device: AttributesSource {
 struct ScreenInfo: AttributesSource {
     
     private enum Key: String {
+        case count = "screens.count"
         #if os(iOS) || os(tvOS)
         case scale = "screen.scale"
         case width = "screen.width"
@@ -104,9 +105,7 @@ struct ScreenInfo: AttributesSource {
         case nativeWidth = "screen.width.native"
         case nativeHeight = "screen.height.native"
         case brightness = "screen.brightness"
-        case count = "screens.count"
         #elseif os(macOS)
-        case count = "screens.count"
         case mainScreenWidth = "screen.main.width"
         case mainScreenHeight = "screen.main.height"
         case mainScreenScale = "screen.main.scale"
