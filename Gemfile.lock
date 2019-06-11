@@ -239,6 +239,7 @@ PLATFORMS
 DEPENDENCIES
   cocoapods (>= 1.7.1)
   fastlane
+  net-http-pipeline
   travis
 
 BUNDLED WITH
