@@ -108,11 +108,17 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
         
+        guard let resource = try? reporter.generate(exception: exception,
+                                                    attachmentPaths: attachmentPaths,
+                                                    faultMessage: faultMessage) else {
+            completion(BacktraceResult(.unknownError))
+            return
+        }
+        
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
-                completion(try self.reporter.send(exception: exception, attachmentPaths: attachmentPaths,
-                                                  faultMessage: faultMessage))
+                completion(try self.reporter.send(resource: resource))
             } catch {
                 BacktraceLogger.error(error)
                 completion(BacktraceResult(.unknownError))

@@ -1,10 +1,10 @@
 import Foundation
 import CoreBluetooth
 
-class BluetoothStatusListener: NSObject {
+final class BluetoothStatusListener: NSObject {
     
     private var bluetoothCentralManager: CBCentralManager
-    var currentState: String = "unknown"
+    private(set) var currentState: String = "unknown"
     
     override init() {
         let options = [CBCentralManagerOptionShowPowerAlertKey: 0] // magic bit!
@@ -27,5 +27,11 @@ extension BluetoothStatusListener: CBCentralManagerDelegate {
         case .unsupported: currentState = "unsupported"
         case .unknown: currentState = "unknown"
         }
+    }
+}
+
+extension BluetoothStatusListener: AttributesSource {
+    var mutable: [String: Any?] {
+        return ["bluetooth.state": currentState]
     }
 }
