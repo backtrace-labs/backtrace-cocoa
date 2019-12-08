@@ -3,7 +3,7 @@ import Foundation
 /// Typealias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing & BacktraceLogging
 
-/// Typealias of passing atributes to library. 
+/// Typealias of passing attributes to library.
 public typealias Attributes = [String: Any]
 
 /// Protocol describes report customizing functionality of `BacktraceClient`.
@@ -33,7 +33,7 @@ public typealias Attributes = [String: Any]
     /// The services response is returned in a completion block.
     ///
     /// - Parameters:
-    ///   - message: Custom message which will be sent alongsite report
+    ///   - message: Custom message which will be sent alongside report
     ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report
     ///   - completion: Backtrace services response.
     @objc func send(message: String,

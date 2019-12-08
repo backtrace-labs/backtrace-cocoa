@@ -6,7 +6,7 @@ import Foundation
     /// Max record count stored in database. `0` means "no limit". Default `0`.
     @objc public var maxRecordCount: Int = 0
     
-    /// Maximum database size in MB. If value is equal to zero, then size is unlimied. Default `0`.
+    /// Maximum database size in MB. If value is equal to zero, then size is unlimited. Default `0`.
     @objc public var maxDatabaseSize: Int = 0
     
     /// How much seconds library should wait before next retry. Default `5`.
