@@ -29,8 +29,7 @@ import Foundation
     /// - Parameter configuration: `BacktraceClient`s configuration
     /// - Throws: throws an error in cases of failure.
     @objc public convenience init(configuration: BacktraceClientConfiguration) throws {
-        let api = BacktraceApi(endpoint: configuration.credentials.endpoint,
-                               token: configuration.credentials.token,
+        let api = BacktraceApi(urlRequest: configuration.credentials.sendRequest,
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: CrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              reportsPerMin: configuration.reportsPerMin)

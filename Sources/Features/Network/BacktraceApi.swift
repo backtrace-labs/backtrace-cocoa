@@ -1,17 +1,17 @@
 import Foundation
 
 class BacktraceApi {
-    private let request: SendReportRequest
+    private let request: MultipartRequestType
     private let session: URLSession
     var successfulSendTimestamps: [TimeInterval] = []
     var reportsPerMin: Int
     weak var delegate: BacktraceClientDelegate?
     private let cacheInterval = 60.0
     
-    init(endpoint: URL, token: String, session: URLSession = URLSession(configuration: .ephemeral),
+    init(urlRequest: MultipartRequestType, session: URLSession = URLSession(configuration: .ephemeral),
          reportsPerMin: Int) {
         self.session = session
-        self.request = SendReportRequest(endpoint: endpoint, token: token)
+        self.request = urlRequest
         self.reportsPerMin = reportsPerMin
     }
 }
@@ -20,8 +20,8 @@ extension BacktraceApi: BacktraceApiProtocol {
     func send(_ report: BacktraceReport) throws -> BacktraceResult {
         // check if can send
         let currentTimestamp = Date().timeIntervalSince1970
-        let numberOfSendsInLastOneMinute = successfulSendTimestamps.filter { currentTimestamp - $0 < cacheInterval }.count
-        guard numberOfSendsInLastOneMinute < reportsPerMin else {
+        let sentCount = successfulSendTimestamps.filter { currentTimestamp - $0 < cacheInterval }.count
+        guard sentCount < reportsPerMin else {
             return BacktraceResult(.limitReached, report: report)
         }
         // modify before sending

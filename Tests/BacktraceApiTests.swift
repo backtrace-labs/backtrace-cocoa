@@ -4,15 +4,18 @@ import Nimble
 import Quick
 @testable import Backtrace
 
-final class BatraceApiTests: QuickSpec {
+final class BacktraceApiTests: QuickSpec {
     //swiftlint:disable function_body_length
     override func spec() {
         describe("Api") {
             context("has valid endpoint and token", closure: {
                 let endpoint = URL(string: "https://www.backtrace.io")!
                 let token = "token"
+                let backtraceCredentials = BacktraceCredentials(endpoint: endpoint, token: token)
                 let urlSession = URLSessionMock()
-                let api = BacktraceApi(endpoint: endpoint, token: token, session: urlSession, reportsPerMin: 3)
+                let api = BacktraceApi(urlRequest: backtraceCredentials.sendRequest,
+                                       session: urlSession,
+                                       reportsPerMin: 3)
                 
                 it("has no delegate attached", closure: {
                     expect(api.delegate).to(beNil())
