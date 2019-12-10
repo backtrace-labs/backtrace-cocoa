@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.name         = "Backtrace"
   s.version      = "1.5.2"
   s.summary      = "Backtrace's integration with iOS, macOS and tvOS"
-  s.description  = "Backtrace's integration with iOS and macOS for handling crashes"
+  s.description  = "Reliable crash and hang reporting for iOS, macOS and tvOS."
   s.homepage     = "https://backtrace.io/"
   s.license      = { :type => "MIT", :file => 'LICENSE' }
   s.author       = { "Backtrace I/O" => "info@backtrace.io" }
