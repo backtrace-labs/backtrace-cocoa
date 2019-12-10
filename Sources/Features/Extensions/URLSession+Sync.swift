@@ -1,7 +1,7 @@
 import Foundation
 
 extension URLSession {
-    typealias Response = (responseData: Data?, urlResponse: HTTPURLResponse?, reponseError: Error?)
+    typealias Response = (responseData: Data?, urlResponse: HTTPURLResponse?, responseError: Error?)
     
     func sync(_ urlRequest: URLRequest) -> Response {
         let semaphore = DispatchSemaphore(value: 0)

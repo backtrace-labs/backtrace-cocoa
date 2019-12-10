@@ -14,7 +14,7 @@ import Foundation
     /// Number of records sent in 1 minute. Default `3`.
     @objc public var reportsPerMin: Int = 3
     
-    /// Flag indicating if the Backtrace client should raport reports when the debugger is attached. Default `false`.
+    /// Flag indicating if the Backtrace client should report reports when the debugger is attached. Default `false`.
     @objc public var allowsAttachingDebugger: Bool = false
     
     /// Produces Backtrace client configuration settings.

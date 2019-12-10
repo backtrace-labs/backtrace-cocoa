@@ -23,8 +23,7 @@ final class AttributesProvider {
     
     init() {
         faultInfo = FaultInfo()
-        attributesSources = [BluetoothStatusListener(),
-                             ProcessorInfo(),
+        attributesSources = [ProcessorInfo(),
                              Device(),
                              ScreenInfo(),
                              LocaleInfo(),

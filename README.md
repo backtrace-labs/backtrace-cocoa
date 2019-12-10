@@ -132,11 +132,28 @@ Initializing Backtrace client requires registration to Backtrace services. You c
 
 - Swift
 ```swift
-BacktraceClient.shared = try? BacktraceClient(credentials: BacktraceCredentials)
+let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!, token: "token")
+BacktraceClient.shared = try? BacktraceClient(credentials: backtraceCredentials)
 ```
+
 - Objective-C
 ```objective-c
-BacktraceClient.shared = [[BacktraceClient alloc] initWithCredentials: BacktraceCredentials error: error];
+BacktraceCredentials *backtraceCredentials = [[BacktraceCredentials alloc]
+                                             initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
+                                             token: @"token"];
+BacktraceClient.shared = [[BacktraceClient alloc] initWithCredentials: backtraceCredentials error: error];
+```
+
+Additionally, the `BacktraceCredentials` object can be initialized using provided URL containing `universe` and `token`:
+
+- Swift
+```swift
+let backtraceCredentials = BacktraceCredentials(submissionUrl: URL(string: "https://submit.backtrace.io/{universe}/{token}/plcrash")!)
+```
+
+- Objective-C
+```objective-c
+BacktraceCredentials *backtraceCredentials = [[BacktraceCredentials alloc] initWithSubmissionUrl: [NSURL URLWithString: @"https://submit.backtrace.io/{universe}/{token}/plcrash"]];
 ```
 
 ## Configure Backtrace client <a name="documentation-client-configuration"></a>
