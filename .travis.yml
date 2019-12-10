@@ -1,6 +1,8 @@
 language: swift
 os: osx
 osx_image: xcode10.2
+rvm:
+  - 2.6
 before_install:
   - bundle update
   - bundle exec pod repo update
