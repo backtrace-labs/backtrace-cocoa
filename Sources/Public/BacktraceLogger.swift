@@ -2,15 +2,15 @@ import Foundation
 
 /// Logging levels.
 @objc public enum BacktraceLogLevel: Int {
-    /// All logs logged to the desination.
+    /// All logs logged to the destination.
     case debug
-    /// Warnings, info and errors logged to the desination.
+    /// Warnings, info and errors logged to the destination.
     case warning
-    /// Info and errors logged to the desination.
+    /// Info and errors logged to the destination.
     case info
-    /// Only errors logged to the desination.
+    /// Only errors logged to the destination.
     case error
-    /// No logs logged to the desination.
+    /// No logs logged to the destination.
     case none
 
     fileprivate func desc() -> String {
@@ -32,9 +32,9 @@ import Foundation
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
     
-    /// Set of logging destinations. Defaultly, only Xcode console. Use `setDestinations(destinations:)` to replace
-    /// destiantions.
-    static var destinations: Set<BacktraceBaseDestination> = [BacktraceFencyConsoleDestination(level: .none)]
+    /// Set of logging destinations. By default, only Xcode console. Use `setDestinations(destinations:)` to replace
+    /// destinations.
+    static var destinations: Set<BacktraceBaseDestination> = [BacktraceFancyConsoleDestination(level: .none)]
 
     /// Replaces the logging destinations.
     ///
@@ -101,7 +101,7 @@ import Foundation
 }
 
 /// Provides the default console destination for logging.
-@objc final public class BacktraceFencyConsoleDestination: BacktraceBaseDestination {
+@objc final public class BacktraceFancyConsoleDestination: BacktraceBaseDestination {
 
     /// Used date formatter for logging.
     @objc public static var dateFormatter: DateFormatter {
@@ -122,7 +122,7 @@ import Foundation
     ///   - function: the name of the declaration in which it appears
     ///   - line: the line number on which it appears
     override public func log(level: BacktraceLogLevel, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
-        print("\(BacktraceFencyConsoleDestination.dateFormatter.string(from: Date())) [\(level.desc()) Backtrace] [\(URL(fileURLWithPath: file).lastPathComponent)]:\(line) \(function) -> \(msg)")
+        print("\(BacktraceFancyConsoleDestination.dateFormatter.string(from: Date())) [\(level.desc()) Backtrace] [\(URL(fileURLWithPath: file).lastPathComponent)]:\(line) \(function) -> \(msg)")
     }
     //swiftlint:enable line_length
 }

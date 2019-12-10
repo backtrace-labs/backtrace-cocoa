@@ -16,11 +16,6 @@ final class BacktraceClientTests: QuickSpec {
                 let token = "token"
                 let credentials = BacktraceCredentials(endpoint: endpoint, token: token)
                 
-                it("has all valid credentials", closure: {
-                    expect(credentials.endpoint).to(be(endpoint))
-                    expect(credentials.token).to(be(token))
-                })
-                
                 it("has default database settings", closure: {
                     let defaultDbSettings = BacktraceDatabaseSettings()
                     expect(defaultDbSettings.maxDatabaseSize).to(be(0))
