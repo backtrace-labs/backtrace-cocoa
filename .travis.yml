@@ -4,6 +4,7 @@ osx_image: xcode10.2
 rvm:
   - 2.6
 before_install:
+  - bundler update --bundler
   - bundle update
   - bundle exec pod repo update
   - bundle exec pod update
