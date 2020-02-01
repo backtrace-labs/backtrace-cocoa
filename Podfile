@@ -41,23 +41,27 @@ target 'Backtrace-tvOS' do
     end
 end
 
+def local_backtrace
+    pod 'Backtrace', :podspec => "./Backtrace.podspec"
+end
+
 #Examples
 target 'Example-iOS' do
     use_frameworks!
-    shared_pods
+    local_backtrace
 end
 
 target 'Example-iOS-ObjC' do
     use_frameworks!
-    shared_pods
+    local_backtrace
 end
 
 target 'Example-macOS-ObjC' do
     use_frameworks!
-    shared_pods
+    local_backtrace
 end
 
 target 'Example-tvOS' do
     use_frameworks!
-    shared_pods
+    local_backtrace
 end

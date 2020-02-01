@@ -115,7 +115,7 @@ extension PersistentRepository: Repository {
         try delete(managedObjects: fetchRequestResults)
     }
     
-    /// Convencience method for deleting reports. Only this method should be used for deleting objects from
+    /// Convenience method for deleting reports. Only this method should be used for deleting objects from
     /// database context.
     ///
     /// - Parameter managedObjects: Managed objects to delete
@@ -203,8 +203,8 @@ extension PersistentRepository: Repository {
     }
     
     func countResources() throws -> Int {
-        let resourcesCountRequet = NSFetchRequest<Resource.ManagedObjectType>(entityName: Resource.entityName)
-        return try backgroundContext.count(for: resourcesCountRequet)
+        let resourcesCountRequest = NSFetchRequest<Resource.ManagedObjectType>(entityName: Resource.entityName)
+        return try backgroundContext.count(for: resourcesCountRequest)
     }
     
     private func getResources(sortDescriptors: [NSSortDescriptor]? = nil,
