@@ -3,9 +3,9 @@ os: osx
 osx_image: xcode11.2
 before_install:
   - bundler install
-  - bundle update
+  - bundle install
   - bundle exec pod repo update
-  - bundle exec pod update
+  - bundle exec pod install
 script:
   - bundle exec fastlane ios tests
   - bundle exec fastlane mac tests
