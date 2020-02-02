@@ -11,8 +11,7 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
-    initWithEndpoint: [NSURL URLWithString: Keys.backtraceUrl]
-    token: [Keys backtraceToken]];
+                                         initWithSubmissionUrl: [NSURL URLWithString: Keys.backtraceSubmissionUrl]];
     BacktraceDatabaseSettings *backtraceDatabaseSettings = [[BacktraceDatabaseSettings alloc] init];
     backtraceDatabaseSettings.maxRecordCount = 1000;
     backtraceDatabaseSettings.maxDatabaseSize = 10;
@@ -29,7 +28,7 @@
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     [BacktraceClient.shared setAttributes: @{@"foo": @"bar"}];
     BacktraceClient.shared.delegate = self;
-
+    
     @try {
         NSArray *array = @[];
         (void)array[1]; //will throw exception
@@ -39,7 +38,7 @@
             NSLog(@"%@", result);
         }];
     } @finally {
-
+        
     }
 }
 
