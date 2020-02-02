@@ -1090,6 +1090,7 @@
 				F2A11BF522553C2800354640 /* Resources */,
 				28C74A2F226FBD7700CE713A /* Embed Frameworks */,
 				2ECD509340D418F5D7E95004 /* [CP] Embed Pods Frameworks */,
+				F254691C23E71BCD0063E4B9 /* Upload dSYMs */,
 			);
 			buildRules = (
 			);
@@ -1150,6 +1151,7 @@
 				F2D8BE0221BC065E007CFEFA /* Resources */,
 				F2D7122821F11303002D2A26 /* Embed Frameworks */,
 				C1B19A8E0FBBDAD9FBD9C84A /* [CP] Embed Pods Frameworks */,
+				F254691823E70F9F0063E4B9 /* Upload dSYMs */,
 			);
 			buildRules = (
 			);
@@ -1170,6 +1172,7 @@
 				F2D8BE1D21BC5F97007CFEFA /* Resources */,
 				F2D7122B21F115CD002D2A26 /* Embed Frameworks */,
 				DF73E5B9B591549316E2EB57 /* [CP] Embed Pods Frameworks */,
+				F254691A23E71BB30063E4B9 /* Upload dSYMs */,
 			);
 			buildRules = (
 			);
@@ -1190,6 +1193,7 @@
 				F2D8BE4021BDA7CF007CFEFA /* Resources */,
 				F289085621C532D9002B813E /* Embed Frameworks */,
 				E6BB1D5C16A881A8A9B01BBD /* [CP] Embed Pods Frameworks */,
+				F254691B23E71BC20063E4B9 /* Upload dSYMs */,
 			);
 			buildRules = (
 			);
@@ -1700,6 +1704,78 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		F254691823E70F9F0063E4B9 /* Upload dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Upload dSYMs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PROJECT_DIR}/scripts/upload_dsyms.sh\"\n";
+		};
+		F254691A23E71BB30063E4B9 /* Upload dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Upload dSYMs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PROJECT_DIR}/scripts/upload_dsyms.sh\"\n";
+		};
+		F254691B23E71BC20063E4B9 /* Upload dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Upload dSYMs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PROJECT_DIR}/scripts/upload_dsyms.sh\"\n";
+		};
+		F254691C23E71BCD0063E4B9 /* Upload dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Upload dSYMs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PROJECT_DIR}/scripts/upload_dsyms.sh\"\n";
 		};
 		F2F0628C22B0453C00BCA6D0 /* Lint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -3277,7 +3353,7 @@
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common/Examples-Bridging-Header";
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common/Examples-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -3349,7 +3425,7 @@
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common/Examples-Bridging-Header";
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common/Examples-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
