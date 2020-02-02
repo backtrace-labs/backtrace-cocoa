@@ -21,7 +21,7 @@ final class BacktraceWatcherTests: QuickSpec {
                     }.notTo(throwError())
                 }
                 
-                throwingIt("then pass prameters properly") {
+                throwingIt("then pass parameters properly") {
                     let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
                                                        repository: repository)
                     expect(watcher.settings).to(be(dbSettings))
@@ -56,12 +56,12 @@ final class BacktraceWatcherTests: QuickSpec {
                 }
             }
             
-            describe("retrive crashes from repository") {
+            describe("retrieve crashes from repository") {
                 throwingBeforeEach {
                     try repository.clear()
                 }
                 
-                context("when retrive") {
+                context("when retrieve") {
                     throwingIt("then not throw error") {
                         let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
                                                            repository: repository)
@@ -71,7 +71,7 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
                 
-                context("when retrive in queue order") {
+                context("when retrieve in queue order") {
                     throwingIt("then get oldest") {
                         dbSettings.retryOrder = .queue
                         let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
@@ -90,7 +90,7 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
                 
-                context("when retrive in stack order ") {
+                context("when retrieve in stack order ") {
                     throwingIt("then get latest") {
                         dbSettings.retryOrder = .stack
                         let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,

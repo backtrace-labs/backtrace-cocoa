@@ -32,7 +32,7 @@
 
     @try {
         NSArray *array = @[];
-        NSObject *object = array[1]; //will throw exception
+        (void)array[1]; //will throw exception
     } @catch (NSException *exception) {
         NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
         [[BacktraceClient shared] sendWithAttachmentPaths: paths completion: ^(BacktraceResult * _Nonnull result) {

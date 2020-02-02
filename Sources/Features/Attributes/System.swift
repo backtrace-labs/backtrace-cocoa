@@ -4,14 +4,14 @@ struct Statistics {
     private static func taskInfo<T>(_ taskInfoType: inout T, _ taskFlavor: Int32) throws {
         var count = mach_msg_type_number_t(MemoryLayout<T>.stride / MemoryLayout<natural_t>.stride)
         
-        let kerr: kern_return_t = withUnsafeMutablePointer(to: &taskInfoType) { (pointer) -> kern_return_t in
+        let kern: kern_return_t = withUnsafeMutablePointer(to: &taskInfoType) { (pointer) -> kern_return_t in
             task_info(mach_task_self_,
                       task_flavor_t(taskFlavor),
                       pointer.withMemoryRebound(to: Int32.self, capacity: 1) { task_info_t($0) },
                       &count)
         }
-        guard kerr == KERN_SUCCESS else {
-            throw KernError.code(kerr)
+        guard kern == KERN_SUCCESS else {
+            throw KernError.code(kern)
         }
     }
     
@@ -34,8 +34,8 @@ struct Statistics {
     }
     
     static func processorSetLoadInfo() throws -> processor_set_load_info {
-        var pset = processor_set_name_t()
-        var result = processor_set_default(mach_host_self(), &pset)
+        var processorSetName = processor_set_name_t()
+        var result = processor_set_default(mach_host_self(), &processorSetName)
         guard result == KERN_SUCCESS else {
             throw KernError.code(result)
         }
@@ -43,7 +43,7 @@ struct Statistics {
         var processorSetLoadInfo = processor_set_load_info()
         result = withUnsafeMutablePointer(to: &processorSetLoadInfo) {
             $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-                processor_set_statistics(pset, PROCESSOR_SET_LOAD_INFO, $0, &count)
+                processor_set_statistics(processorSetName, PROCESSOR_SET_LOAD_INFO, $0, &count)
             }
         }
         guard result == KERN_SUCCESS else {

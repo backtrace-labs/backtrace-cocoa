@@ -1,5 +1,8 @@
+# Library
+
+# Definitions
 def shared_pods
-    pod 'Backtrace-PLCrashReporter', :git => "https://github.com/backtrace-labs/plcrashreporter.git", :branch => "feature/merge-microsoft-changes"
+    pod 'Backtrace-PLCrashReporter'
 end
 
 def shared_test_pods
@@ -10,7 +13,7 @@ end
 
 inhibit_all_warnings!
 
-# Framework iOS
+## Framework iOS
 target 'Backtrace-iOS' do
     use_frameworks!
     shared_pods
@@ -21,7 +24,7 @@ target 'Backtrace-iOS' do
     end
 end
 
-# Framework macOS
+## Framework macOS
 target 'Backtrace-macOS' do
     use_frameworks!
     shared_pods
@@ -31,7 +34,7 @@ target 'Backtrace-macOS' do
     end
 end
 
-# Framework tvOS
+## Framework tvOS
 target 'Backtrace-tvOS' do
     use_frameworks!
     shared_pods
@@ -41,11 +44,14 @@ target 'Backtrace-tvOS' do
     end
 end
 
+# Examples
+
+## Definitions
 def local_backtrace
     pod 'Backtrace', :path => "./Backtrace.podspec"
 end
 
-#Examples
+## Example targets
 target 'Example-iOS' do
     use_frameworks!
     local_backtrace
@@ -66,6 +72,7 @@ target 'Example-tvOS' do
     local_backtrace
 end
 
+# Post install configuration
 post_install do |installer|
     installer.pods_project.targets.each do |target|
         target.build_configurations.each do |config|

@@ -30,7 +30,7 @@ extension CrashReporter: CrashReporting {
                             attributes: Attributes,
                             attachmentPaths: [String] = []) throws -> BacktraceReport {
         
-        let reportData = try reporter.generateLiveReportAndReturnError()
+        let reportData = try reporter.generateLiveReport(with: exception)
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
 

@@ -7,26 +7,19 @@ PODS:
 
 DEPENDENCIES:
   - Backtrace (from `./Backtrace.podspec`)
-  - Backtrace-PLCrashReporter (from `https://github.com/backtrace-labs/plcrashreporter.git`, branch `feature/merge-microsoft-changes`)
+  - Backtrace-PLCrashReporter
   - Nimble
   - Quick
 
 SPEC REPOS:
   trunk:
+    - Backtrace-PLCrashReporter
     - Nimble
     - Quick
 
 EXTERNAL SOURCES:
   Backtrace:
     :path: "./Backtrace.podspec"
-  Backtrace-PLCrashReporter:
-    :branch: feature/merge-microsoft-changes
-    :git: https://github.com/backtrace-labs/plcrashreporter.git
-
-CHECKOUT OPTIONS:
-  Backtrace-PLCrashReporter:
-    :commit: 3925e34e2d8cdbe57a530beedbf9dfc1e8b35fa8
-    :git: https://github.com/backtrace-labs/plcrashreporter.git
 
 SPEC CHECKSUMS:
   Backtrace: 0deab52bfe1437654bbb311864bfb6bada608581
@@ -34,6 +27,6 @@ SPEC CHECKSUMS:
   Nimble: 4ab1aeb9b45553c75b9687196b0fa0713170a332
   Quick: 7fb19e13be07b5dfb3b90d4f9824c855a11af40e
 
-PODFILE CHECKSUM: 410d75eb591272bf06f2d34249dd60e11c608068
+PODFILE CHECKSUM: 62d8c592f7a14dbdbf06ce7cbf47810c1a25075e
 
 COCOAPODS: 1.8.4

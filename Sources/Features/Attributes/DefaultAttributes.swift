@@ -13,7 +13,7 @@ struct ProcessorInfo: AttributesSource {
     
     var mutable: [String: Any?] {
         let processor = try? Processor()
-        let processinfo = ProcessInfo.processInfo
+        let processInfo = ProcessInfo.processInfo
         let systemVmMemory = try? MemoryInfo.System()
         let systemSwapMemory = try? MemoryInfo.Swap()
         let processVmMemory = try? MemoryInfo.Process()
@@ -27,8 +27,8 @@ struct ProcessorInfo: AttributesSource {
             "cpu.process.count": processor?.processorSetLoadInfo.task_count,
             "cpu.thread.count": processor?.processorSetLoadInfo.thread_count,
             "cpu.uptime": try? System.uptime(),
-            "cpu.count": processinfo.processorCount,
-            "cpu.count.active": processinfo.activeProcessorCount,
+            "cpu.count": processInfo.processorCount,
+            "cpu.count.active": processInfo.activeProcessorCount,
             "cpu.context": processor?.taskEventsInfo.csw,
             // process
             "process.thread.count": try? ProcessInfo.numberOfThreads(),

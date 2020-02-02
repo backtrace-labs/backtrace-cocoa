@@ -1,6 +1,6 @@
 import Foundation
 
-class AttributesStorage {
+final class AttributesStorage {
     struct Config {
         let cacheUrl: URL
         let directoryUrl: URL
