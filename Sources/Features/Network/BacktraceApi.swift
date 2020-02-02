@@ -31,7 +31,7 @@ extension BacktraceApi: BacktraceApiProtocol {
         let urlRequest = try request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData,
                                                          attributes: modifiedBeforeSendingReport.attributes,
                                                          attachments: attachments)
-        BacktraceLogger.debug("Sending crash report:\n\(urlRequest.debugDescription)")
+        BacktraceLogger.debug("Sending crash report:\n\(urlRequest)")
         // send report
         let response = session.sync(urlRequest)
         // check network error
@@ -43,16 +43,15 @@ extension BacktraceApi: BacktraceApiProtocol {
             throw HttpError.unknownError
         }
         // check result
+        BacktraceLogger.debug("HTTP response: \n\(httpResponse)\n\(String(describing: String(bytes: responseData, encoding: .utf8)))")
         let result = try BacktraceHttpResponseDeserializer(httpResponse: httpResponse, responseData: responseData)
             .result
         switch result {
         case .error(let error):
-            BacktraceLogger.debug("Response: \n\(error)")
             delegate?.serverDidResponse?(error.result(report: modifiedBeforeSendingReport))
             return error.result(report: modifiedBeforeSendingReport)
         case .success(let response):
             // did send successfully
-            BacktraceLogger.debug("Response: \n\(response)")
             successfulSendTimestamps.append(Date().timeIntervalSince1970)
             delegate?.serverDidResponse?(response.result(report: modifiedBeforeSendingReport))
             return response.result(report: modifiedBeforeSendingReport)

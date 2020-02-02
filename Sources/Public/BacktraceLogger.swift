@@ -113,7 +113,7 @@ import Foundation
     }
 
     //swiftlint:disable line_length
-    /// Logs the event to console destination. Formats log in custom, fency way.
+    /// Logs the event to console destination. Formats log in custom, fancy way.
     ///
     /// - Parameters:
     ///   - level: logging level

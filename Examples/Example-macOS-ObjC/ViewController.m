@@ -16,7 +16,7 @@
 }
 - (IBAction)crashAction:(id)sender {
     NSArray *array = @[];
-    NSObject *o = array[1];
+    (void)array[1];
 }
 
 - (IBAction)liveReportAction:(id)sender {
@@ -25,7 +25,7 @@
 
 - (IBAction)liveReportButtonAction:(id)sender {
     NSArray *array = @[];
-    NSObject *o = array[1];
+    (void)array[1];
 }
 
 - (void)setRepresentedObject:(id)representedObject {

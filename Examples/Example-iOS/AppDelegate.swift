@@ -16,8 +16,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://sp.backtrace.io")!,
-                                                        token: "token")
+        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
+                                                        token: Keys.backtraceToken as String)
         let backtraceDatabaseSettings = BacktraceDatabaseSettings()
         backtraceDatabaseSettings.maxRecordCount = 1000
         backtraceDatabaseSettings.maxDatabaseSize = 10
@@ -29,7 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
                                                                   allowsAttachingDebugger: true)
-
+        
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
@@ -52,20 +52,20 @@ extension AppDelegate: BacktraceClientDelegate {
         report.attributes["added"] = "just before send"
         return report
     }
-
+    
     func willSendRequest(_ request: URLRequest) -> URLRequest {
         return request
     }
-
+    
     func serverDidFail(_ error: Error) {
-
+        
     }
-
+    
     func serverDidResponse(_ result: BacktraceResult) {
-
+        
     }
-
+    
     func didReachLimit(_ result: BacktraceResult) {
-
+        
     }
 }
