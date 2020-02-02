@@ -43,7 +43,7 @@ extension BacktraceApi: BacktraceApiProtocol {
             throw HttpError.unknownError
         }
         // check result
-        BacktraceLogger.debug("HTTP response: \n\(httpResponse)\n\(String(bytes: responseData, encoding: .utf8))")
+        BacktraceLogger.debug("HTTP response: \n\(httpResponse)\n\(String(describing: String(bytes: responseData, encoding: .utf8)))")
         let result = try BacktraceHttpResponseDeserializer(httpResponse: httpResponse, responseData: responseData)
             .result
         switch result {

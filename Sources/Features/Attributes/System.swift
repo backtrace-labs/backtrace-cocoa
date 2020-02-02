@@ -103,11 +103,11 @@ struct SystemControl {
         guard size != 0 else { throw KernError.unexpected }
         
         let data = [Int8](repeating: 0, count: size)
-        data.withUnsafeBufferPointer { (buffer) -> Int32 in
+        result = data.withUnsafeBufferPointer { (buffer) -> Int32 in
             sysctl(&mib, u_int(mib.count), UnsafeMutableRawPointer(mutating: buffer.baseAddress), &size, nil, 0)
         }
         guard result == KERN_SUCCESS else { throw KernError.code(result) }
-        return try data
+        return data
     }
     
     static func string(mib: [Int32]) throws -> String {
