@@ -1,4 +1,6 @@
 #import "AppDelegate.h"
+#import "Keys.h"
+
 @import Backtrace;
 
 @interface AppDelegate () <BacktraceClientDelegate>
@@ -7,11 +9,10 @@
 
 @implementation AppDelegate
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
-                                         initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
-                                         token: @"token"];
+                                         initWithEndpoint: [NSURL URLWithString: Keys.backtraceUrl]
+                                         token: [Keys backtraceToken]];
     BacktraceDatabaseSettings *backtraceDatabaseSettings = [[BacktraceDatabaseSettings alloc] init];
     backtraceDatabaseSettings.maxRecordCount = 1000;
     backtraceDatabaseSettings.maxDatabaseSize = 10;
@@ -26,12 +27,12 @@
                                                    reportsPerMin: 3
                                                    allowsAttachingDebugger: TRUE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
-    [BacktraceClient.shared setAttributes: @{@"foo": @"bar"}];
     BacktraceClient.shared.delegate = self;
 
+    // sending NSException
     @try {
         NSArray *array = @[];
-        NSObject *object = array[1]; //will throw exception
+        NSObject *object = array[1]; // will throw exception
     } @catch (NSException *exception) {
         NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
         [[BacktraceClient shared] sendWithAttachmentPaths: paths completion: ^(BacktraceResult * _Nonnull result) {
@@ -40,11 +41,15 @@
     } @finally {
 
     }
-}
 
+    //sending NSError
+    NSError *error = [NSError errorWithDomain: @"backtrace.domain" code: 100 userInfo: @{}];
+    NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
+    [[BacktraceClient shared] sendWithAttachmentPaths: paths completion: ^(BacktraceResult * _Nonnull result) {
+        NSLog(@"%@", result);
+    }];
 
-- (void)applicationWillTerminate:(NSNotification *)aNotification {
-    // Insert code here to tear down your application
+    return YES;
 }
 
 #pragma mark - BacktraceClientDelegate

@@ -1,3 +1,0 @@
-test from iOS simulator
-test Example-iOS-ObjC
-backtrace sample text file

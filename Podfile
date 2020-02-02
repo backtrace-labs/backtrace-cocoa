@@ -1,5 +1,5 @@
 def shared_pods
-    pod 'Backtrace-PLCrashReporter'
+    pod 'Backtrace-PLCrashReporter', :git => "https://github.com/backtrace-labs/plcrashreporter.git", :branch => "feature/merge-microsoft-changes"
 end
 
 def shared_test_pods
@@ -42,7 +42,7 @@ target 'Backtrace-tvOS' do
 end
 
 def local_backtrace
-    pod 'Backtrace', :podspec => "./Backtrace.podspec"
+    pod 'Backtrace', :path => "./Backtrace.podspec"
 end
 
 #Examples
@@ -65,3 +65,11 @@ target 'Example-tvOS' do
     use_frameworks!
     local_backtrace
 end
+
+post_install do |installer|
+    installer.pods_project.targets.each do |target|
+        target.build_configurations.each do |config|
+            config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+        end
+    end
+  end
