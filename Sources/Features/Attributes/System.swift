@@ -1,6 +1,7 @@
 import Foundation
 
 struct Statistics {
+    
     private static func taskInfo<T>(_ taskInfoType: inout T, _ taskFlavor: Int32) throws {
         var count = mach_msg_type_number_t(MemoryLayout<T>.stride / MemoryLayout<natural_t>.stride)
         
@@ -67,16 +68,6 @@ struct Statistics {
         return info
     }
     
-    static func systemControl<T>(mib: [Int32], returnType: inout T) throws {
-        var mibInout: [Int32] = mib
-        var size = MemoryLayout<T>.stride
-        
-        let result = sysctl(&mibInout, u_int(mibInout.count), &returnType, &size, nil, 0)
-        guard result == KERN_SUCCESS else {
-            throw KernError.code(result)
-        }
-    }
-    
     static func vmStatistics64() throws -> vm_statistics64 {
         var vmStatInfo = vm_statistics64()
         var size: mach_msg_type_number_t =
@@ -98,7 +89,46 @@ struct Statistics {
     }
 }
 
+struct SystemControl {
+    
+    static func bytes(mib: [Int32]) throws -> [Int8] {
+        var mib: [Int32] = mib
+        var size: Int = 0
+        var result: Int32 = 0
+        
+        // Get correct size
+        result = sysctl(&mib, u_int(mib.count), nil, &size, nil, 0)
+        
+        guard result == KERN_SUCCESS else { throw KernError.code(result) }
+        guard size != 0 else { throw KernError.unexpected }
+        
+        let data = [Int8](repeating: 0, count: size)
+        data.withUnsafeBufferPointer { (buffer) -> Int32 in
+            sysctl(&mib, u_int(mib.count), UnsafeMutableRawPointer(mutating: buffer.baseAddress), &size, nil, 0)
+        }
+        guard result == KERN_SUCCESS else { throw KernError.code(result) }
+        return try data
+    }
+    
+    static func string(mib: [Int32]) throws -> String {
+        guard let string = try bytes(mib: mib).withUnsafeBufferPointer({ dataPointer -> String? in
+            dataPointer.baseAddress.flatMap { String(validatingUTF8: $0) }
+        }) else {
+            throw CodingError.encodingFailed
+        }
+        return string
+    }
+    
+    static func value<T>(mib: [Int32]) throws -> T {
+        return try bytes(mib: mib).withUnsafeBufferPointer({ (buffer) throws -> T in
+            guard let baseAddress = buffer.baseAddress else { throw KernError.unexpected }
+            return baseAddress.withMemoryRebound(to: T.self, capacity: 1, { $0.pointee })
+        })
+    }
+}
+
 struct MemoryInfo {
+    
     struct System {
         let active: UInt64
         let free: UInt64
@@ -147,8 +177,7 @@ struct MemoryInfo {
         let free: UInt64
         
         init() throws {
-            var usage = xsw_usage()
-            try Statistics.systemControl(mib: [CTL_VM, VM_SWAPUSAGE], returnType: &usage)
+            let usage: xsw_usage = try SystemControl.value(mib: [CTL_VM, VM_SWAPUSAGE])
             self.total = Statistics.toKb(UInt64(usage.xsu_total))
             self.free = Statistics.toKb(UInt64(usage.xsu_avail))
             self.used = Statistics.toKb(UInt64(usage.xsu_used))
@@ -157,9 +186,9 @@ struct MemoryInfo {
 }
 
 extension ProcessInfo {
+    
     static func startTime() throws -> Int {
-        var kinfo: kinfo_proc = kinfo_proc()
-        try Statistics.systemControl(mib: [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()], returnType: &kinfo)
+        let kinfo: kinfo_proc = try SystemControl.value(mib: [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()])
         
         return kinfo.kp_proc.p_starttime.tv_sec
     }
@@ -196,8 +225,7 @@ extension ProcessInfo {
 struct System {
     
     static func boottime() throws -> time_t {
-        var bootTime: timeval = timeval()
-        try Statistics.systemControl(mib: [CTL_KERN, KERN_BOOTTIME], returnType: &bootTime)
+        let bootTime: timeval = try SystemControl.value(mib: [CTL_KERN, KERN_BOOTTIME])
         return bootTime.tv_sec
     }
     
@@ -212,15 +240,11 @@ struct System {
     }
     
     static func machine() throws -> String {
-        var machine = String()
-        try Statistics.systemControl(mib: [CTL_HW, HW_MACHINE], returnType: &machine)
-        return machine
+        return try SystemControl.string(mib: [CTL_HW, HW_MACHINE])
     }
     
     static func model() throws -> String {
-        var model = String()
-        try Statistics.systemControl(mib: [CTL_HW, HW_MODEL], returnType: &model)
-        return model
+        return try SystemControl.string(mib: [CTL_HW, HW_MODEL])
     }
 }
 
@@ -269,5 +293,14 @@ extension Processor {
                       idle: UInt(cpu_tick.2),
                       nice: UInt(cpu_tick.3))
         }
+    }
+}
+
+extension Array where Element == Int8 {
+    func stringValue() throws -> String {
+        guard let string = String(validatingUTF8: self) else {
+            throw CodingError.encodingFailed
+        }
+        return string
     }
 }

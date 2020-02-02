@@ -237,7 +237,7 @@ private extension UIDevice.BatteryState {
         case .charging: return "Charging"
         case .full: return "Full"
         case .unknown: return "Unknown"
-        case .unplugged: return "Unplagged"
+        case .unplugged: return "Unplugged"
         }
     }
 }
