@@ -9,4 +9,3 @@ before_install:
 script:
   - bundle exec fastlane ios tests
   - bundle exec fastlane mac tests
-  - bundle exec fastlane tvos tests
