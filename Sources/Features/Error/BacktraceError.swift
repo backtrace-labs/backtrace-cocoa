@@ -31,3 +31,8 @@ enum FileError: BacktraceError {
     case fileNotWritten
     case invalidPropertyList
 }
+
+enum CodingError: BacktraceError {
+    case decodingFailed
+    case encodingFailed
+}

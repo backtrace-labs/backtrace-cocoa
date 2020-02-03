@@ -12,7 +12,7 @@ final class AttachmentTests: QuickSpec {
                 expect(Attachment(filePath: "")).to(beNil())
             })
             
-            it("can be created from exisiting file", closure: {
+            it("can be created from existing file", closure: {
                 let bundle = Bundle(for: type(of: self))
                 let path = bundle.path(forResource: "test", ofType: "txt")
                 if let path = path {

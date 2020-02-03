@@ -43,7 +43,8 @@ lane :common_tests do |options|
     scheme: options[:scheme],
     clean: true,
     code_coverage: true,
-    open_report: true
+    open_report: true,
+    disable_slide_to_type: false
   )
 end
 
