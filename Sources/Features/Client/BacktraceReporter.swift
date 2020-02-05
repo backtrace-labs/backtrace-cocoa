@@ -64,16 +64,11 @@ extension BacktraceReporter: BacktraceClientCustomizing {
 
 extension BacktraceReporter {
     func send(resource: BacktraceReport) throws -> BacktraceResult {
-        do {
-            let result = try api.send(resource)
-            if result.backtraceStatus != .ok, let report = result.report {
-                try repository.save(report)
-            }
-            return result
-        } catch let error as BacktraceErrorResponse {
-            try repository.save(resource)
-            throw error
+        let result = try api.send(resource)
+        if result.backtraceStatus != .ok, let report = result.report {
+            try repository.save(report)
         }
+        return result
     }
     
     func send(exception: NSException? = nil, attachmentPaths: [String] = [],

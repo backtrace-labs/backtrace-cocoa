@@ -1,46 +1,23 @@
 import Foundation
 
-struct BacktraceHttpResponseDeserializer {
-    let result: Result<BacktraceResponse, BacktraceErrorResponse>
+struct BacktraceHttpResponse: CustomStringConvertible {
+    let isSuccess: Bool
+    let description: String
     
-    init(httpResponse: HTTPURLResponse, responseData: Data) throws {
-        if httpResponse.isSuccess {
-            self.result = .success(try JSONDecoder().decode(BacktraceResponse.self, from: responseData))
-        } else {
-            self.result = .error(try BacktraceErrorResponse(data: responseData))
-        }
+    init(httpResponse: HTTPURLResponse, responseData: Data) {
+        self.isSuccess = httpResponse.isSuccess
+        let responseBody: Any =
+            (try? JSONSerialization.jsonObject(with: responseData, options: [.fragmentsAllowed])) ?? ""
+        self.description = """
+        \(httpResponse)
+        \(responseBody)
+        """
     }
 }
 
-struct BacktraceResponse: Codable {
-    let response, rxid: String
-    let fingerprint: String?
-    let unique: Bool?
-    
-    private enum CodingKeys: String, CodingKey {
-        case response
-        case rxid = "_rxid"
-        case fingerprint, unique
-    }
-}
-
-extension BacktraceResponse {
+extension BacktraceHttpResponse {
     func result(report: BacktraceReport) -> BacktraceResult {
-        return BacktraceResult(.ok, report: report)
-    }
-}
-
-struct BacktraceErrorResponse: BacktraceError {
-    let response: Any
-    
-    init(data: Data) throws {
-        self.response = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-    }
-}
-
-extension BacktraceErrorResponse {
-    func result(report: BacktraceReport) -> BacktraceResult {
-        return BacktraceResult(.serverError, report: report, message: String(describing: response))
+        return BacktraceResult(isSuccess ? .ok : .serverError, report: report, message: description)
     }
 }
 

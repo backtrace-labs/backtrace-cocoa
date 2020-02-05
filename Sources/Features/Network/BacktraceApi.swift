@@ -46,30 +46,18 @@ extension BacktraceApi: BacktraceApiProtocol {
             if let responseError = response.responseError {
                 throw HttpError.connectionError(responseError)
             }
-            guard let httpResponse = response.urlResponse, let responseData = response.responseData else {
+            guard let urlResponse = response.urlResponse, let responseData = response.responseData else {
                 throw HttpError.unknownError
             }
             // check result
-            let json = try? JSONSerialization.jsonObject(with: responseData, options: [.fragmentsAllowed])
-            BacktraceLogger.debug(
-                """
-                Received HTTP response:
-                \(httpResponse)
-                \(String(describing: json ?? String(bytes: responseData, encoding: .utf8)))
-                """)
-            let result =
-                try BacktraceHttpResponseDeserializer(httpResponse: httpResponse, responseData: responseData).result
-            switch result {
-            case .error(let error):
-                BacktraceLogger.debug("Server responded with error response: \(error.result(report: report))")
-                delegate?.serverDidResponse?(error.result(report: report))
-                return error.result(report: report)
-            case .success(let response):
-                BacktraceLogger.debug("Server responded with successful response: \(response.result(report: report))")
+            let httpResponse = BacktraceHttpResponse(httpResponse: urlResponse, responseData: responseData)
+            BacktraceLogger.debug("Received HTTP response: \(httpResponse)")
+            if httpResponse.isSuccess {
                 successfulSendTimestamps.append(Date().timeIntervalSince1970)
-                delegate?.serverDidResponse?(response.result(report: report))
-                return response.result(report: report)
             }
+            let result = httpResponse.result(report: report)
+            delegate?.serverDidResponse?(result)
+            return result
         } catch {
             BacktraceLogger.error("Connection for \(report) failed with error: \(error)")
             delegate?.connectionDidFail?(error)

@@ -39,7 +39,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         } catch {
             let filePath = Bundle.main.path(forResource: "test", ofType: "txt")!
             BacktraceClient.shared?.send(attachmentPaths: [filePath]) { (result) in
-                print(result)
+                print("AppDelegate:Result:\(result)")
             }
         }
         
@@ -59,14 +59,14 @@ extension AppDelegate: BacktraceClientDelegate {
     }
     
     func serverDidResponse(_ result: BacktraceResult) {
-        print("AppDelegate: serverDidResponse")
+        print("AppDelegate:serverDidResponse: \(result)")
     }
     
     func connectionDidFail(_ error: Error) {
-        print("AppDelegate: connectionDidFail")
+        print("AppDelegate: connectionDidFail: \(error)")
     }
     
     func didReachLimit(_ result: BacktraceResult) {
-        print("AppDelegate: didReachLimit")
+        print("AppDelegate: didReachLimit: \(result)")
     }
 }

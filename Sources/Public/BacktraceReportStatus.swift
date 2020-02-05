@@ -18,15 +18,15 @@ extension BacktraceReportStatus: CustomStringConvertible {
     public var description: String {
         switch self {
         case .serverError:
-            return "serverError"
+            return "A server error occurred."
         case .ok:
-            return "ok"
+            return "OK."
         case .debuggerAttached:
-            return "Application does not allow for attaching the debugger"
+            return "Application does not allow for attaching the debugger."
         case .unknownError:
-            return "unknownError"
+            return "An unknown server error occurred."
         case .limitReached:
-            return "limitReached"
+            return "Application limit reached."
         }
     }
 }
