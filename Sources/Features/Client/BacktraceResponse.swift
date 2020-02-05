@@ -4,11 +4,10 @@ struct BacktraceHttpResponseDeserializer {
     let result: Result<BacktraceResponse, BacktraceErrorResponse>
     
     init(httpResponse: HTTPURLResponse, responseData: Data) throws {
-        let jsonDeserializer = JSONDecoder()
         if httpResponse.isSuccess {
-            self.result = .success(try jsonDeserializer.decode(BacktraceResponse.self, from: responseData))
+            self.result = .success(try JSONDecoder().decode(BacktraceResponse.self, from: responseData))
         } else {
-            self.result = .error(try jsonDeserializer.decode(BacktraceErrorResponse.self, from: responseData))
+            self.result = .error(try BacktraceErrorResponse(data: responseData))
         }
     }
 }
@@ -31,18 +30,17 @@ extension BacktraceResponse {
     }
 }
 
-struct BacktraceErrorResponse: Codable, BacktraceError {
-    let error: ResponseError
+struct BacktraceErrorResponse: BacktraceError {
+    let response: Any
     
-    struct ResponseError: Codable {
-        let code: Int
-        let message: String
+    init(data: Data) throws {
+        self.response = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
     }
 }
 
 extension BacktraceErrorResponse {
     func result(report: BacktraceReport) -> BacktraceResult {
-        return BacktraceResult(.serverError, report: report, message: error.message)
+        return BacktraceResult(.serverError, report: report, message: String(describing: response))
     }
 }
 

@@ -123,7 +123,7 @@ extension BacktraceClient: BacktraceReporting {
                 completion(BacktraceResult(.unknownError))
             }
             }, completion: {
-                BacktraceLogger.debug("Finished")
+                BacktraceLogger.debug("Finished sending an error report.")
         })
     }
     
@@ -141,7 +141,7 @@ extension BacktraceClient: BacktraceReporting {
                 BacktraceLogger.error(error)
             }
             }, completion: {
-                BacktraceLogger.debug("Finished")
+                BacktraceLogger.debug("Started error reporter.")
         })
     }
 }

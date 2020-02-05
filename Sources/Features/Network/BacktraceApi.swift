@@ -1,6 +1,6 @@
 import Foundation
 
-class BacktraceApi {
+final class BacktraceApi {
     private let request: MultipartRequestType
     private let session: URLSession
     var successfulSendTimestamps: [TimeInterval] = []
@@ -18,43 +18,62 @@ class BacktraceApi {
 
 extension BacktraceApi: BacktraceApiProtocol {
     func send(_ report: BacktraceReport) throws -> BacktraceResult {
-        // check if can send
-        let currentTimestamp = Date().timeIntervalSince1970
-        let sentCount = successfulSendTimestamps.filter { currentTimestamp - $0 < cacheInterval }.count
-        guard sentCount < reportsPerMin else {
-            return BacktraceResult(.limitReached, report: report)
-        }
-        // modify before sending
-        let modifiedBeforeSendingReport = delegate?.willSend?(report) ?? report
-        let attachments = modifiedBeforeSendingReport.attachmentPaths.compactMap(Attachment.init(filePath:))
-        // create request
-        let urlRequest = try request.multipartUrlRequest(data: modifiedBeforeSendingReport.reportData,
-                                                         attributes: modifiedBeforeSendingReport.attributes,
-                                                         attachments: attachments)
-        BacktraceLogger.debug("Sending crash report:\n\(urlRequest)")
-        // send report
-        let response = session.sync(urlRequest)
-        // check network error
-        if let responseError = response.responseError {
-            delegate?.connectionDidFail?(responseError)
-            throw HttpError.connectionError(responseError)
-        }
-        guard let httpResponse = response.urlResponse, let responseData = response.responseData else {
-            throw HttpError.unknownError
-        }
-        // check result
-        BacktraceLogger.debug("HTTP response: \n\(httpResponse)\n\(String(describing: String(bytes: responseData, encoding: .utf8)))")
-        let result = try BacktraceHttpResponseDeserializer(httpResponse: httpResponse, responseData: responseData)
-            .result
-        switch result {
-        case .error(let error):
-            delegate?.serverDidResponse?(error.result(report: modifiedBeforeSendingReport))
-            return error.result(report: modifiedBeforeSendingReport)
-        case .success(let response):
-            // did send successfully
-            successfulSendTimestamps.append(Date().timeIntervalSince1970)
-            delegate?.serverDidResponse?(response.result(report: modifiedBeforeSendingReport))
-            return response.result(report: modifiedBeforeSendingReport)
+        do {
+            var report = report
+            // check if can send
+            let currentTimestamp = Date().timeIntervalSince1970
+            let sentCount = successfulSendTimestamps.filter { currentTimestamp - $0 < cacheInterval }.count
+            guard sentCount < reportsPerMin else {
+                BacktraceLogger.debug("Limit reached for report: \(report)")
+                let result = BacktraceResult(.limitReached, report: report)
+                delegate?.didReachLimit?(result)
+                return result
+            }
+            // modify before sending
+            BacktraceLogger.debug("Will send report: \(report)")
+            report = delegate?.willSend?(report) ?? report
+            let attachments = report.attachmentPaths.compactMap(Attachment.init(filePath:))
+            // create request
+            var urlRequest = try request.multipartUrlRequest(data: report.reportData,
+                                                             attributes: report.attributes,
+                                                             attachments: attachments)
+            
+            urlRequest = delegate?.willSendRequest?(urlRequest) ?? urlRequest
+            BacktraceLogger.debug("Will send URL request: \(urlRequest)")
+            // send report
+            let response = session.sync(urlRequest)
+            // check network error
+            if let responseError = response.responseError {
+                throw HttpError.connectionError(responseError)
+            }
+            guard let httpResponse = response.urlResponse, let responseData = response.responseData else {
+                throw HttpError.unknownError
+            }
+            // check result
+            let json = try? JSONSerialization.jsonObject(with: responseData, options: [.fragmentsAllowed])
+            BacktraceLogger.debug(
+                """
+                Received HTTP response:
+                \(httpResponse)
+                \(String(describing: json ?? String(bytes: responseData, encoding: .utf8)))
+                """)
+            let result =
+                try BacktraceHttpResponseDeserializer(httpResponse: httpResponse, responseData: responseData).result
+            switch result {
+            case .error(let error):
+                BacktraceLogger.debug("Server responded with error response: \(error.result(report: report))")
+                delegate?.serverDidResponse?(error.result(report: report))
+                return error.result(report: report)
+            case .success(let response):
+                BacktraceLogger.debug("Server responded with successful response: \(response.result(report: report))")
+                successfulSendTimestamps.append(Date().timeIntervalSince1970)
+                delegate?.serverDidResponse?(response.result(report: report))
+                return response.result(report: report)
+            }
+        } catch {
+            BacktraceLogger.error("Connection for \(report) failed with error: \(error)")
+            delegate?.connectionDidFail?(error)
+            throw error
         }
     }
 }

@@ -34,9 +34,10 @@ extension BacktraceReporter {
 
         // try to send pending crash report
         guard reporter.hasPendingCrashes() else {
-            BacktraceLogger.debug("No pending crashes")
+            BacktraceLogger.debug("There are no pending crash crashes to send.")
             return
         }
+        BacktraceLogger.debug("There is a pending crash report to send.")
         let resource = try reporter.pendingCrashReport()
         _ = try send(resource: resource)
     }
