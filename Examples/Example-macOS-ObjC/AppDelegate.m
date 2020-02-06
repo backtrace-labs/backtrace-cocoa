@@ -47,27 +47,29 @@
 }
 
 #pragma mark - BacktraceClientDelegate
-- (BacktraceReport *)willSend: (BacktraceReport *) report {
+- (BacktraceReport * _Nonnull) willSend: (BacktraceReport * _Nonnull) report {
+    NSLog(@"%@", report);
     NSMutableDictionary *dict = [report.attributes mutableCopy];
     [dict setObject: @"just before send" forKey: @"added"];
     report.attributes = dict;
     return report;
 }
 
-- (void)serverDidFail:(NSError *)error {
-    
-}
-
-- (void)serverDidResponse:(BacktraceResult *)result {
-    
-}
-
-- (NSURLRequest *)willSendRequest:(NSURLRequest *)request {
+- (NSURLRequest * _Nonnull) willSendRequest: (NSURLRequest * _Nonnull) request {
+    NSLog(@"%@", request);
     return request;
 }
 
-- (void)didReachLimit:(BacktraceResult *)result {
-    
+- (void) serverDidRespond: (BacktraceResult * _Nonnull) result {
+    NSLog(@"%@", result);
+}
+
+- (void)connectionDidFail:(NSError * _Nonnull) error {
+    NSLog(@"%@", error);
+}
+
+- (void)didReachLimit:(BacktraceResult * _Nonnull) result {
+    NSLog(@"%@", result);
 }
 
 @end

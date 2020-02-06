@@ -58,8 +58,8 @@ extension AppDelegate: BacktraceClientDelegate {
         return request
     }
     
-    func serverDidResponse(_ result: BacktraceResult) {
-        print("AppDelegate:serverDidResponse: \(result)")
+    func serverDidRespond(_ result: BacktraceResult) {
+        print("AppDelegate:serverDidRespond: \(result)")
     }
     
     func connectionDidFail(_ error: Error) {

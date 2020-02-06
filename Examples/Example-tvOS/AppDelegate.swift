@@ -39,7 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } catch {
             let filePath = Bundle.main.path(forResource: "test", ofType: "txt")!
             BacktraceClient.shared?.send(attachmentPaths: [filePath]) { (result) in
-                print(result)
+                print("AppDelegate:Result:\(result)")
             }
         }
 
@@ -48,24 +48,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 
 extension AppDelegate: BacktraceClientDelegate {
-    func willSend(_ report: BacktraceReport) -> (BacktraceReport) {
-        report.attributes["added"] = "just before send"
+    func willSend(_ report: BacktraceReport) -> BacktraceReport {
+        print("AppDelegate: willSend")
         return report
     }
-
+    
     func willSendRequest(_ request: URLRequest) -> URLRequest {
+        print("AppDelegate: willSendRequest")
         return request
     }
-
-    func serverDidFail(_ error: Error) {
-
+    
+    func serverDidRespond(_ result: BacktraceResult) {
+        print("AppDelegate:serverDidRespond: \(result)")
     }
-
-    func serverDidResponse(_ result: BacktraceResult) {
-
+    
+    func connectionDidFail(_ error: Error) {
+        print("AppDelegate: connectionDidFail: \(error)")
     }
-
+    
     func didReachLimit(_ result: BacktraceResult) {
-
+        print("AppDelegate: didReachLimit: \(result)")
     }
 }

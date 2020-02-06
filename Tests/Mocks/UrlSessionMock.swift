@@ -49,7 +49,7 @@ final class BacktraceClientDelegateMock: BacktraceClientDelegate {
         return willSendRequestClosure?(request) ?? request
     }
     
-    func serverDidResponse(_ result: BacktraceResult) {
+    func serverDidRespond(_ result: BacktraceResult) {
         serverDidResponseClosure?(result)
     }
     

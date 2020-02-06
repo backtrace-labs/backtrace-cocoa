@@ -15,13 +15,11 @@ final class BacktraceApiMock: BacktraceApiProtocol {
     }
     
     static func invalidTokenResponse(_ report: BacktraceReport) -> BacktraceResult {
-        return BacktraceErrorResponse(error: BacktraceErrorResponse.ResponseError(code: 1897, message: "Forbidden"))
-            .result(report: report)
+        return BacktraceResult(.serverError, report: report, message: "Invalid Token")
     }
     
     static func invalidCredentials(_ report: BacktraceReport) -> BacktraceResult {
-        return BacktraceResponse(response: "Ok.", rxid: "xx-xx", fingerprint: "xx-xx", unique: true)
-            .result(report: report)
+        return BacktraceResult(.ok, report: report, message: "Invalid Credentials")
     }
     
     static func limitReachedResponse(_ report: BacktraceReport) -> BacktraceResult {

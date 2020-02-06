@@ -21,7 +21,8 @@ import Foundation
     /// report result.
     ///
     /// - Parameter result: Backtrace result.
-    @objc optional func serverDidResponse(_ result: BacktraceResult)
+    @available(*, renamed: "serverDidResponse")
+    @objc optional func serverDidRespond(_ result: BacktraceResult)
     
     /// Event executed when connection to Backtrace services failed. Allows the delegate to react on sending report
     /// failure.

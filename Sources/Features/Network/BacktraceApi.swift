@@ -56,7 +56,7 @@ extension BacktraceApi: BacktraceApiProtocol {
                 successfulSendTimestamps.append(Date().timeIntervalSince1970)
             }
             let result = httpResponse.result(report: report)
-            delegate?.serverDidResponse?(result)
+            delegate?.serverDidRespond?(result)
             return result
         } catch {
             BacktraceLogger.error("Connection for \(report) failed with error: \(error)")
