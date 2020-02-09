@@ -8,7 +8,7 @@ import Foundation
     /// and https://help.backtrace.io/troubleshooting/what-is-a-submission-token .
     @objc public let credentials: BacktraceCredentials
     
-    /// Database settings
+    /// Database settings.
     @objc public var dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings()
     
     /// Number of records sent in 1 minute. Default `30`.
@@ -30,7 +30,7 @@ import Foundation
     /// - Parameters:
     ///   - credentials: Backtrace server API credentials.
     ///   - dbSettings: Backtrace database settings.
-    ///   - reportsPerMin: Maximum number of records sent to Backtrace services in 1 minute. Default: `3`.
+    ///   - reportsPerMin: Maximum number of records sent to Backtrace services in 1 minute. Default: `30`.
     ///   - allowsAttachingDebugger: if set to `true` BacktraceClient will report reports even when the debugger
     /// is attached. Default: `false`.
     @objc public init(credentials: BacktraceCredentials,

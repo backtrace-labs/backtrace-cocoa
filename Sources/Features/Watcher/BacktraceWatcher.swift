@@ -35,7 +35,7 @@ where BacktraceRepository.Resource == BacktraceReport {
         
         for report in reports {
         do {
-            let request = try MultipartRequest(authentication: credentials.authentication, report: report).request
+            let request = try MultipartRequest(configuration: credentials.configuration, report: report).request
             let result = try networkClient.send(request: request)
             guard !result.isSuccess else {
                 try repository.delete(report)

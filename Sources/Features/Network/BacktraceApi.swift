@@ -75,7 +75,7 @@ extension BacktraceApi: BacktraceApiProtocol {
         report = delegate?.willSend?(report) ?? report
         do {
             // create request
-            var urlRequest = try MultipartRequest(authentication: credentials.authentication,
+            var urlRequest = try MultipartRequest(configuration: credentials.configuration,
                                                   report: report).request
             
             // modify request before sending

@@ -9,9 +9,9 @@ struct MultipartRequest {
         static let queryItems = { token in ["format": "plcrash", "token": token] }
     }
     
-    init(authentication: BacktraceCredentials.Authentication, report: BacktraceReport) throws {
+    init(configuration: BacktraceCredentials.Configuration, report: BacktraceReport) throws {
         let request: URLRequest
-        switch authentication {
+        switch configuration {
         case .submissionUrl(let url):
             request = MultipartRequest.form(submissionUrl: url)
         case .endpoint(let endpoint, let token):

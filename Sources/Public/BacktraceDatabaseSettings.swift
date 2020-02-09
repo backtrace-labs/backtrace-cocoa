@@ -36,7 +36,7 @@ import Foundation
     case interval
 }
 
-/// Backtrace retrying order of not successfully sent reports.
+/// Backtrace retrying order for not successfully sent reports.
 @objc public enum RetryOder: Int {
     /// Library will retry sending oldest reports first (FIFO).
     case queue

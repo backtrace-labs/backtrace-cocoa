@@ -2,9 +2,9 @@ import Foundation
 
 /// Backtrace result statuses.
 @objc public enum BacktraceReportStatus: Int {
-    /// Server error occurred while sending the data
+    /// Server error occurred while sending the data.
     case serverError
-    /// Successfully sent data to server
+    /// Successfully sent data to server.
     case ok
     /// Debugger is attached.
     case debuggerAttached

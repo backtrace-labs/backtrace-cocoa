@@ -3,9 +3,9 @@ import Foundation
 /// Backtrace server API credentials.
 @objc public class BacktraceCredentials: NSObject {
     
-    let authentication: Authentication
+    let configuration: Configuration
     
-    enum Authentication {
+    enum Configuration {
         case submissionUrl(URL)
         case endpoint(URL, token: String)
     }
@@ -17,7 +17,7 @@ import Foundation
     ///   - token: Access token to Backtrace service.
     ///   See more: https://help.backtrace.io/troubleshooting/what-is-a-submission-token
     @objc public init(endpoint: URL, token: String) {
-        self.authentication = .endpoint(endpoint, token: token)
+        self.configuration = .endpoint(endpoint, token: token)
     }
     
     /// Produces Backtrace server API credentials.
@@ -25,6 +25,6 @@ import Foundation
     /// - Parameters:
     ///   - submissionUrl: The submission URL containing authentication credentials.
     @objc public init(submissionUrl: URL) {
-        self.authentication = .submissionUrl(submissionUrl)
+        self.configuration = .submissionUrl(submissionUrl)
     }
 }
