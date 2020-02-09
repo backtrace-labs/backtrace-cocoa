@@ -11,8 +11,8 @@ import Foundation
     /// Database settings
     @objc public var dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings()
     
-    /// Number of records sent in 1 minute. Default `3`.
-    @objc public var reportsPerMin: Int = 3
+    /// Number of records sent in 1 minute. Default `30`.
+    @objc public var reportsPerMin: Int = 30
     
     /// Flag indicating if the Backtrace client should report reports when the debugger is attached. Default `false`.
     @objc public var allowsAttachingDebugger: Bool = false
@@ -35,7 +35,7 @@ import Foundation
     /// is attached. Default: `false`.
     @objc public init(credentials: BacktraceCredentials,
                       dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings(),
-                      reportsPerMin: Int = 3,
+                      reportsPerMin: Int = 30,
                       allowsAttachingDebugger: Bool = false) {
         self.credentials = credentials
         self.dbSettings = dbSettings

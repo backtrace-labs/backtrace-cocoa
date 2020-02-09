@@ -9,43 +9,45 @@ final class BacktraceWatcherTests: QuickSpec {
     override func spec() {
         describe("Watcher") {
             let dbSettings = BacktraceDatabaseSettings()
-            let networkClientMockConfig = BacktraceApiMock.Configuration.validCredentials
-            let api = BacktraceApiMock(config: networkClientMockConfig)
+            let credentials = BacktraceCredentials(submissionUrl: URL(string: "https://yourteam.backtrace.io")!)
             let repository = WatcherRepositoryMock()
+            let urlSession = URLSessionMock()
+            urlSession.response = MockOkResponse(url: URL(string: "https://yourteam.backtrace.io")!)
+            let networkClient = BacktraceNetworkClient(urlSession: urlSession)
             
-            context("when passed correct parameters") {
-                it("then initialize without throwing error") {
-                    expect {
-                        try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                             repository: repository)
-                    }.notTo(throwError())
-                }
+            context("given valid parameters") {
                 
-                throwingIt("then pass parameters properly") {
-                    let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                       repository: repository)
+                throwingIt("has the correct values") {
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   networkClient: networkClient,
+                                                   credentials: credentials,
+                                                   repository: repository)
                     expect(watcher.settings).to(be(dbSettings))
-                    expect(watcher.reportsPerMin).to(equal(3))
-                    expect(watcher.api).to(be(api))
+                    expect(watcher.credentials).to(be(credentials))
+                    expect(watcher.networkClient).to(be(networkClient))
                     expect(watcher.repository).to(be(repository))
                     expect(watcher.timer).toNot(beNil())
                 }
                 
-                context("with RetryBehaviour.none") {
-                    throwingIt("then timer should be nil") {
+                context("given disabled retry behaviour") {
+                    throwingIt("does not configure a timer") {
                         dbSettings.retryBehaviour = .none
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                           repository: repository)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         expect(watcher.timer).to(beNil())
                     }
                 }
             }
             
-            context("when configure timer with handler") {
-                throwingIt("then timer fires handler") {
+            context("given enabled retry behaviour") {
+                throwingIt("fires timer") {
                     dbSettings.retryInterval = 1
-                    let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                       repository: repository)
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   networkClient: networkClient,
+                                                   credentials: credentials,
+                                                   repository: repository)
                     watcher.resetTimer()
                     
                     waitUntil(timeout: TimeInterval(dbSettings.retryInterval + 1)) { done in
@@ -63,27 +65,31 @@ final class BacktraceWatcherTests: QuickSpec {
                 
                 context("when retrieve") {
                     throwingIt("then not throw error") {
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                           repository: repository)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
-
-                        expect { try watcher.crashReportsFromRepository(limit: 1) }.toNot(throwError())
+                        
+                        expect { try watcher.reportsFromRepository(limit: 1) }.toNot(throwError())
                     }
                 }
                 
                 context("when retrieve in queue order") {
                     throwingIt("then get oldest") {
                         dbSettings.retryOrder = .queue
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                           repository: repository)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         let firstReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(firstReport)
                         let secondReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2])
                         try repository.save(secondReport)
                         let thirdReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 3])
                         try repository.save(thirdReport)
-
-                        let reports = try watcher.crashReportsFromRepository(limit: 2)
+                        
+                        let reports = try watcher.reportsFromRepository(limit: 2)
                         expect(reports.count).to(equal(2))
                         expect(reports).toNot(contain(firstReport))
                         expect(reports).to(contain(secondReport, thirdReport))
@@ -93,16 +99,18 @@ final class BacktraceWatcherTests: QuickSpec {
                 context("when retrieve in stack order ") {
                     throwingIt("then get latest") {
                         dbSettings.retryOrder = .stack
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                           repository: repository)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         let firstReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(firstReport)
                         let secondReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2])
                         try repository.save(secondReport)
                         let thirdReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 3])
                         try repository.save(thirdReport)
-
-                        let reports = try watcher.crashReportsFromRepository(limit: 2)
+                        
+                        let reports = try watcher.reportsFromRepository(limit: 2)
                         
                         expect(reports.count).to(equal(2))
                         expect(reports).toNot(contain(thirdReport))
@@ -114,22 +122,18 @@ final class BacktraceWatcherTests: QuickSpec {
             describe("batch retry") {
                 throwingBeforeEach {
                     try repository.clear()
+                    urlSession.response = MockOkResponse(url: URL(string: "https://yourteam.backtrace.io")!)
                 }
                 
-                context("when send one-element batch successfully") {
-                    throwingIt("then watcher not throwing error") {
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                           repository: repository)
+                context("given one element") {
+                    throwingIt("clears pending reports") {
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         
-                        expect { try watcher.batchRetry() }.toNot(throwError())
-                    }
-                    
-                    throwingIt("then report is removed from repository") {
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                           repository: repository)
-                        try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
-                        try watcher.batchRetry()
+                        expect { watcher.batchRetry() }.toNot(throwError())
                         
                         expect(try watcher.repository.countResources()).to(equal(0))
                     }
@@ -137,11 +141,13 @@ final class BacktraceWatcherTests: QuickSpec {
                 
                 context("when send two-element batch successfully") {
                     throwingIt("then all sent reports are removed from repository") {
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3, api: api,
-                                                           repository: repository)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2]))
-                        try watcher.batchRetry()
+                        watcher.batchRetry()
                         
                         expect(try watcher.repository.countResources()).to(equal(0))
                     }
@@ -149,37 +155,43 @@ final class BacktraceWatcherTests: QuickSpec {
                 
                 context("when connection error") {
                     throwingIt("then do nothing") {
-                        let networkClientMockConfig = BacktraceApiMock.Configuration.invalidEndpoint
-                        let failureNetworkClient = BacktraceApiMock(config: networkClientMockConfig)
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3,
-                                                           api: failureNetworkClient, repository: repository)
+                        urlSession.response =
+                            MockConnectionErrorResponse(url: URL(string: "https://yourteam.backtrace.io")!)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         
-                        try watcher.batchRetry()
+                        watcher.batchRetry()
                         expect(try watcher.repository.countResources()).to(equal(1))
                     }
                 }
                 
                 context("when limit reached error") {
-                    let networkClientMockConfig = BacktraceApiMock.Configuration.limitReached
-                    let failureNetworkClient = BacktraceApiMock(config: networkClientMockConfig)
                     throwingIt("then report is not removed from repository") {
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3,
-                                                           api: failureNetworkClient, repository: repository)
+                        urlSession.response = Mock403Response(url: URL(string: "https://yourteam.backtrace.io")!)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         
-                        try watcher.batchRetry()
+                        watcher.batchRetry()
                         expect(try watcher.repository.countResources()).to(equal(1))
                     }
                     
                     throwingIt("then increment counter") {
-                        let watcher = try BacktraceWatcher(settings: dbSettings, reportsPerMin: 3,
-                                                           api: failureNetworkClient, repository: repository)
+                        urlSession.response = Mock403Response(url: URL(string: "https://yourteam.backtrace.io")!)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
                         let report = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(report)
                         
                         expect(watcher.repository.retryCount(for: report)).to(equal(0))
-                        try watcher.batchRetry()
+                        watcher.batchRetry()
                         expect(watcher.repository.retryCount(for: report)).to(equal(1))
                     }
                 }

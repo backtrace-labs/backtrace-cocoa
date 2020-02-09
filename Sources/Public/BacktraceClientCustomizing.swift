@@ -65,5 +65,6 @@ public typealias Attributes = [String: Any]
 @objc public protocol BacktraceLogging {
     
     /// Set of logging destinations.
-    @objc var destinations: Set<BacktraceBaseDestination> { get set }
+    @available(*, renamed: "destinations")
+    @objc var loggingDestinations: Set<BacktraceBaseDestination> { get set }
 }

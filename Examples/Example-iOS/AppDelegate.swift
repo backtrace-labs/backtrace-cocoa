@@ -33,7 +33,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
-        //        BacktraceClient.shared?.destinations = [BacktraceBaseDestination(level: .debug)]
+        
+        BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
         do {
             try throwingFunc()
         } catch {

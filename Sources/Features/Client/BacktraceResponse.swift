@@ -4,14 +4,23 @@ struct BacktraceHttpResponse: CustomStringConvertible {
     let isSuccess: Bool
     let description: String
     
-    init(httpResponse: HTTPURLResponse, responseData: Data) {
+    init(httpResponse: HTTPURLResponse, responseData: Data?) {
         self.isSuccess = httpResponse.isSuccess
-        let responseBody: Any =
-            (try? JSONSerialization.jsonObject(with: responseData, options: [.fragmentsAllowed])) ?? ""
         self.description = """
         \(httpResponse)
-        \(responseBody)
+        \(responseData.jsonBody)
         """
+    }
+}
+
+private extension Optional where Wrapped == Data {
+    var jsonBody: Any {
+        switch self {
+        case .none:
+            return ""
+        case .some(let data):
+            return (try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])) ?? ""
+        }
     }
 }
 

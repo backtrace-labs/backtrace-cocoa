@@ -37,7 +37,7 @@ extension NetworkReachability {
         guard let flags = flags else { return "unknown" }
         guard isNetworkReachable(with: flags) else { return "notReachable" }
         
-        #if os(iOS)
+        #if os(iOS) || os(tvOS)
         if flags.contains(.isWWAN) { return "reachableViaWWAN" }
         #endif
         

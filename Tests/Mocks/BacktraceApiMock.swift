@@ -5,8 +5,6 @@ import Foundation
 final class BacktraceApiMock: BacktraceApiProtocol {
     weak var delegate: BacktraceClientDelegate?
     
-    var successfulSendTimestamps: [TimeInterval] = []
-    
     enum Configuration {
         case invalidToken
         case invalidEndpoint

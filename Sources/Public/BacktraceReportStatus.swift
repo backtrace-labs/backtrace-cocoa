@@ -22,7 +22,7 @@ extension BacktraceReportStatus: CustomStringConvertible {
         case .ok:
             return "OK."
         case .debuggerAttached:
-            return "Application does not allow for attaching the debugger."
+            return "Application does not allow to attach the debugger."
         case .unknownError:
             return "An unknown server error occurred."
         case .limitReached:

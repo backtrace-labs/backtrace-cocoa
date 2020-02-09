@@ -2,18 +2,13 @@ import Foundation
 
 protocol BacktraceError: Error {}
 
-enum FlowError: BacktraceError {
-    case unexpectedState
+enum NetworkError: BacktraceError {
+    case connectionError(Error)
 }
 
 enum HttpError: BacktraceError {
     case malformedUrl
-    case connectionError(Error)
     case unknownError
-}
-
-enum PLCrashReporterError: BacktraceError {
-    case fatal
 }
 
 enum RepositoryError: BacktraceError {
@@ -33,6 +28,5 @@ enum FileError: BacktraceError {
 }
 
 enum CodingError: BacktraceError {
-    case decodingFailed
     case encodingFailed
 }

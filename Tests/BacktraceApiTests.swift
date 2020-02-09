@@ -13,9 +13,7 @@ final class BacktraceApiTests: QuickSpec {
                 let token = "token"
                 let backtraceCredentials = BacktraceCredentials(endpoint: endpoint, token: token)
                 let urlSession = URLSessionMock()
-                let api = BacktraceApi(urlRequest: backtraceCredentials.sendRequest,
-                                       session: urlSession,
-                                       reportsPerMin: 3)
+                let api = BacktraceApi(credentials: backtraceCredentials, session: urlSession, reportsPerMin: 3)
                 
                 it("has no delegate attached", closure: {
                     expect(api.delegate).to(beNil())
@@ -28,7 +26,7 @@ final class BacktraceApiTests: QuickSpec {
                 })
                 
                 it("has empty timestamps list", closure: {
-                    expect(api.successfulSendTimestamps).to(beEmpty())
+                    expect(api.backtraceRateLimiter.timestamps).to(beEmpty())
                 })
                 
                 context("has well formed backtrace report", closure: {

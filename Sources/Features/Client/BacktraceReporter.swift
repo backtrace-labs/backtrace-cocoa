@@ -1,22 +1,23 @@
 import Foundation
 
 final class BacktraceReporter {
-
+    
     private let reporter: CrashReporting
-    private var api: BacktraceApiProtocol
-    private let repository: PersistentRepository<BacktraceReport>
+    private var api: BacktraceApi
     private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
     private var attributesProvider: SignalContext
     
-    init(reporter: CrashReporting, api: BacktraceApiProtocol,
-         dbSettings: BacktraceDatabaseSettings, reportsPerMin: Int) throws {
+    init(reporter: CrashReporting,
+         api: BacktraceApi,
+         dbSettings: BacktraceDatabaseSettings,
+         credentials: BacktraceCredentials) throws {
         self.reporter = reporter
         self.api = api
-        self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
-        self.watcher = try BacktraceWatcher(settings: dbSettings,
-                                            reportsPerMin: reportsPerMin,
-                                            api: api,
-                                            repository: repository)
+        self.watcher =
+            BacktraceWatcher(settings: dbSettings,
+                             networkClient: BacktraceNetworkClient(urlSession: URLSession(configuration: .ephemeral)),
+                             credentials: credentials,
+                             repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
         self.attributesProvider = AttributesProvider()
         self.reporter.signalContext(&attributesProvider)
     }
@@ -31,7 +32,7 @@ extension BacktraceReporter {
     func handlePendingCrashes() throws {
         // always try to remove pending crash report from disk
         defer { try? reporter.purgePendingCrashReport() }
-
+        
         // try to send pending crash report
         guard reporter.hasPendingCrashes() else {
             BacktraceLogger.debug("There are no pending crash crashes to send.")
@@ -64,11 +65,7 @@ extension BacktraceReporter: BacktraceClientCustomizing {
 
 extension BacktraceReporter {
     func send(resource: BacktraceReport) throws -> BacktraceResult {
-        let result = try api.send(resource)
-        if result.backtraceStatus != .ok, let report = result.report {
-            try repository.save(report)
-        }
-        return result
+        return try api.send(resource)
     }
     
     func send(exception: NSException? = nil, attachmentPaths: [String] = [],

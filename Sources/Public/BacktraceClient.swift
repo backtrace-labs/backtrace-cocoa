@@ -29,16 +29,16 @@ import Foundation
     /// - Parameter configuration: `BacktraceClient`s configuration
     /// - Throws: throws an error in cases of failure.
     @objc public convenience init(configuration: BacktraceClientConfiguration) throws {
-        let api = BacktraceApi(urlRequest: configuration.credentials.sendRequest,
+        let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: CrashReporter(), api: api, dbSettings: configuration.dbSettings,
-                                             reportsPerMin: configuration.reportsPerMin)
+                                             credentials: configuration.credentials)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)
     }
     
     init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
-         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApiProtocol) throws {
+         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApi) throws {
         
         self.dispatcher = dispatcher
         self.reporter = reporter
@@ -150,7 +150,7 @@ extension BacktraceClient: BacktraceReporting {
 extension BacktraceClient: BacktraceLogging {
     
     /// Set of logging destinations
-    public var destinations: Set<BacktraceBaseDestination> {
+    public var loggingDestinations: Set<BacktraceBaseDestination> {
         get {
             return BacktraceLogger.destinations
         }

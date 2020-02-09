@@ -32,14 +32,13 @@ import Foundation
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
     
-    /// Set of logging destinations. By default, only Xcode console. Use `setDestinations(destinations:)` to replace
-    /// destinations.
-    static var destinations: Set<BacktraceBaseDestination> = [BacktraceFancyConsoleDestination(level: .none)]
+    /// Set of logging destinations.
+    static var destinations: Set<BacktraceBaseDestination> = []
 
     /// Replaces the logging destinations.
     ///
-    /// - Parameter destinations: Logging destinations.
-    @objc public class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
+    /// - Parameter loggingDestinations: Logging destinations.
+    class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
         self.destinations = destinations
     }
     //swiftlint:disable line_length
