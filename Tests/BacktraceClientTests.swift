@@ -11,7 +11,7 @@ final class BacktraceClientTests: QuickSpec {
     override func spec() {
         
         describe("Backtrace client") {
-            throwingContext("Initalized with default values", closure: {
+            throwingContext("given default values", closure: {
                 guard let endpoint = URL(string: "https://wwww.backtrace.io") else { fail(); return }
                 let token = "token"
                 let credentials = BacktraceCredentials(endpoint: endpoint, token: token)

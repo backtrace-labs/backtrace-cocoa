@@ -21,7 +21,9 @@ where BacktraceRepository.Resource == BacktraceReport {
         self.networkClient = networkClient
         self.queue = dispatchQueue
         self.credentials = credentials
-        
+    }
+    
+    func enable() {
         guard settings.retryBehaviour == .interval else { return }
         configureTimer(with: DispatchWorkItem(block: timerEventHandler))
     }

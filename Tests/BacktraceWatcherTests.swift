@@ -12,12 +12,12 @@ final class BacktraceWatcherTests: QuickSpec {
             let credentials = BacktraceCredentials(submissionUrl: URL(string: "https://yourteam.backtrace.io")!)
             let repository = WatcherRepositoryMock()
             let urlSession = URLSessionMock()
-            urlSession.response = MockOkResponse(url: URL(string: "https://yourteam.backtrace.io")!)
+            urlSession.response = MockOkResponse()
             let networkClient = BacktraceNetworkClient(urlSession: urlSession)
             
-            context("given valid parameters") {
+            context("given default values") {
                 
-                throwingIt("has the correct values") {
+                throwingIt("sets the timer") {
                     let watcher = BacktraceWatcher(settings: dbSettings,
                                                    networkClient: networkClient,
                                                    credentials: credentials,
@@ -26,7 +26,7 @@ final class BacktraceWatcherTests: QuickSpec {
                     expect(watcher.credentials).to(be(credentials))
                     expect(watcher.networkClient).to(be(networkClient))
                     expect(watcher.repository).to(be(repository))
-                    expect(watcher.timer).toNot(beNil())
+                    expect(watcher.timer).to(beNil())
                 }
                 
                 context("given disabled retry behaviour") {
@@ -48,6 +48,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                    networkClient: networkClient,
                                                    credentials: credentials,
                                                    repository: repository)
+                    watcher.enable()
                     watcher.resetTimer()
                     
                     waitUntil(timeout: TimeInterval(dbSettings.retryInterval + 1)) { done in
@@ -59,9 +60,7 @@ final class BacktraceWatcherTests: QuickSpec {
             }
             
             describe("retrieve crashes from repository") {
-                throwingBeforeEach {
-                    try repository.clear()
-                }
+                throwingBeforeEach { try repository.clear() }
                 
                 context("when retrieve") {
                     throwingIt("then not throw error") {
@@ -69,6 +68,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        networkClient: networkClient,
                                                        credentials: credentials,
                                                        repository: repository)
+                        watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         
                         expect { try watcher.reportsFromRepository(limit: 1) }.toNot(throwError())
@@ -82,6 +82,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        networkClient: networkClient,
                                                        credentials: credentials,
                                                        repository: repository)
+                        watcher.enable()
                         let firstReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(firstReport)
                         let secondReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2])
@@ -103,6 +104,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        networkClient: networkClient,
                                                        credentials: credentials,
                                                        repository: repository)
+                        watcher.enable()
                         let firstReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(firstReport)
                         let secondReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2])
@@ -131,6 +133,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        networkClient: networkClient,
                                                        credentials: credentials,
                                                        repository: repository)
+                        watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         
                         expect { watcher.batchRetry() }.toNot(throwError())
@@ -145,6 +148,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        networkClient: networkClient,
                                                        credentials: credentials,
                                                        repository: repository)
+                        watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2]))
                         watcher.batchRetry()
@@ -161,6 +165,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        networkClient: networkClient,
                                                        credentials: credentials,
                                                        repository: repository)
+                        watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         
                         watcher.batchRetry()
@@ -175,6 +180,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        networkClient: networkClient,
                                                        credentials: credentials,
                                                        repository: repository)
+                        watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         
                         watcher.batchRetry()
@@ -187,6 +193,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        networkClient: networkClient,
                                                        credentials: credentials,
                                                        repository: repository)
+                        watcher.enable()
                         let report = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(report)
                         

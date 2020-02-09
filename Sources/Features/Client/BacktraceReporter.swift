@@ -6,6 +6,7 @@ final class BacktraceReporter {
     private var api: BacktraceApi
     private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
     private var attributesProvider: SignalContext
+    private let repository: PersistentRepository<BacktraceReport>
     
     init(reporter: CrashReporting,
          api: BacktraceApi,
@@ -18,6 +19,7 @@ final class BacktraceReporter {
                              networkClient: BacktraceNetworkClient(urlSession: URLSession(configuration: .ephemeral)),
                              credentials: credentials,
                              repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
+        self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
         self.attributesProvider = AttributesProvider()
         self.reporter.signalContext(&attributesProvider)
     }
@@ -27,6 +29,7 @@ extension BacktraceReporter {
     
     func enableCrashReporter() throws {
         try reporter.enableCrashReporting()
+        watcher.enable()
     }
     
     func handlePendingCrashes() throws {
@@ -40,7 +43,7 @@ extension BacktraceReporter {
         }
         BacktraceLogger.debug("There is a pending crash report to send.")
         let resource = try reporter.pendingCrashReport()
-        _ = try send(resource: resource)
+        _ = send(resource: resource)
     }
 }
 
@@ -64,8 +67,14 @@ extension BacktraceReporter: BacktraceClientCustomizing {
 }
 
 extension BacktraceReporter {
-    func send(resource: BacktraceReport) throws -> BacktraceResult {
-        return try api.send(resource)
+    func send(resource: BacktraceReport) -> BacktraceResult {
+        do {
+            return try api.send(resource)
+        } catch {
+            BacktraceLogger.error(error)
+            try? repository.save(resource)
+            return BacktraceResult(error.backtraceStatus)
+        }
     }
     
     func send(exception: NSException? = nil, attachmentPaths: [String] = [],
@@ -74,7 +83,7 @@ extension BacktraceReporter {
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths)
-        return try send(resource: resource)
+        return send(resource: resource)
     }
     
     func generate(exception: NSException? = nil, attachmentPaths: [String] = [],
