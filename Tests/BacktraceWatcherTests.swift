@@ -59,11 +59,11 @@ final class BacktraceWatcherTests: QuickSpec {
                 }
             }
             
-            describe("retrieve crashes from repository") {
+            describe("Accessing resources") {
                 throwingBeforeEach { try repository.clear() }
                 
-                context("when retrieve") {
-                    throwingIt("then not throw error") {
+                context("given one element") {
+                    throwingIt("completes successfully") {
                         let watcher = BacktraceWatcher(settings: dbSettings,
                                                        networkClient: networkClient,
                                                        credentials: credentials,
@@ -75,8 +75,8 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
                 
-                context("when retrieve in queue order") {
-                    throwingIt("then get oldest") {
+                context("given queue order") {
+                    throwingIt("gets the oldest element") {
                         dbSettings.retryOrder = .queue
                         let watcher = BacktraceWatcher(settings: dbSettings,
                                                        networkClient: networkClient,
@@ -97,8 +97,8 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
                 
-                context("when retrieve in stack order ") {
-                    throwingIt("then get latest") {
+                context("given stack order") {
+                    throwingIt("gets latest element") {
                         dbSettings.retryOrder = .stack
                         let watcher = BacktraceWatcher(settings: dbSettings,
                                                        networkClient: networkClient,
@@ -121,7 +121,7 @@ final class BacktraceWatcherTests: QuickSpec {
                 }
             }
             
-            describe("batch retry") {
+            describe("Batch retry") {
                 throwingBeforeEach {
                     try repository.clear()
                     urlSession.response = MockOkResponse(url: URL(string: "https://yourteam.backtrace.io")!)
@@ -142,8 +142,8 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
                 
-                context("when send two-element batch successfully") {
-                    throwingIt("then all sent reports are removed from repository") {
+                context("given two elements") {
+                    throwingIt("removes them from repository") {
                         let watcher = BacktraceWatcher(settings: dbSettings,
                                                        networkClient: networkClient,
                                                        credentials: credentials,
@@ -157,8 +157,8 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
                 
-                context("when connection error") {
-                    throwingIt("then do nothing") {
+                context("given connection error") {
+                    throwingIt("does not modify the database") {
                         urlSession.response =
                             MockConnectionErrorResponse(url: URL(string: "https://yourteam.backtrace.io")!)
                         let watcher = BacktraceWatcher(settings: dbSettings,
@@ -173,8 +173,8 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
                 
-                context("when limit reached error") {
-                    throwingIt("then report is not removed from repository") {
+                context("given limit reached") {
+                    throwingIt("removes the report from database") {
                         urlSession.response = Mock403Response(url: URL(string: "https://yourteam.backtrace.io")!)
                         let watcher = BacktraceWatcher(settings: dbSettings,
                                                        networkClient: networkClient,
@@ -186,8 +186,10 @@ final class BacktraceWatcherTests: QuickSpec {
                         watcher.batchRetry()
                         expect(try watcher.repository.countResources()).to(equal(1))
                     }
-                    
-                    throwingIt("then increment counter") {
+                }
+                
+                context("given new element") {
+                    throwingIt("increments retry counter") {
                         urlSession.response = Mock403Response(url: URL(string: "https://yourteam.backtrace.io")!)
                         let watcher = BacktraceWatcher(settings: dbSettings,
                                                        networkClient: networkClient,

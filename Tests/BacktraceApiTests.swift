@@ -21,8 +21,8 @@ final class BacktraceApiTests: QuickSpec {
                 backtraceApi.delegate = delegate
             }
             
-            context("given valid HTTP response", closure: {
-                it("sends report and calls delegate methods", closure: {
+            context("given valid HTTP response") {
+                it("sends report and calls delegate methods") {
                     urlSession.response = MockOkResponse()
                     expect { try backtraceApi
                         .send(try crashReporter.generateLiveReport(attributes: [:])).backtraceStatus
@@ -34,10 +34,10 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
-                })
-            })
-            context("given no HTTP response", closure: {
-                it("sends report and calls delegate methods", closure: {
+                }
+            }
+            context("given no HTTP response") {
+                it("sends report and calls delegate methods") {
                     urlSession.response = MockNoResponse()
                     expect { try backtraceApi
                         .send(try crashReporter.generateLiveReport(attributes: [:]))}
@@ -49,11 +49,11 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
-                })
-            })
+                }
+            }
             
-            context("given connection error", closure: {
-                it("fails to send report and calls delegate methods", closure: {
+            context("given connection error") {
+                it("fails to send report and calls delegate methods") {
                     urlSession.response =
                         MockConnectionErrorResponse()
                     expect { try backtraceApi
@@ -66,11 +66,11 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
-                })
-            })
+                }
+            }
             
-            context("given forbidden HTTP response", closure: {
-                it("fails to send crash report and calls delegate methods", closure: {
+            context("given forbidden HTTP response") {
+                it("fails to send crash report and calls delegate methods") {
                     urlSession.response = Mock403Response()
                     expect {
                         let report = try crashReporter.generateLiveReport(attributes: [:])
@@ -83,11 +83,11 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
-                })
-            })
+                }
+            }
             
-            context("given too many reports to send", closure: {
-                it("fails and calls limit reached delegate methods", closure: {
+            context("given too many reports to send") {
+                it("fails and calls limit reached delegate methods") {
                     let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
                     backtraceApi.delegate = delegate
                     urlSession.response = MockOkResponse()
@@ -101,8 +101,8 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beTrue())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(0))
-                })
-            })
+                }
+            }
             
             context("given new instance") {
                 let api = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
