@@ -26,7 +26,7 @@ final class BacktraceNetworkClient {
 }
 
 struct BacktraceRateLimiter {
-    var timestamps: [TimeInterval] = []
+    private(set) var timestamps: [TimeInterval] = []
     let reportsPerMin: Int
     private let cacheInterval = 60.0
     
@@ -43,7 +43,7 @@ struct BacktraceRateLimiter {
 
 final class BacktraceApi {
     weak var delegate: BacktraceClientDelegate?
-    var backtraceRateLimiter: BacktraceRateLimiter
+    private(set) var backtraceRateLimiter: BacktraceRateLimiter
     let networkClient: BacktraceNetworkClient
     let credentials: BacktraceCredentials
     
@@ -59,6 +59,7 @@ final class BacktraceApi {
 extension BacktraceApi: BacktraceApiProtocol {
     func send(_ report: BacktraceReport) throws -> BacktraceResult {
         var report = report
+        
         // check if can send
         guard backtraceRateLimiter.canSend else {
             BacktraceLogger.debug("Limit reached for report: \(report)")
@@ -66,6 +67,8 @@ extension BacktraceApi: BacktraceApiProtocol {
             delegate?.didReachLimit?(result)
             return result
         }
+        
+        backtraceRateLimiter.addRecord()
         
         // modify report before sending
         BacktraceLogger.debug("Will send report: \(report)")
@@ -84,9 +87,6 @@ extension BacktraceApi: BacktraceApiProtocol {
             
             // get result
             BacktraceLogger.debug("Received HTTP response: \(httpResponse)")
-            if httpResponse.isSuccess {
-                backtraceRateLimiter.addRecord()
-            }
             let result = httpResponse.result(report: report)
             delegate?.serverDidRespond?(result)
             return result

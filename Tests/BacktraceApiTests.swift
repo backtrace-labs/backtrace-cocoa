@@ -13,7 +13,7 @@ final class BacktraceApiTests: QuickSpec {
                 let token = "token"
                 let backtraceCredentials = BacktraceCredentials(endpoint: endpoint, token: token)
                 let urlSession = URLSessionMock()
-                let api = BacktraceApi(credentials: backtraceCredentials, session: urlSession, reportsPerMin: 3)
+                let api = BacktraceApi(credentials: backtraceCredentials, session: urlSession, reportsPerMin: 30)
                 
                 it("has no delegate attached", closure: {
                     expect(api.delegate).to(beNil())
