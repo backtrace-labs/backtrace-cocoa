@@ -2,21 +2,22 @@ import Foundation
 
 final class BacktraceReporter {
     
-    private let reporter: CrashReporting
-    private var api: BacktraceApi
+    let reporter: CrashReporting
+    private(set) var api: BacktraceApi
     private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
-    private var attributesProvider: SignalContext
-    private let repository: PersistentRepository<BacktraceReport>
+    private(set) var attributesProvider: SignalContext
+    let repository: PersistentRepository<BacktraceReport>
     
     init(reporter: CrashReporting,
          api: BacktraceApi,
          dbSettings: BacktraceDatabaseSettings,
-         credentials: BacktraceCredentials) throws {
+         credentials: BacktraceCredentials,
+         urlSession: URLSession = URLSession(configuration: .ephemeral)) throws {
         self.reporter = reporter
         self.api = api
         self.watcher =
             BacktraceWatcher(settings: dbSettings,
-                             networkClient: BacktraceNetworkClient(urlSession: URLSession(configuration: .ephemeral)),
+                             networkClient: BacktraceNetworkClient(urlSession: urlSession),
                              credentials: credentials,
                              repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)

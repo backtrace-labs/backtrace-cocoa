@@ -85,7 +85,7 @@
 		F21DD39F2255666F00404CC3 /* WatcherRepositoryMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */; };
 		F21DD3A02255666F00404CC3 /* UrlSessionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F229D789223A56ED008EC851 /* UrlSessionMock.swift */; };
 		F21DD3A12255666F00404CC3 /* DebuggerCheckerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */; };
-		F21DD3A22255666F00404CC3 /* BacktraceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637722464ACF00939BC9 /* BacktraceTests.swift */; };
+		F21DD3A22255666F00404CC3 /* BacktraceReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637722464ACF00939BC9 /* BacktraceReporterTests.swift */; };
 		F21DD3A32255666F00404CC3 /* BacktraceDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD78721FC5F6500216C59 /* BacktraceDatabaseTests.swift */; };
 		F21DD3A52255666F00404CC3 /* BacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F229D7842239A172008EC851 /* BacktraceClientTests.swift */; };
 		F21DD3A62255666F00404CC3 /* BacktraceApiTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F229D78E223A5F6A008EC851 /* BacktraceApiTests.swift */; };
@@ -180,8 +180,8 @@
 		F2AB63732246481100939BC9 /* AttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63712246481100939BC9 /* AttachmentTests.swift */; };
 		F2AB63752246484100939BC9 /* WatcherRepositoryMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */; };
 		F2AB63762246484100939BC9 /* WatcherRepositoryMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */; };
-		F2AB637922464AD000939BC9 /* BacktraceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637722464ACF00939BC9 /* BacktraceTests.swift */; };
-		F2AB637A22464AD000939BC9 /* BacktraceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637722464ACF00939BC9 /* BacktraceTests.swift */; };
+		F2AB637922464AD000939BC9 /* BacktraceReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637722464ACF00939BC9 /* BacktraceReporterTests.swift */; };
+		F2AB637A22464AD000939BC9 /* BacktraceReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637722464ACF00939BC9 /* BacktraceReporterTests.swift */; };
 		F2AB637E22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */; };
 		F2AB637F22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */; };
 		F2AB63812246E16400939BC9 /* ReportingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63802246E16400939BC9 /* ReportingPolicy.swift */; };
@@ -390,7 +390,7 @@
 		F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DebuggerChecker.swift; sourceTree = "<group>"; };
 		F2AB63712246481100939BC9 /* AttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentTests.swift; sourceTree = "<group>"; };
 		F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatcherRepositoryMock.swift; sourceTree = "<group>"; };
-		F2AB637722464ACF00939BC9 /* BacktraceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceTests.swift; sourceTree = "<group>"; };
+		F2AB637722464ACF00939BC9 /* BacktraceReporterTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceReporterTests.swift; sourceTree = "<group>"; };
 		F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerCheckerMock.swift; sourceTree = "<group>"; };
 		F2AB63802246E16400939BC9 /* ReportingPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportingPolicy.swift; sourceTree = "<group>"; };
 		F2AB63832246E1A000939BC9 /* ReportingPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportingPolicyTests.swift; sourceTree = "<group>"; };
@@ -650,7 +650,7 @@
 				F21DD3AF2255E99E00404CC3 /* Resources */,
 				F2AB6370224647F000939BC9 /* Helpers */,
 				F2AB636F224647DE00939BC9 /* Mocks */,
-				F2AB637722464ACF00939BC9 /* BacktraceTests.swift */,
+				F2AB637722464ACF00939BC9 /* BacktraceReporterTests.swift */,
 				F29CD78721FC5F6500216C59 /* BacktraceDatabaseTests.swift */,
 				F229D7842239A172008EC851 /* BacktraceClientTests.swift */,
 				F229D78E223A5F6A008EC851 /* BacktraceApiTests.swift */,
@@ -1880,7 +1880,7 @@
 				F21DD39F2255666F00404CC3 /* WatcherRepositoryMock.swift in Sources */,
 				F21DD3A02255666F00404CC3 /* UrlSessionMock.swift in Sources */,
 				F21DD3A12255666F00404CC3 /* DebuggerCheckerMock.swift in Sources */,
-				F21DD3A22255666F00404CC3 /* BacktraceTests.swift in Sources */,
+				F21DD3A22255666F00404CC3 /* BacktraceReporterTests.swift in Sources */,
 				F21DD3A32255666F00404CC3 /* BacktraceDatabaseTests.swift in Sources */,
 				F21DD3A52255666F00404CC3 /* BacktraceClientTests.swift in Sources */,
 				F21DD3A62255666F00404CC3 /* BacktraceApiTests.swift in Sources */,
@@ -1950,7 +1950,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F2AB63852246E1A000939BC9 /* ReportingPolicyTests.swift in Sources */,
-				F2AB637A22464AD000939BC9 /* BacktraceTests.swift in Sources */,
+				F2AB637A22464AD000939BC9 /* BacktraceReporterTests.swift in Sources */,
 				F2AB637F22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */,
 				F2AB638E22470E3500939BC9 /* BacktraceFileManagerTests.swift in Sources */,
 				F2AB636B2244243500939BC9 /* Quick+Throws.swift in Sources */,
@@ -2032,7 +2032,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F2AB63842246E1A000939BC9 /* ReportingPolicyTests.swift in Sources */,
-				F2AB637922464AD000939BC9 /* BacktraceTests.swift in Sources */,
+				F2AB637922464AD000939BC9 /* BacktraceReporterTests.swift in Sources */,
 				F2AB637E22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */,
 				F2AB638D22470E3500939BC9 /* BacktraceFileManagerTests.swift in Sources */,
 				F2AB636A2244243500939BC9 /* Quick+Throws.swift in Sources */,

@@ -1,0 +1,146 @@
+import XCTest
+
+import Nimble
+import Quick
+@testable import Backtrace
+
+final class BacktraceReporterTests: QuickSpec {
+    //swiftlint:disable function_body_length
+    override func spec() {
+        describe("Backtrace reporter") {
+            let urlSession = URLSessionMock()
+            let credentials =
+                BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+            var backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+            let delegate = BacktraceClientDelegateSpy()
+            var reporter = try! BacktraceReporter(reporter: CrashReporter(),
+                                                  api: backtraceApi,
+                                                  dbSettings: BacktraceDatabaseSettings(),
+                                                  credentials: credentials,
+                                                  urlSession: urlSession)
+            
+            beforeEach {
+                delegate.clear()
+                backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+                reporter = try! BacktraceReporter(reporter: CrashReporter(),
+                                                      api: backtraceApi,
+                                                      dbSettings: BacktraceDatabaseSettings(),
+                                                      credentials: credentials,
+                                                      urlSession: urlSession)
+                
+                reporter.delegate = delegate
+            }
+            
+            context("given valid HTTP response", closure: {
+                it("sends report and calls delegate methods", closure: {
+                    urlSession.response = MockOkResponse()
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.ok))
+                    
+                    expect { delegate.calledWillSend }.to(beTrue())
+                    expect { delegate.calledWillSendRequest }.to(beTrue())
+                    expect { delegate.calledServerDidRespond }.to(beTrue())
+                    expect { delegate.calledConnectionDidFail }.to(beFalse())
+                    expect { delegate.calledDidReachLimit }.to(beFalse())
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                })
+            })
+            context("given no HTTP response", closure: {
+                it("sends report and calls delegate methods", closure: {
+                    urlSession.response = MockNoResponse()
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.unknownError))
+                    
+                    expect { delegate.calledWillSend }.to(beTrue())
+                    expect { delegate.calledWillSendRequest }.to(beTrue())
+                    expect { delegate.calledConnectionDidFail }.to(beTrue())
+                    expect { delegate.calledServerDidRespond }.to(beFalse())
+                    expect { delegate.calledDidReachLimit }.to(beFalse())
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                })
+            })
+            
+            context("given connection error", closure: {
+                it("fails to send report and calls delegate methods", closure: {
+                    urlSession.response =
+                        MockConnectionErrorResponse()
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.unknownError))
+                    
+                    expect { delegate.calledWillSend }.to(beTrue())
+                    expect { delegate.calledWillSendRequest }.to(beTrue())
+                    expect { delegate.calledConnectionDidFail }.to(beTrue())
+                    expect { delegate.calledServerDidRespond }.to(beFalse())
+                    expect { delegate.calledDidReachLimit }.to(beFalse())
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                })
+            })
+            
+            context("given forbidden HTTP response", closure: {
+                it("fails to send crash report and calls delegate methods", closure: {
+                    urlSession.response = Mock403Response()
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.serverError))
+                    
+                    expect { delegate.calledWillSend }.to(beTrue())
+                    expect { delegate.calledWillSendRequest }.to(beTrue())
+                    expect { delegate.calledServerDidRespond }.to(beTrue())
+                    expect { delegate.calledConnectionDidFail }.to(beFalse())
+                    expect { delegate.calledDidReachLimit }.to(beFalse())
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                })
+            })
+            
+            context("given too many reports to send", closure: {
+                it("fails and calls limit reached delegate methods", closure: {
+                    backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
+                    reporter = try! BacktraceReporter(reporter: CrashReporter(),
+                                                          api: backtraceApi,
+                                                          dbSettings: BacktraceDatabaseSettings(),
+                                                          credentials: credentials,
+                                                          urlSession: urlSession)
+                    reporter.delegate = delegate
+                    
+                    urlSession.response = MockOkResponse()
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.limitReached))
+                    
+                    expect { delegate.calledWillSend }.to(beFalse())
+                    expect { delegate.calledWillSendRequest }.to(beFalse())
+                    expect { delegate.calledServerDidRespond }.to(beFalse())
+                    expect { delegate.calledConnectionDidFail }.to(beFalse())
+                    expect { delegate.calledDidReachLimit }.to(beTrue())
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(0))
+                })
+            })
+            
+            context("given new report") {
+                throwingIt("can modify the report") {
+                    let delegate = BacktraceClientDelegateMock()
+                    let backtraceReport = try reporter.generate()
+                    let attachmentPaths = ["path1", "path2"]
+                    let header = (key: "foo", value: "bar")
+                    urlSession.response = MockOkResponse()
+                    backtraceApi.delegate = delegate
+                    
+                    delegate.willSendClosure = { report in
+                        report.attachmentPaths = attachmentPaths
+                        return report
+                    }
+                    
+                    delegate.willSendRequestClosure = { request in
+                        var request = request
+                        request.addValue(header.key, forHTTPHeaderField: header.value)
+                        return request
+                    }
+                    
+                    let result = reporter.send(resource: backtraceReport)
+                    
+                    expect { result.backtraceStatus }.to(equal(.ok))
+                    expect { result.report?.attachmentPaths }.to(equal(attachmentPaths))
+                }
+            }
+        }
+    }
+    //swiftlint:enable function_body_length
+}
