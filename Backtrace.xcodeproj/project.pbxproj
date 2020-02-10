@@ -1079,7 +1079,6 @@
 				F2A11BF422553C2800354640 /* Frameworks */,
 				F2A11BF522553C2800354640 /* Resources */,
 				28C74A2F226FBD7700CE713A /* Embed Frameworks */,
-				F254691C23E71BCD0063E4B9 /* Upload dSYMs */,
 				09E8CBAB868F482CC0F983AD /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -1140,7 +1139,6 @@
 				F2D8BE0121BC065E007CFEFA /* Frameworks */,
 				F2D8BE0221BC065E007CFEFA /* Resources */,
 				F2D7122821F11303002D2A26 /* Embed Frameworks */,
-				F254691823E70F9F0063E4B9 /* Upload dSYMs */,
 				21BFA1BC3D053674E0A3CBDA /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -1161,7 +1159,6 @@
 				F2D8BE1C21BC5F97007CFEFA /* Frameworks */,
 				F2D8BE1D21BC5F97007CFEFA /* Resources */,
 				F2D7122B21F115CD002D2A26 /* Embed Frameworks */,
-				F254691A23E71BB30063E4B9 /* Upload dSYMs */,
 				4055D3541B6F2389B87E0265 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -1182,7 +1179,6 @@
 				F2D8BE3F21BDA7CF007CFEFA /* Frameworks */,
 				F2D8BE4021BDA7CF007CFEFA /* Resources */,
 				F289085621C532D9002B813E /* Embed Frameworks */,
-				F254691B23E71BC20063E4B9 /* Upload dSYMs */,
 				B572700C61EEBF15D8074664 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -1694,78 +1690,6 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
-		};
-		F254691823E70F9F0063E4B9 /* Upload dSYMs */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Upload dSYMs";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PROJECT_DIR}/scripts/upload_dsyms.sh\"\n";
-		};
-		F254691A23E71BB30063E4B9 /* Upload dSYMs */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Upload dSYMs";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PROJECT_DIR}/scripts/upload_dsyms.sh\"\n";
-		};
-		F254691B23E71BC20063E4B9 /* Upload dSYMs */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Upload dSYMs";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PROJECT_DIR}/scripts/upload_dsyms.sh\"\n";
-		};
-		F254691C23E71BCD0063E4B9 /* Upload dSYMs */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Upload dSYMs";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PROJECT_DIR}/scripts/upload_dsyms.sh\"\n";
 		};
 		F2F0628C22B0453C00BCA6D0 /* Lint */ = {
 			isa = PBXShellScriptBuildPhase;
