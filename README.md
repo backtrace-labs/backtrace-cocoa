@@ -238,7 +238,7 @@ BacktraceClient.shared?.delegate = self
 func willSend(_ report: BacktraceCrashReport) -> (BacktraceCrashReport)
 func willSendRequest(_ request: URLRequest) -> URLRequest
 func serverDidFail(_ error: Error)
-func serverDidResponse(_ result: BacktraceResult)
+func serverDidRespond(_ result: BacktraceResult)
 func didReachLimit(_ result: BacktraceResult)
 ```
 
@@ -248,11 +248,11 @@ func didReachLimit(_ result: BacktraceResult)
 BacktraceClient.shared.delegate = self;
 
 //handle events
-- (BacktraceReport *)willSend:(BacktraceReport *)report;
-- (void)serverDidFail:(NSError *)error;
-- (void)serverDidResponse:(BacktraceResult *)result;
-- (NSURLRequest *)willSendRequest:(NSURLRequest *)request;
-- (void)didReachLimit:(BacktraceResult *)result;
+- (BacktraceReport *) willSend: (BacktraceReport *)report;
+- (void) serverDidFail: (NSError *)error;
+- (void) serverDidRespond: (BacktraceResult *)result;
+- (NSURLRequest *) willSendRequest: (NSURLRequest *)request;
+- (void) didReachLimit: (BacktraceResult *)result;
 ```
 Attaching `BacktraceClientDelegate` allows you to e.g. modify report before send:
 - Swift

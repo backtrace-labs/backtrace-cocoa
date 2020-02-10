@@ -44,7 +44,8 @@ lane :common_tests do |options|
     clean: true,
     code_coverage: true,
     open_report: true,
-    disable_slide_to_type: false
+    disable_slide_to_type: false,
+    disable_concurrent_testing: true
   )
 end
 

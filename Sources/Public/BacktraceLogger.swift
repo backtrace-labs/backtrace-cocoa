@@ -32,14 +32,13 @@ import Foundation
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
     
-    /// Set of logging destinations. By default, only Xcode console. Use `setDestinations(destinations:)` to replace
-    /// destinations.
-    static var destinations: Set<BacktraceBaseDestination> = [BacktraceFancyConsoleDestination(level: .none)]
+    /// Set of logging destinations.
+    static var destinations: Set<BacktraceBaseDestination> = []
 
     /// Replaces the logging destinations.
     ///
-    /// - Parameter destinations: Logging destinations.
-    @objc public class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
+    /// - Parameter loggingDestinations: Logging destinations.
+    class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
         self.destinations = destinations
     }
     //swiftlint:disable line_length
@@ -68,7 +67,10 @@ import Foundation
     //swiftlint:enable line_length
 }
 
-/// Generic logging destination.
+/// Abstract class that provides logging functionality.
+///
+/// A methods `func log(level:msg:file:function:line:)` is abstract and needs to be overridden.
+///
 @objc open class BacktraceBaseDestination: NSObject {
 
     private let level: BacktraceLogLevel
@@ -86,7 +88,7 @@ import Foundation
     }
     //swiftlint:disable line_length
     
-    /// Logs the event to specified destination.
+    /// An abstract method used to log message to provided destination.
     ///
     /// - Parameters:
     ///   - level: logging level
@@ -100,7 +102,7 @@ import Foundation
     //swiftlint:enable line_length
 }
 
-/// Provides the default console destination for logging.
+/// Provides logging functionality to IDE console.
 @objc final public class BacktraceFancyConsoleDestination: BacktraceBaseDestination {
 
     /// Used date formatter for logging.
@@ -113,7 +115,7 @@ import Foundation
     }
 
     //swiftlint:disable line_length
-    /// Logs the event to console destination. Formats log in custom, fancy way.
+    /// Logs the event to console destination. Formats log in more verbose way.
     ///
     /// - Parameters:
     ///   - level: logging level
@@ -127,7 +129,7 @@ import Foundation
     //swiftlint:enable line_length
 }
 
-/// Provides the default console destination for logging.
+/// Provides logging functionality to IDE console.
 @objc final public class BacktraceConsoleDestination: BacktraceBaseDestination {
     
     //swiftlint:disable line_length

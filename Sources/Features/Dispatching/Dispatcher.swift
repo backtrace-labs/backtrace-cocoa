@@ -1,6 +1,6 @@
 import Foundation
 
-final class Dispatcher: NSObject {
+final class Dispatcher {
 
     static let operationQueueName = "backtrace.dispatching"
     static let underlyingQueue = DispatchQueue(label: operationQueueName, qos: .background)

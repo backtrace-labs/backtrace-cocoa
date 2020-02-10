@@ -1,48 +1,32 @@
 import Foundation
 
-struct BacktraceHttpResponseDeserializer {
-    let result: Result<BacktraceResponse, BacktraceErrorResponse>
+struct BacktraceHttpResponse: CustomStringConvertible {
+    let isSuccess: Bool
+    let description: String
     
-    init(httpResponse: HTTPURLResponse, responseData: Data) throws {
-        let jsonDeserializer = JSONDecoder()
-        if httpResponse.isSuccess {
-            self.result = .success(try jsonDeserializer.decode(BacktraceResponse.self, from: responseData))
-        } else {
-            self.result = .error(try jsonDeserializer.decode(BacktraceErrorResponse.self, from: responseData))
+    init(httpResponse: HTTPURLResponse, responseData: Data?) {
+        self.isSuccess = httpResponse.isSuccess
+        self.description = """
+        \(httpResponse)
+        \(responseData.jsonBody)
+        """
+    }
+}
+
+private extension Optional where Wrapped == Data {
+    var jsonBody: Any {
+        switch self {
+        case .none:
+            return ""
+        case .some(let data):
+            return (try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])) ?? ""
         }
     }
 }
 
-struct BacktraceResponse: Codable {
-    let response, rxid: String
-    let fingerprint: String?
-    let unique: Bool?
-    
-    private enum CodingKeys: String, CodingKey {
-        case response
-        case rxid = "_rxid"
-        case fingerprint, unique
-    }
-}
-
-extension BacktraceResponse {
+extension BacktraceHttpResponse {
     func result(report: BacktraceReport) -> BacktraceResult {
-        return BacktraceResult(.ok, report: report)
-    }
-}
-
-struct BacktraceErrorResponse: Codable, BacktraceError {
-    let error: ResponseError
-    
-    struct ResponseError: Codable {
-        let code: Int
-        let message: String
-    }
-}
-
-extension BacktraceErrorResponse {
-    func result(report: BacktraceReport) -> BacktraceResult {
-        return BacktraceResult(.serverError, report: report, message: error.message)
+        return BacktraceResult(isSuccess ? .ok : .serverError, report: report, message: description)
     }
 }
 

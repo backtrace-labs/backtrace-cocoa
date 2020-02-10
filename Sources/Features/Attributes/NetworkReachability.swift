@@ -33,18 +33,23 @@ final class NetworkReachability {
 
 extension NetworkReachability {
     
+    var isReachable: Bool {
+        guard let flags = flags else { return false }
+        return isNetworkReachable(with: flags)
+    }
+    
     var statusName: String {
         guard let flags = flags else { return "unknown" }
         guard isNetworkReachable(with: flags) else { return "notReachable" }
         
-        #if os(iOS)
+        #if os(iOS) || os(tvOS)
         if flags.contains(.isWWAN) { return "reachableViaWWAN" }
         #endif
         
         return "reachableViaEthernetOrWiFi"
     }
     
-    func isNetworkReachable(with flags: SCNetworkReachabilityFlags) -> Bool {
+    private func isNetworkReachable(with flags: SCNetworkReachabilityFlags) -> Bool {
         let isReachable = flags.contains(.reachable)
         let needsConnection = flags.contains(.connectionRequired)
         let canConnectAutomatically = flags.contains(.connectionOnDemand) || flags.contains(.connectionOnTraffic)

@@ -6,23 +6,23 @@ final class BacktraceDatabaseTests: QuickSpec {
     
     override func spec() {
         describe("Crash reporter") {
-            throwingContext("has all dependencies and empty database", closure: {
+            throwingContext("given all dependencies and empty database") {
                 let crashReporter = CrashReporter()
                 let repository = try PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
                 
-                throwingIt("can clear database", closure: {
+                throwingIt("can clear database") {
                     try repository.clear()
-                })
+                }
                 
-                throwingIt("can save reports which matches to the latest saved one", closure: {
+                throwingIt("can save reports which matches to the latest saved one") {
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try repository.save(report)
                     if let fetchedReport = try repository.getLatest().first {
                         expect(fetchedReport.reportData).to(equal(report.reportData))
                     }
-                })
+                }
                 
-                throwingIt("can add new report and remove it", closure: {
+                throwingIt("can add new report and remove it") {
                     try repository.clear()
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try repository.save(report)
@@ -34,15 +34,15 @@ final class BacktraceDatabaseTests: QuickSpec {
                     } else {
                         fail()
                     }
-                })
+                }
                 
-                throwingIt("can add 100 new reports", closure: {
+                throwingIt("can add 100 new reports") {
                     for _ in 0...100 {
                         let report = try crashReporter.generateLiveReport(attributes: [:])
                         try repository.save(report)
                     }
-                })
-            })
+                }
+            }
         }
     }
 }
