@@ -6,41 +6,51 @@ import Quick
 
 final class ReportingPolicyTests: QuickSpec {
     override func spec() {
-        describe("ReportingPolicy") {
-            throwingContext("Valid credentials", closure: {
-                guard let endpoint = URL(string: "https://wwww.backtrace.io") else { fail(); return }
-                let token = "token"
-                let credentials = BacktraceCredentials(endpoint: endpoint, token: token)
-                context("Allows reporting when debugger is attached", closure: {
+        describe("Reporting Policy") {
+            throwingContext("given valid credentials") {
+                let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!,
+                                                       token: "")
+                
+                context("policy allows debugger attachment") {
                     let configuration = BacktraceClientConfiguration(credentials: credentials,
                                                                      allowsAttachingDebugger: true)
-                    it("has attached debugger", closure: {
-                        expect(ReportingPolicy(configuration: configuration,
-                                               debuggerChecker: AttachedDebuggerCheckerMock.self).allowsReporting)
-                            .to(beTrue())
-                    })
-                    it("has no debugger attached", closure: {
-                        expect(ReportingPolicy(configuration: configuration,
-                                               debuggerChecker: DetachedDebuggerCheckerMock.self).allowsReporting)
-                            .to(beTrue())
-                    })
-                })
+                    context("the debugger is attached") {
+                        it("can report") {
+                            expect(ReportingPolicy(configuration: configuration,
+                                                   debuggerChecker: AttachedDebuggerCheckerMock.self).allowsReporting)
+                                .to(beTrue())
+                        }
+                    }
+                    
+                    context("the debugger is not attached") {
+                        it("can report") {
+                            expect(ReportingPolicy(configuration: configuration,
+                                                   debuggerChecker: DetachedDebuggerCheckerMock.self).allowsReporting)
+                                .to(beTrue())
+                        }
+                    }
+                }
                 
-                context("Disallows reporting when debugger is attached", closure: {
+                context("policy disallows debugger attachment") {
                     let configuration = BacktraceClientConfiguration(credentials: credentials,
                                                                      allowsAttachingDebugger: false)
-                    it("has attached debugger", closure: {
-                        expect(ReportingPolicy(configuration: configuration,
-                                               debuggerChecker: AttachedDebuggerCheckerMock.self).allowsReporting)
-                            .to(beFalse())
-                    })
-                    it("has no debugger attached", closure: {
-                        expect(ReportingPolicy(configuration: configuration,
-                                               debuggerChecker: DetachedDebuggerCheckerMock.self).allowsReporting)
-                            .to(beTrue())
-                    })
-                })
-            })
+                    context("the debugger is attached") {
+                        it("cannot report") {
+                            expect(ReportingPolicy(configuration: configuration,
+                                                   debuggerChecker: AttachedDebuggerCheckerMock.self).allowsReporting)
+                                .to(beFalse())
+                        }
+                    }
+                    
+                    context("the debugger is not attached") {
+                        it("can report") {
+                            expect(ReportingPolicy(configuration: configuration,
+                                                   debuggerChecker: DetachedDebuggerCheckerMock.self).allowsReporting)
+                                .to(beTrue())
+                        }
+                    }
+                }
+            }
         }
     }
 }

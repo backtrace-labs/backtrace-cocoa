@@ -40,13 +40,13 @@ public typealias ThrowingBeforeSuiteClosure = ThrowingBeforeExampleClosure
 public typealias ThrowingAfterSuiteClosure = ThrowingBeforeSuiteClosure
 
 public func throwingContext(_ description: String, flags: FilterFlags = [:], closure: () throws -> Void) {
-    context(description, flags: flags, closure: {
+    context(description, flags: flags) {
         do {
             try closure()
         } catch {
             fail(error.localizedDescription)
         }
-    })
+    }
 }
 
 public func throwingIt(_ description: String, flags: FilterFlags = [:], file: String = #file, line: UInt = #line,

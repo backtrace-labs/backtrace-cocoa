@@ -4,29 +4,38 @@ import Nimble
 import Quick
 @testable import Backtrace
 
-final class BacktraceApiTests: QuickSpec {
-    //swiftlint:disable function_body_length
+final class BacktraceReporterTests: QuickSpec {
+    //swiftlint:disable function_body_length force_try
     override func spec() {
-        describe("Backtrace API") {
-            let crashReporter = CrashReporter()
+        describe("Backtrace reporter") {
             let urlSession = URLSessionMock()
             let credentials =
                 BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
             var backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
             let delegate = BacktraceClientDelegateSpy()
+            var reporter = try! BacktraceReporter(reporter: CrashReporter(),
+                                                  api: backtraceApi,
+                                                  dbSettings: BacktraceDatabaseSettings(),
+                                                  credentials: credentials,
+                                                  urlSession: urlSession)
             
-            beforeEach {
+            throwingBeforeEach {
                 delegate.clear()
                 backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
-                backtraceApi.delegate = delegate
+                reporter = try BacktraceReporter(reporter: CrashReporter(),
+                                                 api: backtraceApi,
+                                                 dbSettings: BacktraceDatabaseSettings(),
+                                                 credentials: credentials,
+                                                 urlSession: urlSession)
+                try reporter.repository.clear()
+                reporter.delegate = delegate
             }
             
             context("given valid HTTP response") {
                 it("sends report and calls delegate methods") {
                     urlSession.response = MockOkResponse()
-                    expect { try backtraceApi
-                        .send(try crashReporter.generateLiveReport(attributes: [:])).backtraceStatus
-                    }.to(equal(BacktraceReportStatus.ok))
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.ok))
                     
                     expect { delegate.calledWillSend }.to(beTrue())
                     expect { delegate.calledWillSendRequest }.to(beTrue())
@@ -34,14 +43,14 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                    expect { try reporter.repository.countResources() }.to(be(0))
                 }
             }
             context("given no HTTP response") {
                 it("sends report and calls delegate methods") {
                     urlSession.response = MockNoResponse()
-                    expect { try backtraceApi
-                        .send(try crashReporter.generateLiveReport(attributes: [:]))}
-                        .to(throwError())
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.unknownError))
                     
                     expect { delegate.calledWillSend }.to(beTrue())
                     expect { delegate.calledWillSendRequest }.to(beTrue())
@@ -49,6 +58,7 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                    expect { try reporter.repository.countResources() }.to(be(1))
                 }
             }
             
@@ -56,9 +66,8 @@ final class BacktraceApiTests: QuickSpec {
                 it("fails to send report and calls delegate methods") {
                     urlSession.response =
                         MockConnectionErrorResponse()
-                    expect { try backtraceApi
-                        .send(try crashReporter.generateLiveReport(attributes: [:]))}
-                        .to(throwError())
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.unknownError))
                     
                     expect { delegate.calledWillSend }.to(beTrue())
                     expect { delegate.calledWillSendRequest }.to(beTrue())
@@ -66,16 +75,15 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                    expect { try reporter.repository.countResources() }.to(be(1))
                 }
             }
             
             context("given forbidden HTTP response") {
                 it("fails to send crash report and calls delegate methods") {
                     urlSession.response = Mock403Response()
-                    expect {
-                        let report = try crashReporter.generateLiveReport(attributes: [:])
-                        return try backtraceApi.send(report).backtraceStatus
-                    }.to(equal(BacktraceReportStatus.serverError))
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.serverError))
                     
                     expect { delegate.calledWillSend }.to(beTrue())
                     expect { delegate.calledWillSendRequest }.to(beTrue())
@@ -83,17 +91,23 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                    expect { try reporter.repository.countResources() }.to(be(0))
                 }
             }
             
             context("given too many reports to send") {
-                it("fails and calls limit reached delegate methods") {
-                    let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
-                    backtraceApi.delegate = delegate
+                throwingIt("fails and calls limit reached delegate methods") {
+                    backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
+                    reporter = try BacktraceReporter(reporter: CrashReporter(),
+                                                     api: backtraceApi,
+                                                     dbSettings: BacktraceDatabaseSettings(),
+                                                     credentials: credentials,
+                                                     urlSession: urlSession)
+                    reporter.delegate = delegate
+                    
                     urlSession.response = MockOkResponse()
-                    expect { try backtraceApi
-                        .send(try crashReporter.generateLiveReport(attributes: [:])).backtraceStatus
-                    }.to(equal(.limitReached))
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.limitReached))
                     
                     expect { delegate.calledWillSend }.to(beFalse())
                     expect { delegate.calledWillSendRequest }.to(beFalse())
@@ -101,27 +115,14 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beTrue())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(0))
-                }
-            }
-            
-            context("given new instance") {
-                let api = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
-                it("has no delegate attached") { expect(api.delegate).to(beNil()) }
-                it("has empty timestamps list") { expect(api.backtraceRateLimiter.timestamps).to(beEmpty()) }
-                
-                context("provided with delegate object") {
-                    it("has delegate object attached") {
-                        let delegate = BacktraceClientDelegateMock()
-                        api.delegate = delegate
-                        expect(api.delegate).toNot(beNil())
-                    }
+                    expect { try reporter.repository.countResources() }.to(be(0))
                 }
             }
             
             context("given new report") {
                 throwingIt("can modify the report") {
                     let delegate = BacktraceClientDelegateMock()
-                    let backtraceReport = try crashReporter.generateLiveReport(attributes: [:])
+                    let backtraceReport = try reporter.generate()
                     let attachmentPaths = ["path1", "path2"]
                     let header = (key: "foo", value: "bar")
                     urlSession.response = MockOkResponse()
@@ -138,7 +139,7 @@ final class BacktraceApiTests: QuickSpec {
                         return request
                     }
                     
-                    let result = try backtraceApi.send(backtraceReport)
+                    let result = reporter.send(resource: backtraceReport)
                     
                     expect { result.backtraceStatus }.to(equal(.ok))
                     expect { result.report?.attachmentPaths }.to(equal(attachmentPaths))
@@ -146,5 +147,5 @@ final class BacktraceApiTests: QuickSpec {
             }
         }
     }
-    //swiftlint:enable function_body_length
+    //swiftlint:enable function_body_length force_try
 }

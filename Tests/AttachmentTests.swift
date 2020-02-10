@@ -8,11 +8,11 @@ final class AttachmentTests: QuickSpec {
     
     override func spec() {
         describe("Attachments") {
-            it("cannot be created from non-existing file", closure: {
+            it("cannot be created from non-existing file") {
                 expect(Attachment(filePath: "")).to(beNil())
-            })
+            }
             
-            it("can be created from existing file", closure: {
+            it("can be created from existing file") {
                 let bundle = Bundle(for: type(of: self))
                 let path = bundle.path(forResource: "test", ofType: "txt")
                 if let path = path {
@@ -20,21 +20,21 @@ final class AttachmentTests: QuickSpec {
                 } else {
                     fail()
                 }
-            })
+            }
             
-            context("Attachment exists", closure: {
+            context("Attachment exists") {
                 let bundle = Bundle(for: type(of: self))
                 let path = bundle.path(forResource: "test", ofType: "txt")
                 if let path = path, let attachment = Attachment(filePath: path) {
-                    it("has mime type: text/plain", closure: {
+                    it("has mime type: text/plain") {
                         expect(attachment.mimeType).to(equal("text/plain"))
                         expect(attachment.data).toNot(beNil())
                         expect(attachment.name).to(contain(["attachment_test_"]))
-                    })
+                    }
                 } else {
                     fail()
                 }
-            })
+            }
         }
     }
 }

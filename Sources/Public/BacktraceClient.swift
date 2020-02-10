@@ -3,10 +3,10 @@ import Foundation
 /// Provides the default implementation of `BacktraceClientProtocol` protocol.
 @objc open class BacktraceClient: NSObject {
     
-    /// Shared instance of BacktraceClient class. Should be created before send any report.
+    /// Shared instance of BacktraceClient class. Should be created before sending any reports.
     @objc public static var shared: BacktraceClientProtocol?
     
-    /// `BacktraceClient`'s configuration. Allows to configure `BacktraceClient` in custom way.
+    /// `BacktraceClient`'s configuration. Allows to configure `BacktraceClient` in a custom way.
     @objc public let configuration: BacktraceClientConfiguration
     
     private let reporter: BacktraceReporter
@@ -17,28 +17,28 @@ import Foundation
     /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
     /// and https://help.backtrace.io/troubleshooting/what-is-a-submission-token .
     ///
-    /// - Parameter credentials: Credentials to register in Backtrace services
-    /// - Throws: throws an error in cases of failure.
+    /// - Parameter credentials: Credentials to register in Backtrace services.
+    /// - Throws: throws an error in case of failure.
     @objc public convenience init(credentials: BacktraceCredentials) throws {
         try self.init(configuration: BacktraceClientConfiguration(credentials: credentials))
     }
     
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
-    /// in custom way.
+    /// in a custom way.
     ///
-    /// - Parameter configuration: `BacktraceClient`s configuration
-    /// - Throws: throws an error in cases of failure.
+    /// - Parameter configuration: `BacktraceClient`s configuration.
+    /// - Throws: throws an error in case of failure.
     @objc public convenience init(configuration: BacktraceClientConfiguration) throws {
-        let api = BacktraceApi(urlRequest: configuration.credentials.sendRequest,
+        let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: CrashReporter(), api: api, dbSettings: configuration.dbSettings,
-                                             reportsPerMin: configuration.reportsPerMin)
+                                             credentials: configuration.credentials)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)
     }
     
     init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
-         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApiProtocol) throws {
+         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApi) throws {
         
         self.dispatcher = dispatcher
         self.reporter = reporter
@@ -53,7 +53,7 @@ import Foundation
 // MARK: - BacktraceClientProviding
 extension BacktraceClient: BacktraceClientCustomizing {
     
-    /// The object that acts as the delegate of the `BacktraceClient`. Provide delegate to receive all the events.
+    /// The object that acts as the delegate object of the `BacktraceClient`.
     @objc public var delegate: BacktraceClientDelegate? {
         set {
             reporter.delegate = newValue
@@ -116,14 +116,9 @@ extension BacktraceClient: BacktraceReporting {
         
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
-            do {
-                completion(try self.reporter.send(resource: resource))
-            } catch {
-                BacktraceLogger.error(error)
-                completion(BacktraceResult(.unknownError))
-            }
-            }, completion: {
-                BacktraceLogger.debug("Finished")
+            completion(self.reporter.send(resource: resource))
+        }, completion: {
+            BacktraceLogger.debug("Finished sending an error report.")
         })
     }
     
@@ -141,7 +136,7 @@ extension BacktraceClient: BacktraceReporting {
                 BacktraceLogger.error(error)
             }
             }, completion: {
-                BacktraceLogger.debug("Finished")
+                BacktraceLogger.debug("Started error reporter.")
         })
     }
 }
@@ -149,8 +144,8 @@ extension BacktraceClient: BacktraceReporting {
 // MARK: - BacktraceLogging
 extension BacktraceClient: BacktraceLogging {
     
-    /// Set of logging destinations
-    public var destinations: Set<BacktraceBaseDestination> {
+    /// A collection of logging destinations.
+    public var loggingDestinations: Set<BacktraceBaseDestination> {
         get {
             return BacktraceLogger.destinations
         }

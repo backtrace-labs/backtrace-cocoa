@@ -24,11 +24,6 @@ extension BacktraceResult {
     
     /// Description of `BacktraceResult`
     override open var description: String {
-        return
-            """
-            Backtrace result:
-            - message: \(message)
-            - status: \(backtraceStatus.description)
-            """
+        return message
     }
 }

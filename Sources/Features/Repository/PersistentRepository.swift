@@ -13,7 +13,7 @@ protocol PersistentStorable {
     init(managedObject: ManagedObjectType) throws
 }
 
-class PersistentRepository<Resource: PersistentStorable> {
+final class PersistentRepository<Resource: PersistentStorable> {
     
     let backgroundContext: NSManagedObjectContext
     let settings: BacktraceDatabaseSettings
