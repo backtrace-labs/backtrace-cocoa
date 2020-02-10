@@ -1,46 +1,5 @@
 import Foundation
 
-final class BacktraceNetworkClient {
-    let urlSession: URLSession
-    
-    init(urlSession: URLSession) {
-        self.urlSession = urlSession
-    }
-    
-    func send(request: URLRequest) throws -> BacktraceHttpResponse {
-        let response = self.urlSession.sync(request)
-        
-        if let responseError = response.responseError {
-            throw NetworkError.connectionError(responseError)
-        }
-        guard let urlResponse = response.urlResponse else {
-            throw HttpError.unknownError
-        }
-        // check result
-        return BacktraceHttpResponse(httpResponse: urlResponse, responseData: response.responseData)
-    }
-    
-    func isNetworkAvailable() -> Bool {
-        return true
-    }
-}
-
-struct BacktraceRateLimiter {
-    private(set) var timestamps: [TimeInterval] = []
-    let reportsPerMin: Int
-    private let cacheInterval = 60.0
-    
-    var canSend: Bool {
-        let currentTimestamp = Date().timeIntervalSince1970
-        let sentCount = timestamps.filter { currentTimestamp - $0 < cacheInterval }.count
-        return sentCount < reportsPerMin
-    }
-    
-    mutating func addRecord() {
-        timestamps.append(Date().timeIntervalSince1970)
-    }
-}
-
 final class BacktraceApi {
     weak var delegate: BacktraceClientDelegate?
     private(set) var backtraceRateLimiter: BacktraceRateLimiter
