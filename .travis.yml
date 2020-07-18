@@ -2,6 +2,7 @@ language: swift
 os: osx
 osx_image: xcode11.2
 before_install:
+  - gem install bundler:2.1.4
   - bundler install
   - bundle update
   - bundle exec pod repo update
