@@ -5,7 +5,7 @@ final class CrashReporter {
     private let reporter: PLCrashReporter
     static private let crashName = "live_report"
     public init(config: PLCrashReporterConfig = PLCrashReporterConfig.defaultConfiguration()) {
-        reporter = PLCrashReporter.init(configuration: config)
+        reporter = PLCrashReporter(configuration: config)
     }
 }
 
