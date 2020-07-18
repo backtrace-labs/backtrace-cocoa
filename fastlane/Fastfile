@@ -25,7 +25,7 @@ end
 platform :mac do
   desc "Run macOS tests"
   lane :tests do
-    common_tests(scheme: "Backtrace-macOS", disable_slide_to_type: false)
+    common_tests(scheme: "Backtrace-macOS", disable_slide_to_type: true)
   end
 end
 
