@@ -91,7 +91,10 @@ final class AttributesTests: QuickSpec {
             }
             
             it("sets process age information") {
-                expect { try ProcessInfo.age() }.toNot(be(0))
+                expect {
+                    sleep(1)
+                    return try ProcessInfo.age()
+                }.toNot(be(0))
             }
             
             it("sets number of threads information") {
