@@ -11,7 +11,6 @@ final class CrashReporter {
 
 extension CrashReporter: CrashReporting {
     func signalContext(_ mutableContext: inout SignalContext) {
-        let rawMutablePointer = UnsafeMutableRawPointer(&mutableContext)
         let handler: @convention(c) (_ signalInfo: UnsafeMutablePointer<siginfo_t>?,
             _ uContext: UnsafeMutablePointer<ucontext_t>?,
             _ context: UnsafeMutableRawPointer?) -> Void = { signalInfoPointer, _, context in
@@ -22,7 +21,10 @@ extension CrashReporter: CrashReporting {
                 attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
                 try? AttributesStorage.store(attributesProvider.allAttributes, fileName: CrashReporter.crashName)
         }
-        var callbacks = PLCrashReporterCallbacks(version: 0, context: rawMutablePointer, handleSignal: handler)
+        
+        var callbacks = withUnsafeMutableBytes(of: &mutableContext) { rawMutablePointer in
+            PLCrashReporterCallbacks(version: 0, context: rawMutablePointer.baseAddress, handleSignal: handler)
+        }
         reporter.setCrash(&callbacks)
     }
     
