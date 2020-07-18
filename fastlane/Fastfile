@@ -18,14 +18,14 @@ default_platform(:ios)
 platform :ios do
   desc "Run iOS tests"
   lane :tests do
-    common_tests(scheme: "Backtrace-iOS")
+    common_tests(scheme: "Backtrace-iOS", disable_slide_to_type: true)
   end
 end
 
 platform :mac do
   desc "Run macOS tests"
   lane :tests do
-    common_tests(scheme: "Backtrace-macOS")
+    common_tests(scheme: "Backtrace-macOS", disable_slide_to_type: false)
   end
 end
 
@@ -44,6 +44,7 @@ lane :common_tests do |options|
     clean: true,
     code_coverage: true,
     open_report: true,
+    disable_slide_to_type: options[:disable_slide_to_type],
     disable_concurrent_testing: true
   )
 end
