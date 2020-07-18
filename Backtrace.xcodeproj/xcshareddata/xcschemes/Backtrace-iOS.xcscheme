@@ -20,20 +20,6 @@
                ReferencedContainer = "container:Backtrace.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F2C2FA5821BBD26300934744"
-               BuildableName = "Backtrace-iOSTests.xctest"
-               BlueprintName = "Backtrace-iOSTests"
-               ReferencedContainer = "container:Backtrace.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
