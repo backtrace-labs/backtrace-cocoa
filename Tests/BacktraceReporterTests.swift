@@ -13,7 +13,7 @@ final class BacktraceReporterTests: QuickSpec {
                 BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
             var backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
             let delegate = BacktraceClientDelegateSpy()
-            var reporter = try! BacktraceReporter(reporter: CrashReporter(),
+            var reporter = try! BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                   api: backtraceApi,
                                                   dbSettings: BacktraceDatabaseSettings(),
                                                   credentials: credentials,
@@ -22,7 +22,7 @@ final class BacktraceReporterTests: QuickSpec {
             throwingBeforeEach {
                 delegate.clear()
                 backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
-                reporter = try BacktraceReporter(reporter: CrashReporter(),
+                reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                  api: backtraceApi,
                                                  dbSettings: BacktraceDatabaseSettings(),
                                                  credentials: credentials,
@@ -98,7 +98,7 @@ final class BacktraceReporterTests: QuickSpec {
             context("given too many reports to send") {
                 throwingIt("fails and calls limit reached delegate methods") {
                     backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
-                    reporter = try BacktraceReporter(reporter: CrashReporter(),
+                    reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                      api: backtraceApi,
                                                      dbSettings: BacktraceDatabaseSettings(),
                                                      credentials: credentials,

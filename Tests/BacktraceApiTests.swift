@@ -8,7 +8,7 @@ final class BacktraceApiTests: QuickSpec {
     //swiftlint:disable function_body_length
     override func spec() {
         describe("Backtrace API") {
-            let crashReporter = CrashReporter()
+            let crashReporter = BacktraceCrashReporter()
             let urlSession = URLSessionMock()
             let credentials =
                 BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
