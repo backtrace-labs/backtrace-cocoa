@@ -10,7 +10,7 @@ final class BacktraceApi {
          session: URLSession = URLSession(configuration: .ephemeral),
          reportsPerMin: Int) {
         self.networkClient = BacktraceNetworkClient(urlSession: session)
-        self.backtraceRateLimiter = BacktraceRateLimiter(reportsPerMin: reportsPerMin)
+        self.backtraceRateLimiter = BacktraceRateLimiter(timestamps: [], reportsPerMin: reportsPerMin)
         self.credentials = credentials
     }
 }
