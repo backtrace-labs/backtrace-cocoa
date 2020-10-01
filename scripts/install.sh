@@ -2,5 +2,7 @@
 set -ex
 
 brew bundle
-pod repo update 
-pod install
+gem install bundler:2.1.4
+bundle install
+bundle exec pod repo update 
+bundle exec pod install

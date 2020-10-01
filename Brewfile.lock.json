@@ -2,43 +2,22 @@
   "entries": {
     "brew": {
       "fastlane": {
-        "version": "2.161.0",
+        "version": "2.152.0",
         "bottle": {
           "cellar": ":any",
           "prefix": "/usr/local",
           "files": {
             "catalina": {
-              "url": "https://homebrew.bintray.com/bottles/fastlane-2.161.0.catalina.bottle.tar.gz",
-              "sha256": "fa9092e388bca3b32807eddcc1c6514e92f3e5e20da966f82bd7670c3e0d42d3"
+              "url": "https://homebrew.bintray.com/bottles/fastlane-2.152.0.catalina.bottle.tar.gz",
+              "sha256": "133fd49959694621a60d6212e9e21631c34015b836427353e8c864a280d579cb"
             },
             "mojave": {
-              "url": "https://homebrew.bintray.com/bottles/fastlane-2.161.0.mojave.bottle.tar.gz",
-              "sha256": "431e169597585884f93781f00c17c64fd779d6ea311602891567236146473c5f"
+              "url": "https://homebrew.bintray.com/bottles/fastlane-2.152.0.mojave.bottle.tar.gz",
+              "sha256": "346c5892ebc93be7f37ab7e080db591d4d91c1849096b478739a1873988af4f9"
             },
             "high_sierra": {
-              "url": "https://homebrew.bintray.com/bottles/fastlane-2.161.0.high_sierra.bottle.tar.gz",
-              "sha256": "39bdfc80e896775b45617f1b7bb9f209cad91b91a5bb0a3cbeae0ed0080f45cc"
-            }
-          }
-        }
-      },
-      "cocoapods": {
-        "version": "1.9.3",
-        "bottle": {
-          "cellar": "/usr/local/Cellar",
-          "prefix": "/usr/local",
-          "files": {
-            "catalina": {
-              "url": "https://homebrew.bintray.com/bottles/cocoapods-1.9.3.catalina.bottle.tar.gz",
-              "sha256": "70f8c793bb60631422db028bbebb64ba9fcc1085a216abe5e625357380e06d46"
-            },
-            "mojave": {
-              "url": "https://homebrew.bintray.com/bottles/cocoapods-1.9.3.mojave.bottle.tar.gz",
-              "sha256": "074e5b53b7a054c132582183dcf47546ddd028a7beb9fcdc653fe4a43225bcf3"
-            },
-            "high_sierra": {
-              "url": "https://homebrew.bintray.com/bottles/cocoapods-1.9.3.high_sierra.bottle.tar.gz",
-              "sha256": "61d9473fd19573cebe3401921c69b8bc69eba9c096de654776a24dedd089ce65"
+              "url": "https://homebrew.bintray.com/bottles/fastlane-2.152.0.high_sierra.bottle.tar.gz",
+              "sha256": "6d96e2a20decfae69a34e7e774edaa30da4b3d7f7895291612c33031a6d27d53"
             }
           }
         }
@@ -48,11 +27,11 @@
   "system": {
     "macos": {
       "catalina": {
-        "HOMEBREW_VERSION": "2.5.2",
+        "HOMEBREW_VERSION": "2.4.7",
         "HOMEBREW_PREFIX": "/usr/local",
-        "Homebrew/homebrew-core": "3cc2bc2196267adcdaa2e256cd8af6c30207c049",
+        "Homebrew/homebrew-core": "3635145b479e8168b3a6b6f93c6662e862364fd3",
         "CLT": "1103.0.32.62",
-        "Xcode": "11.7",
+        "Xcode": "11.6",
         "macOS": "10.15.6"
       }
     }
