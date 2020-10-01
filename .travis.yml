@@ -1,6 +1,6 @@
 language: swift
 os: osx
-osx_image: xcode11.6
+osx_image: xcode11.7
 script:
   - sh scripts/install.sh
   - sh scripts/test.sh
