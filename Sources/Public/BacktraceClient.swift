@@ -18,9 +18,20 @@ import Foundation
     /// and https://help.backtrace.io/troubleshooting/what-is-a-submission-token .
     ///
     /// - Parameter credentials: Credentials to register in Backtrace services.
+    /// - Parameter crashReporter: Instance of the crash reporter to inject.
+    /// - Throws: throws an error in case of failure.
+    @objc public convenience init(credentials: BacktraceCredentials, crashReporter: BacktraceCrashReporter = BacktraceCrashReporter()) throws {
+        try self.init(configuration: BacktraceClientConfiguration(credentials: credentials), crashReporter: crashReporter)
+    }
+    
+    /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
+    /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
+    /// and https://help.backtrace.io/troubleshooting/what-is-a-submission-token .
+    ///
+    /// - Parameter credentials: Credentials to register in Backtrace services.
     /// - Throws: throws an error in case of failure.
     @objc public convenience init(credentials: BacktraceCredentials) throws {
-        try self.init(configuration: BacktraceClientConfiguration(credentials: credentials))
+        try self.init(configuration: BacktraceClientConfiguration(credentials: credentials), crashReporter: BacktraceCrashReporter())
     }
     
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
@@ -31,7 +42,22 @@ import Foundation
     @objc public convenience init(configuration: BacktraceClientConfiguration) throws {
         let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
-        let reporter = try BacktraceReporter(reporter: CrashReporter(), api: api, dbSettings: configuration.dbSettings,
+        let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
+                                             credentials: configuration.credentials)
+        try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
+                      dispatcher: Dispatcher(), api: api)
+    }
+    
+    /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
+    /// in a custom way.
+    ///
+    /// - Parameter configuration: `BacktraceClient`s configuration.
+    /// - Parameter crashReporter: Instance of the crash reporter to inject.
+    /// - Throws: throws an error in case of failure.
+    @objc public convenience init(configuration: BacktraceClientConfiguration, crashReporter: BacktraceCrashReporter) throws {
+        let api = BacktraceApi(credentials: configuration.credentials,
+                               reportsPerMin: configuration.reportsPerMin)
+        let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)

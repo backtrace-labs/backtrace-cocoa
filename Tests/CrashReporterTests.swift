@@ -8,7 +8,7 @@ final class CrashReporterTests: QuickSpec {
     
     override func spec() {
         describe("Crash reporter") {
-            let crashReporter = CrashReporter()
+            let crashReporter = BacktraceCrashReporter()
             
             it("has no pending crashes") {
                 expect(crashReporter.hasPendingCrashes()).to(beFalse())

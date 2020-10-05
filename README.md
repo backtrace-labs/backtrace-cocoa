@@ -90,6 +90,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     1. [Initialize client](#documentation-client-initialization)
     2. [Configure client](#documentation-client-configuration)
         * [Database settings](#documentation-database-settings)
+        * [PLCrashReporter configuration](#documentation-plcrashreporter-configuration)
     3. [Events handling](#documentation-events-handling)
     4. [Attributes](#documentation-attributes)
     5. [Attachments](#documentation-attachments)
@@ -226,6 +227,44 @@ BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration all
 
 BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
 ```
+
+### PLCrashReporter configuration <a name="documentation-plcrashreporter-configuration"></a>
+`BacktraceClient` allows to customize the configuration of the `PLCrashReporter` by injecting its instance.
+
+- Swift
+```swift
+let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!, token: "token")
+let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials)
+BacktraceClient.shared = try? BacktraceClient(
+    configuration: backtraceConfiguration,
+    crashReporter: BacktraceCrashReporter(config: PLCrashReporterConfig.defaultConfiguration()))
+// or 
+BacktraceClient.shared = try? BacktraceClient(
+    configuration: backtraceConfiguration,
+    crashReporter: BacktraceCrashReporter(reporter: PLCrashReporter.shared()))
+```
+
+- Objective-C
+```objective-c
+BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
+                                     initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
+                                     token: @"token"];
+
+BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc] 
+                                                initWithCredentials: credentials];
+
+BacktraceClient.shared = [[BacktraceClient alloc]
+                            initWithConfiguration: configuration
+                            crashReporter: [[BacktraceCrashReporter alloc] initWithConfig: PLCrashReporterConfig.defaultConfiguration]
+                            error: nil];
+    
+// or
+BacktraceClient.shared = [[BacktraceClient alloc]
+                            initWithConfiguration: configuration
+                            crashReporter: [[BacktraceCrashReporter alloc] initWithReporter: PLCrashReporter.sharedReporter]
+                            error: nil];
+```
+
 
 ## Events handling <a name="documentation-events-handling"></a>
 `BacktraceClient` allows you to subscribe for events produced before and after sending each report. You have to only attach object which confirm to `BacktraceClientDelegate` protocol.
