@@ -26,6 +26,7 @@ final class BacktraceRateLimiterTests: QuickSpec {
                 rateLimiter.addRecord()
                 rateLimiter.addRecord()
                 rateLimiter.addRecord()
+                rateLimiter.addRecord()
                 it("blocks sending new reports") {
                     expect { rateLimiter.canSend }.to(beFalse())
                 }
