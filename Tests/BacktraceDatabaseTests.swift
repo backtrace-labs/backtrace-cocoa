@@ -7,7 +7,7 @@ final class BacktraceDatabaseTests: QuickSpec {
     override func spec() {
         describe("Crash reporter") {
             throwingContext("given all dependencies and empty database") {
-                let crashReporter = CrashReporter()
+                let crashReporter = BacktraceCrashReporter()
                 let repository = try PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
                 
                 throwingIt("can clear database") {

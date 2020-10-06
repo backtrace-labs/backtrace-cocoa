@@ -20,16 +20,6 @@ final class BacktraceRateLimiterTests: QuickSpec {
                     expect { rateLimiter.canSend }.to(beTrue())
                 }
             }
-            
-            context("given full list") {
-                var rateLimiter = BacktraceRateLimiter(reportsPerMin: 3)
-                rateLimiter.addRecord()
-                rateLimiter.addRecord()
-                rateLimiter.addRecord()
-                it("blocks sending new reports") {
-                    expect { rateLimiter.canSend }.to(beFalse())
-                }
-            }
         }
     }
 }

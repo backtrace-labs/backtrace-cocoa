@@ -19,7 +19,7 @@ private extension Optional where Wrapped == Data {
         case .none:
             return ""
         case .some(let data):
-            return (try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])) ?? ""
+            return (try? JSONSerialization.jsonObject(with: data, options: [.allowFragments])) ?? ""
         }
     }
 }
