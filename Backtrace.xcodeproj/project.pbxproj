@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
+		0B6B4CFE25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
+		0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
 		282C85E7223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */; };
 		282C85EA22419C560014FE75 /* BacktraceWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */; };
 		282C85EB22419C600014FE75 /* BacktraceWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */; };
@@ -305,6 +308,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceOomWatcher.swift; sourceTree = "<group>"; };
 		0DFF5AC24C0AC4EF3E2F5307 /* Pods-Example-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		266E3F27CBA1D3CE7E2CCCB2 /* Pods_Backtrace_macOSTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_macOSTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceCrashExceptionApplication.swift; sourceTree = "<group>"; };
@@ -701,6 +705,7 @@
 			children = (
 				F28F164521E28441008E4B96 /* BacktraceReporter.swift */,
 				F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */,
+				0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */,
 			);
 			path = Client;
 			sourceTree = "<group>";
@@ -1779,6 +1784,7 @@
 				28F95BDB22526088003936E0 /* SignalContext.swift in Sources */,
 				28F95BD122526068003936E0 /* BacktraceResult.swift in Sources */,
 				28F95BE7225260B0003936E0 /* Attachment.swift in Sources */,
+				0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				28F95BCB22526045003936E0 /* Dispatching.swift in Sources */,
 				28F95BDD2252608E003936E0 /* BacktraceReportStatus.swift in Sources */,
 				28F95BDE22526091003936E0 /* ReportingPolicy.swift in Sources */,
@@ -1864,6 +1870,7 @@
 				F282075C21CEA37A0017367F /* Repository.swift in Sources */,
 				F26EBF3B23F21BC700A64218 /* BacktraceRateLimiter.swift in Sources */,
 				F28F165221E2A08F008E4B96 /* HttpMethod.swift in Sources */,
+				0B6B4CFE25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				F29CD78E21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */,
 				F2D7122221F10C45002D2A26 /* BacktraceClientConfiguration.swift in Sources */,
 				F29CD79221FCC25600216C59 /* BacktraceWatcher.swift in Sources */,
@@ -1938,6 +1945,7 @@
 				F2D7122421F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
 				F28F164621E28441008E4B96 /* BacktraceReporter.swift in Sources */,
 				F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */,
+				0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				F2C1514221F7D8E30014F1B3 /* PersistentRepository.swift in Sources */,
 				F2D8BE3821BD7894007CFEFA /* BacktraceError.swift in Sources */,
 				F282075821CEA31F0017367F /* BacktraceReport.swift in Sources */,

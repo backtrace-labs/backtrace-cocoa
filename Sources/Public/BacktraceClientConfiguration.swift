@@ -17,6 +17,8 @@ import Foundation
     /// Flag indicating if the Backtrace client should report reports when the debugger is attached. Default `false`.
     @objc public var allowsAttachingDebugger: Bool = false
     
+    /// Flag responsible for detecting and sending possible OOM cashes
+    @objc public var detectOOM: Bool = false;
     /// Produces Backtrace client configuration settings.
     ///
     /// - Parameters:
@@ -36,10 +38,12 @@ import Foundation
     @objc public init(credentials: BacktraceCredentials,
                       dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings(),
                       reportsPerMin: Int = 30,
-                      allowsAttachingDebugger: Bool = false) {
+                      allowsAttachingDebugger: Bool = false,
+                      detectOOM: Bool = false) {
         self.credentials = credentials
         self.dbSettings = dbSettings
         self.reportsPerMin = reportsPerMin
         self.allowsAttachingDebugger = allowsAttachingDebugger
+        self.detectOOM = detectOOM;
     }
 }

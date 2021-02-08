@@ -153,6 +153,10 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
         
+        if(self.configuration.detectOOM) {
+            self.reporter.enableOomWatcher()
+        }
+        
         try reporter.enableCrashReporter()
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
