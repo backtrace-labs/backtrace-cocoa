@@ -51,7 +51,7 @@ final class BacktraceWatcherTests: QuickSpec {
                     watcher.enable()
                     watcher.resetTimer()
                     
-                    waitUntil(timeout: TimeInterval(dbSettings.retryInterval + 1)) { done in
+                    waitUntil(timeout: .seconds(dbSettings.retryInterval + 1)) { (done) in
                         watcher.configureTimer(with: DispatchWorkItem(block: {
                             done()
                         }))

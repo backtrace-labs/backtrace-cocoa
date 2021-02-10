@@ -1,1 +1,2 @@
 brew "fastlane"
+brew 'cocoapods'
