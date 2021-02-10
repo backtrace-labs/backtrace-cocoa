@@ -33,8 +33,9 @@ final class BacktraceOomWatcher {
     }
     
     internal static func clean() {
-        if (BacktraceOomWatcher.oomFilePath) != nil {
-            try! FileManager.default.removeItem(at: BacktraceOomWatcher.oomFilePath!)
+        if let oomFilePath = BacktraceOomWatcher.oomFilePath {
+            // ignore errors or use do/catch block to handle errors more gracefully
+            try? FileManager.default.removeItem(at: oomFilePath)
         }
     }
     
@@ -148,8 +149,8 @@ extension BacktraceOomWatcher {
         resource.attributes["error.message"] = "Out of memory detected."
         resource.attributes["error.type"] = "Low Memory"
         resource.attributes["state"] = state.state.rawValue
-
-
+        
+        
         self.state.attributes = try? JSONSerialization.data(withJSONObject: resource.attributes)
         saveState()
     }
