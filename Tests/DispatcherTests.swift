@@ -17,8 +17,8 @@ final class DispatcherTests: QuickSpec {
                 }, completion: {
                     finished = true
                 })
-                expect(finished).toEventually(beTrue(), timeout: 5, pollInterval: 0.1)
-                expect(closureCalled).toEventually(beTrue(), timeout: 5, pollInterval: 0.1)
+                expect(finished).toEventually(beTrue(), timeout: .seconds(5), pollInterval: .milliseconds(100))
+                expect(closureCalled).toEventually(beTrue(), timeout: .seconds(5), pollInterval: .milliseconds(100))
             }
         }
     }

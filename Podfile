@@ -1,3 +1,5 @@
+source 'https://cdn.cocoapods.org/'
+
 # Library
 
 # Definitions
