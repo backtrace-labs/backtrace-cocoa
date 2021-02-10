@@ -22,9 +22,12 @@ final class BacktraceReporter {
                              credentials: credentials,
                              repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
-        let localAttributeProvider = AttributesProvider()
-        self.attributesProvider = localAttributeProvider
-        self.backtraceOomWatcher = BacktraceOomWatcher(repository: self.repository, crashReporter: self.reporter, attributes: localAttributeProvider, backtraceApi: self.api)
+        self.attributesProvider = AttributesProvider()
+        self.backtraceOomWatcher = BacktraceOomWatcher(
+            repository: self.repository,
+            crashReporter: self.reporter,
+            attributes: self.attributesProvider as! AttributesProvider,
+            backtraceApi: self.api)
         self.reporter.signalContext(&attributesProvider)
     }
 }
