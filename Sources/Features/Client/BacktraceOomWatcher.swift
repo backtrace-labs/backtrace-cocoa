@@ -4,7 +4,7 @@ final class BacktraceOomWatcher {
     
     private var state: ApplicationInfo
     
-    private(set) var lowMemoryFilePrefix = "_lowMemory"
+    let lowMemoryFilePrefix = "_lowMemory"
     private(set) static var oomFilePath: URL? = getStatusFilePath()
     
     private(set) var crashReporter: CrashReporting
