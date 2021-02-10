@@ -13,7 +13,7 @@ final class BacktraceOomWatcher {
     private(set) var backtraceApi: BacktraceApi
     private let repository: PersistentRepository<BacktraceReport>
     
-    init(repository:  PersistentRepository<BacktraceReport>, crashReporter: CrashReporting, attributes: AttributesProvider, backtraceApi: BacktraceApi) {
+    init(repository: PersistentRepository<BacktraceReport>, crashReporter: CrashReporting, attributes: AttributesProvider, backtraceApi: BacktraceApi) {
         self.crashReporter = crashReporter
         self.attributesProvider = attributes
         self.backtraceApi = backtraceApi
@@ -23,7 +23,7 @@ final class BacktraceOomWatcher {
         self.applicationState["state"] = "foreground"
         self.applicationState["debugger"] = DebuggerChecker.isAttached()
         self.applicationState["appVersion"] = Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String)
-        self.applicationState["version"] = UIDevice.current.systemVersion
+        self.applicationState["version"] = ProcessInfo.processInfo.operatingSystemVersionString
         
         // set status file url
         if(BacktraceOomWatcher.oomFilePath == nil) {
@@ -80,7 +80,7 @@ final class BacktraceOomWatcher {
             return
         }
         // check system update
-        if(backtraceOOMState["version"] as! String !=  UIDevice.current.systemVersion as String) {
+        if(backtraceOOMState["version"] as! String != ProcessInfo.processInfo.operatingSystemVersionString) {
             // detected system update
             return
         }
@@ -112,13 +112,20 @@ final class BacktraceOomWatcher {
 }
 
 extension BacktraceOomWatcher {
-    func applicationWillEnterForeground() {
-        self.applicationState["state"] = "foreground"
-        saveState()
+    /// Describes the current application's state
+    enum ApplicationState: String {
+        /// The app is in the foreground and actively in use.
+        case active
+        /// The app is in an inactive state when it is in the foreground but receiving events.
+        case inactive
+        /// The app transitions into the background.
+        case background
     }
-    
-    func didEnterBackgroundNotification() {
-        self.applicationState["state"] = "background"
+}
+
+extension BacktraceOomWatcher {
+    func appChanedState(_ newState: ApplicationState) {
+        self.applicationState["state"] = newState.rawValue
         saveState()
     }
     
@@ -132,7 +139,7 @@ extension BacktraceOomWatcher {
         guard let resource = try? crashReporter.generateLiveReport(exception: nil,
                                                                    attributes: attributesProvider.allAttributes,
                                                                    attachmentPaths: []) else {
-                                                                    return
+            return
         }
         
         applicationState["resource"] = resource.reportData

@@ -100,45 +100,71 @@ extension BacktraceReporter {
     }
 }
 
+#if os(iOS) || os(tvOS)
+typealias Application = UIApplication
+#elseif os(macOS)
+typealias Application = NSApplication
+#else
+#error("Unsupported platform")
+#endif
 
 //// Provides notification interfaces for BacktraceOOMWatcher and Breadcrumbs support
 extension BacktraceReporter {
     internal func enableOomWatcher() {
         self.backtraceOomWatcher.start()
+        
         NotificationCenter.default.addObserver(self,
-                                               selector:#selector(applicationWillEnterForeground(_:)),
-                                               name: UIApplication.willEnterForegroundNotification,
+                                               selector: #selector(handleTermination),
+                                               name: Application.willTerminateNotification,
                                                object: nil)
         
         NotificationCenter.default.addObserver(self,
-                                               selector:#selector(didEnterBackgroundNotification),
-                                               name: UIApplication.didEnterBackgroundNotification,
+                                               selector: #selector(didBecomeActiveNotification),
+                                               name: Application.didBecomeActiveNotification, object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(willResignActiveNotification),
+                                               name: Application.willResignActiveNotification,
+                                               object: nil)
+        
+        #if os(iOS) || os(tvOS)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(applicationWillEnterForeground),
+                                               name: Application.willEnterForegroundNotification,
                                                object: nil)
         
         NotificationCenter.default.addObserver(self,
-                                               selector:#selector(handleTermination),
-                                               name: UIApplication.willTerminateNotification,
+                                               selector: #selector(didEnterBackgroundNotification),
+                                               name: Application.didEnterBackgroundNotification,
                                                object: nil)
         
         NotificationCenter.default.addObserver(self,
-                                               selector:#selector(handleLowMemoryWarning),
-                                               name: UIApplication.didReceiveMemoryWarningNotification,
+                                               selector: #selector(handleLowMemoryWarning),
+                                               name: Application.didReceiveMemoryWarningNotification,
                                                object: nil)
+        #endif
     }
     
-    @objc private func applicationWillEnterForeground(_ notification: NSNotification) {
-        self.backtraceOomWatcher.applicationWillEnterForeground()
+    @objc private func applicationWillEnterForeground() {
+        self.backtraceOomWatcher.appChanedState(.active)
     }
     
-    
-    @objc private func didEnterBackgroundNotification(_ notification: NSNotification) {
-        self.backtraceOomWatcher.didEnterBackgroundNotification()
+    @objc private func didBecomeActiveNotification() {
+        self.backtraceOomWatcher.appChanedState(.active)
     }
     
-    @objc func handleTermination() {
+    @objc private func willResignActiveNotification() {
+        self.backtraceOomWatcher.appChanedState(.inactive)
+    }
+    
+    @objc private func didEnterBackgroundNotification() {
+        self.backtraceOomWatcher.appChanedState(.background)
+    }
+    
+    @objc private func handleTermination() {
         self.backtraceOomWatcher.handleTermination()
     }
-    @objc func handleLowMemoryWarning() {
+    @objc private func handleLowMemoryWarning() {
         self.backtraceOomWatcher.handleLowMemoryWarning()
     }
 }
