@@ -22,11 +22,12 @@ final class BacktraceReporter {
                              credentials: credentials,
                              repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
-        self.attributesProvider = AttributesProvider()
+        let attributeProvider = AttributesProvider()
+        self.attributesProvider = attributeProvider
         self.backtraceOomWatcher = BacktraceOomWatcher(
             repository: self.repository,
             crashReporter: self.reporter,
-            attributes: self.attributesProvider as! AttributesProvider,
+            attributes: attributeProvider,
             backtraceApi: self.api)
         self.reporter.signalContext(&attributesProvider)
     }
@@ -145,6 +146,20 @@ extension BacktraceReporter {
                                                selector: #selector(handleLowMemoryWarning),
                                                name: Application.didReceiveMemoryWarningNotification,
                                                object: nil)
+        #endif
+        
+        #if os(macOS)
+        let source = DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: nil)
+        let dispatchQueue = DispatchQueue.init(label: "Backtrace")
+        dispatchQueue.async {
+            source.setEventHandler {
+                if source.mask == DispatchSource.MemoryPressureEvent.warning ||
+                    source.mask == DispatchSource.MemoryPressureEvent.critical {
+                    self.handleLowMemoryWarning()
+                }
+            }
+            source.resume()
+        }
         #endif
     }
     

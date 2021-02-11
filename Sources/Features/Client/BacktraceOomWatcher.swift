@@ -12,16 +12,18 @@ final class BacktraceOomWatcher {
     private(set) var backtraceApi: BacktraceApi
     private let repository: PersistentRepository<BacktraceReport>
     
-    init(repository: PersistentRepository<BacktraceReport>, crashReporter: CrashReporting, attributes: AttributesProvider, backtraceApi: BacktraceApi) {
+    init(
+        repository: PersistentRepository<BacktraceReport>,
+        crashReporter: CrashReporting,
+        attributes: AttributesProvider,
+        backtraceApi: BacktraceApi) {
         self.crashReporter = crashReporter
         self.attributesProvider = attributes
         self.backtraceApi = backtraceApi
         self.repository = repository
         
         // set default state
-        state = ApplicationInfo(
-            attributes: nil,
-            resource: nil)
+        state = ApplicationInfo()
         
         // set status file url
         if BacktraceOomWatcher.oomFilePath == nil {
@@ -36,6 +38,14 @@ final class BacktraceOomWatcher {
         if let oomFilePath = BacktraceOomWatcher.oomFilePath {
             // ignore errors or use do/catch block to handle errors more gracefully
             try? FileManager.default.removeItem(at: oomFilePath)
+        }
+    }
+    
+    internal static func getAppVersion() -> String {
+        if let appVersion = Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? String {
+            return appVersion
+        } else {
+            return ""
         }
     }
     
@@ -58,7 +68,12 @@ final class BacktraceOomWatcher {
         
         // if oom state file doesn't exist it means that we deleted it to
         // prevent sending false oom crashes
-        if !FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFilePath!.path) {
+        if let oomFilePath = BacktraceOomWatcher.oomFilePath {
+            if !FileManager.default.fileExists(atPath: oomFilePath.path) {
+                return
+            }
+        } else {
+            // path to status file is empty or unvailable
             return
         }
         
@@ -66,42 +81,64 @@ final class BacktraceOomWatcher {
             return
         }
         
-        // no low memory warning
-        if appState.resource == nil {
+        if !shouldReportOom(appState: appState) {
             return
         }
         
+        
+        reportOom(appState: appState)
+        BacktraceOomWatcher.clean()
+    }
+    
+    private func shouldReportOom(appState: ApplicationInfo) -> Bool {
+        // no low memory warning
+        if appState.resource == nil {
+            return false
+        }
+        
         // check if debugger was enabled
-        if appState.debugger == true {
+        if appState.debugger {
             // detected debugger in previous session
-            return
+            return false
         }
         // check system update
         if appState.version != ProcessInfo.processInfo.operatingSystemVersionString {
             // detected system update
-            return
+            return false
         }
         
         // check application update
-        if appState.appVersion != Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as! String {
+        
+        if appState.appVersion != BacktraceOomWatcher.getAppVersion() {
             // detected app update
+            return false
+        }
+        return true
+    }
+    
+    private func reportOom(appState: ApplicationInfo) {
+        guard let reportData = appState.resource else {
             return
         }
         
-        let attributes = try? JSONSerialization.jsonObject(with: appState.attributes!, options: []) as! Attributes
+        var reportAttributes: Attributes = [:]
+        if let stateAttributes = appState.attributes {
+            if let attributes = try? JSONSerialization.jsonObject(with: stateAttributes, options: []) as? Attributes {
+                reportAttributes = attributes ?? [:]
+            }
+        }
         
         // ok - we detected oom and we should report it
-        guard let report = try? BacktraceReport(report: appState.resource!, attributes: attributes ?? [:], attachmentPaths: []) else {
-            return
+        guard let report = try? BacktraceReport(report: reportData, attributes: reportAttributes, attachmentPaths: [])
+            else {
+                return
         }
-        
         do {
             _ = try backtraceApi.send(report)
         } catch {
             BacktraceLogger.error(error)
             try? self.repository.save(report)
         }
-        try! FileManager.default.removeItem(at: BacktraceOomWatcher.oomFilePath!)
     }
 }
 
@@ -120,7 +157,7 @@ extension BacktraceOomWatcher {
     struct ApplicationInfo: Codable {
         var state: ApplicationState = .active
         var debugger: Bool = DebuggerChecker.isAttached()
-        var appVersion: String = Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as! String
+        var appVersion: String = BacktraceOomWatcher.getAppVersion()
         var version: String = ProcessInfo.processInfo.operatingSystemVersionString
         var attributes: Data?
         var resource: Data?
@@ -135,7 +172,7 @@ extension BacktraceOomWatcher {
     
     func handleTermination() {
         // application terminates correctly - for example: user decide to close app
-        try! FileManager.default.removeItem(atPath: BacktraceOomWatcher.oomFilePath!.path)
+        BacktraceOomWatcher.clean()
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -150,7 +187,6 @@ extension BacktraceOomWatcher {
         resource.attributes["error.type"] = "Low Memory"
         resource.attributes["state"] = state.state.rawValue
         
-        
         self.state.attributes = try? JSONSerialization.data(withJSONObject: resource.attributes)
         saveState()
     }
@@ -158,21 +194,26 @@ extension BacktraceOomWatcher {
     private func loadPreviousState() -> ApplicationInfo? {
         let decoder = PropertyListDecoder()
         
-        guard let data = try? Data.init(contentsOf: BacktraceOomWatcher.oomFilePath!),
-            let previousAppState = try? decoder.decode(ApplicationInfo.self, from: data)
-            else { return nil }
-        return previousAppState
+        if let destPath = BacktraceOomWatcher.oomFilePath {
+            guard let data = try? Data.init(contentsOf: destPath),
+                let previousAppState = try? decoder.decode(ApplicationInfo.self, from: data)
+                else { return nil }
+            return previousAppState
+        } else {
+            return nil
+        }
         
     }
     
     private func saveState() {
         let encoder = PropertyListEncoder()
         if let data = try? encoder.encode(self.state) {
-            let destPath = BacktraceOomWatcher.oomFilePath!.path
-            if FileManager.default.fileExists(atPath: destPath) {
-                try? data.write(to: BacktraceOomWatcher.oomFilePath!)
-            } else {
-                FileManager.default.createFile(atPath: destPath, contents: data, attributes: nil)
+            if let destPath = BacktraceOomWatcher.oomFilePath {
+                if FileManager.default.fileExists(atPath: destPath.path) {
+                    try? data.write(to: destPath)
+                } else {
+                    FileManager.default.createFile(atPath: destPath.path, contents: data, attributes: nil)
+                }
             }
         }
     }
