@@ -28,7 +28,7 @@ extension BacktraceCrashReporter: CrashReporting {
                     let signalInfo = signalInfoPointer?.pointee else {
                     return
                 }
-                attributesProvider.setErrorType(type: "Crash")
+                attributesProvider.set(errorType: "Crash")
                 attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
                 BacktraceOomWatcher.clean()
                 try? AttributesStorage.store(attributesProvider.allAttributes, fileName: BacktraceCrashReporter.crashName)

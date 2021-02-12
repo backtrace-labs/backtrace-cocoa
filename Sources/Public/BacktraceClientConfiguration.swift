@@ -18,7 +18,7 @@ import Foundation
     @objc public var allowsAttachingDebugger: Bool = false
     
     /// Flag responsible for detecting and sending possible OOM cashes
-    @objc public var detectOOM: Bool = false;
+    @objc public var detectOom: Bool = false
     /// Produces Backtrace client configuration settings.
     ///
     /// - Parameters:
@@ -44,6 +44,6 @@ import Foundation
         self.dbSettings = dbSettings
         self.reportsPerMin = reportsPerMin
         self.allowsAttachingDebugger = allowsAttachingDebugger
-        self.detectOOM = detectOOM;
+        self.detectOom = detectOOM
     }
 }

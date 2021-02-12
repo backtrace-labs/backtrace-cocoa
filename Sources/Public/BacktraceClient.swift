@@ -153,7 +153,7 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
         
-        if self.configuration.detectOOM {
+        if self.configuration.detectOom {
             self.reporter.enableOomWatcher()
         }
         

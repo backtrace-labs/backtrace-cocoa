@@ -9,6 +9,10 @@ final class BacktraceReporter {
     private(set) var backtraceOomWatcher: BacktraceOomWatcher
     let repository: PersistentRepository<BacktraceReport>
     
+    #if os(macOS)
+    private(set) var dispatchSource =
+        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: nil)
+    #endif
     init(reporter: CrashReporting,
          api: BacktraceApi,
          dbSettings: BacktraceDatabaseSettings,
@@ -22,14 +26,14 @@ final class BacktraceReporter {
                              credentials: credentials,
                              repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
-        let attributeProvider = AttributesProvider()
-        self.attributesProvider = attributeProvider
+        let attributesProvider = AttributesProvider()
+        self.attributesProvider = attributesProvider
         self.backtraceOomWatcher = BacktraceOomWatcher(
             repository: self.repository,
             crashReporter: self.reporter,
-            attributes: attributeProvider,
+            attributes: attributesProvider,
             backtraceApi: self.api)
-        self.reporter.signalContext(&attributesProvider)
+        self.reporter.signalContext(&self.attributesProvider)
     }
 }
 
@@ -97,6 +101,7 @@ extension BacktraceReporter {
     func generate(exception: NSException? = nil, attachmentPaths: [String] = [],
                   faultMessage: String? = nil) throws -> BacktraceReport {
         attributesProvider.set(faultMessage: faultMessage)
+        attributesProvider.set(errorType: "Exception")
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths)
@@ -124,7 +129,8 @@ extension BacktraceReporter {
         
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(didBecomeActiveNotification),
-                                               name: Application.didBecomeActiveNotification, object: nil)
+                                               name: Application.didBecomeActiveNotification,
+                                               object: nil)
         
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(willResignActiveNotification),
@@ -149,13 +155,14 @@ extension BacktraceReporter {
         #endif
         
         #if os(macOS)
-        let source = DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: nil)
-        let dispatchQueue = DispatchQueue.init(label: "Backtrace")
+        let dispatchQueue = DispatchQueue(label: "Backtrace OOM")
         dispatchQueue.async {
             source.setEventHandler {
-                if source.mask == DispatchSource.MemoryPressureEvent.warning ||
-                    source.mask == DispatchSource.MemoryPressureEvent.critical {
-                    self.handleLowMemoryWarning()
+                if [.warning, .critical].contains(source.mask) {
+                    closure { [weak self] in
+                        guard let self = self else { return }
+                        self.handleLowMemoryWarning()
+                    }
                 }
             }
             source.resume()

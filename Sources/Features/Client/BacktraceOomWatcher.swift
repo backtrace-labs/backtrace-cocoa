@@ -65,15 +65,9 @@ final class BacktraceOomWatcher {
     }
     
     private func sendPendingOomReports() {
-        
         // if oom state file doesn't exist it means that we deleted it to
         // prevent sending false oom crashes
-        if let oomFilePath = BacktraceOomWatcher.oomFilePath {
-            if !FileManager.default.fileExists(atPath: oomFilePath.path) {
-                return
-            }
-        } else {
-            // path to status file is empty or unvailable
+        if let oomFilePath = BacktraceOomWatcher.oomFilePath, !FileManager.default.fileExists(atPath: oomFilePath.path) {
             return
         }
         
@@ -84,7 +78,6 @@ final class BacktraceOomWatcher {
         if !shouldReportOom(appState: appState) {
             return
         }
-        
         
         reportOom(appState: appState)
         BacktraceOomWatcher.clean()
@@ -108,7 +101,6 @@ final class BacktraceOomWatcher {
         }
         
         // check application update
-        
         if appState.appVersion != BacktraceOomWatcher.getAppVersion() {
             // detected app update
             return false
@@ -122,16 +114,15 @@ final class BacktraceOomWatcher {
         }
         
         var reportAttributes: Attributes = [:]
-        if let stateAttributes = appState.attributes {
-            if let attributes = try? JSONSerialization.jsonObject(with: stateAttributes, options: []) as? Attributes {
-                reportAttributes = attributes ?? [:]
-            }
+        if let stateAttributes = appState.attributes,
+           let attributes = try? JSONSerialization.jsonObject(with: stateAttributes, options: []) as? Attributes {
+            reportAttributes = attributes ?? [:]
         }
         
         // ok - we detected oom and we should report it
         guard let report = try? BacktraceReport(report: reportData, attributes: reportAttributes, attachmentPaths: [])
-            else {
-                return
+        else {
+            return
         }
         do {
             _ = try backtraceApi.send(report)
@@ -180,7 +171,7 @@ extension BacktraceOomWatcher {
         guard let resource = try? crashReporter.generateLiveReport(exception: nil,
                                                                    attributes: attributesProvider.allAttributes,
                                                                    attachmentPaths: []) else {
-                                                                    return
+            return
         }
         self.state.resource = resource.reportData
         resource.attributes["error.message"] = "Out of memory detected."
@@ -194,27 +185,22 @@ extension BacktraceOomWatcher {
     private func loadPreviousState() -> ApplicationInfo? {
         let decoder = PropertyListDecoder()
         
-        if let destPath = BacktraceOomWatcher.oomFilePath {
-            guard let data = try? Data.init(contentsOf: destPath),
-                let previousAppState = try? decoder.decode(ApplicationInfo.self, from: data)
-                else { return nil }
-            return previousAppState
-        } else {
-            return nil
-        }
-        
+        guard let destPath = BacktraceOomWatcher.oomFilePath,
+              let data = try? Data(contentsOf: destPath),
+              let previousAppState = try? decoder.decode(ApplicationInfo.self, from: data) else { return nil }
+        return previousAppState
     }
     
     private func saveState() {
         let encoder = PropertyListEncoder()
-        if let data = try? encoder.encode(self.state) {
-            if let destPath = BacktraceOomWatcher.oomFilePath {
-                if FileManager.default.fileExists(atPath: destPath.path) {
-                    try? data.write(to: destPath)
-                } else {
-                    FileManager.default.createFile(atPath: destPath.path, contents: data, attributes: nil)
-                }
+        if let data = try? encoder.encode(self.state),
+           let destPath = BacktraceOomWatcher.oomFilePath {
+            if FileManager.default.fileExists(atPath: destPath.path) {
+                try? data.write(to: destPath)
+            } else {
+                FileManager.default.createFile(atPath: destPath.path, contents: data, attributes: nil)
             }
+            
         }
     }
 }

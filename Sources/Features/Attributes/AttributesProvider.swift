@@ -39,8 +39,8 @@ extension AttributesProvider: SignalContext {
         self.faultInfo.faultMessage = faultMessage
     }
     
-    func setErrorType(type: String?) {
-        self.attributes["error.type"] = type
+    func set(errorType: String?) {
+        self.attributes["error.type"] = errorType
     }
     
     var allAttributes: Attributes {
