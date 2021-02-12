@@ -5,7 +5,7 @@ import Quick
 @testable import Backtrace
 
 final class BacktraceWatcherTests: QuickSpec {
-    //swiftlint:disable function_body_length
+    // swiftlint:disable function_body_length
     override func spec() {
         describe("Watcher") {
             let dbSettings = BacktraceDatabaseSettings()
@@ -206,7 +206,7 @@ final class BacktraceWatcherTests: QuickSpec {
                 }
             }
         }
-        //swiftlint:enable function_body_length
+        // swiftlint:enable function_body_length
     }
     
     private static func backtraceReport(for attributes: Attributes) throws -> BacktraceReport {

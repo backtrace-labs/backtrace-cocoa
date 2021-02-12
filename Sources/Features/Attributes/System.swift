@@ -285,9 +285,9 @@ extension Processor {
             self.nice = Double(nice) / total
         }
         
-        //swiftlint:disable identifier_name large_tuple
+        // swiftlint:disable identifier_name large_tuple
         init(cpu_tick: (UInt32, UInt32, UInt32, UInt32)) {
-            //swiftlint:enable identifier_name large_tuple
+            // swiftlint:enable identifier_name large_tuple
             self.init(user: UInt(cpu_tick.0),
                       system: UInt(cpu_tick.1),
                       idle: UInt(cpu_tick.2),

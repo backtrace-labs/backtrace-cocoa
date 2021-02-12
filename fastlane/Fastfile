@@ -32,7 +32,7 @@ end
 platform :tvos do
   desc "Run tvOS tests"
   lane :tests do
-    common_tests(scheme: "Backtrace-tvOS")
+    common_tests(scheme: "Backtrace-tvOS-lib")
   end
 end
 

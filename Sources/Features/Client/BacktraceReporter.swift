@@ -10,9 +10,11 @@ final class BacktraceReporter {
     let repository: PersistentRepository<BacktraceReport>
     
     #if os(macOS)
-    private(set) var dispatchSource =
-        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: nil)
+    lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
+        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
+    }()
     #endif
+    
     init(reporter: CrashReporting,
          api: BacktraceApi,
          dbSettings: BacktraceDatabaseSettings,
@@ -155,17 +157,12 @@ extension BacktraceReporter {
         #endif
         
         #if os(macOS)
-        let dispatchQueue = DispatchQueue(label: "Backtrace OOM")
-        dispatchQueue.async {
-            source.setEventHandler {
-                if [.warning, .critical].contains(source.mask) {
-                    closure { [weak self] in
-                        guard let self = self else { return }
-                        self.handleLowMemoryWarning()
-                    }
-                }
+        self.memoryPressureSource.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            if [.warning, .critical].contains(self.memoryPressureSource.mask) {
+                self.handleLowMemoryWarning()
             }
-            source.resume()
+            self.memoryPressureSource.resume()
         }
         #endif
     }

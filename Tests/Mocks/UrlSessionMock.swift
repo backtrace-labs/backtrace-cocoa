@@ -4,7 +4,7 @@ import Backtrace
 
 typealias VoidClosure = () -> Void
 
-//based on: https://medium.com/@johnsundell/mocking-in-swift-56a913ee7484
+// based on: https://medium.com/@johnsundell/mocking-in-swift-56a913ee7484
 final class URLSessionMock: URLSession {
     typealias CompletionHandler = (Data?, URLResponse?, Error?) -> Void
     // Properties that enable us to set exactly what data or error

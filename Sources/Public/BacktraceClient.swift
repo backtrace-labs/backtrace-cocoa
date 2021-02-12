@@ -20,7 +20,8 @@ import Foundation
     /// - Parameter credentials: Credentials to register in Backtrace services.
     /// - Parameter crashReporter: Instance of the crash reporter to inject.
     /// - Throws: throws an error in case of failure.
-    @objc public convenience init(credentials: BacktraceCredentials, crashReporter: BacktraceCrashReporter = BacktraceCrashReporter()) throws {
+    @objc public convenience init(credentials: BacktraceCredentials,
+                                  crashReporter: BacktraceCrashReporter = BacktraceCrashReporter()) throws {
         try self.init(configuration: BacktraceClientConfiguration(credentials: credentials), crashReporter: crashReporter)
     }
     
@@ -31,7 +32,8 @@ import Foundation
     /// - Parameter credentials: Credentials to register in Backtrace services.
     /// - Throws: throws an error in case of failure.
     @objc public convenience init(credentials: BacktraceCredentials) throws {
-        try self.init(configuration: BacktraceClientConfiguration(credentials: credentials), crashReporter: BacktraceCrashReporter())
+        try self.init(configuration: BacktraceClientConfiguration(credentials: credentials),
+                      crashReporter: BacktraceCrashReporter())
     }
     
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
@@ -81,10 +83,10 @@ extension BacktraceClient: BacktraceClientCustomizing {
     
     /// The object that acts as the delegate object of the `BacktraceClient`.
     @objc public var delegate: BacktraceClientDelegate? {
-        set {
-            reporter.delegate = newValue
-        } get {
+        get {
             return reporter.delegate
+        } set {
+            reporter.delegate = newValue
         }
     }
     
@@ -92,8 +94,7 @@ extension BacktraceClient: BacktraceClientCustomizing {
     @objc public var attributes: Attributes {
         get {
             return reporter.attributes
-        }
-        set {
+        } set {
             reporter.attributes = newValue
         }
     }
