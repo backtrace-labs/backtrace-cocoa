@@ -5,7 +5,7 @@ import Quick
 @testable import Backtrace
 
 final class BacktraceApiTests: QuickSpec {
-    //swiftlint:disable function_body_length
+    // swiftlint:disable function_body_length
     override func spec() {
         describe("Backtrace API") {
             let crashReporter = BacktraceCrashReporter()
@@ -146,5 +146,5 @@ final class BacktraceApiTests: QuickSpec {
             }
         }
     }
-    //swiftlint:enable function_body_length
+    // swiftlint:enable function_body_length
 }

@@ -5,7 +5,7 @@ import Quick
 @testable import Backtrace
 
 final class AttributesTests: QuickSpec {
-    //swiftlint:disable function_body_length
+    // swiftlint:disable function_body_length
     override func spec() {
         describe("Components") {
             it("sets processor info") {
@@ -102,5 +102,5 @@ final class AttributesTests: QuickSpec {
             }
         }
     }
-    //swiftlint:enable function_body_length
+    // swiftlint:enable function_body_length
 }
