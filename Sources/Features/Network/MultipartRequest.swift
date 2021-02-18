@@ -66,9 +66,7 @@ extension MultipartRequest {
         // attachments
         for attachment in report.attachmentPaths.compactMap(Attachment.init(filePath:)) {
             body.appendString(boundaryPrefix)
-            // swiftlint:disable line_length
             body.appendString("Content-Disposition: form-data; name=\"\(attachment.name)\"; filename=\"\(attachment.name)\"\r\n")
-            // swiftlint:enable line_length
             body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
             body.append(attachment.data)
             body.appendString("\r\n")

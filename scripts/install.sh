@@ -1,8 +1,10 @@
 #!/bin/bash
-set -ex
+set -o errexit # make your script exit when a command fails
+set -o pipefail # to exit when the status of the last command that threw a non-zero exit code is returned
+set -o nounset # to exit when your script tries to use undeclared variables
+set -o xtrace # to trace what gets executed. Useful for debugging
 
-brew bundle
-gem install bundler:2.1.4
-bundle install
-bundle exec pod repo update 
-bundle exec pod install
+# ignore installation errors silently
+brew bundle || true
+
+pod install

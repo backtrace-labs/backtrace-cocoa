@@ -6,7 +6,14 @@ final class BacktraceReporter {
     private(set) var api: BacktraceApi
     private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
     private(set) var attributesProvider: SignalContext
+    private(set) var backtraceOomWatcher: BacktraceOomWatcher
     let repository: PersistentRepository<BacktraceReport>
+    
+    #if os(macOS)
+    lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
+        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
+    }()
+    #endif
     
     init(reporter: CrashReporting,
          api: BacktraceApi,
@@ -21,8 +28,14 @@ final class BacktraceReporter {
                              credentials: credentials,
                              repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
-        self.attributesProvider = AttributesProvider()
-        self.reporter.signalContext(&attributesProvider)
+        let attributesProvider = AttributesProvider()
+        self.attributesProvider = attributesProvider
+        self.backtraceOomWatcher = BacktraceOomWatcher(
+            repository: self.repository,
+            crashReporter: self.reporter,
+            attributes: attributesProvider,
+            backtraceApi: self.api)
+        self.reporter.signalContext(&self.attributesProvider)
     }
 }
 
@@ -90,9 +103,90 @@ extension BacktraceReporter {
     func generate(exception: NSException? = nil, attachmentPaths: [String] = [],
                   faultMessage: String? = nil) throws -> BacktraceReport {
         attributesProvider.set(faultMessage: faultMessage)
+        attributesProvider.set(errorType: "Exception")
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths)
         return resource
+    }
+}
+
+#if os(iOS) || os(tvOS)
+typealias Application = UIApplication
+#elseif os(macOS)
+typealias Application = NSApplication
+#else
+#error("Unsupported platform")
+#endif
+
+//// Provides notification interfaces for BacktraceOOMWatcher and Breadcrumbs support
+extension BacktraceReporter {
+    internal func enableOomWatcher() {
+        self.backtraceOomWatcher.start()
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleTermination),
+                                               name: Application.willTerminateNotification,
+                                               object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(didBecomeActiveNotification),
+                                               name: Application.didBecomeActiveNotification,
+                                               object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(willResignActiveNotification),
+                                               name: Application.willResignActiveNotification,
+                                               object: nil)
+        
+        #if os(iOS) || os(tvOS)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(applicationWillEnterForeground),
+                                               name: Application.willEnterForegroundNotification,
+                                               object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(didEnterBackgroundNotification),
+                                               name: Application.didEnterBackgroundNotification,
+                                               object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleLowMemoryWarning),
+                                               name: Application.didReceiveMemoryWarningNotification,
+                                               object: nil)
+        #endif
+        
+        #if os(macOS)
+        self.memoryPressureSource.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            if [.warning, .critical].contains(self.memoryPressureSource.mask) {
+                self.handleLowMemoryWarning()
+            }
+            self.memoryPressureSource.resume()
+        }
+        #endif
+    }
+    
+    @objc private func applicationWillEnterForeground() {
+        self.backtraceOomWatcher.appChanedState(.active)
+    }
+    
+    @objc private func didBecomeActiveNotification() {
+        self.backtraceOomWatcher.appChanedState(.active)
+    }
+    
+    @objc private func willResignActiveNotification() {
+        self.backtraceOomWatcher.appChanedState(.inactive)
+    }
+    
+    @objc private func didEnterBackgroundNotification() {
+        self.backtraceOomWatcher.appChanedState(.background)
+    }
+    
+    @objc private func handleTermination() {
+        self.backtraceOomWatcher.handleTermination()
+    }
+    @objc private func handleLowMemoryWarning() {
+        self.backtraceOomWatcher.handleLowMemoryWarning()
     }
 }

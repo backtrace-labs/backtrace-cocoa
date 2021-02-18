@@ -32,7 +32,7 @@ end
 platform :tvos do
   desc "Run tvOS tests"
   lane :tests do
-    common_tests(scheme: "Backtrace-tvOS")
+    common_tests(scheme: "Backtrace-tvOS-lib")
   end
 end
 
@@ -47,9 +47,4 @@ lane :common_tests do |options|
     disable_slide_to_type: options[:disable_slide_to_type],
     disable_concurrent_testing: true
   )
-end
-
-desc "Lint pod"
-lane :lint_pod do
-  pod_lib_lint(allow_warnings: true, verbose: true)
 end

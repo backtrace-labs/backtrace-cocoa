@@ -7,7 +7,7 @@ import Backtrace_PLCrashReporter
 
 final class BacktraceClientTests: QuickSpec {
     
-    //swiftlint:disable function_body_length
+    // swiftlint:disable function_body_length
     override func spec() {
         
         describe("Backtrace client") {
@@ -68,5 +68,5 @@ final class BacktraceClientTests: QuickSpec {
             }
         }
     }
-    //swiftlint:enable function_body_length
+    // swiftlint:enable function_body_length
 }

@@ -5,7 +5,7 @@ import Quick
 @testable import Backtrace
 
 final class BacktraceReporterTests: QuickSpec {
-    //swiftlint:disable function_body_length force_try
+    // swiftlint:disable function_body_length force_try
     override func spec() {
         describe("Backtrace reporter") {
             let urlSession = URLSessionMock()
@@ -147,5 +147,5 @@ final class BacktraceReporterTests: QuickSpec {
             }
         }
     }
-    //swiftlint:enable function_body_length force_try
+    // swiftlint:enable function_body_length force_try
 }
