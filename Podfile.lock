@@ -1,5 +1,5 @@
 PODS:
-  - Backtrace (1.5.6):
+  - Backtrace (1.6.0):
     - Backtrace-PLCrashReporter
   - Backtrace-PLCrashReporter (1.5.4)
   - Nimble (9.0.0)
@@ -22,7 +22,7 @@ EXTERNAL SOURCES:
     :path: "./Backtrace.podspec"
 
 SPEC CHECKSUMS:
-  Backtrace: 90f5a8b6bc9d417a444ce62435bbda0c54fa8d89
+  Backtrace: 90e82b3be4a6bde054dcb4663511a37113c348a8
   Backtrace-PLCrashReporter: 65b9aae5468bb6af6b55b88de22b49e031331054
   Nimble: 3b4ec3fd40f1dc178058e0981107721c615643d8
   Quick: 60f0ea3b8e0cfc0df3259a5c06a238ad8b3c46e0
