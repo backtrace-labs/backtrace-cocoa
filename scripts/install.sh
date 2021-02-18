@@ -5,3 +5,5 @@ set -o nounset # to exit when your script tries to use undeclared variables
 set -o xtrace # to trace what gets executed. Useful for debugging
 
 brew bundle
+
+brew link --overwrite cocoapods
