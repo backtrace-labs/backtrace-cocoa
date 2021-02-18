@@ -9,7 +9,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-
+      - name: Install dependencies
+        run: sh scripts/install.sh
+      - name: Run tests
+        run: sh scripts/test.sh
       - name: Deploy to Cocoapods
         run: sh scripts/deploy.sh
         env:
