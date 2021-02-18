@@ -1,7 +1,7 @@
 name: Run tests
 
 on:
-  push:
+  pull_request:
     branches: 
       - develop
       - master
@@ -11,5 +11,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sh scripts/install.sh
       - name: Run tests
         run: sh scripts/test.sh
