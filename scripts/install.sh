@@ -4,6 +4,4 @@ set -o pipefail # to exit when the status of the last command that threw a non-z
 set -o nounset # to exit when your script tries to use undeclared variables
 set -o xtrace # to trace what gets executed. Useful for debugging
 
-brew bundle
-
-brew link --overwrite cocoapods
+sh -c "brew bundle"
