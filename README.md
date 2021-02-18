@@ -189,7 +189,7 @@ BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configu
 **Note on parameters** 
 - `initWithCredentials` and `BacktraceCredentials` see [here](#documentation-client-initialization)
 - `dbSettings` see [here](#documentation-database-settings)
-- `reportsPerMin` indicates the upper limit of how many reports should be sent to the Backtrace endpoint
+- `reportsPerMin` indicates the upper limit of how many reports per minute should be sent to the Backtrace endpoint
 - `allowsAttachingDebugger` if this flag is set to `false` (Swift) or `NO` (ObjC) the Backtrace library will *not* send any reports
 - `detectOOM` indicates if detected Low Memory Warnings ([`applicationDidReceiveMemoryWarning`](https://developer.apple.com/documentation/uikit/app_and_environment/managing_your_app_s_life_cycle/responding_to_memory_warnings)) are a trigger for Backtrace to send a report.
 
