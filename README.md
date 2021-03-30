@@ -110,7 +110,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   * exception metadata,
   * thread metadata,
   * process metadata.
-* Supports iOS, macOS and tvOS platforms.
+* Supports iOS, macOS and tvOS platforms (minimum supported platforms: iOS 9, macOS 10.9, tvOS 9, Mac Catalyst 13.0, Xcode 11 or above).
 * Swift first protocol-oriented framework.
 
 # Installation <a name="installation"></a>
