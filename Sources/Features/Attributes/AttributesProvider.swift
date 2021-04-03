@@ -14,6 +14,7 @@ final class AttributesProvider {
     
     // attributes can be modified on runtime
     var attributes: Attributes = [:]
+    var attachments: Attachments = [:]
     private let attributesSources: [AttributesSource]
     private let faultInfo: FaultInfo
     
@@ -41,6 +42,14 @@ extension AttributesProvider: SignalContext {
     
     func set(errorType: String?) {
         self.attributes["error.type"] = errorType
+    }
+    
+    var attachmentPathsArray: [ String ] {
+        var attachmentPathsArray = [ String ]()
+        for attachment in attachments {
+            attachmentPathsArray.append(attachment.value.path)
+        }
+        return attachmentPathsArray
     }
     
     var allAttributes: Attributes {

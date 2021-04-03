@@ -24,7 +24,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         backtraceDatabaseSettings.retryInterval = 5
         backtraceDatabaseSettings.retryLimit = 3
         backtraceDatabaseSettings.retryBehaviour = RetryBehaviour.interval
-        backtraceDatabaseSettings.retryOrder = RetryOder.queue
+        backtraceDatabaseSettings.retryOrder = RetryOrder.queue
         let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,

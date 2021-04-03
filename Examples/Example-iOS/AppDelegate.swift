@@ -14,6 +14,20 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
+    public func createAndWriteFile(_ fileUrl: URL) {
+        // prints the file path
+        print("File path \(fileUrl.path)")
+        //data to write in file.
+        let formatter = DateFormatter()
+        formatter.timeStyle = .medium
+        let stringData = formatter.string(from: Date())
+        do {
+            try stringData.write(to: fileUrl, atomically: true, encoding: String.Encoding.utf8)
+        } catch let error as NSError {
+            print (error)
+        }
+    }
+    
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
@@ -24,7 +38,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         backtraceDatabaseSettings.retryInterval = 5
         backtraceDatabaseSettings.retryLimit = 3
         backtraceDatabaseSettings.retryBehaviour = RetryBehaviour.interval
-        backtraceDatabaseSettings.retryOrder = RetryOder.queue
+        backtraceDatabaseSettings.retryOrder = RetryOrder.queue
         let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
@@ -33,7 +47,23 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
-        
+        let fileName = "sample.txt"
+        let dirName = "directory"
+        let libraryDirectoryUrl = try! FileManager.default.url(
+           for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true
+           )
+        let directoryUrl = libraryDirectoryUrl.appendingPathComponent(dirName)
+        try? FileManager().createDirectory(
+                    at: directoryUrl,
+                    withIntermediateDirectories: false,
+                    attributes: nil
+                )
+        let fileUrl = directoryUrl.appendingPathComponent(fileName)
+        var crashAttachments = Attachments()
+        crashAttachments[fileName] = fileUrl as URL
+        BacktraceClient.shared?.attachments = crashAttachments
+        createAndWriteFile(fileUrl)
+
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
         do {
             try throwingFunc()

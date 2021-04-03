@@ -98,6 +98,15 @@ extension BacktraceClient: BacktraceClientCustomizing {
             reporter.attributes = newValue
         }
     }
+    
+    /// Additional file attachments which are automatically added to each report.
+    @objc public var attachments: Attachments {
+        get {
+            return reporter.attachments
+        } set {
+            reporter.attachments = newValue
+        }
+    }
 }
 
 // MARK: - BacktraceReporting

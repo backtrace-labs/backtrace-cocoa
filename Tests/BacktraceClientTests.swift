@@ -23,7 +23,7 @@ final class BacktraceClientTests: QuickSpec {
                     expect(defaultDbSettings.retryInterval).to(be(5))
                     expect(defaultDbSettings.retryLimit).to(be(3))
                     expect(defaultDbSettings.retryBehaviour.rawValue).to(be(RetryBehaviour.interval.rawValue))
-                    expect(defaultDbSettings.retryOrder.rawValue).to(be(RetryOder.queue.rawValue))
+                    expect(defaultDbSettings.retryOrder.rawValue).to(be(RetryOrder.queue.rawValue))
                     expect(defaultDbSettings.maxDatabaseSizeInBytes).to(be(0))
                 }
                 
@@ -47,7 +47,7 @@ final class BacktraceClientTests: QuickSpec {
                     let maxDatabaseSize = 10
                     let retryInterval = 10
                     let retryBehaviour = RetryBehaviour.interval
-                    let retryOrder = RetryOder.stack
+                    let retryOrder = RetryOrder.stack
                     let retryLimit = 10
                     
                     customDbSettings.maxRecordCount = maxRecordCount

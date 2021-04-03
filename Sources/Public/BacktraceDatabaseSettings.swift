@@ -19,7 +19,7 @@ import Foundation
     @objc public var retryBehaviour: RetryBehaviour = .interval
     
     /// Retry order. Default `RetryOder.queue`.
-    @objc public var retryOrder: RetryOder = .queue
+    @objc public var retryOrder: RetryOrder = .queue
     
     internal var maxDatabaseSizeInBytes: Int {
         return maxDatabaseSize * 1024 * 1024
@@ -37,7 +37,7 @@ import Foundation
 }
 
 /// Backtrace retrying order for not successfully sent reports.
-@objc public enum RetryOder: Int {
+@objc public enum RetryOrder: Int {
     /// Library will retry sending oldest reports first (FIFO).
     case queue
     /// Library will retry sending youngest reports first (LIFO).

@@ -6,11 +6,18 @@ public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientC
 /// Type-alias of passing attributes to library.
 public typealias Attributes = [String: Any]
 
+/// Type-alias of passing file attachments to library.
+/// Expected format: Filename, File URL bookmark
+public typealias Attachments = [String: URL]
+
 /// Provides customization functionality to `BacktraceClient`.
 @objc public protocol BacktraceClientCustomizing {
     
     /// Additional attributes which are automatically added to each report.
     @objc var attributes: Attributes { get set }
+    
+    /// Additional file attachments which are automatically added to each report.
+    @objc var attachments: Attachments { get set }
     
     /// The object that acts as the delegate object of the `BacktraceClient` instance.
     @objc var delegate: BacktraceClientDelegate? { get set }
