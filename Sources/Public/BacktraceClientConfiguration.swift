@@ -35,6 +35,7 @@ import Foundation
     ///   - reportsPerMin: Maximum number of records sent to Backtrace services in 1 minute. Default: `30`.
     ///   - allowsAttachingDebugger: if set to `true` BacktraceClient will report reports even when the debugger
     /// is attached. Default: `false`.
+    ///   - detectOOM: if set to `true` BacktraceClient will detect when the app is out of memory. Default: `false`.
     @objc public init(credentials: BacktraceCredentials,
                       dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings(),
                       reportsPerMin: Int = 30,

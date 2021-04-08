@@ -18,13 +18,14 @@
     backtraceDatabaseSettings.retryInterval = 5;
     backtraceDatabaseSettings.retryLimit = 3;
     backtraceDatabaseSettings.retryBehaviour = RetryBehaviourInterval;
-    backtraceDatabaseSettings.retryOrder = RetryOderStack;
-    
+    backtraceDatabaseSettings.retryOrder = RetryOrderStack;
+       
     BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
                                                    initWithCredentials: credentials
                                                    dbSettings: backtraceDatabaseSettings
                                                    reportsPerMin: 3
-                                                   allowsAttachingDebugger: TRUE];
+                                                   allowsAttachingDebugger: TRUE
+                                                   detectOOM: FALSE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     [BacktraceClient.shared setAttributes: @{@"foo": @"bar"}];
     BacktraceClient.shared.delegate = self;
