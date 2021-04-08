@@ -14,20 +14,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
-    public func createAndWriteFile(_ fileUrl: URL) {
-        // prints the file path
-        print("File path \(fileUrl.path)")
-        //data to write in file.
-        let formatter = DateFormatter()
-        formatter.timeStyle = .medium
-        let stringData = formatter.string(from: Date())
-        do {
-            try stringData.write(to: fileUrl, atomically: true, encoding: String.Encoding.utf8)
-        } catch let error as NSError {
-            print (error)
-        }
-    }
-    
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
@@ -47,22 +33,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
+        
         let fileName = "sample.txt"
-        let dirName = "directory"
-        let libraryDirectoryUrl = try! FileManager.default.url(
-           for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true
-           )
-        let directoryUrl = libraryDirectoryUrl.appendingPathComponent(dirName)
-        try? FileManager().createDirectory(
-                    at: directoryUrl,
-                    withIntermediateDirectories: false,
-                    attributes: nil
-                )
-        let fileUrl = directoryUrl.appendingPathComponent(fileName)
+        let fileUrl = try? createAndWriteFile(fileName)
         var crashAttachments = Attachments()
-        crashAttachments[fileName] = fileUrl as URL
+        crashAttachments[fileName] = fileUrl
         BacktraceClient.shared?.attachments = crashAttachments
-        createAndWriteFile(fileUrl)
 
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
         do {
@@ -75,6 +51,30 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         return true
+    }
+    
+    func createAndWriteFile(_ fileName: String) throws -> URL {
+        let dirName = "directory"
+        guard let libraryDirectoryUrl = try? FileManager.default.url(
+            for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else {
+            throw CustomError.runtimeError
+        }
+        let directoryUrl = libraryDirectoryUrl.appendingPathComponent(dirName)
+        try? FileManager().createDirectory(
+                    at: directoryUrl,
+                    withIntermediateDirectories: false,
+                    attributes: nil
+                )
+        let fileUrl = directoryUrl.appendingPathComponent(fileName)
+        let formatter = DateFormatter()
+        formatter.timeStyle = .medium
+        let myData = formatter.string(from: Date())
+        do {
+            try myData.write(to: fileUrl, atomically: true, encoding: .utf8)
+        } catch {
+            print("Error: \(error)")
+        }
+        return fileUrl
     }
 }
 

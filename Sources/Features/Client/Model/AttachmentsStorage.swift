@@ -92,7 +92,6 @@ final class AttachmentsStorage {
         }
         // remove file
         try FileManager.default.removeItem(at: config.fileUrl)
-        // TODO: Delete file attachment copy
         BacktraceLogger.debug("Removed attachments plist at path: \(config.fileUrl)")
     }
     
@@ -102,8 +101,7 @@ final class AttachmentsStorage {
             do { let bookmark = try attachment.value.bookmarkData(options: URL.BookmarkCreationOptions.minimalBookmark)
                 attachmentsBookmarksDict[attachment.key] = bookmark as NSData
             } catch {
-                print("Caught error: \(error)")
-                BacktraceLogger.error("Could not bookmark attachment file URL")
+                BacktraceLogger.error("Could not bookmark attachment file URL. Error: \(error)")
                 continue
             }
         }

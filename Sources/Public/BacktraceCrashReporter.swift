@@ -68,7 +68,7 @@ extension BacktraceCrashReporter: CrashReporting {
     // from pending crashes so that they are not overwritten by the
     // new app session
     func copyFileAttachmentsFromPendingCrashes() -> [URL] {
-        guard let cacheDirectoryUrl = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+        guard let directoryUrl = try? AttachmentsStorage.Config(fileName: "").directoryUrl else {
             BacktraceLogger.error("Could not get cache directory URL")
             return [URL]()
         }
@@ -76,16 +76,19 @@ extension BacktraceCrashReporter: CrashReporting {
         var copiedFileAttachments = [URL]()
         for attachment in attachments {
             let fileManager = FileManager()
-            let copiedAttachmentPath = cacheDirectoryUrl.appendingPathComponent(attachment.key)
+            let copiedAttachmentPath = directoryUrl.appendingPathComponent(attachment.key)
             do {
+                if !fileManager.fileExists(atPath: attachment.value.path) {
+                    BacktraceLogger.error("File attachment from previous session does not exist")
+                    continue
+                }
                 if fileManager.fileExists(atPath: copiedAttachmentPath.path) {
                     try fileManager.removeItem(atPath: copiedAttachmentPath.path)
                 }
                 try fileManager.copyItem(at: attachment.value, to: copiedAttachmentPath)
                 copiedFileAttachments.append(copiedAttachmentPath)
             } catch {
-                print("Caught error: \(error)")
-                BacktraceLogger.error("Could not copy bookmarked attachment file from previous session")
+                BacktraceLogger.error("Could not copy bookmarked attachment file from previous session. Error: \(error)")
                 continue
             }
         }
@@ -99,6 +102,16 @@ extension BacktraceCrashReporter: CrashReporting {
     func purgePendingCrashReport() throws {
         try AttributesStorage.remove(fileName: BacktraceCrashReporter.crashName)
         try AttachmentsStorage.remove(fileName: BacktraceCrashReporter.crashName)
+        try deleteCopiedFileAttachments()
         try reporter.purgePendingCrashReportAndReturnError()
+    }
+    
+    func deleteCopiedFileAttachments() throws {
+        let fileManager = FileManager()
+        for attachment in copiedFileAttachments {
+            if fileManager.fileExists(atPath: attachment.path) {
+                try fileManager.removeItem(atPath: attachment.path)
+            }
+        }
     }
 }

@@ -2,10 +2,11 @@ import Foundation
 
 protocol SignalContext: CustomStringConvertible {
     var allAttributes: Attributes { get }
-    // We use attachment paths as strings in our report send functions
-    var attachmentPathsArray: [ String ] { get }
     var attributes: Attributes { get set }
+    // File attachments are stored to disk as URLs
     var attachments: Attachments { get set }
+    // File attachments are used in BacktraceReports as string paths
+    var attachmentPathsArray: [ String ] { get }
     func set(faultMessage: String?)
     func set(errorType: String?)
 }
