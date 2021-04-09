@@ -44,7 +44,7 @@ extension AttributesProvider: SignalContext {
         self.attributes["error.type"] = errorType
     }
     
-    var attachmentPathsArray: [String] {
+    var attachmentPaths: [String] {
         return attachments.map(\.value.path)
     }
     

@@ -104,7 +104,7 @@ extension BacktraceReporter {
         attributesProvider.set(faultMessage: faultMessage)
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
-                                                       attachmentPaths: attachmentPaths + attributesProvider.attachmentPathsArray)
+                                                       attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
         return send(resource: resource)
     }
     
@@ -114,7 +114,7 @@ extension BacktraceReporter {
         attributesProvider.set(errorType: "Exception")
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
-                                                       attachmentPaths: attachmentPaths + attributesProvider.attachmentPathsArray)
+                                                       attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
         return resource
     }
 }

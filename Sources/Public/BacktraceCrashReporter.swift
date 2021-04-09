@@ -68,14 +68,14 @@ extension BacktraceCrashReporter: CrashReporting {
     // from pending crashes so that they are not overwritten by the
     // new app session
     func copyFileAttachmentsFromPendingCrashes() -> [URL] {
-        guard let directoryUrl = try? AttachmentsStorage.Config(fileName: "").directoryUrl else {
+        guard let directoryUrl = try? AttachmentsStorage.AttachmentsConfig(fileName: "").directoryUrl else {
             BacktraceLogger.error("Could not get cache directory URL")
             return [URL]()
         }
         let attachments = (try? AttachmentsStorage.retrieve(fileName: BacktraceCrashReporter.crashName)) ?? [:]
         var copiedFileAttachments = [URL]()
         for attachment in attachments {
-            let fileManager = FileManager()
+            let fileManager = FileManager.default
             let copiedAttachmentPath = directoryUrl.appendingPathComponent(attachment.key)
             do {
                 if !fileManager.fileExists(atPath: attachment.value.path) {
@@ -107,7 +107,7 @@ extension BacktraceCrashReporter: CrashReporting {
     }
     
     func deleteCopiedFileAttachments() throws {
-        let fileManager = FileManager()
+        let fileManager = FileManager.default
         for attachment in copiedFileAttachments {
             if fileManager.fileExists(atPath: attachment.path) {
                 try fileManager.removeItem(atPath: attachment.path)

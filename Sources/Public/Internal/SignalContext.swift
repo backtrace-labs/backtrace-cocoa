@@ -6,7 +6,7 @@ protocol SignalContext: CustomStringConvertible {
     // File attachments are stored to disk as URLs
     var attachments: Attachments { get set }
     // File attachments are used in `BacktraceReport` as string paths
-    var attachmentPathsArray: [String] { get }
+    var attachmentPaths: [String] { get }
     func set(faultMessage: String?)
     func set(errorType: String?)
 }
