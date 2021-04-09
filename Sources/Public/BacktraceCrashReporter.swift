@@ -60,7 +60,7 @@ extension BacktraceCrashReporter: CrashReporting {
     func pendingCrashReport() throws -> BacktraceReport {
         let reportData = try reporter.loadPendingCrashReportDataAndReturnError()
         let attributes = (try? AttributesStorage.retrieve(fileName: BacktraceCrashReporter.crashName)) ?? [:]
-        let attachmentPaths = copiedFileAttachments.map {$0.path}
+        let attachmentPaths = copiedFileAttachments.map(\.path)
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
     

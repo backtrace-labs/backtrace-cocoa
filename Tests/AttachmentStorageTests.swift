@@ -17,18 +17,23 @@ final class AttachmentStorageTests: QuickSpec {
                 
                 let attachmentsFileName = "attachments"
                 try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName)
-                let attachmentPaths = (try? AttachmentsStorage.retrieveAsArray(fileName: attachmentsFileName)) ?? []
-
+                
+                let attachments = (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName)) ?? Attachments()
+                let attachmentPaths = attachments.map(\.value.path)
+                
                 expect(attachmentPaths).toNot(beNil())
                 expect(attachmentPaths.count).to(be(1))
                 expect(attachmentPaths[0]).to(equal(fileUrl.path))
             }
             it("can work with empty attachments") {
                 let crashAttachments = Attachments()
+                
                 let attachmentsFileName = "attachments"
                 try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName)
-                let attachmentPaths = (try? AttachmentsStorage.retrieveAsArray(fileName: attachmentsFileName)) ?? []
-
+                
+                let attachments = (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName)) ?? Attachments()
+                let attachmentPaths = attachments.map(\.value.path)
+                
                 expect(attachmentPaths).toNot(beNil())
                 expect(attachmentPaths.count).to(be(0))
             }

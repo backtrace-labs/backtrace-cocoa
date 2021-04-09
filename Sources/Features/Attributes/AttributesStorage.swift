@@ -1,6 +1,6 @@
 import Foundation
 
-final class AttributesStorage {
+enum AttributesStorage {
     struct Config {
         let cacheUrl: URL
         let directoryUrl: URL
@@ -17,7 +17,7 @@ final class AttributesStorage {
         }
     }
     
-    private static let directoryName = Bundle(for: AttributesStorage.self).bundleIdentifier ?? "BacktraceCache"
+    private static let directoryName = Bundle.main.bundleIdentifier ?? "BacktraceCache"
     
     static func store(_ attributes: Attributes, fileName: String) throws {
         let config = try Config(fileName: fileName)

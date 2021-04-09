@@ -2,9 +2,14 @@ import Foundation
 
 /// Type-alias of storing file attachments on disk (as a bookmark)
 /// Expected format: Filename, File URL bookmark
-public typealias Bookmarks = [String: NSData]
+private typealias Bookmarks = [String: Data]
 
-final class AttachmentsStorage {
+enum AttachmentsStorageError: Error {
+    case invalidDictionary
+    case invalidBookmark
+}
+
+enum AttachmentsStorage {
     struct Config {
         let cacheUrl: URL
         let directoryUrl: URL
@@ -21,7 +26,7 @@ final class AttachmentsStorage {
         }
     }
     
-    private static let directoryName = Bundle(for: AttachmentsStorage.self).bundleIdentifier ?? "BacktraceCache"
+    private static let directoryName = Bundle.main.bundleIdentifier ?? "BacktraceCache"
     
     static func store(_ attachments: Attachments, fileName: String) throws {
         let config = try Config(fileName: fileName)
@@ -62,26 +67,15 @@ final class AttachmentsStorage {
         
         guard let bookmarks = dictionary as? Bookmarks else {
             BacktraceLogger.debug("Could not convert stored dictionary to Bookmarks type")
-            throw FileError.unsupportedScheme
+            throw AttachmentsStorageError.invalidDictionary
         }
         guard let attachments = try? extractAttachmentUrls(bookmarks) else {
             BacktraceLogger.debug("Could not extract attachment URLs from stored attachments Bookmarks")
-            throw FileError.invalidPropertyList
+            throw AttachmentsStorageError.invalidBookmark
         }
 
         BacktraceLogger.debug("Retrieved attachments from path: \(config.fileUrl)")
         return attachments
-    }
-    
-    static func retrieveAsArray(fileName: String) throws -> [String] {
-        guard let attachments = try? retrieve(fileName: fileName) else {
-            return []
-        }
-        var attachmentsArray = [ String ]()
-        for attachment in attachments {
-            attachmentsArray.append(attachment.value.path)
-        }
-        return attachmentsArray
     }
     
     static func remove(fileName: String) throws {
@@ -98,8 +92,9 @@ final class AttachmentsStorage {
     private static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) throws -> Bookmarks {
         var attachmentsBookmarksDict = Bookmarks()
         for attachment in attachments {
-            do { let bookmark = try attachment.value.bookmarkData(options: URL.BookmarkCreationOptions.minimalBookmark)
-                attachmentsBookmarksDict[attachment.key] = bookmark as NSData
+            do {
+                let bookmark = try attachment.value.bookmarkData(options: URL.BookmarkCreationOptions.minimalBookmark)
+                attachmentsBookmarksDict[attachment.key] = bookmark
             } catch {
                 BacktraceLogger.error("Could not bookmark attachment file URL. Error: \(error)")
                 continue
@@ -111,18 +106,19 @@ final class AttachmentsStorage {
     private static func extractAttachmentUrls(_ bookmarks: Bookmarks) throws -> Attachments {
         var attachments = Attachments()
         for bookmark in bookmarks {
-            var stale = ObjCBool(false)
-            guard let fileUrl = try? NSURL.init(resolvingBookmarkData: bookmark.value as Data,
-                                                options: NSURL.BookmarkResolutionOptions(),
+            var stale = Bool(false)
+            guard let fileUrl = try? URL(resolvingBookmarkData: bookmark.value,
+                                                options: URL.BookmarkResolutionOptions(),
                                                 relativeTo: nil,
                                                 bookmarkDataIsStale: &stale) else {
                 BacktraceLogger.error("Could not resolve file URL from bookmark")
                 continue
             }
-            if stale.boolValue {
+            if stale {
                 BacktraceLogger.error("Bookmark data is stale. This should not happen")
+                continue
             }
-            attachments[bookmark.key] = fileUrl as URL
+            attachments[bookmark.key] = fileUrl
         }
         return attachments
     }
