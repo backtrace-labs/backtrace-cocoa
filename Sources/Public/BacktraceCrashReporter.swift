@@ -5,7 +5,7 @@ import Backtrace_PLCrashReporter
 @objc public class BacktraceCrashReporter: NSObject {
     private let reporter: PLCrashReporter
     static private let crashName = "live_report"
-    private var copiedFileAttachments = [URL]()
+    private let copiedFileAttachments: [URL]
     
     /// Creates an instance of a crash reporter.
     /// - Parameter config: A `PLCrashReporterConfig` configuration to use.
@@ -17,8 +17,8 @@ import Backtrace_PLCrashReporter
     /// - Parameter reporter: An instance of `PLCrashReporter` to use.
     @objc public init(reporter: PLCrashReporter) {
         self.reporter = reporter
+        self.copiedFileAttachments = BacktraceCrashReporter.copyFileAttachmentsFromPendingCrashes()
         super.init()
-        self.copiedFileAttachments = copyFileAttachmentsFromPendingCrashes()
     }
 }
 
@@ -67,7 +67,7 @@ extension BacktraceCrashReporter: CrashReporting {
     // This function is called to copy stored file attachments
     // from pending crashes so that they are not overwritten by the
     // new app session
-    func copyFileAttachmentsFromPendingCrashes() -> [URL] {
+    static func copyFileAttachmentsFromPendingCrashes() -> [URL] {
         guard let directoryUrl = try? AttachmentsStorage.AttachmentsConfig(fileName: "").directoryUrl else {
             BacktraceLogger.error("Could not get cache directory URL")
             return [URL]()
