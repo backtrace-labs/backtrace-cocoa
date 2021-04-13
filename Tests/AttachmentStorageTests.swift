@@ -24,6 +24,8 @@ final class AttachmentStorageTests: QuickSpec {
                     (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.value.path)
                 
+                print("attachmentPath: " + attachmentPaths[0])
+                print("fileUrlPath: " + fileUrl.path)
                 expect(attachmentPaths).toNot(beNil())
                 expect(attachmentPaths.count).to(be(1))
                 expect(attachmentPaths[0]).to(equal(fileUrl.path))
