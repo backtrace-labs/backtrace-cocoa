@@ -14,6 +14,6 @@ struct ReportMetadataStorageMock: ReportMetadataStorage {
     }
     
     static func removeFile(config: Config) throws {
-        try fileSystemMock.removeValue(forKey: config.fileUrl.path)
+        fileSystemMock.removeValue(forKey: config.fileUrl.path)
     }
 }

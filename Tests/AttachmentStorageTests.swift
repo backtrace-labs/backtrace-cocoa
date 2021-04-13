@@ -20,7 +20,8 @@ final class AttachmentStorageTests: QuickSpec {
                 let attachmentsFileName = "attachments"
                 try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName, storage: storage)
                 
-                let attachments = (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
+                let attachments =
+                    (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.value.path)
                 
                 expect(attachmentPaths).toNot(beNil())
@@ -34,7 +35,8 @@ final class AttachmentStorageTests: QuickSpec {
                 let attachmentsFileName = "attachments"
                 try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName, storage: storage)
                 
-                let attachments = (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
+                let attachments =
+                    (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.value.path)
                 
                 expect(attachmentPaths).toNot(beNil())
@@ -57,6 +59,7 @@ final class AttachmentStorageTests: QuickSpec {
                     attributes: nil
                 )
         let fileUrl = directoryUrl.appendingPathComponent(fileName).appendingPathExtension("txt")
+
         return fileUrl
     }
 }
