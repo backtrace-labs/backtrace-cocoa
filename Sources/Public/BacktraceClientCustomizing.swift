@@ -10,6 +10,10 @@ public typealias Attributes = [String: Any]
 /// Expected format: Filename, File URL bookmark
 public typealias Attachments = [String: URL]
 
+/// Type-alias of storing file attachments on disk (as a bookmark)
+/// Expected format: Filename, File URL bookmark
+public typealias Bookmarks = [String: Data]
+
 /// Provides customization functionality to `BacktraceClient`.
 @objc public protocol BacktraceClientCustomizing {
     

@@ -11,6 +11,7 @@ final class AttachmentStorageTests: QuickSpec {
             it("can save attachments as a plist") {
                 var crashAttachments = Attachments()
                 let storage = ReportMetadataStorageMock.self
+                let bookmarkHandler = AttachmentBookmarkHandlerMock.self
                 
                 guard let fileUrl = try? self.createAFile() else {
                     throw FileError.fileNotWritten
@@ -18,14 +19,17 @@ final class AttachmentStorageTests: QuickSpec {
                 crashAttachments["myFile"] = fileUrl
                 
                 let attachmentsFileName = "attachments"
-                try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName, storage: storage)
+                try? AttachmentsStorage.store(crashAttachments,
+                                              fileName: attachmentsFileName,
+                                              storage: storage,
+                                              bookmarkHandler: bookmarkHandler)
                 
                 let attachments =
-                    (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
+                    (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName,
+                                                      storage: storage,
+                                                      bookmarkHandler: bookmarkHandler)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.value.path)
                 
-                print("attachmentPath: " + attachmentPaths[0])
-                print("fileUrlPath: " + fileUrl.path)
                 expect(attachmentPaths).toNot(beNil())
                 expect(attachmentPaths.count).to(be(1))
                 expect(attachmentPaths[0]).to(equal(fileUrl.path))
@@ -33,12 +37,18 @@ final class AttachmentStorageTests: QuickSpec {
             it("can work with empty attachments") {
                 let crashAttachments = Attachments()
                 let storage = ReportMetadataStorageMock.self
+                let bookmarkHandler = AttachmentBookmarkHandlerMock.self
                 
                 let attachmentsFileName = "attachments"
-                try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName, storage: storage)
+                try? AttachmentsStorage.store(crashAttachments,
+                                              fileName: attachmentsFileName,
+                                              storage: storage,
+                                              bookmarkHandler: bookmarkHandler)
                 
                 let attachments =
-                    (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
+                    (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName,
+                                                      storage: storage,
+                                                      bookmarkHandler: bookmarkHandler)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.value.path)
                 
                 expect(attachmentPaths).toNot(beNil())

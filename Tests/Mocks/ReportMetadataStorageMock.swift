@@ -3,13 +3,13 @@ import XCTest
 @testable import Backtrace
 
 struct ReportMetadataStorageMock: ReportMetadataStorage {
-    static var fileSystemMock = [String: NSDictionary]()
+    static var fileSystemMock = [String: [String: Any]]()
     
-    static func storeToFile(_ dictionary: NSDictionary, config: Config) throws {
+    static func storeToFile(_ dictionary: [String: Any], config: Config) throws {
         fileSystemMock[config.fileUrl.path] = dictionary
     }
     
-    static func retrieveFromFile(config: Config) throws -> NSDictionary {
+    static func retrieveFromFile(config: Config) throws -> [String: Any] {
         return fileSystemMock[config.fileUrl.path]!
     }
     

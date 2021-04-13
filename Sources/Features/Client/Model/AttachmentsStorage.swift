@@ -1,9 +1,5 @@
 import Foundation
 
-/// Type-alias of storing file attachments on disk (as a bookmark)
-/// Expected format: Filename, File URL bookmark
-private typealias Bookmarks = [String: Data]
-
 enum AttachmentsStorageError: Error {
     case invalidDictionary
     case invalidBookmark
@@ -29,21 +25,25 @@ enum AttachmentsStorage {
     private static let directoryName = Bundle.main.bundleIdentifier ?? "BacktraceCache"
     
     static func store(_ attachments: Attachments, fileName: String) throws {
-        try store(attachments, fileName: fileName, storage: ReportMetadataStorageImpl.self)
+        try store(attachments, fileName: fileName, storage: ReportMetadataStorageImpl.self,
+                  bookmarkHandler: AttachmentBookmarkHandlerImpl.self)
     }
     
-    static func store<T: ReportMetadataStorage>(_ attachments: Attachments, fileName: String, storage: T.Type) throws {
+    static func store<T: ReportMetadataStorage, U: AttachmentBookmarkHandler>
+    (_ attachments: Attachments, fileName: String, storage: T.Type, bookmarkHandler: U.Type) throws {
         let config = try AttachmentsConfig(fileName: fileName)
-        let attachmentBookmarks = try convertAttachmentUrlsToBookmarks(attachments)
-        try T.storeToFile(attachmentBookmarks as NSDictionary, config: config)
+        let attachmentBookmarks = try U.convertAttachmentUrlsToBookmarks(attachments)
+        try T.storeToFile(attachmentBookmarks, config: config)
         BacktraceLogger.debug("Stored attachments paths at path: \(config.fileUrl)")
     }
     
     static func retrieve(fileName: String) throws -> Attachments {
-        try retrieve(fileName: fileName, storage: ReportMetadataStorageImpl.self)
+        try retrieve(fileName: fileName, storage: ReportMetadataStorageImpl.self,
+                     bookmarkHandler: AttachmentBookmarkHandlerImpl.self)
     }
     
-    static func retrieve<T: ReportMetadataStorage>(fileName: String, storage: T.Type) throws -> Attachments {
+    static func retrieve<T: ReportMetadataStorage, U: AttachmentBookmarkHandler>
+    (fileName: String, storage: T.Type, bookmarkHandler: U.Type) throws -> Attachments {
         let config = try AttachmentsConfig(fileName: fileName)
         let dictionary = try T.retrieveFromFile(config: config)
         
@@ -51,7 +51,7 @@ enum AttachmentsStorage {
             BacktraceLogger.debug("Could not convert stored dictionary to Bookmarks type")
             throw AttachmentsStorageError.invalidDictionary
         }
-        guard let attachments = try? extractAttachmentUrls(bookmarks) else {
+        guard let attachments = try? U.extractAttachmentUrls(bookmarks) else {
             BacktraceLogger.debug("Could not extract attachment URLs from stored attachments Bookmarks")
             throw AttachmentsStorageError.invalidBookmark
         }
@@ -68,39 +68,5 @@ enum AttachmentsStorage {
         let config = try AttachmentsConfig(fileName: fileName)
         try T.removeFile(config: config)
         BacktraceLogger.debug("Removed attachments paths at path: \(config.fileUrl)")
-    }
-    
-    private static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) throws -> Bookmarks {
-        var attachmentsBookmarksDict = Bookmarks()
-        for attachment in attachments {
-            do {
-                let bookmark = try attachment.value.bookmarkData(options: URL.BookmarkCreationOptions.minimalBookmark)
-                attachmentsBookmarksDict[attachment.key] = bookmark
-            } catch {
-                BacktraceLogger.error("Could not bookmark attachment file URL. Error: \(error)")
-                continue
-            }
-        }
-        return attachmentsBookmarksDict
-    }
-    
-    private static func extractAttachmentUrls(_ bookmarks: Bookmarks) throws -> Attachments {
-        var attachments = Attachments()
-        for bookmark in bookmarks {
-            var stale = Bool(false)
-            guard let fileUrl = try? URL(resolvingBookmarkData: bookmark.value,
-                                         options: URL.BookmarkResolutionOptions(),
-                                         relativeTo: nil,
-                                         bookmarkDataIsStale: &stale) else {
-                BacktraceLogger.error("Could not resolve file URL from bookmark")
-                continue
-            }
-            if stale {
-                BacktraceLogger.error("Bookmark data is stale. This should not happen")
-                continue
-            }
-            attachments[bookmark.key] = fileUrl
-        }
-        return attachments
     }
 }

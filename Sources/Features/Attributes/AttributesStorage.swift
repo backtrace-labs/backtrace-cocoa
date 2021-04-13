@@ -25,7 +25,7 @@ enum AttributesStorage {
     
     static func store<T: ReportMetadataStorage>(_ attributes: Attributes, fileName: String, storage: T.Type) throws {
         let config = try AttributesConfig(fileName: fileName)
-        try T.storeToFile(attributes as NSDictionary, config: config)
+        try T.storeToFile(attributes, config: config)
         BacktraceLogger.debug("Stored attributes at path: \(config.fileUrl)")
     }
     
@@ -37,9 +37,7 @@ enum AttributesStorage {
         let config = try AttributesConfig(fileName: fileName)
         let dictionary = try T.retrieveFromFile(config: config)
         // cast safely to AttributesType
-        guard let attributes: Attributes = dictionary as? Attributes else {
-            throw FileError.invalidPropertyList
-        }
+        let attributes: Attributes = dictionary as Attributes
         BacktraceLogger.debug("Retrieved attributes from path: \(config.fileUrl)")
         return attributes
     }
