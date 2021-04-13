@@ -9,7 +9,7 @@ enum AttachmentsStorageError: Error {
     case invalidBookmark
 }
 
-enum AttachmentsStorage: ReportMetadataStorage {
+enum AttachmentsStorage {
     struct AttachmentsConfig: Config {
         let cacheUrl: URL
         let directoryUrl: URL
@@ -29,15 +29,23 @@ enum AttachmentsStorage: ReportMetadataStorage {
     private static let directoryName = Bundle.main.bundleIdentifier ?? "BacktraceCache"
     
     static func store(_ attachments: Attachments, fileName: String) throws {
+        try store(attachments, fileName: fileName, storage: ReportMetadataStorageImpl.self)
+    }
+    
+    static func store<T: ReportMetadataStorage>(_ attachments: Attachments, fileName: String, storage: T.Type) throws {
         let config = try AttachmentsConfig(fileName: fileName)
         let attachmentBookmarks = try convertAttachmentUrlsToBookmarks(attachments)
-        try storeToFile(attachmentBookmarks as NSDictionary, config: config)
+        try T.storeToFile(attachmentBookmarks as NSDictionary, config: config)
         BacktraceLogger.debug("Stored attachments paths at path: \(config.fileUrl)")
     }
     
     static func retrieve(fileName: String) throws -> Attachments {
+        try retrieve(fileName: fileName, storage: ReportMetadataStorageImpl.self)
+    }
+    
+    static func retrieve<T: ReportMetadataStorage>(fileName: String, storage: T.Type) throws -> Attachments {
         let config = try AttachmentsConfig(fileName: fileName)
-        let dictionary = try retrieveFromFile(config: config)
+        let dictionary = try T.retrieveFromFile(config: config)
         
         guard let bookmarks = dictionary as? Bookmarks else {
             BacktraceLogger.debug("Could not convert stored dictionary to Bookmarks type")
@@ -53,8 +61,12 @@ enum AttachmentsStorage: ReportMetadataStorage {
     }
     
     static func remove(fileName: String) throws {
+        try remove(fileName: fileName, storage: ReportMetadataStorageImpl.self)
+    }
+        
+    static func remove<T: ReportMetadataStorage>(fileName: String, storage: T.Type) throws {
         let config = try AttachmentsConfig(fileName: fileName)
-        try removeFile(config: config)
+        try T.removeFile(config: config)
         BacktraceLogger.debug("Removed attachments paths at path: \(config.fileUrl)")
     }
     

@@ -10,15 +10,17 @@ final class AttachmentStorageTests: QuickSpec {
         describe("AttachmentStorage") {
             it("can save attachments as a plist") {
                 var crashAttachments = Attachments()
+                let storage = ReportMetadataStorageMock.self
+                
                 guard let fileUrl = try? self.createAFile() else {
                     throw FileError.fileNotWritten
                 }
                 crashAttachments["myFile"] = fileUrl
                 
                 let attachmentsFileName = "attachments"
-                try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName)
+                try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName, storage: storage)
                 
-                let attachments = (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName)) ?? Attachments()
+                let attachments = (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.value.path)
                 
                 expect(attachmentPaths).toNot(beNil())
@@ -27,11 +29,12 @@ final class AttachmentStorageTests: QuickSpec {
             }
             it("can work with empty attachments") {
                 let crashAttachments = Attachments()
+                let storage = ReportMetadataStorageMock.self
                 
                 let attachmentsFileName = "attachments"
-                try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName)
+                try? AttachmentsStorage.store(crashAttachments, fileName: attachmentsFileName, storage: storage)
                 
-                let attachments = (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName)) ?? Attachments()
+                let attachments = (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName, storage: storage)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.value.path)
                 
                 expect(attachmentPaths).toNot(beNil())
@@ -54,12 +57,6 @@ final class AttachmentStorageTests: QuickSpec {
                     attributes: nil
                 )
         let fileUrl = directoryUrl.appendingPathComponent(fileName).appendingPathExtension("txt")
-        let myData = String("my sample data")
-        do {
-            try myData.write(to: fileUrl, atomically: true, encoding: .utf8)
-        } catch {
-            print("Error: \(error)")
-        }
         return fileUrl
     }
 }

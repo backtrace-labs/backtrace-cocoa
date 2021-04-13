@@ -83,6 +83,9 @@
 		AF7833BB2613D1B400530A10 /* AttachmentsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */; };
 		AF7833BC2613D1B400530A10 /* AttachmentsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */; };
 		AF7833BD2613D1B400530A10 /* AttachmentsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */; };
+		AFCCCE232625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
+		AFCCCE242625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
+		AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
 		DC873DB19BD91A1268112804 /* Pods_Backtrace_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F832896FDD11162B84E86E23 /* Pods_Backtrace_iOS.framework */; };
 		DE46BAA3E4497194057A99FE /* Pods_Example_iOS_ObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A51056C8548E16A5E320976D /* Pods_Example_iOS_ObjC.framework */; };
 		F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
@@ -355,6 +358,7 @@
 		AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentStorageTests.swift; sourceTree = "<group>"; };
 		AF7477582620C6B200DEE7D1 /* ReportMetadataStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportMetadataStorage.swift; sourceTree = "<group>"; };
 		AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsStorage.swift; sourceTree = "<group>"; };
+		AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportMetadataStorageMock.swift; sourceTree = "<group>"; };
 		B4F2A98EC9FE9A5E7BE2A6B9 /* Pods-Backtrace-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		B723C7EAC07E861B99FC1A4C /* Pods-Backtrace-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.release.xcconfig"; sourceTree = "<group>"; };
 		C495D179EFBB711373441639 /* Pods-Backtrace-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.release.xcconfig"; sourceTree = "<group>"; };
@@ -784,6 +788,7 @@
 				F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */,
 				F229D789223A56ED008EC851 /* UrlSessionMock.swift */,
 				F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */,
+				AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -1846,6 +1851,7 @@
 				F21DD3A62255666F00404CC3 /* BacktraceApiTests.swift in Sources */,
 				F21DD3A72255666F00404CC3 /* BacktraceWatcherTests.swift in Sources */,
 				F21DD3A82255666F00404CC3 /* AttachmentTests.swift in Sources */,
+				AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
 				F2981BCB22901B1400DFE098 /* AttributesTests.swift in Sources */,
 				F21DD3A92255666F00404CC3 /* ReportingPolicyTests.swift in Sources */,
 				F2A81B5623F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
@@ -1925,6 +1931,7 @@
 				F229D7862239A172008EC851 /* BacktraceClientTests.swift in Sources */,
 				282C85EB22419C600014FE75 /* BacktraceWatcherTests.swift in Sources */,
 				F229D78C223A591F008EC851 /* UrlSessionMock.swift in Sources */,
+				AFCCCE242625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
 				F29CD78B21FC5F8600216C59 /* BacktraceDatabaseTests.swift in Sources */,
 				F2AB638B22470CD800939BC9 /* CrashReporterTests.swift in Sources */,
 				F2A81B5523F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
@@ -2013,6 +2020,7 @@
 				F229D7852239A172008EC851 /* BacktraceClientTests.swift in Sources */,
 				282C85EA22419C560014FE75 /* BacktraceWatcherTests.swift in Sources */,
 				F229D78D223A5920008EC851 /* UrlSessionMock.swift in Sources */,
+				AFCCCE232625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
 				F29CD78A21FC5F8500216C59 /* BacktraceDatabaseTests.swift in Sources */,
 				F2AB638A22470CD700939BC9 /* CrashReporterTests.swift in Sources */,
 				F2A81B5423F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,

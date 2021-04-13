@@ -12,7 +12,7 @@ protocol ReportMetadataStorage {
     static func removeFile(config: Config) throws
 }
 
-extension ReportMetadataStorage {
+enum ReportMetadataStorageImpl: ReportMetadataStorage {
     static func storeToFile(_ dictionary: NSDictionary, config: Config) throws {
         if !FileManager.default.fileExists(atPath: config.directoryUrl.path) {
             try FileManager.default.createDirectory(atPath: config.directoryUrl.path,
