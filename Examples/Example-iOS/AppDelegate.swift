@@ -18,6 +18,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
                                                         token: Keys.backtraceToken as String)
+
         let backtraceDatabaseSettings = BacktraceDatabaseSettings()
         backtraceDatabaseSettings.maxRecordCount = 1000
         backtraceDatabaseSettings.maxDatabaseSize = 10
@@ -69,11 +70,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         let formatter = DateFormatter()
         formatter.timeStyle = .medium
         let myData = formatter.string(from: Date())
-        do {
-            try myData.write(to: fileUrl, atomically: true, encoding: .utf8)
-        } catch {
-            print("Error: \(error)")
-        }
+        try myData.write(to: fileUrl, atomically: true, encoding: .utf8)
         return fileUrl
     }
 }
