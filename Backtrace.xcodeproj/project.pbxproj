@@ -74,6 +74,24 @@
 		81B51B136E9684981F70E9B8 /* Pods_Backtrace_tvOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EEF3FB2BE5FB7CD0332FDE7 /* Pods_Backtrace_tvOSTests.framework */; };
 		99DD1F3F781FA819ECA75324 /* Pods_Backtrace_tvOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8493CFBC65BA4978D35038FD /* Pods_Backtrace_tvOS.framework */; };
 		A8BE9BEC461DB224950FF9F2 /* Pods_Example_tvOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F9E84E683CE60F74196C77AC /* Pods_Example_tvOS.framework */; };
+		AF1D0F3C2618304100C02F81 /* AttachmentStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */; };
+		AF1D0F3D2618304200C02F81 /* AttachmentStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */; };
+		AF1D0F3E2618304200C02F81 /* AttachmentStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */; };
+		AF5AB03A26261A4E0003698C /* AttachmentsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */; };
+		AF5AB04726261A760003698C /* AttachmentBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */; };
+		AF5AB05526261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5AB05426261BDD0003698C /* AttachmentBookmarkHandlerMock.swift */; };
+		AF5AB05626261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5AB05426261BDD0003698C /* AttachmentBookmarkHandlerMock.swift */; };
+		AF5AB05726261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5AB05426261BDD0003698C /* AttachmentBookmarkHandlerMock.swift */; };
+		AF5AB0A02626226C0003698C /* AttachmentsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */; };
+		AF5AB0A12626226D0003698C /* AttachmentsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */; };
+		AF5AB0BB262622730003698C /* AttachmentBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */; };
+		AF5AB0BC262622730003698C /* AttachmentBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */; };
+		AF7477592620C6B200DEE7D1 /* ReportMetadataStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7477582620C6B200DEE7D1 /* ReportMetadataStorage.swift */; };
+		AF74775A2620C6B200DEE7D1 /* ReportMetadataStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7477582620C6B200DEE7D1 /* ReportMetadataStorage.swift */; };
+		AF74775B2620C6B200DEE7D1 /* ReportMetadataStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7477582620C6B200DEE7D1 /* ReportMetadataStorage.swift */; };
+		AFCCCE232625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
+		AFCCCE242625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
+		AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
 		DC873DB19BD91A1268112804 /* Pods_Backtrace_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F832896FDD11162B84E86E23 /* Pods_Backtrace_iOS.framework */; };
 		DE46BAA3E4497194057A99FE /* Pods_Example_iOS_ObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A51056C8548E16A5E320976D /* Pods_Example_iOS_ObjC.framework */; };
 		F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
@@ -343,6 +361,12 @@
 		A51056C8548E16A5E320976D /* Pods_Example_iOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A79CCB26F3CBD94DC01CC462 /* Pods_Example_macOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_macOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE06F243F57768157DE89AC2 /* Pods-Backtrace-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOS.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-macOS/Pods-Backtrace-macOS.release.xcconfig"; sourceTree = "<group>"; };
+		AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentStorageTests.swift; sourceTree = "<group>"; };
+		AF5AB05426261BDD0003698C /* AttachmentBookmarkHandlerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentBookmarkHandlerMock.swift; sourceTree = "<group>"; };
+		AF7477582620C6B200DEE7D1 /* ReportMetadataStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportMetadataStorage.swift; sourceTree = "<group>"; };
+		AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsStorage.swift; sourceTree = "<group>"; };
+		AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportMetadataStorageMock.swift; sourceTree = "<group>"; };
+		AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentBookmarkHandler.swift; sourceTree = "<group>"; };
 		B4F2A98EC9FE9A5E7BE2A6B9 /* Pods-Backtrace-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		B723C7EAC07E861B99FC1A4C /* Pods-Backtrace-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.release.xcconfig"; sourceTree = "<group>"; };
 		C495D179EFBB711373441639 /* Pods-Backtrace-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.release.xcconfig"; sourceTree = "<group>"; };
@@ -579,6 +603,15 @@
 			path = "Backtrace-tvOSTests";
 			sourceTree = "<group>";
 		};
+		AF7833B92613D0E300530A10 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */,
+				AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		E1CB76ADFD3A1D9326B4E46D /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -674,6 +707,7 @@
 				F2AB638C22470E3500939BC9 /* BacktraceFileManagerTests.swift */,
 				F2981BC822901B1400DFE098 /* AttributesTests.swift */,
 				F2A81B5023F02279007C63E4 /* BacktraceRateLimiterTests.swift */,
+				AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -703,6 +737,7 @@
 		F28F164121E28421008E4B96 /* Client */ = {
 			isa = PBXGroup;
 			children = (
+				AF7833B92613D0E300530A10 /* Model */,
 				F28F164521E28441008E4B96 /* BacktraceReporter.swift */,
 				F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */,
 				0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */,
@@ -762,6 +797,8 @@
 				F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */,
 				F229D789223A56ED008EC851 /* UrlSessionMock.swift */,
 				F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */,
+				AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */,
+				AF5AB05426261BDD0003698C /* AttachmentBookmarkHandlerMock.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -829,6 +866,7 @@
 				F259E4D52229A40C00F282C7 /* Result.swift */,
 				F2AB63802246E16400939BC9 /* ReportingPolicy.swift */,
 				F28635392283685100F45412 /* Map+KeyPath.swift */,
+				AF7477582620C6B200DEE7D1 /* ReportMetadataStorage.swift */,
 			);
 			path = Internal;
 			sourceTree = "<group>";
@@ -1761,6 +1799,7 @@
 			files = (
 				F29959AB225539960085B5C3 /* BacktraceCrashReporter.swift in Sources */,
 				28F95BCF22526061003936E0 /* BacktraceLogger.swift in Sources */,
+				AF5AB0BB262622730003698C /* AttachmentBookmarkHandler.swift in Sources */,
 				28F95BD022526064003936E0 /* BacktraceClient.swift in Sources */,
 				28F95BCD2252605A003936E0 /* BacktraceClientDelegate.swift in Sources */,
 				28F95BC92252602C003936E0 /* Foundation+Extensions.swift in Sources */,
@@ -1771,6 +1810,7 @@
 				28F95BD32252606F003936E0 /* BacktraceClientConfiguration.swift in Sources */,
 				28F95BD422526072003936E0 /* BacktraceCredentials.swift in Sources */,
 				28F95BE4225260A7003936E0 /* MultipartRequest.swift in Sources */,
+				AF5AB0A12626226D0003698C /* AttachmentsStorage.swift in Sources */,
 				28F95BCE2252605E003936E0 /* BacktraceClientCustomizing.swift in Sources */,
 				28F95BE9225260B6003936E0 /* BacktraceFileManager.swift in Sources */,
 				28F95BEF225260D8003936E0 /* BluetoothStatusListener.swift in Sources */,
@@ -1786,6 +1826,7 @@
 				28F95BE7225260B0003936E0 /* Attachment.swift in Sources */,
 				0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				28F95BCB22526045003936E0 /* Dispatching.swift in Sources */,
+				AF74775B2620C6B200DEE7D1 /* ReportMetadataStorage.swift in Sources */,
 				28F95BDD2252608E003936E0 /* BacktraceReportStatus.swift in Sources */,
 				28F95BDE22526091003936E0 /* ReportingPolicy.swift in Sources */,
 				28F95BEC225260C9003936E0 /* AttributesStorage.swift in Sources */,
@@ -1820,13 +1861,16 @@
 				F21DD3A62255666F00404CC3 /* BacktraceApiTests.swift in Sources */,
 				F21DD3A72255666F00404CC3 /* BacktraceWatcherTests.swift in Sources */,
 				F21DD3A82255666F00404CC3 /* AttachmentTests.swift in Sources */,
+				AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
 				F2981BCB22901B1400DFE098 /* AttributesTests.swift in Sources */,
 				F21DD3A92255666F00404CC3 /* ReportingPolicyTests.swift in Sources */,
 				F2A81B5623F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
 				F21DD3AA2255666F00404CC3 /* DispatcherTests.swift in Sources */,
 				F21DD3AB2255666F00404CC3 /* CrashReporterTests.swift in Sources */,
+				AF5AB05726261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */,
 				F21DD3AC2255666F00404CC3 /* BacktraceFileManagerTests.swift in Sources */,
 				28F95BBE22525DCC003936E0 /* Backtrace_tvOSTests.swift in Sources */,
+				AF1D0F3E2618304200C02F81 /* AttachmentStorageTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1839,6 +1883,7 @@
 				F28162FB21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
 				F29CD79621FDD9DC00216C59 /* BacktraceClientDelegate.swift in Sources */,
 				F21771BE21E341CA0059896E /* Dispatcher.swift in Sources */,
+				AF5AB0A02626226C0003698C /* AttachmentsStorage.swift in Sources */,
 				28AC773D21FA5A8900FED661 /* BacktraceDatabaseSettings.swift in Sources */,
 				F266B83821C77B9600D14417 /* BacktraceLogger.swift in Sources */,
 				F2AFB59E22274EDA00AAA1D7 /* Dispatching.swift in Sources */,
@@ -1856,6 +1901,8 @@
 				F25F9E9B21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F21D302C224A18D60013B5D7 /* Store.swift in Sources */,
 				F266B83421C77B9600D14417 /* BacktraceError.swift in Sources */,
+				AF5AB0BC262622730003698C /* AttachmentBookmarkHandler.swift in Sources */,
+				AF74775A2620C6B200DEE7D1 /* ReportMetadataStorage.swift in Sources */,
 				28966EFB2214BBDC00E6E891 /* AttributesStorage.swift in Sources */,
 				F259E4D72229A41400F282C7 /* Result.swift in Sources */,
 				F28635482288958C00F45412 /* System.swift in Sources */,
@@ -1896,13 +1943,16 @@
 				F229D7862239A172008EC851 /* BacktraceClientTests.swift in Sources */,
 				282C85EB22419C600014FE75 /* BacktraceWatcherTests.swift in Sources */,
 				F229D78C223A591F008EC851 /* UrlSessionMock.swift in Sources */,
+				AFCCCE242625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
 				F29CD78B21FC5F8600216C59 /* BacktraceDatabaseTests.swift in Sources */,
 				F2AB638B22470CD800939BC9 /* CrashReporterTests.swift in Sources */,
 				F2A81B5523F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
 				F2981BCA22901B1400DFE098 /* AttributesTests.swift in Sources */,
 				F2AB63882247075100939BC9 /* DispatcherTests.swift in Sources */,
+				AF5AB05626261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */,
 				F2AB63732246481100939BC9 /* AttachmentTests.swift in Sources */,
 				F229D790223A5F6A008EC851 /* BacktraceApiTests.swift in Sources */,
+				AF1D0F3D2618304200C02F81 /* AttachmentStorageTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1939,6 +1989,8 @@
 				F2AB639C22479A3500939BC9 /* Model.xcdatamodeld in Sources */,
 				F28F165121E2A08F008E4B96 /* HttpMethod.swift in Sources */,
 				F22EB87721BBD36800DEE94E /* BacktraceClient.swift in Sources */,
+				AF5AB04726261A760003698C /* AttachmentBookmarkHandler.swift in Sources */,
+				AF5AB03A26261A4E0003698C /* AttachmentsStorage.swift in Sources */,
 				28966EFA2214BBD200E6E891 /* AttributesStorage.swift in Sources */,
 				F259E4D62229A40C00F282C7 /* Result.swift in Sources */,
 				2846E1FE223070CB0035F98C /* Attachment.swift in Sources */,
@@ -1947,6 +1999,7 @@
 				F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */,
 				0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				F2C1514221F7D8E30014F1B3 /* PersistentRepository.swift in Sources */,
+				AF7477592620C6B200DEE7D1 /* ReportMetadataStorage.swift in Sources */,
 				F2D8BE3821BD7894007CFEFA /* BacktraceError.swift in Sources */,
 				F282075821CEA31F0017367F /* BacktraceReport.swift in Sources */,
 				F28635472288958C00F45412 /* System.swift in Sources */,
@@ -1981,13 +2034,16 @@
 				F229D7852239A172008EC851 /* BacktraceClientTests.swift in Sources */,
 				282C85EA22419C560014FE75 /* BacktraceWatcherTests.swift in Sources */,
 				F229D78D223A5920008EC851 /* UrlSessionMock.swift in Sources */,
+				AFCCCE232625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
 				F29CD78A21FC5F8500216C59 /* BacktraceDatabaseTests.swift in Sources */,
 				F2AB638A22470CD700939BC9 /* CrashReporterTests.swift in Sources */,
 				F2A81B5423F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
 				F2981BC922901B1400DFE098 /* AttributesTests.swift in Sources */,
 				F2AB63872247075100939BC9 /* DispatcherTests.swift in Sources */,
+				AF5AB05526261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */,
 				F2AB63722246481100939BC9 /* AttachmentTests.swift in Sources */,
 				F229D78F223A5F6A008EC851 /* BacktraceApiTests.swift in Sources */,
+				AF1D0F3C2618304100C02F81 /* AttachmentStorageTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2128,12 +2184,13 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2211,12 +2268,13 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2438,7 +2496,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2525,7 +2583,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2603,7 +2661,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -2682,7 +2740,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -2754,7 +2812,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -2833,7 +2891,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -3248,7 +3306,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -3327,7 +3385,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -3400,7 +3458,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -3475,7 +3533,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -3545,7 +3603,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -3620,7 +3678,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K952H3J75D;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

@@ -78,6 +78,14 @@ extension BacktraceReporter: BacktraceClientCustomizing {
             attributesProvider.attributes = newValue
         }
     }
+    
+    var attachments: Attachments {
+        get {
+            return attributesProvider.attachments
+        } set {
+            attributesProvider.attachments = newValue
+        }
+    }
 }
 
 extension BacktraceReporter {
@@ -96,7 +104,7 @@ extension BacktraceReporter {
         attributesProvider.set(faultMessage: faultMessage)
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
-                                                       attachmentPaths: attachmentPaths)
+                                                       attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
         return send(resource: resource)
     }
     
@@ -106,7 +114,7 @@ extension BacktraceReporter {
         attributesProvider.set(errorType: "Exception")
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
-                                                       attachmentPaths: attachmentPaths)
+                                                       attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
         return resource
     }
 }

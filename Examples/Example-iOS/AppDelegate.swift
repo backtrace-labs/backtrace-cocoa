@@ -18,13 +18,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
                                                         token: Keys.backtraceToken as String)
+
         let backtraceDatabaseSettings = BacktraceDatabaseSettings()
         backtraceDatabaseSettings.maxRecordCount = 1000
         backtraceDatabaseSettings.maxDatabaseSize = 10
         backtraceDatabaseSettings.retryInterval = 5
         backtraceDatabaseSettings.retryLimit = 3
         backtraceDatabaseSettings.retryBehaviour = RetryBehaviour.interval
-        backtraceDatabaseSettings.retryOrder = RetryOder.queue
+        backtraceDatabaseSettings.retryOrder = RetryOrder.queue
         let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
@@ -34,6 +35,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
         
+        let fileName = "sample.txt"
+        let fileUrl = try? createAndWriteFile(fileName)
+        var crashAttachments = Attachments()
+        crashAttachments[fileName] = fileUrl
+        BacktraceClient.shared?.attachments = crashAttachments
+
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
         do {
             try throwingFunc()
@@ -45,6 +52,26 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         return true
+    }
+    
+    func createAndWriteFile(_ fileName: String) throws -> URL {
+        let dirName = "directory"
+        guard let libraryDirectoryUrl = try? FileManager.default.url(
+            for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else {
+            throw CustomError.runtimeError
+        }
+        let directoryUrl = libraryDirectoryUrl.appendingPathComponent(dirName)
+        try? FileManager().createDirectory(
+                    at: directoryUrl,
+                    withIntermediateDirectories: false,
+                    attributes: nil
+                )
+        let fileUrl = directoryUrl.appendingPathComponent(fileName)
+        let formatter = DateFormatter()
+        formatter.timeStyle = .medium
+        let myData = formatter.string(from: Date())
+        try myData.write(to: fileUrl, atomically: true, encoding: .utf8)
+        return fileUrl
     }
 }
 
