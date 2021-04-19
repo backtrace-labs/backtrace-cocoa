@@ -36,9 +36,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
         
         let fileName = "sample.txt"
-        let fileUrl = try? createAndWriteFile(fileName)
+        guard let fileUrl = try? createAndWriteFile(fileName) else {
+            print("Could not create the file attachment")
+            return false
+        }
         var crashAttachments = Attachments()
-        crashAttachments[fileName] = fileUrl
+        crashAttachments.append(fileUrl)
         BacktraceClient.shared?.attachments = crashAttachments
 
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]

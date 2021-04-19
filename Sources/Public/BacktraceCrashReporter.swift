@@ -72,20 +72,21 @@ extension BacktraceCrashReporter: CrashReporting {
             BacktraceLogger.error("Could not get cache directory URL")
             return [URL]()
         }
-        let attachments = (try? AttachmentsStorage.retrieve(fileName: BacktraceCrashReporter.crashName)) ?? [:]
+        let attachments = (try? AttachmentsStorage.retrieve(fileName: BacktraceCrashReporter.crashName)) ?? []
         var copiedFileAttachments = [URL]()
         for attachment in attachments {
             let fileManager = FileManager.default
-            let copiedAttachmentPath = directoryUrl.appendingPathComponent(attachment.key)
+            let fileName = attachment.lastPathComponent
+            let copiedAttachmentPath = directoryUrl.appendingPathComponent(fileName)
             do {
-                if !fileManager.fileExists(atPath: attachment.value.path) {
+                if !fileManager.fileExists(atPath: attachment.path) {
                     BacktraceLogger.error("File attachment from previous session does not exist")
                     continue
                 }
                 if fileManager.fileExists(atPath: copiedAttachmentPath.path) {
                     try fileManager.removeItem(atPath: copiedAttachmentPath.path)
                 }
-                try fileManager.copyItem(at: attachment.value, to: copiedAttachmentPath)
+                try fileManager.copyItem(at: attachment, to: copiedAttachmentPath)
                 copiedFileAttachments.append(copiedAttachmentPath)
             } catch {
                 BacktraceLogger.error("Could not copy bookmarked attachment file from previous session. Error: \(error)")

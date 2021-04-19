@@ -16,7 +16,7 @@ final class AttachmentStorageTests: QuickSpec {
                 guard let fileUrl = try? self.createAFile() else {
                     throw FileError.fileNotWritten
                 }
-                crashAttachments["myFile"] = fileUrl
+                crashAttachments.append(fileUrl)
                 
                 let attachmentsFileName = "attachments"
                 try? AttachmentsStorage.store(crashAttachments,
@@ -28,7 +28,7 @@ final class AttachmentStorageTests: QuickSpec {
                     (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName,
                                                       storage: storage,
                                                       bookmarkHandler: bookmarkHandler)) ?? Attachments()
-                let attachmentPaths = attachments.map(\.value.path)
+                let attachmentPaths = attachments.map(\.path)
                 
                 expect(attachmentPaths).toNot(beNil())
                 expect(attachmentPaths.count).to(be(1))
@@ -49,7 +49,7 @@ final class AttachmentStorageTests: QuickSpec {
                     (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName,
                                                       storage: storage,
                                                       bookmarkHandler: bookmarkHandler)) ?? Attachments()
-                let attachmentPaths = attachments.map(\.value.path)
+                let attachmentPaths = attachments.map(\.path)
                 
                 expect(attachmentPaths).toNot(beNil())
                 expect(attachmentPaths.count).to(be(0))
