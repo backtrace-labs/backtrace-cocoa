@@ -10,9 +10,8 @@ enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
         var attachmentsBookmarksDict = Bookmarks()
         for attachment in attachments {
             do {
-                let bookmark = try attachment.bookmarkData(options: URL.BookmarkCreationOptions.minimalBookmark)
-                let fileName = attachment.lastPathComponent
-                attachmentsBookmarksDict[fileName] = bookmark
+                let bookmark = try attachment.bookmarkData(options: .minimalBookmark)
+                attachmentsBookmarksDict[attachment.path] = bookmark
             } catch {
                 BacktraceLogger.error("Could not bookmark attachment file URL. Error: \(error)")
                 continue

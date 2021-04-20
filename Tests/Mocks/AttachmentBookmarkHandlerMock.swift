@@ -10,7 +10,7 @@ enum AttachmentBookmarkHandlerMock: AttachmentBookmarkHandler {
     static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) throws -> Bookmarks {
         var attachmentsBookmarksDict = Bookmarks()
         for attachment in attachments {
-            attachmentsBookmarksDict[attachment.lastPathComponent] = attachment.path.data(using: .utf8)
+            attachmentsBookmarksDict[attachment.path] = attachment.path.data(using: .utf8)
         }
         return attachmentsBookmarksDict
     }
