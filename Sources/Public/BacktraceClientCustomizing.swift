@@ -7,8 +7,7 @@ public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientC
 public typealias Attributes = [String: Any]
 
 /// Type-alias of passing file attachments to library.
-/// Expected format: Filename, File URL bookmark
-public typealias Attachments = [String: URL]
+public typealias Attachments = [URL]
 
 /// Type-alias of storing file attachments on disk (as a bookmark)
 /// Expected format: Filename, File URL bookmark

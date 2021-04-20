@@ -10,8 +10,8 @@ enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
         var attachmentsBookmarksDict = Bookmarks()
         for attachment in attachments {
             do {
-                let bookmark = try attachment.value.bookmarkData(options: URL.BookmarkCreationOptions.minimalBookmark)
-                attachmentsBookmarksDict[attachment.key] = bookmark
+                let bookmark = try attachment.bookmarkData(options: .minimalBookmark)
+                attachmentsBookmarksDict[attachment.path] = bookmark
             } catch {
                 BacktraceLogger.error("Could not bookmark attachment file URL. Error: \(error)")
                 continue
@@ -35,7 +35,7 @@ enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
                 BacktraceLogger.error("Bookmark data is stale. This should not happen")
                 continue
             }
-            attachments[bookmark.key] = fileUrl
+            attachments.append(fileUrl)
         }
         return attachments
     }
