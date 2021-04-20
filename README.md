@@ -93,6 +93,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     3. [Events handling](#documentation-events-handling)
     4. [Attributes](#documentation-attributes)
     5. [Attachments](#documentation-attachments)
+        1. [For crash reports/all reports](#documentation-attachments-all)
+        2. [Per-report](#documentation-attachments-per-report)
     6. [Sending reports](#documentation-sending-report)
         1. [Error/NSError](#documentation-sending-error)
         2. [NSException](#documentation-sending-exception)
@@ -185,7 +187,7 @@ BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration all
 BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
 ```
 
-**Note on parameters** 
+**Note on parameters**
 - `initWithCredentials` and `BacktraceCredentials` see [here](#documentation-client-initialization)
 - `dbSettings` see [here](#documentation-database-settings)
 - `reportsPerMin` indicates the upper limit of how many reports per minute should be sent to the Backtrace endpoint
@@ -245,7 +247,7 @@ let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtrace
 BacktraceClient.shared = try? BacktraceClient(
     configuration: backtraceConfiguration,
     crashReporter: BacktraceCrashReporter(config: PLCrashReporterConfig.defaultConfiguration()))
-// or 
+// or
 BacktraceClient.shared = try? BacktraceClient(
     configuration: backtraceConfiguration,
     crashReporter: BacktraceCrashReporter(reporter: PLCrashReporter.shared()))
@@ -257,14 +259,14 @@ BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                      initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
                                      token: @"token"];
 
-BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc] 
+BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
                                                 initWithCredentials: credentials];
 
 BacktraceClient.shared = [[BacktraceClient alloc]
                             initWithConfiguration: configuration
                             crashReporter: [[BacktraceCrashReporter alloc] initWithConfig: PLCrashReporterConfig.defaultConfiguration]
                             error: nil];
-    
+
 // or
 BacktraceClient.shared = [[BacktraceClient alloc]
                             initWithConfiguration: configuration
@@ -332,7 +334,42 @@ BacktraceClient.shared.attributes = @{@"foo": @"bar", @"testing": YES};
 Set attributes are attached to each report. You can specify unique set of attributes for specific report in `willSend(_:)` method of `BacktraceClientDelegate`. See [events handling](#documentation-events-handling) for more information.
 
 ## Attachments <a name="documentation-attachments"></a>
-For each report you can attach files by supplying an array of file paths.
+### For crash reports/all reports <a name="documentation-attachments-all"></a>
+
+You can specify file attachments to be sent with every report (including crash reports). File attachments are specified as a `Dictonary` where the keys are a `String` containing the filename (including the extension), and the values are a `URL` containing the path to the file.
+- Swift
+```swift
+guard let libraryDirectoryUrl = try? FileManager.default.url(
+     for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else {
+     throw CustomError.runtimeError
+}
+
+let fileName = "sample.txt"
+let fileUrl = libraryDirectoryUrl.appendingPathComponent(fileName)
+
+var crashAttachments = Attachments()
+crashAttachments[fileName] = fileUrl
+
+BacktraceClient.shared?.attachments = crashAttachments
+```
+- Objective-C
+```objective-c
+NSString *fileName = @"myCustomFile.txt";
+NSURL *libraryUrl = [[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory
+         inDomains:NSUserDomainMask] lastObject];
+NSURL *fileUrl = [libraryUrl URLByAppendingPathComponent:fileName)];
+
+NSArray *attachmentKeys = [NSArray arrayWithObjects:fileName, nil];
+NSArray *attachmentObjects = [NSArray arrayWithObjects:fileUrl, nil];
+NSDictionary *attachmentDictionary = [NSDictionary dictionaryWithObjects:attachmentObjects
+                                                       forKeys:attachmentKeys];
+
+BacktraceClient.shared.attachments = attachmentDictionary;
+```
+
+### Per Report <a name="documentation-attachments-per-report"></a>
+
+You can also specify per-report file attachments by supplying an array of file paths when sending reports
 - Swift
 ```swift
 let filePath = Bundle.main.path(forResource: "test", ofType: "txt")!
@@ -340,14 +377,14 @@ BacktraceClient.shared?.send(attachmentPaths: [filePath]) { (result) in
     print(result)
 }
 ```
-- Objectice-C
+- Objective-C
 ```objective-c
 NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
 [[BacktraceClient shared] sendWithAttachmentPaths:paths completion:^(BacktraceResult * _Nonnull result) {
     NSLog(@"%@", result);
 }];
 ```
-Supplied files are attached for each report. You can specify unique set of files for specific report in `willSend(_:)` method of `BacktraceClientDelegate`. See [events handling](#documentation-events-handling) for more information.
+Supplied files are attached for each report. You can specify a unique set of files for specific reports in the `willSend(_:)` method of `BacktraceClientDelegate`. See [events handling](#documentation-events-handling) for more information.
 
 ## Sending an error report <a name="documentation-sending-report"></a>
 Registered `BacktraceClient` will be able to send a crash reports. Error report is automatically generated based.
@@ -443,4 +480,3 @@ Make sure your project is configured to generate the debug symbols:
 * Search for `dSYMs` directory
 ![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/master/docs/screenshots/finder-dsyms-archive.png)
 * Zip all the `dSYM` files and upload to Backtrace services (see: <a href="https://help.backtrace.io/product-guide/symbolification">Symbolification</a>)
-
