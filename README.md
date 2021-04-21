@@ -112,7 +112,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   * exception metadata,
   * thread metadata,
   * process metadata.
-* Supports iOS, macOS and tvOS platforms.
+* Supports iOS, macOS and tvOS platforms ([minimum supported platforms](https://github.com/backtrace-labs/plcrashreporter#prerequisites)).
 * Swift first protocol-oriented framework.
 
 # Installation <a name="installation"></a>
