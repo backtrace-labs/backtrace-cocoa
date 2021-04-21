@@ -1,5 +1,8 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.7.0
+- Simplifies default file attachments API
+
 ## Version 1.6.1
 - Allows default file attachments which will be sent for all live reports as well as crash reports
 - This allows sending file attachments with crash reports

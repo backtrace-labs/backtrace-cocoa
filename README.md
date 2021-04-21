@@ -336,7 +336,7 @@ Set attributes are attached to each report. You can specify unique set of attrib
 ## Attachments <a name="documentation-attachments"></a>
 ### For crash reports/all reports <a name="documentation-attachments-all"></a>
 
-You can specify file attachments to be sent with every report (including crash reports). File attachments are specified as a `Dictonary` where the keys are a `String` containing the filename (including the extension), and the values are a `URL` containing the path to the file.
+You can specify file attachments to be sent with every report (including crash reports). File attachments are specified as an `Array` of `URL` containing the path to the file.
 - Swift
 ```swift
 guard let libraryDirectoryUrl = try? FileManager.default.url(
@@ -344,11 +344,10 @@ guard let libraryDirectoryUrl = try? FileManager.default.url(
      throw CustomError.runtimeError
 }
 
-let fileName = "sample.txt"
-let fileUrl = libraryDirectoryUrl.appendingPathComponent(fileName)
+let fileUrl = libraryDirectoryUrl.appendingPathComponent("sample.txt")
 
 var crashAttachments = Attachments()
-crashAttachments[fileName] = fileUrl
+crashAttachments.append(fileUrl)
 
 BacktraceClient.shared?.attachments = crashAttachments
 ```
@@ -359,12 +358,7 @@ NSURL *libraryUrl = [[[NSFileManager defaultManager] URLsForDirectory:NSLibraryD
          inDomains:NSUserDomainMask] lastObject];
 NSURL *fileUrl = [libraryUrl URLByAppendingPathComponent:fileName)];
 
-NSArray *attachmentKeys = [NSArray arrayWithObjects:fileName, nil];
-NSArray *attachmentObjects = [NSArray arrayWithObjects:fileUrl, nil];
-NSDictionary *attachmentDictionary = [NSDictionary dictionaryWithObjects:attachmentObjects
-                                                       forKeys:attachmentKeys];
-
-BacktraceClient.shared.attachments = attachmentDictionary;
+BacktraceClient.shared.attachments = [NSArray arrayWithObjects:fileUrl, nil];
 ```
 
 ### Per Report <a name="documentation-attachments-per-report"></a>
