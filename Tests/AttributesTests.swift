@@ -44,7 +44,20 @@ final class AttributesTests: QuickSpec {
                 expect { attributes.immutable }.toNot(beNil())
             }
         }
-        
+
+        describe("Processor Info") {
+            it("can disable hostname") {
+                let attributes = ProcessorInfo()
+                let hostname = attributes.immutable["hostname"] as? String
+                expect { hostname }.to(beEmpty())
+            }
+            it("can enable hostname") {
+                let attributes = ProcessorInfo(reportHostName: true)
+                let hostname = attributes.immutable["hostname"] as? String
+                expect { hostname }.toNot(beEmpty())
+            }
+        }
+
         describe("C API") {
             it("sets vm_statistics64 information") {
                 expect { try Statistics.vmStatistics64() }.toNot(be(vm_statistics64()))

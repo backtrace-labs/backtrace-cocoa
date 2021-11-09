@@ -11,6 +11,12 @@ final class FaultInfo: AttributesSource {
 
 struct ProcessorInfo: AttributesSource {
     
+    private let reportHostName: Bool
+
+    init(reportHostName: Bool = false) {
+        self.reportHostName = reportHostName
+    }
+
     var mutable: [String: Any?] {
         let processor = try? Processor()
         let processInfo = ProcessInfo.processInfo
@@ -55,8 +61,8 @@ struct ProcessorInfo: AttributesSource {
     var immutable: [String: Any?] {
         return [
             "cpu.boottime": try? System.boottime(),
-            // hostanme
-            "hostname": ProcessInfo.processInfo.hostName,
+            // hostname
+            "hostname": self.reportHostName ? ProcessInfo.processInfo.hostName : "",
             // descriptor
             "descriptor.count": getdtablesize(),
             "process.starttime": try? ProcessInfo.startTime()

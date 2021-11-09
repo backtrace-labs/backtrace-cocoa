@@ -28,7 +28,7 @@ final class BacktraceReporter {
                              credentials: credentials,
                              repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
-        let attributesProvider = AttributesProvider()
+        let attributesProvider = AttributesProvider(reportHostName: dbSettings.reportHostName)
         self.attributesProvider = attributesProvider
         self.backtraceOomWatcher = BacktraceOomWatcher(
             repository: self.repository,

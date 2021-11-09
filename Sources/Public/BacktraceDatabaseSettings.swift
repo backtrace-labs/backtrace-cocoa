@@ -20,6 +20,9 @@ import Foundation
     
     /// Retry order. Default `RetryOder.queue`.
     @objc public var retryOrder: RetryOrder = .queue
+
+    /// Enable the hostname to be reported. This will cause the end-user to get the Local Network permissions pop-up.
+    @objc public var reportHostName: Bool = false
     
     internal var maxDatabaseSizeInBytes: Int {
         return maxDatabaseSize * 1024 * 1024

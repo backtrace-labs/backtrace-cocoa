@@ -22,9 +22,9 @@ final class AttributesProvider {
         return attributesSources.map(\.immutable).merging()
     }()
     
-    init() {
+    init(reportHostName: Bool = false) {
         faultInfo = FaultInfo()
-        attributesSources = [ProcessorInfo(),
+        attributesSources = [ProcessorInfo(reportHostName: reportHostName),
                              Device(),
                              ScreenInfo(),
                              LocaleInfo(),
