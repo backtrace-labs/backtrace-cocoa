@@ -1,5 +1,8 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.7.1
+- Make `hostname` attribute optional to prevent end-user from getting Local Network permissions pop-up
+
 ## Version 1.7.0
 - Simplifies default file attachments API
 
