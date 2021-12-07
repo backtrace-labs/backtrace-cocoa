@@ -14,6 +14,7 @@ where BacktraceRepository.Resource == BacktraceReport {
          networkClient: BacktraceNetworkClient,
          credentials: BacktraceCredentials,
          repository: BacktraceRepository,
+         // TODO: Refactor DispatchQueue label to common (BacktraceCustomization)
          dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background)) {
         
         self.settings = settings

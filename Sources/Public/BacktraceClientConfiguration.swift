@@ -11,6 +11,9 @@ import Foundation
     /// Database settings.
     @objc public var dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings()
     
+    /// Error-free metrics settings
+    @objc public var metricsSettings: BacktraceMetricsSettings = BacktraceMetricsSettings()
+    
     /// Number of records sent in 1 minute. Default `30`.
     @objc public var reportsPerMin: Int = 30
     

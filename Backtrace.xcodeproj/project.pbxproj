@@ -67,6 +67,39 @@
 		66BAE9B0EC15F9A44104171F /* Pods_Example_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5A481398F1571589196192B /* Pods_Example_iOS.framework */; };
 		6750CD01668A16084E0EB443 /* Pods_Example_macOS_ObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A79CCB26F3CBD94DC01CC462 /* Pods_Example_macOS_ObjC.framework */; };
 		69503CB0580ACE767DF359EF /* Pods_Backtrace_macOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 266E3F27CBA1D3CE7E2CCCB2 /* Pods_Backtrace_macOSTests.framework */; };
+		6E45A3A7273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
+		6E45A3A8273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
+		6E45A3A9273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
+		6E87F5EB2733174C00B90B07 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5EA2733174C00B90B07 /* Event.swift */; };
+		6E87F5EC2733174C00B90B07 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5EA2733174C00B90B07 /* Event.swift */; };
+		6E87F5ED2733174C00B90B07 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5EA2733174C00B90B07 /* Event.swift */; };
+		6E87F5F3273325A800B90B07 /* UniqueEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5F2273325A800B90B07 /* UniqueEvent.swift */; };
+		6E87F5F4273325A800B90B07 /* UniqueEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5F2273325A800B90B07 /* UniqueEvent.swift */; };
+		6E87F5F5273325A800B90B07 /* UniqueEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5F2273325A800B90B07 /* UniqueEvent.swift */; };
+		6E87F5F7273332B400B90B07 /* SummedEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5F6273332B400B90B07 /* SummedEvent.swift */; };
+		6E87F5F8273332B400B90B07 /* SummedEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5F6273332B400B90B07 /* SummedEvent.swift */; };
+		6E87F5F9273332B400B90B07 /* SummedEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5F6273332B400B90B07 /* SummedEvent.swift */; };
+		6E87F5FB27347A6E00B90B07 /* UniqueEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5FA27347A6E00B90B07 /* UniqueEventsPayload.swift */; };
+		6E87F5FC27347A6E00B90B07 /* UniqueEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5FA27347A6E00B90B07 /* UniqueEventsPayload.swift */; };
+		6E87F5FD27347A6E00B90B07 /* UniqueEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5FA27347A6E00B90B07 /* UniqueEventsPayload.swift */; };
+		6E896E84272748F60005CDF2 /* BacktraceMetricsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E83272748F60005CDF2 /* BacktraceMetricsTest.swift */; };
+		6E896E85272748F60005CDF2 /* BacktraceMetricsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E83272748F60005CDF2 /* BacktraceMetricsTest.swift */; };
+		6E896E86272748F60005CDF2 /* BacktraceMetricsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E83272748F60005CDF2 /* BacktraceMetricsTest.swift */; };
+		6E896E912727627C0005CDF2 /* BacktraceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */; };
+		6E896E922727627D0005CDF2 /* BacktraceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */; };
+		6E896E932727627D0005CDF2 /* BacktraceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */; };
+		6E896E94272762810005CDF2 /* BacktraceMetricsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */; };
+		6E896E95272762810005CDF2 /* BacktraceMetricsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */; };
+		6E896E96272762820005CDF2 /* BacktraceMetricsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */; };
+		6E896E98272767080005CDF2 /* Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E97272767080005CDF2 /* Payload.swift */; };
+		6E896E99272767080005CDF2 /* Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E97272767080005CDF2 /* Payload.swift */; };
+		6E896E9A272767080005CDF2 /* Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E97272767080005CDF2 /* Payload.swift */; };
+		6E896E9C272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */; };
+		6E896E9D272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */; };
+		6E896E9E272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */; };
+		6EB713EC275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */; };
+		6EB713ED275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */; };
+		6EB713EE275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */; };
 		7B6889F14928FBFDA5F511B6 /* Pods_Backtrace_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8121A05EF59A842F7A61513 /* Pods_Backtrace_macOS.framework */; };
 		81B51B136E9684981F70E9B8 /* Pods_Backtrace_tvOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EEF3FB2BE5FB7CD0332FDE7 /* Pods_Backtrace_tvOSTests.framework */; };
 		99DD1F3F781FA819ECA75324 /* Pods_Backtrace_tvOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8493CFBC65BA4978D35038FD /* Pods_Backtrace_tvOS.framework */; };
@@ -350,6 +383,17 @@
 		58044D9B79ECDE3A69DA26D9 /* Pods-Example-macOS-ObjC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-macOS-ObjC.debug.xcconfig"; path = "Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC.debug.xcconfig"; sourceTree = "<group>"; };
 		5B38E5644A39865F3056DC13 /* Pods-Backtrace-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		6A5A6F21A3C4CBC9809099B9 /* Pods-Backtrace-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-macOS/Pods-Backtrace-macOS.debug.xcconfig"; sourceTree = "<group>"; };
+		6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsSettings.swift; sourceTree = "<group>"; };
+		6E87F5EA2733174C00B90B07 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
+		6E87F5F2273325A800B90B07 /* UniqueEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueEvent.swift; sourceTree = "<group>"; };
+		6E87F5F6273332B400B90B07 /* SummedEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummedEvent.swift; sourceTree = "<group>"; };
+		6E87F5FA27347A6E00B90B07 /* UniqueEventsPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueEventsPayload.swift; sourceTree = "<group>"; };
+		6E896E83272748F60005CDF2 /* BacktraceMetricsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsTest.swift; sourceTree = "<group>"; };
+		6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetrics.swift; sourceTree = "<group>"; };
+		6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsDelegate.swift; sourceTree = "<group>"; };
+		6E896E97272767080005CDF2 /* Payload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Payload.swift; sourceTree = "<group>"; };
+		6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsResult.swift; sourceTree = "<group>"; };
+		6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummedEventsPayload.swift; sourceTree = "<group>"; };
 		7C097C6DB5AB825936495C27 /* Pods-Backtrace-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.debug.xcconfig"; sourceTree = "<group>"; };
 		8493CFBC65BA4978D35038FD /* Pods_Backtrace_tvOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_tvOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		866456D1702902604A7B2316 /* Pods-Example-iOS-ObjC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-iOS-ObjC.debug.xcconfig"; path = "Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC.debug.xcconfig"; sourceTree = "<group>"; };
@@ -598,6 +642,30 @@
 			path = "Backtrace-tvOSTests";
 			sourceTree = "<group>";
 		};
+		6E896E872727496D0005CDF2 /* Metrics */ = {
+			isa = PBXGroup;
+			children = (
+				6E896E88272749780005CDF2 /* Model */,
+				6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */,
+			);
+			path = Metrics;
+			sourceTree = "<group>";
+		};
+		6E896E88272749780005CDF2 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */,
+				6E896E97272767080005CDF2 /* Payload.swift */,
+				6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */,
+				6E87F5EA2733174C00B90B07 /* Event.swift */,
+				6E87F5F2273325A800B90B07 /* UniqueEvent.swift */,
+				6E87F5F6273332B400B90B07 /* SummedEvent.swift */,
+				6E87F5FA27347A6E00B90B07 /* UniqueEventsPayload.swift */,
+				6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		AF7833B92613D0E300530A10 /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -703,6 +771,7 @@
 				F2981BC822901B1400DFE098 /* AttributesTests.swift */,
 				F2A81B5023F02279007C63E4 /* BacktraceRateLimiterTests.swift */,
 				AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */,
+				6E896E83272748F60005CDF2 /* BacktraceMetricsTest.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -817,6 +886,7 @@
 		F2AFB59622274E1400AAA1D7 /* Public */ = {
 			isa = PBXGroup;
 			children = (
+				6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */,
 				F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */,
 				F2AFB59922274E5400AAA1D7 /* BacktraceClientCustomizing.swift */,
 				F240532021C578AA00FC9394 /* BacktraceLogger.swift */,
@@ -835,6 +905,7 @@
 		F2AFB59722274E1C00AAA1D7 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				6E896E872727496D0005CDF2 /* Metrics */,
 				F2AB6395224799A200939BC9 /* Resources */,
 				F28F165621E2A0BD008E4B96 /* Extensions */,
 				F2CC8AC921CF8D6C00A68CAC /* Dispatching */,
@@ -1792,6 +1863,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E896E9A272767080005CDF2 /* Payload.swift in Sources */,
+				6E87F5FD27347A6E00B90B07 /* UniqueEventsPayload.swift in Sources */,
 				F29959AB225539960085B5C3 /* BacktraceCrashReporter.swift in Sources */,
 				28F95BCF22526061003936E0 /* BacktraceLogger.swift in Sources */,
 				AF5AB0BB262622730003698C /* AttachmentBookmarkHandler.swift in Sources */,
@@ -1800,9 +1873,12 @@
 				28F95BC92252602C003936E0 /* Foundation+Extensions.swift in Sources */,
 				28F95BD622526078003936E0 /* DebuggerChecker.swift in Sources */,
 				28F95BE8225260B3003936E0 /* PersistentRepository.swift in Sources */,
+				6E45A3A9273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */,
 				28F95BDF2252609A003936E0 /* BacktraceReporter.swift in Sources */,
 				28F95BEB225260C5003936E0 /* DefaultAttributes.swift in Sources */,
 				28F95BD32252606F003936E0 /* BacktraceClientConfiguration.swift in Sources */,
+				6E87F5F5273325A800B90B07 /* UniqueEvent.swift in Sources */,
+				6E896E94272762810005CDF2 /* BacktraceMetricsDelegate.swift in Sources */,
 				28F95BD422526072003936E0 /* BacktraceCredentials.swift in Sources */,
 				28F95BE4225260A7003936E0 /* MultipartRequest.swift in Sources */,
 				AF5AB0A12626226D0003698C /* AttachmentsStorage.swift in Sources */,
@@ -1816,12 +1892,16 @@
 				28F95BC822526023003936E0 /* URLSession+Sync.swift in Sources */,
 				28F95BED225260D3003936E0 /* AttributesProvider.swift in Sources */,
 				28F95BDB22526088003936E0 /* SignalContext.swift in Sources */,
+				6E896E932727627D0005CDF2 /* BacktraceMetrics.swift in Sources */,
+				6EB713EE275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
+				6E896E9E272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */,
 				28F95BD122526068003936E0 /* BacktraceResult.swift in Sources */,
 				28F95BE7225260B0003936E0 /* Attachment.swift in Sources */,
 				0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				28F95BCB22526045003936E0 /* Dispatching.swift in Sources */,
 				AF74775B2620C6B200DEE7D1 /* ReportMetadataStorage.swift in Sources */,
 				28F95BDD2252608E003936E0 /* BacktraceReportStatus.swift in Sources */,
+				6E87F5ED2733174C00B90B07 /* Event.swift in Sources */,
 				28F95BDE22526091003936E0 /* ReportingPolicy.swift in Sources */,
 				28F95BEC225260C9003936E0 /* AttributesStorage.swift in Sources */,
 				28F95BCA22526041003936E0 /* Dispatcher.swift in Sources */,
@@ -1835,6 +1915,7 @@
 				28F95BD22252606B003936E0 /* BacktraceDatabaseSettings.swift in Sources */,
 				F29959AC2255399B0085B5C3 /* BacktraceReport.swift in Sources */,
 				28F95BE02252609C003936E0 /* BacktraceResponse.swift in Sources */,
+				6E87F5F9273332B400B90B07 /* SummedEvent.swift in Sources */,
 				F26EBF3C23F21BC800A64218 /* BacktraceRateLimiter.swift in Sources */,
 				F286353C2283685100F45412 /* Map+KeyPath.swift in Sources */,
 				28F95BEA225260C2003936E0 /* BacktraceError.swift in Sources */,
@@ -1845,6 +1926,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E896E86272748F60005CDF2 /* BacktraceMetricsTest.swift in Sources */,
 				F21DD39D2255666F00404CC3 /* Quick+Throws.swift in Sources */,
 				F21DD39F2255666F00404CC3 /* WatcherRepositoryMock.swift in Sources */,
 				F21DD3A02255666F00404CC3 /* UrlSessionMock.swift in Sources */,
@@ -1878,8 +1960,11 @@
 				F29CD79621FDD9DC00216C59 /* BacktraceClientDelegate.swift in Sources */,
 				F21771BE21E341CA0059896E /* Dispatcher.swift in Sources */,
 				AF5AB0A02626226C0003698C /* AttachmentsStorage.swift in Sources */,
+				6E87F5EC2733174C00B90B07 /* Event.swift in Sources */,
 				28AC773D21FA5A8900FED661 /* BacktraceDatabaseSettings.swift in Sources */,
 				F266B83821C77B9600D14417 /* BacktraceLogger.swift in Sources */,
+				6E896E922727627D0005CDF2 /* BacktraceMetrics.swift in Sources */,
+				6E45A3A8273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */,
 				F2AFB59E22274EDA00AAA1D7 /* Dispatching.swift in Sources */,
 				2846E1F9222F1DE60035F98C /* NetworkReachability.swift in Sources */,
 				F21211A9222348C2000B3692 /* SignalContext.swift in Sources */,
@@ -1890,6 +1975,7 @@
 				F2AFB5922225E5D000AAA1D7 /* Foundation+Extensions.swift in Sources */,
 				F26EBF3D23F21BCB00A64218 /* BacktraceNetworkClient.swift in Sources */,
 				28AC7740220A2A3300FED661 /* MultipartRequest.swift in Sources */,
+				6E896E99272767080005CDF2 /* Payload.swift in Sources */,
 				F2AB63822246E16400939BC9 /* ReportingPolicy.swift in Sources */,
 				F25F9E9B21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				F21D302C224A18D60013B5D7 /* Store.swift in Sources */,
@@ -1907,18 +1993,24 @@
 				28AC773A21F8C29800FED661 /* PersistentRepository.swift in Sources */,
 				28614F9F220B900300D35EFB /* DefaultAttributes.swift in Sources */,
 				F2A81B4E23EF1730007C63E4 /* BacktraceApiProtocol.swift in Sources */,
+				6E896E9D272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */,
 				F282075C21CEA37A0017367F /* Repository.swift in Sources */,
 				F26EBF3B23F21BC700A64218 /* BacktraceRateLimiter.swift in Sources */,
 				F28F165221E2A08F008E4B96 /* HttpMethod.swift in Sources */,
 				0B6B4CFE25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				F29CD78E21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */,
+				6E87F5FC27347A6E00B90B07 /* UniqueEventsPayload.swift in Sources */,
+				6E87F5F4273325A800B90B07 /* UniqueEvent.swift in Sources */,
 				F2D7122221F10C45002D2A26 /* BacktraceClientConfiguration.swift in Sources */,
+				6EB713ED275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
 				F29CD79221FCC25600216C59 /* BacktraceWatcher.swift in Sources */,
 				282C85E7223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift in Sources */,
+				6E87F5F8273332B400B90B07 /* SummedEvent.swift in Sources */,
 				F2AFB59B22274E5400AAA1D7 /* BacktraceClientCustomizing.swift in Sources */,
 				F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				F2AB636E22442B5100939BC9 /* DebuggerChecker.swift in Sources */,
 				F286353B2283685100F45412 /* Map+KeyPath.swift in Sources */,
+				6E896E95272762810005CDF2 /* BacktraceMetricsDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1926,6 +2018,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E896E85272748F60005CDF2 /* BacktraceMetricsTest.swift in Sources */,
 				F2AB63852246E1A000939BC9 /* ReportingPolicyTests.swift in Sources */,
 				F2AB637A22464AD000939BC9 /* BacktraceReporterTests.swift in Sources */,
 				F2AB637F22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */,
@@ -1963,6 +2056,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E896E98272767080005CDF2 /* Payload.swift in Sources */,
+				6E87F5FB27347A6E00B90B07 /* UniqueEventsPayload.swift in Sources */,
 				F240531E21C5680600FC9394 /* CrashReporting.swift in Sources */,
 				F28162FA21EFD6AD00A12B7A /* BacktraceResponse.swift in Sources */,
 				F29CD79421FDD5E900216C59 /* BacktraceClientDelegate.swift in Sources */,
@@ -1971,9 +2066,12 @@
 				F2CC8ACB21CF8D8400A68CAC /* Dispatcher.swift in Sources */,
 				F2AFB59D22274EDA00AAA1D7 /* Dispatching.swift in Sources */,
 				2846E1F8222F1DE60035F98C /* NetworkReachability.swift in Sources */,
+				6E45A3A7273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */,
 				F21211A8222348C2000B3692 /* SignalContext.swift in Sources */,
 				F259E4E22229C29A00F282C7 /* AttributesProvider.swift in Sources */,
 				F2AB63812246E16400939BC9 /* ReportingPolicy.swift in Sources */,
+				6E87F5F3273325A800B90B07 /* UniqueEvent.swift in Sources */,
+				6E896E96272762820005CDF2 /* BacktraceMetricsDelegate.swift in Sources */,
 				F25F9E9721EE84AF00236E04 /* BacktraceReportStatus.swift in Sources */,
 				F2AFB5912225E5D000AAA1D7 /* Foundation+Extensions.swift in Sources */,
 				28AC773F220A2A2900FED661 /* MultipartRequest.swift in Sources */,
@@ -1987,12 +2085,16 @@
 				F259E4D62229A40C00F282C7 /* Result.swift in Sources */,
 				2846E1FE223070CB0035F98C /* Attachment.swift in Sources */,
 				F2D7122421F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
+				6E896E912727627C0005CDF2 /* BacktraceMetrics.swift in Sources */,
+				6EB713EC275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
+				6E896E9C272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */,
 				F28F164621E28441008E4B96 /* BacktraceReporter.swift in Sources */,
 				F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */,
 				0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				F2C1514221F7D8E30014F1B3 /* PersistentRepository.swift in Sources */,
 				AF7477592620C6B200DEE7D1 /* ReportMetadataStorage.swift in Sources */,
 				F2D8BE3821BD7894007CFEFA /* BacktraceError.swift in Sources */,
+				6E87F5EB2733174C00B90B07 /* Event.swift in Sources */,
 				F282075821CEA31F0017367F /* BacktraceReport.swift in Sources */,
 				F28635472288958C00F45412 /* System.swift in Sources */,
 				F28F165821E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
@@ -2006,6 +2108,7 @@
 				F29CD79121FCC25600216C59 /* BacktraceWatcher.swift in Sources */,
 				F21D302B224A18D60013B5D7 /* Store.swift in Sources */,
 				F286353A2283685100F45412 /* Map+KeyPath.swift in Sources */,
+				6E87F5F7273332B400B90B07 /* SummedEvent.swift in Sources */,
 				F26EBF3823F21AE000A64218 /* BacktraceRateLimiter.swift in Sources */,
 				F2AFB59A22274E5400AAA1D7 /* BacktraceClientCustomizing.swift in Sources */,
 				F282075B21CEA37A0017367F /* Repository.swift in Sources */,
@@ -2016,6 +2119,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E896E84272748F60005CDF2 /* BacktraceMetricsTest.swift in Sources */,
 				F2AB63842246E1A000939BC9 /* ReportingPolicyTests.swift in Sources */,
 				F2AB637922464AD000939BC9 /* BacktraceReporterTests.swift in Sources */,
 				F2AB637E22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */,

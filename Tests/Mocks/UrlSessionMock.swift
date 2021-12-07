@@ -159,3 +159,50 @@ struct MockNoResponse: MockResponse {
         error = nil
     }
 }
+
+final class BacktraceMetricsDelegateSpy: BacktraceMetricsDelegate {
+    
+    var calledWillSend: Bool = false
+    var calledWillSendRequest: Bool = false
+    var calledServerDidRespond: Bool = false
+    var calledConnectionDidFail: Bool = false
+    
+    func willSendRequest(_ request: URLRequest) -> URLRequest {
+        calledWillSendRequest = true
+        return request
+    }
+    
+    func serverDidRespond(_ result: BacktraceMetricsResult) {
+        calledServerDidRespond = true
+    }
+    
+    func connectionDidFail(_ error: Error) {
+        calledConnectionDidFail = true
+    }
+    
+    func clear() {
+        calledWillSend = false
+        calledWillSendRequest = false
+        calledServerDidRespond = false
+        calledConnectionDidFail = false
+    }
+}
+
+final class BacktraceMetricsDelegateMock: BacktraceMetricsDelegate {
+    
+    var willSendRequestClosure: ((URLRequest) -> URLRequest)?
+    var serverDidRespondClosure: ((BacktraceMetricsResult) -> Void)?
+    var connectionDidFailClosure: ((Error) -> Void)?
+    
+    func willSendRequest(_ request: URLRequest) -> URLRequest {
+        return willSendRequestClosure?(request) ?? request
+    }
+    
+    func serverDidRespond(_ result: BacktraceMetricsResult) {
+        serverDidRespondClosure?(result)
+    }
+    
+    func connectionDidFail(_ error: Error) {
+        connectionDidFailClosure?(error)
+    }
+}

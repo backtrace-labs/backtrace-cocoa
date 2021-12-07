@@ -6,6 +6,9 @@ public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientC
 /// Type-alias of passing attributes to library.
 public typealias Attributes = [String: Any]
 
+/// Type-alias of attributes which is decodable using standard Swift `Decodable` protocol
+public typealias DecodableAttributes = [String: String]
+
 /// Type-alias of passing file attachments to library.
 public typealias Attachments = [URL]
 
@@ -79,3 +82,7 @@ public typealias Bookmarks = [String: Data]
     @available(*, renamed: "destinations")
     @objc var loggingDestinations: Set<BacktraceBaseDestination> { get set }
 }
+
+public let applicationName = Bundle.main.displayName
+
+public let applicationVersion = Bundle.main.releaseVersionNumber

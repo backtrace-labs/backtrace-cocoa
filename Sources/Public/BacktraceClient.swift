@@ -9,6 +9,9 @@ import Foundation
     /// `BacktraceClient`'s configuration. Allows to configure `BacktraceClient` in a custom way.
     @objc public let configuration: BacktraceClientConfiguration
     
+    /// Error-free metrics class instance
+    @objc public let metrics: BacktraceMetrics
+    
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
@@ -46,8 +49,9 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
+        let metrics = BacktraceMetrics(api: api, settings: configuration.metricsSettings, credentials: configuration.credentials)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api)
+                      dispatcher: Dispatcher(), api: api, metrics: metrics)
     }
     
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
@@ -61,17 +65,19 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
+        let metrics = BacktraceMetrics(api: api, settings: configuration.metricsSettings, credentials: configuration.credentials)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api)
+                      dispatcher: Dispatcher(), api: api, metrics: metrics)
     }
     
     init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
-         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApi) throws {
+         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApi, metrics: BacktraceMetrics) throws {
         
         self.dispatcher = dispatcher
         self.reporter = reporter
         self.configuration = configuration
         self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
+        self.metrics = metrics
         
         super.init()
         try startCrashReporter()

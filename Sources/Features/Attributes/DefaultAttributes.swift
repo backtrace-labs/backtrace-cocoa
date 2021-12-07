@@ -203,6 +203,16 @@ struct LibInfo: AttributesSource {
         }
     }
 }
+
+struct MetricsInfo: AttributesSource {
+    private static let session = UUID().uuidString
+    
+    var immutable: [String : Any?] {
+        return ["application.version": Backtrace.applicationVersion,
+                "application.session": MetricsInfo.session]
+    }
+}
+
 // swiftlint:enable type_name
 
 private extension CLAuthorizationStatus {
