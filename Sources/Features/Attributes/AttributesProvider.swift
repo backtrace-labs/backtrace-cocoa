@@ -24,26 +24,15 @@ final class AttributesProvider {
     
     init(reportHostName: Bool = false) {
         faultInfo = FaultInfo()
-        if AttributesProvider.isMetricsEnabled {
-            attributesSources = [ProcessorInfo(reportHostName: reportHostName),
-                                 Device(),
-                                 ScreenInfo(),
-                                 LocaleInfo(),
-                                 NetworkInfo(),
-                                 LibInfo(),
-                                 LocationInfo(),
-                                 faultInfo,
-                                 MetricsInfo()]
-        } else {
-            attributesSources = [ProcessorInfo(reportHostName: reportHostName),
-                                 Device(),
-                                 ScreenInfo(),
-                                 LocaleInfo(),
-                                 NetworkInfo(),
-                                 LibInfo(),
-                                 LocationInfo(),
-                                 faultInfo]
-        }
+        attributesSources = [ProcessorInfo(reportHostName: reportHostName),
+                             Device(),
+                             ScreenInfo(),
+                             LocaleInfo(),
+                             NetworkInfo(),
+                             LibInfo(),
+                             LocationInfo(),
+                             faultInfo,
+                             MetricsInfo()]
     }
 }
 
@@ -88,13 +77,5 @@ extension Array where Element == [String: Any?] {
             return (key, value)
         })
         return Dictionary(keyValuePairs) { (lhs, _) in lhs }
-    }
-}
-
-extension AttributesProvider {
-    static private var isMetricsEnabled = false
-    
-    static func enableMetrics() {
-        isMetricsEnabled = true
     }
 }

@@ -15,7 +15,7 @@ import Foundation
     }
     
     @objc public func enable() {
-        
+        MetricsInfo.enableMetrics()
     }
     
     @objc public func addUniqueEvent(name: String) {

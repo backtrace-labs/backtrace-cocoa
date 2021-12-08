@@ -207,9 +207,21 @@ struct LibInfo: AttributesSource {
 struct MetricsInfo: AttributesSource {
     private static let session = UUID().uuidString
     
+    static private var isMetricsEnabled = false
+
+    static func enableMetrics() {
+        isMetricsEnabled = true
+    }
+
+    static func disableMetrics() {
+        isMetricsEnabled = false
+    }
+    
     var immutable: [String : Any?] {
-        return ["application.version": Backtrace.applicationVersion,
-                "application.session": MetricsInfo.session]
+        return MetricsInfo.isMetricsEnabled ?
+            ["application.version": Backtrace.applicationVersion,
+             "application.session": MetricsInfo.session] :
+            [:]
     }
 }
 
