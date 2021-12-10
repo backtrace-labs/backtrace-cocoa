@@ -165,8 +165,8 @@ final class BacktraceReporterTests: QuickSpec {
                 }
                 
                 throwingIt("report should have metrics attributes if metrics is enabled") {
-                    let metrics = BacktraceMetrics(api: backtraceApi, settings: BacktraceMetricsSettings(), credentials: credentials, urlSession: urlSession)
-                    metrics.enable()
+                    let metrics = BacktraceMetrics(api: backtraceApi)
+                    metrics.enable(settings: BacktraceMetricsSettings())
                     
                     let delegate = BacktraceClientDelegateMock()
                     let backtraceReport = try reporter.generate()

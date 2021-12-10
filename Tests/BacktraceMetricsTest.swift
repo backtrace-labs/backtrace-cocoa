@@ -4,7 +4,7 @@ import Nimble
 import Quick
 @testable import Backtrace
 
-final class BacktraceMetricsTest: QuickSpec {
+final class BacktraceMetricsTests: QuickSpec {
     
     override func spec() {
         describe("Backtrace Metrics") {

@@ -49,7 +49,7 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
-        let metrics = BacktraceMetrics(api: api, settings: configuration.metricsSettings, credentials: configuration.credentials)
+        let metrics = BacktraceMetrics(api: api)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api, metrics: metrics)
     }
@@ -65,7 +65,7 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
-        let metrics = BacktraceMetrics(api: api, settings: configuration.metricsSettings, credentials: configuration.credentials)
+        let metrics = BacktraceMetrics(api: api)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api, metrics: metrics)
     }
