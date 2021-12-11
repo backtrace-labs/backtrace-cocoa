@@ -29,11 +29,11 @@ import Foundation
     }
 }
 
-extension BacktraceCredentials {
+enum BacktraceUrlParsingError: Error {
+    case InvalidInput(String)
+}
 
-    enum BacktraceUrlParsingError: Error {
-        case InvalidInput(String)
-    }
+extension BacktraceCredentials {
     
     // Using algorithm from backtrace-unity:
     // https://github.com/backtrace-labs/backtrace-unity/blob/553aab2b39c318ff96ebed4bc739bf2c87304649/Runtime/Model/BacktraceConfiguration.cs#L290
@@ -42,7 +42,7 @@ extension BacktraceCredentials {
         switch configuration {
         case .submissionUrl(let url):
             return try parseUniverseName(url.absoluteString)
-        case .endpoint(let endpoint, let token):
+        case .endpoint(let endpoint, _):
             return try parseUniverseName(endpoint.absoluteString)
         }
     }
@@ -113,7 +113,7 @@ extension BacktraceCredentials {
 
                 return String(urlString[tokenStartIndex...tokenEndIndex])
             }            
-        case .endpoint(let endpoint, let token):
+        case .endpoint(_, let token):
             return token
         }
     }

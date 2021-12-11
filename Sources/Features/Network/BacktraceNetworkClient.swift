@@ -25,3 +25,19 @@ final class BacktraceNetworkClient {
         return reachability.isReachable
     }
 }
+
+extension BacktraceNetworkClient {
+    
+    func sendMetrics(request: URLRequest) throws -> BacktraceMetricsHttpResponse {
+        let response = self.urlSession.sync(request)
+        
+        if let responseError = response.responseError {
+            throw NetworkError.connectionError(responseError)
+        }
+        guard let urlResponse = response.urlResponse else {
+            throw HttpError.unknownError
+        }
+        // check result
+        return BacktraceMetricsHttpResponse(httpResponse: urlResponse, responseData: response.responseData)
+    }
+}

@@ -20,6 +20,7 @@ final class BacktraceApi {
 }
 
 extension BacktraceApi: BacktraceApiProtocol {
+    
     func send(_ report: BacktraceReport) throws -> BacktraceResult {
         var report = report
         
@@ -59,32 +60,40 @@ extension BacktraceApi: BacktraceApiProtocol {
             throw error
         }
     }
+}
+
+extension BacktraceApi: BacktraceMetricsApiProtocol {
     
-    func sendMetrics(_ metrics: Payload<Event>) throws -> BacktraceMetricsResult {
-        var metrics = metrics
-        
-   /*     do {
+    func sendMetrics(_ payload: SummedEventsPayload, url: URL) throws {
+        try sendMetrics(payload, url: url, metricsDelegate: summedEventsDelegate)
+    }
+    
+    func sendMetrics(_ payload: UniqueEventsPayload, url: URL) throws {
+        try sendMetrics(payload, url: url, metricsDelegate: uniqueEventsDelegate)
+    }
+    
+    func sendMetrics<T: Event>(_ payload: Payload<T>, url: URL, metricsDelegate: BacktraceMetricsDelegate?) throws {
+        let payload = payload
+
+        do {
             // create request
-            var urlRequest = try MultipartRequest(configuration: credentials.configuration,
-                                                  report: report).request
+            var urlRequest = try MetricsRequest(url: url, payload: payload).request
             
             // modify request before sending
-            urlRequest = delegate?.willSendRequest?(urlRequest) ?? urlRequest
+            urlRequest = metricsDelegate?.willSendRequest?(urlRequest) ?? urlRequest
             BacktraceLogger.debug("Will send URL request: \(urlRequest)")
             
             // send request
-            let httpResponse = try networkClient.send(request: urlRequest)
+            let httpResponse = try networkClient.sendMetrics(request: urlRequest)
             
             // get result
             BacktraceLogger.debug("Received HTTP response: \(httpResponse)")
-            let result = httpResponse.result(report: report)
-            delegate?.serverDidRespond?(result)
-            return result
+            let result = httpResponse.result()
+            metricsDelegate?.serverDidRespond?(result)
         } catch {
-            BacktraceLogger.error("Connection for \(report) failed with error: \(error)")
-            delegate?.connectionDidFail?(error)
+            BacktraceLogger.error("Connection for \(payload) failed with error: \(error)")
+            metricsDelegate?.connectionDidFail?(error)
             throw error
-        }*/
-        return BacktraceMetricsResult()
+        }
     }
 }

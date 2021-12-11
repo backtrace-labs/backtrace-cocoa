@@ -7,8 +7,17 @@ final class BacktraceMetricsContainer {
     
     private let settings: BacktraceMetricsSettings
     
+    static let startupSummedEventName = "Application Launches"
+    
+    var count: Int {
+        get {
+            return uniqueEvents.count + summedEvents.count
+        }
+    }
+    
     init(settings: BacktraceMetricsSettings) {
         self.settings = settings
+        self.add(event: SummedEvent(name: BacktraceMetricsContainer.startupSummedEventName))
     }
     
     func add(event: UniqueEvent) {
@@ -17,5 +26,9 @@ final class BacktraceMetricsContainer {
     
     func add(event: SummedEvent) {
         summedEvents.append(event)
+    }
+    
+    func getSummedEventsPayload() -> SummedEventsPayload {
+        return SummedEventsPayload(events: summedEvents)
     }
 }

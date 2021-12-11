@@ -112,6 +112,12 @@
 		6EB713FF2762B37F0075D1C1 /* BacktraceCredentialsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713FB276298670075D1C1 /* BacktraceCredentialsTests.swift */; };
 		6EB714002762B3800075D1C1 /* BacktraceCredentialsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713FB276298670075D1C1 /* BacktraceCredentialsTests.swift */; };
 		6EB714012762B3800075D1C1 /* BacktraceCredentialsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713FB276298670075D1C1 /* BacktraceCredentialsTests.swift */; };
+		6EB714072763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */; };
+		6EB714082763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */; };
+		6EB714092763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */; };
+		6EB7140B27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */; };
+		6EB7140C27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */; };
+		6EB7140D27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */; };
 		7B6889F14928FBFDA5F511B6 /* Pods_Backtrace_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8121A05EF59A842F7A61513 /* Pods_Backtrace_macOS.framework */; };
 		81B51B136E9684981F70E9B8 /* Pods_Backtrace_tvOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EEF3FB2BE5FB7CD0332FDE7 /* Pods_Backtrace_tvOSTests.framework */; };
 		99DD1F3F781FA819ECA75324 /* Pods_Backtrace_tvOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8493CFBC65BA4978D35038FD /* Pods_Backtrace_tvOS.framework */; };
@@ -410,6 +416,8 @@
 		6EB713F327617ED00075D1C1 /* BacktraceMetricsContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsContainer.swift; sourceTree = "<group>"; };
 		6EB713F7276294160075D1C1 /* MetricsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsRequest.swift; sourceTree = "<group>"; };
 		6EB713FB276298670075D1C1 /* BacktraceCredentialsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCredentialsTests.swift; sourceTree = "<group>"; };
+		6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsHttpResponse.swift; sourceTree = "<group>"; };
+		6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummedEventsTests.swift; sourceTree = "<group>"; };
 		7C097C6DB5AB825936495C27 /* Pods-Backtrace-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.debug.xcconfig"; sourceTree = "<group>"; };
 		8493CFBC65BA4978D35038FD /* Pods_Backtrace_tvOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_tvOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		866456D1702902604A7B2316 /* Pods-Example-iOS-ObjC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-iOS-ObjC.debug.xcconfig"; path = "Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC.debug.xcconfig"; sourceTree = "<group>"; };
@@ -663,6 +671,7 @@
 			children = (
 				6E896E88272749780005CDF2 /* Model */,
 				6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */,
+				6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */,
 			);
 			path = Metrics;
 			sourceTree = "<group>";
@@ -671,7 +680,6 @@
 			isa = PBXGroup;
 			children = (
 				6EB713F7276294160075D1C1 /* MetricsRequest.swift */,
-				6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */,
 				6E896E97272767080005CDF2 /* Payload.swift */,
 				6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */,
 				6E87F5EA2733174C00B90B07 /* Event.swift */,
@@ -681,6 +689,7 @@
 				6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */,
 				6EB713EF276125760075D1C1 /* BacktraceMetricsSender.swift */,
 				6EB713F327617ED00075D1C1 /* BacktraceMetricsContainer.swift */,
+				6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -792,6 +801,7 @@
 				AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */,
 				6E896E83272748F60005CDF2 /* BacktraceMetricsTest.swift */,
 				6EB713FB276298670075D1C1 /* BacktraceCredentialsTests.swift */,
+				6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -1918,6 +1928,7 @@
 				6EB713EE275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
 				6E896E9E272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */,
 				28F95BD122526068003936E0 /* BacktraceResult.swift in Sources */,
+				6EB714092763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */,
 				28F95BE7225260B0003936E0 /* Attachment.swift in Sources */,
 				0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				28F95BCB22526045003936E0 /* Dispatching.swift in Sources */,
@@ -1959,6 +1970,7 @@
 				F21DD3A32255666F00404CC3 /* BacktraceDatabaseTests.swift in Sources */,
 				F21DD3A52255666F00404CC3 /* BacktraceClientTests.swift in Sources */,
 				F21DD3A62255666F00404CC3 /* BacktraceApiTests.swift in Sources */,
+				6EB7140D27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */,
 				F21DD3A72255666F00404CC3 /* BacktraceWatcherTests.swift in Sources */,
 				F21DD3A82255666F00404CC3 /* AttachmentTests.swift in Sources */,
 				AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
@@ -2013,6 +2025,7 @@
 				2846E1FF223070CB0035F98C /* Attachment.swift in Sources */,
 				F2D7122521F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
 				F28F164721E28441008E4B96 /* BacktraceReporter.swift in Sources */,
+				6EB714082763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */,
 				F21211A6222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */,
 				F282075921CEA31F0017367F /* BacktraceReport.swift in Sources */,
 				28AC773A21F8C29800FED661 /* PersistentRepository.swift in Sources */,
@@ -2055,6 +2068,7 @@
 				F25C0FC721C79EFB0083029C /* Backtrace_macOSTests.swift in Sources */,
 				F2AB63762246484100939BC9 /* WatcherRepositoryMock.swift in Sources */,
 				F229D7862239A172008EC851 /* BacktraceClientTests.swift in Sources */,
+				6EB7140C27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */,
 				282C85EB22419C600014FE75 /* BacktraceWatcherTests.swift in Sources */,
 				F229D78C223A591F008EC851 /* UrlSessionMock.swift in Sources */,
 				AFCCCE242625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
@@ -2119,6 +2133,7 @@
 				6EB713EC275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
 				6E896E9C272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */,
 				F28F164621E28441008E4B96 /* BacktraceReporter.swift in Sources */,
+				6EB714072763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */,
 				F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */,
 				0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				F2C1514221F7D8E30014F1B3 /* PersistentRepository.swift in Sources */,
@@ -2160,6 +2175,7 @@
 				F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */,
 				F2AB63752246484100939BC9 /* WatcherRepositoryMock.swift in Sources */,
 				F229D7852239A172008EC851 /* BacktraceClientTests.swift in Sources */,
+				6EB7140B27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */,
 				282C85EA22419C560014FE75 /* BacktraceWatcherTests.swift in Sources */,
 				F229D78D223A5920008EC851 /* UrlSessionMock.swift in Sources */,
 				AFCCCE232625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,

@@ -162,7 +162,6 @@ struct MockNoResponse: MockResponse {
 
 final class BacktraceMetricsDelegateSpy: BacktraceMetricsDelegate {
     
-    var calledWillSend: Bool = false
     var calledWillSendRequest: Bool = false
     var calledServerDidRespond: Bool = false
     var calledConnectionDidFail: Bool = false
@@ -181,7 +180,6 @@ final class BacktraceMetricsDelegateSpy: BacktraceMetricsDelegate {
     }
     
     func clear() {
-        calledWillSend = false
         calledWillSendRequest = false
         calledServerDidRespond = false
         calledConnectionDidFail = false

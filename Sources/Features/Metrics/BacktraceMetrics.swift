@@ -19,13 +19,22 @@ import Foundation
             api.uniqueEventsDelegate = newValue
         }
     }
-    
-    
+        
     private let api: BacktraceApi
         
     private var backtraceMetricsSender: BacktraceMetricsSender?
     
     private var backtraceMetricsContainer: BacktraceMetricsContainer?
+    
+    @objc public var count: Int {
+        get {
+            guard let containerUnwrapped = backtraceMetricsContainer else {
+                BacktraceLogger.warning("Count method called but metrics is not enabled")
+                return 0
+            }
+            return containerUnwrapped.count
+        }
+    }
     
     init(api: BacktraceApi) {
         self.api = api
