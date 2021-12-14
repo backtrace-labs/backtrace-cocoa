@@ -8,9 +8,9 @@ import Foundation
     
     /// `BacktraceClient`'s configuration. Allows to configure `BacktraceClient` in a custom way.
     @objc public let configuration: BacktraceClientConfiguration
-    
+
     /// Error-free metrics class instance
-    @objc public let metrics: BacktraceMetrics
+    @objc public let metricsInstance: BacktraceMetrics
     
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
@@ -77,7 +77,7 @@ import Foundation
         self.reporter = reporter
         self.configuration = configuration
         self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
-        self.metrics = metrics
+        self.metricsInstance = metrics
         
         super.init()
         try startCrashReporter()
@@ -197,6 +197,16 @@ extension BacktraceClient: BacktraceLogging {
         }
         set {
             BacktraceLogger.destinations = newValue
+        }
+    }
+}
+
+// MARK: - BacktraceMetricsProtocol
+extension BacktraceClient: BacktraceMetricsProtocol {
+    /// Error-free metrics class instance
+    @objc public var metrics: BacktraceMetrics {
+        get {
+            return self.metricsInstance
         }
     }
 }

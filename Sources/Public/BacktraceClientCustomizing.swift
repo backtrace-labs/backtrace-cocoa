@@ -1,7 +1,7 @@
 import Foundation
 
 /// Type-alias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
-public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing & BacktraceLogging
+public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing & BacktraceLogging & BacktraceMetricsProtocol
 
 /// Type-alias of passing attributes to library.
 public typealias Attributes = [String: Any]
@@ -81,6 +81,11 @@ public typealias Bookmarks = [String: Data]
     /// Set of logging destinations.
     @available(*, renamed: "destinations")
     @objc var loggingDestinations: Set<BacktraceBaseDestination> { get set }
+}
+
+/// Provides error-free metrics functionality to `BacktraceClient`
+@objc public protocol BacktraceMetricsProtocol {
+    @objc var metrics: BacktraceMetrics { get }
 }
 
 public let applicationName = Bundle.main.displayName

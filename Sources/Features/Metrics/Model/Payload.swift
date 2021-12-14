@@ -9,6 +9,8 @@ class EventsMetadata: Encodable {
 }
 
 class Payload<T: Event>: Encodable {
+    var applicationName = Backtrace.applicationName ?? ""
+    var applicationVersion = Backtrace.applicationVersion ?? ""
     
     var metadata = EventsMetadata()
     var events: [T]
@@ -16,9 +18,19 @@ class Payload<T: Event>: Encodable {
     init(events: [T]) {
         self.events = events
     }
+    
+    private enum CodingKeys : String, CodingKey {
+        case metadata, applicationName = "application", applicationVersion = "appversion"
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(applicationName, forKey: .applicationName)
+        try container.encode(applicationVersion, forKey: .applicationVersion)
+        try container.encode(metadata, forKey: .metadata)
+    }
 }
 
 extension Payload {
-    static var applicationName: String { return Backtrace.applicationName ?? "" }
-    static var applicationVersion: String { return Backtrace.applicationVersion ?? "" }
+
 }
