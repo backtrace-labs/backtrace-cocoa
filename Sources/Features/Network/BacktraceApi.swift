@@ -64,15 +64,15 @@ extension BacktraceApi: BacktraceApiProtocol {
 
 extension BacktraceApi: BacktraceMetricsApiProtocol {
     
-    func sendMetrics(_ payload: SummedEventsPayload, url: URL) throws {
+    func sendMetrics(_ payload: SummedEventsPayload, url: URL) throws -> BacktraceMetricsResult  {
         try sendMetrics(payload, url: url, metricsDelegate: summedEventsDelegate)
     }
     
-    func sendMetrics(_ payload: UniqueEventsPayload, url: URL) throws {
+    func sendMetrics(_ payload: UniqueEventsPayload, url: URL) throws -> BacktraceMetricsResult {
         try sendMetrics(payload, url: url, metricsDelegate: uniqueEventsDelegate)
     }
     
-    func sendMetrics<T: Event>(_ payload: Payload<T>, url: URL, metricsDelegate: BacktraceMetricsDelegate?) throws {
+    func sendMetrics<T: Event>(_ payload: Payload<T>, url: URL, metricsDelegate: BacktraceMetricsDelegate?) throws -> BacktraceMetricsResult {
         let payload = payload
 
         do {
@@ -90,6 +90,8 @@ extension BacktraceApi: BacktraceMetricsApiProtocol {
             BacktraceLogger.debug("Received HTTP response: \(httpResponse)")
             let result = httpResponse.result()
             metricsDelegate?.serverDidRespond?(result)
+            
+            return result
         } catch {
             BacktraceLogger.error("Connection for \(payload) failed with error: \(error)")
             metricsDelegate?.connectionDidFail?(error)

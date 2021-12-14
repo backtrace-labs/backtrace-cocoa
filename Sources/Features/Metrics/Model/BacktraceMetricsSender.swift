@@ -38,15 +38,32 @@ final class BacktraceMetricsSender {
     }
     
     private func sendStartupUniqueEvent() {
-        
+        sendUniqueEvent()
     }
     
     private func sendStartupSummedEvent() {
+        sendSummedEvent()
+    }
+    
+    private func sendUniqueEvent() {
+        let payload = metricsContainer.getUniqueEventsPayload()
+        
+        do {
+            let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.Unique)
+            let result = try api.sendMetrics(payload, url: url)
+            handleUniqueEventsResult(result: result)
+        } catch {
+            BacktraceLogger.error(error)
+        }
+    }
+    
+    private func sendSummedEvent() {
         let payload = metricsContainer.getSummedEventsPayload()
         
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.Summed)
-            try api.sendMetrics(payload, url: url)
+            let result = try api.sendMetrics(payload, url: url)
+            handleSummedEventsResult(result: result)
         } catch {
             BacktraceLogger.error(error)
         }
@@ -62,5 +79,13 @@ final class BacktraceMetricsSender {
             throw BacktraceUrlParsingError.InvalidInput(urlString)
         }
         return url
+    }
+    
+    private func handleSummedEventsResult(result: BacktraceMetricsResult) {
+        metricsContainer.clearSummedEvents()
+    }
+    
+    private func handleUniqueEventsResult(result: BacktraceMetricsResult) {
+
     }
 }

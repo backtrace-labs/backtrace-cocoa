@@ -67,6 +67,9 @@
 		66BAE9B0EC15F9A44104171F /* Pods_Example_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5A481398F1571589196192B /* Pods_Example_iOS.framework */; };
 		6750CD01668A16084E0EB443 /* Pods_Example_macOS_ObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A79CCB26F3CBD94DC01CC462 /* Pods_Example_macOS_ObjC.framework */; };
 		69503CB0580ACE767DF359EF /* Pods_Backtrace_macOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 266E3F27CBA1D3CE7E2CCCB2 /* Pods_Backtrace_macOSTests.framework */; };
+		6E317C70276901F500CC1C17 /* UniqueEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E317C6F276901F500CC1C17 /* UniqueEventsTests.swift */; };
+		6E317C71276901F500CC1C17 /* UniqueEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E317C6F276901F500CC1C17 /* UniqueEventsTests.swift */; };
+		6E317C72276901F500CC1C17 /* UniqueEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E317C6F276901F500CC1C17 /* UniqueEventsTests.swift */; };
 		6E45A3A7273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
 		6E45A3A8273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
 		6E45A3A9273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
@@ -802,6 +805,7 @@
 				6E896E83272748F60005CDF2 /* BacktraceMetricsTest.swift */,
 				6EB713FB276298670075D1C1 /* BacktraceCredentialsTests.swift */,
 				6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */,
+				6E317C6F276901F500CC1C17 /* UniqueEventsTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -1977,6 +1981,7 @@
 				F2981BCB22901B1400DFE098 /* AttributesTests.swift in Sources */,
 				F21DD3A92255666F00404CC3 /* ReportingPolicyTests.swift in Sources */,
 				F2A81B5623F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
+				6E317C72276901F500CC1C17 /* UniqueEventsTests.swift in Sources */,
 				F21DD3AA2255666F00404CC3 /* DispatcherTests.swift in Sources */,
 				F21DD3AB2255666F00404CC3 /* CrashReporterTests.swift in Sources */,
 				AF5AB05726261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */,
@@ -2075,6 +2080,7 @@
 				F29CD78B21FC5F8600216C59 /* BacktraceDatabaseTests.swift in Sources */,
 				F2AB638B22470CD800939BC9 /* CrashReporterTests.swift in Sources */,
 				F2A81B5523F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
+				6E317C71276901F500CC1C17 /* UniqueEventsTests.swift in Sources */,
 				F2981BCA22901B1400DFE098 /* AttributesTests.swift in Sources */,
 				F2AB63882247075100939BC9 /* DispatcherTests.swift in Sources */,
 				AF5AB05626261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */,
@@ -2182,6 +2188,7 @@
 				F29CD78A21FC5F8500216C59 /* BacktraceDatabaseTests.swift in Sources */,
 				F2AB638A22470CD700939BC9 /* CrashReporterTests.swift in Sources */,
 				F2A81B5423F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
+				6E317C70276901F500CC1C17 /* UniqueEventsTests.swift in Sources */,
 				F2981BC922901B1400DFE098 /* AttributesTests.swift in Sources */,
 				F2AB63872247075100939BC9 /* DispatcherTests.swift in Sources */,
 				AF5AB05526261BDD0003698C /* AttachmentBookmarkHandlerMock.swift in Sources */,
