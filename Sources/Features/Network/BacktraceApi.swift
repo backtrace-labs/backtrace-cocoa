@@ -81,13 +81,13 @@ extension BacktraceApi: BacktraceMetricsApiProtocol {
             
             // modify request before sending
             urlRequest = metricsDelegate?.willSendRequest?(urlRequest) ?? urlRequest
-            BacktraceLogger.debug("Will send URL request: \(urlRequest)")
+            BacktraceLogger.debug("Will send URL request to metrics API: \(urlRequest)")
             
             // send request
             let httpResponse = try networkClient.sendMetrics(request: urlRequest)
             
             // get result
-            BacktraceLogger.debug("Received HTTP response: \(httpResponse)")
+            BacktraceLogger.debug("Received HTTP response from metrics API: \(httpResponse)")
             let result = httpResponse.result()
             metricsDelegate?.serverDidRespond?(result)
             
