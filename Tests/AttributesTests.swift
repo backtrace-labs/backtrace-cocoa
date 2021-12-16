@@ -74,6 +74,25 @@ final class AttributesTests: QuickSpec {
             }
         }
         
+        describe("Device") {
+            it("will set uname.sysname correctly depending on platform") {
+                let attributes = Device()
+                guard let sysname = attributes.immutable["uname.sysname"] as? String else {
+                    fail("could not parse uname.sysname")
+                    return
+                }
+#if os(iOS)
+                expect { sysname }.to(equal("iOS"))
+#elseif os(tvOS)
+                expect { sysname }.to(equal("tvOS"))
+#elseif os(macOS)
+                expect { sysname }.to(equal("macOS"))
+#else
+                fail("unsupported platform")
+#endif
+            }
+        }
+        
         describe("Attributes Provider") {
             it("will NOT set application.version and application.session if metrics attributes are NOT enabled") {
                 let attributes = AttributesProvider()

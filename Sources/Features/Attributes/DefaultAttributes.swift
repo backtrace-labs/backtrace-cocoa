@@ -94,8 +94,21 @@ struct Device: AttributesSource {
     var immutable: [String: Any?] {
         return [
             "device.machine": try? System.machine(),
-            "device.model": try? System.model()
+            "device.model": try? System.model(),
+            "uname.sysname": getSysname()
         ]
+    }
+    
+    private func getSysname() -> String {
+#if os(iOS)
+        return "iOS"
+#elseif os(tvOS)
+        return "tvOS"
+#elseif os(macOS)
+        return "macOS"
+#else
+        return "Unsupported device"
+#endif
     }
 }
 
