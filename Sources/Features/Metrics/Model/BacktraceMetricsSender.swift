@@ -10,13 +10,13 @@ final class BacktraceMetricsSender {
     private let baseUrl: String
         
     enum MetricsUrlPrefix: CustomStringConvertible {
-      case Summed
-      case Unique
+      case summed
+      case unique
       
       var description : String {
         switch self {
-        case .Summed: return "summed-events"
-        case .Unique: return "unique-events"
+        case .summed: return "summed-events"
+        case .unique: return "unique-events"
         }
       }
     }
@@ -49,7 +49,7 @@ final class BacktraceMetricsSender {
         let payload = metricsContainer.getUniqueEventsPayload()
         
         do {
-            let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.Unique)
+            let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.unique)
             let result = try api.sendMetrics(payload, url: url)
             handleUniqueEventsResult(result: result)
         } catch {
@@ -61,7 +61,7 @@ final class BacktraceMetricsSender {
         let payload = metricsContainer.getSummedEventsPayload()
         
         do {
-            let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.Summed)
+            let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.summed)
             let result = try api.sendMetrics(payload, url: url)
             handleSummedEventsResult(result: result)
         } catch {
@@ -76,7 +76,7 @@ final class BacktraceMetricsSender {
         let urlString = self.baseUrl + "/" + urlPrefix.description + "/submit?token=" + token + "&universe=" + universe
         
         guard let url = URL(string: urlString) else {
-            throw BacktraceUrlParsingError.InvalidInput(urlString)
+            throw BacktraceUrlParsingError.invalidInput(urlString)
         }
         return url
     }

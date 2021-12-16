@@ -1,9 +1,5 @@
 import Foundation
 
-enum EventType {
-    case Unique, Summed
-}
-
 class Event: Encodable {
     var timestamp: Int64
     var attributes = DecodableAttributes()

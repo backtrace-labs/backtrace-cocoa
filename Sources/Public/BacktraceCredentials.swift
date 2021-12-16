@@ -30,7 +30,7 @@ import Foundation
 }
 
 enum BacktraceUrlParsingError: Error {
-    case InvalidInput(String)
+    case invalidInput(String)
 }
 
 extension BacktraceCredentials {
@@ -57,7 +57,7 @@ extension BacktraceCredentials {
             let substring = urlString[universeIndexStart...urlString.index(before: urlString.endIndex)]
             
             guard var universeIndexEnd = substring.firstIndex(of: "/") else {
-                throw BacktraceUrlParsingError.InvalidInput(urlString)
+                throw BacktraceUrlParsingError.invalidInput(urlString)
             }
             universeIndexEnd = substring.index(before: universeIndexEnd)
 
@@ -67,16 +67,16 @@ extension BacktraceCredentials {
         {
             let backtraceDomain = "backtrace.io"
             if !urlString.contains(backtraceDomain) {
-                throw BacktraceUrlParsingError.InvalidInput(urlString)
+                throw BacktraceUrlParsingError.invalidInput(urlString)
             }
 
             let url = URL(string: urlString)
             guard let host = url?.host else {
-                throw BacktraceUrlParsingError.InvalidInput(urlString)
+                throw BacktraceUrlParsingError.invalidInput(urlString)
             }
             
             guard var universeIndexEnd = host.firstIndex(of:".") else {
-                throw BacktraceUrlParsingError.InvalidInput(urlString)
+                throw BacktraceUrlParsingError.invalidInput(urlString)
             }
             universeIndexEnd = host.index(before: universeIndexEnd)
             
@@ -95,7 +95,7 @@ extension BacktraceCredentials {
             
             if urlString.contains("submit.backtrace.io") {
                 guard var tokenEndIndex = urlString.lastIndex(of: "/") else {
-                    throw BacktraceUrlParsingError.InvalidInput(urlString)
+                    throw BacktraceUrlParsingError.invalidInput(urlString)
                 }
                 tokenEndIndex = urlString.index(before: tokenEndIndex)
                 
@@ -104,7 +104,7 @@ extension BacktraceCredentials {
                 return String(urlString[tokenStartIndex...tokenEndIndex])
             } else {
                 guard let tokenQueryParamRange = urlString.range(of: tokenQueryParam) else {
-                    throw BacktraceUrlParsingError.InvalidInput(urlString)
+                    throw BacktraceUrlParsingError.invalidInput(urlString)
                 }
                 
                 let tokenStartIndex = tokenQueryParamRange.upperBound
