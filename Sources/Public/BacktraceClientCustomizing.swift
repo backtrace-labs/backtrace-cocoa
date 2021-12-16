@@ -19,20 +19,20 @@ public typealias Bookmarks = [String: Data]
 
 /// Provides customization functionality to `BacktraceClient`.
 @objc public protocol BacktraceClientCustomizing {
-    
+
     /// Additional attributes which are automatically added to each report.
     @objc var attributes: Attributes { get set }
-    
+
     /// Additional file attachments which are automatically added to each report.
     @objc var attachments: Attachments { get set }
-    
+
     /// The object that acts as the delegate object of the `BacktraceClient` instance.
     @objc var delegate: BacktraceClientDelegate? { get set }
 }
 
 /// Provides connectivity functionality to `BacktraceClient`.
 @objc public protocol BacktraceReporting {
-    
+
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
     ///
@@ -43,7 +43,7 @@ public typealias Bookmarks = [String: Data]
     @objc func send(error: Error,
                     attachmentPaths: [String],
                     completion: @escaping ((_ result: BacktraceResult) -> Void))
-    
+
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
     ///
@@ -54,7 +54,7 @@ public typealias Bookmarks = [String: Data]
     @objc func send(message: String,
                     attachmentPaths: [String],
                     completion: @escaping ((_ result: BacktraceResult) -> Void))
-    
+
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
     ///
@@ -63,7 +63,7 @@ public typealias Bookmarks = [String: Data]
     ///   - completion: Backtrace services response.
     @objc func send(attachmentPaths: [String],
                     completion: @escaping ((_ result: BacktraceResult) -> Void))
-    
+
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
     ///
@@ -78,7 +78,7 @@ public typealias Bookmarks = [String: Data]
 
 /// Provides logging functionality to `BacktraceClient`.
 @objc public protocol BacktraceLogging {
-    
+
     /// Set of logging destinations.
     @available(*, renamed: "destinations")
     @objc var loggingDestinations: Set<BacktraceBaseDestination> { get set }

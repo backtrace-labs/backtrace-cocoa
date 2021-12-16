@@ -1,7 +1,7 @@
 import Foundation
 
 @objc open class BacktraceMetrics: NSObject {
-    
+
     @objc public var summedEventsDelegate: BacktraceMetricsDelegate? {
         get {
             return api.summedEventsDelegate
@@ -10,7 +10,7 @@ import Foundation
             api.summedEventsDelegate = newValue
         }
     }
-    
+
     @objc public var uniqueEventsDelegate: BacktraceMetricsDelegate? {
         get {
             return api.uniqueEventsDelegate
@@ -19,13 +19,13 @@ import Foundation
             api.uniqueEventsDelegate = newValue
         }
     }
-        
+
     private let api: BacktraceApi
-        
+
     private var backtraceMetricsSender: BacktraceMetricsSender?
-    
+
     private var backtraceMetricsContainer: BacktraceMetricsContainer?
-    
+
     @objc public var count: Int {
         guard let containerUnwrapped = backtraceMetricsContainer else {
             BacktraceLogger.warning("Count method called but metrics is not enabled")
@@ -33,12 +33,12 @@ import Foundation
         }
         return containerUnwrapped.count
     }
-    
+
     init(api: BacktraceApi) {
         self.api = api
         super.init()
     }
-    
+
     @objc public func enable(settings: BacktraceMetricsSettings) {
         MetricsInfo.enableMetrics()
         backtraceMetricsContainer = BacktraceMetricsContainer(settings: settings)
@@ -53,7 +53,7 @@ import Foundation
         }
         senderUnwrapped.enable()
     }
-    
+
     @objc public func addUniqueEvent(name: String) {
         guard let containerUnwrapped = backtraceMetricsContainer else {
             BacktraceLogger.error("Could not add metrics event, metrics is not initialized")
@@ -61,7 +61,7 @@ import Foundation
         }
         containerUnwrapped.add(event: UniqueEvent(name: name))
     }
-    
+
     @objc public func addSummedEvent(name: String) {
         guard let containerUnwrapped = backtraceMetricsContainer else {
             BacktraceLogger.error("Could not add metrics event, metrics is not initialized")

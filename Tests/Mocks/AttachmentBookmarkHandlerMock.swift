@@ -14,7 +14,7 @@ enum AttachmentBookmarkHandlerMock: AttachmentBookmarkHandler {
         }
         return attachmentsBookmarksDict
     }
-    
+
     static func extractAttachmentUrls(_ bookmarks: Bookmarks) throws -> Attachments {
         var attachments = Attachments()
         for bookmark in bookmarks {

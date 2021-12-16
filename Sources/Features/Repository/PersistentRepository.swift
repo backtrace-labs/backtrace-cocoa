@@ -3,26 +3,26 @@ import CoreData
 
 protocol PersistentStorable {
     associatedtype ManagedObjectType: NSManagedObject
-    
+
     static var entityName: String { get }
     var identifier: UUID { get }
     var reportData: Data { get }
     var attachmentPaths: [String] { get set }
     var attributes: Attributes { get }
-    
+
     init(managedObject: ManagedObjectType) throws
 }
 
 final class PersistentRepository<Resource: PersistentStorable> {
-    
+
     let backgroundContext: NSManagedObjectContext
     let settings: BacktraceDatabaseSettings
-    
+
     let url: URL
-    
+
     init(settings: BacktraceDatabaseSettings) throws {
         self.settings = settings
-        
+
         let momdName = "Model"
         guard let modelURL = Bundle(for: type(of: self)).url(forResource: momdName, withExtension: "momd") else {
             throw RepositoryError
@@ -70,12 +70,12 @@ final class PersistentRepository<Resource: PersistentStorable> {
         }
         try BacktraceFileManager.excludeFromBackup(url)
     }
-    
+
     static func migration(coordinator: NSPersistentStoreCoordinator,
                           storeDir: URL,
                           managedObject: NSManagedObjectModel) throws {
         let storeUrl = storeDir.appendingPathComponent("Model.sqlite")
-        
+
         guard FileManager.default.fileExists(atPath: storeUrl.path),
             let metadata = try? NSPersistentStoreCoordinator
             .metadataForPersistentStore(ofType: NSSQLiteStoreType, at: storeUrl, options: nil),
@@ -92,10 +92,10 @@ final class PersistentRepository<Resource: PersistentStorable> {
 
 // MARK: - Repository
 extension PersistentRepository: Repository {
-    
+
     func save(_ resource: Resource) throws {
         try removeOldestRecordIfNeeded()
-        
+
         guard let entity = NSEntityDescription.entity(forEntityName: Resource.entityName, in: backgroundContext) else {
             throw RepositoryError.canNotCreateEntityDescription
         }
@@ -108,13 +108,13 @@ extension PersistentRepository: Repository {
         try backgroundContext.save()
         try AttributesStorage.store(resource.attributes, fileName: resource.identifier.uuidString)
     }
-    
+
     func delete(_ resource: Resource) throws {
         let predicate = NSPredicate(format: "hashProperty==%@", resource.identifier.uuidString)
         let fetchRequestResults = try getResources(predicate: predicate, fetchLimit: 100)
         try delete(managedObjects: fetchRequestResults)
     }
-    
+
     /// Convenience method for deleting reports. Only this method should be used for deleting objects from
     /// database context.
     ///
@@ -128,34 +128,34 @@ extension PersistentRepository: Repository {
         }
         try backgroundContext.save()
     }
-    
+
     func getAll() throws -> [Resource] {
         return try getResources().map(Resource.init)
     }
-    
+
     func get(sortDescriptors: [NSSortDescriptor]? = nil,
              predicate: NSPredicate? = nil,
              fetchLimit: Int? = nil) throws -> [Resource] {
         return try getResources(sortDescriptors: sortDescriptors, predicate: predicate, fetchLimit: fetchLimit)
             .map(Resource.init)
     }
-    
+
     func getLatest(count: Int = 1) throws -> [Resource] {
         let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: false)]
         let latest = try getResources(sortDescriptors: sortDescriptors, fetchLimit: count)
         return try latest.map(Resource.init)
     }
-    
+
     func getOldest(count: Int = 1) throws -> [Resource] {
         let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
         let latest = try getResources(sortDescriptors: sortDescriptors, fetchLimit: count)
         return try latest.map(Resource.init)
     }
-    
+
     func incrementRetryCount(_ resource: Resource, limit: Int) throws {
         let predicate = NSPredicate(format: "hashProperty==%@", resource.identifier.uuidString)
         let fetchRequestResults = try getResources(predicate: predicate, fetchLimit: 1)
-        
+
         guard let fetchedResult = fetchRequestResults.first,
             let currentRetryCount: Int = fetchedResult.value(forKey: "retryCount") as? Int else {
                 throw RepositoryError.resourceNotFound
@@ -171,12 +171,12 @@ extension PersistentRepository: Repository {
             try backgroundContext.save()
         }
     }
-    
+
     func clear() throws {
         let managedObjects = try getResources()
         try delete(managedObjects: managedObjects)
     }
-    
+
     /// Remove oldest result if max number of records is exceeded or total database size is exceeded.
     private func removeOldestRecordIfNeeded() throws {
         if settings.maxRecordCount != BacktraceDatabaseSettings.unlimited {
@@ -185,7 +185,7 @@ extension PersistentRepository: Repository {
                 try removeOldestRecord()
             }
         }
-        
+
         if settings.maxDatabaseSize != BacktraceDatabaseSettings.unlimited {
             // check database size
             while try BacktraceFileManager.sizeOfFile(at: url) > settings.maxDatabaseSizeInBytes {
@@ -195,18 +195,18 @@ extension PersistentRepository: Repository {
             }
         }
     }
-    
+
     private func removeOldestRecord() throws {
         let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
         let oldestResource = try getResources(sortDescriptors: sortDescriptors, fetchLimit: 1)
         try delete(managedObjects: oldestResource)
     }
-    
+
     func countResources() throws -> Int {
         let resourcesCountRequest = NSFetchRequest<Resource.ManagedObjectType>(entityName: Resource.entityName)
         return try backgroundContext.count(for: resourcesCountRequest)
     }
-    
+
     private func getResources(sortDescriptors: [NSSortDescriptor]? = nil,
                               predicate: NSPredicate? = nil,
                               fetchLimit: Int? = nil) throws -> [Resource.ManagedObjectType] {

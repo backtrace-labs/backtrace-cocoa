@@ -19,7 +19,7 @@ enum ReportMetadataStorageImpl: ReportMetadataStorage {
                                                     withIntermediateDirectories: false,
                                                     attributes: nil)
         }
-        
+
         if #available(iOS 11.0, tvOS 11.0, macOS 10.13, *) {
             try (dictionary as NSDictionary).write(to: config.fileUrl)
         } else {
@@ -28,7 +28,7 @@ enum ReportMetadataStorageImpl: ReportMetadataStorage {
             }
         }
     }
-    
+
     static func retrieveFromFile(config: Config) throws -> [String: Any] {
         guard FileManager.default.fileExists(atPath: config.fileUrl.path) else {
             throw FileError.fileNotExists
@@ -46,7 +46,7 @@ enum ReportMetadataStorageImpl: ReportMetadataStorage {
         let dictionary = nsDictionary as? [String: Any] ?? [String: Any]()
         return dictionary
     }
-    
+
     static func removeFile(config: Config) throws {
         guard FileManager.default.fileExists(atPath: config.fileUrl.path) else {
             throw FileError.fileNotExists

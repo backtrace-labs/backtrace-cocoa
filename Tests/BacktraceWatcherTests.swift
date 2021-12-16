@@ -14,9 +14,9 @@ final class BacktraceWatcherTests: QuickSpec {
             let urlSession = URLSessionMock()
             urlSession.response = MockOkResponse()
             let networkClient = BacktraceNetworkClient(urlSession: urlSession)
-            
+
             context("given default values") {
-                
+
                 throwingIt("sets the timer") {
                     let watcher = BacktraceWatcher(settings: dbSettings,
                                                    networkClient: networkClient,
@@ -28,7 +28,7 @@ final class BacktraceWatcherTests: QuickSpec {
                     expect(watcher.repository).to(be(repository))
                     expect(watcher.timer).to(beNil())
                 }
-                
+
                 context("given disabled retry behaviour") {
                     throwingIt("does not configure a timer") {
                         dbSettings.retryBehaviour = .none
@@ -40,7 +40,7 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
             }
-            
+
             context("given enabled retry behaviour") {
                 throwingIt("fires timer") {
                     dbSettings.retryInterval = 1
@@ -50,7 +50,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                    repository: repository)
                     watcher.enable()
                     watcher.resetTimer()
-                    
+
                     waitUntil(timeout: .seconds(dbSettings.retryInterval + 1)) { (done) in
                         watcher.configureTimer(with: DispatchWorkItem(block: {
                             done()
@@ -58,10 +58,10 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
             }
-            
+
             describe("Accessing resources") {
                 throwingBeforeEach { try repository.clear() }
-                
+
                 context("given one element") {
                     throwingIt("completes successfully") {
                         let watcher = BacktraceWatcher(settings: dbSettings,
@@ -70,11 +70,11 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        repository: repository)
                         watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
-                        
+
                         expect { try watcher.reportsFromRepository(limit: 1) }.toNot(throwError())
                     }
                 }
-                
+
                 context("given queue order") {
                     throwingIt("gets the oldest element") {
                         dbSettings.retryOrder = .queue
@@ -89,14 +89,14 @@ final class BacktraceWatcherTests: QuickSpec {
                         try repository.save(secondReport)
                         let thirdReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 3])
                         try repository.save(thirdReport)
-                        
+
                         let reports = try watcher.reportsFromRepository(limit: 2)
                         expect(reports.count).to(equal(2))
                         expect(reports).toNot(contain(firstReport))
                         expect(reports).to(contain(secondReport, thirdReport))
                     }
                 }
-                
+
                 context("given stack order") {
                     throwingIt("gets latest element") {
                         dbSettings.retryOrder = .stack
@@ -111,22 +111,22 @@ final class BacktraceWatcherTests: QuickSpec {
                         try repository.save(secondReport)
                         let thirdReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 3])
                         try repository.save(thirdReport)
-                        
+
                         let reports = try watcher.reportsFromRepository(limit: 2)
-                        
+
                         expect(reports.count).to(equal(2))
                         expect(reports).toNot(contain(thirdReport))
                         expect(reports).to(contain(firstReport, secondReport))
                     }
                 }
             }
-            
+
             describe("Batch retry") {
                 throwingBeforeEach {
                     try repository.clear()
                     urlSession.response = MockOkResponse(url: URL(string: "https://yourteam.backtrace.io")!)
                 }
-                
+
                 context("given one element") {
                     throwingIt("clears pending reports") {
                         let watcher = BacktraceWatcher(settings: dbSettings,
@@ -135,13 +135,13 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        repository: repository)
                         watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
-                        
+
                         expect { watcher.batchRetry() }.toNot(throwError())
-                        
+
                         expect(try watcher.repository.countResources()).to(equal(0))
                     }
                 }
-                
+
                 context("given two elements") {
                     throwingIt("removes them from repository") {
                         let watcher = BacktraceWatcher(settings: dbSettings,
@@ -152,11 +152,11 @@ final class BacktraceWatcherTests: QuickSpec {
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2]))
                         watcher.batchRetry()
-                        
+
                         expect(try watcher.repository.countResources()).to(equal(0))
                     }
                 }
-                
+
                 context("given connection error") {
                     throwingIt("does not modify the database") {
                         urlSession.response =
@@ -167,12 +167,12 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        repository: repository)
                         watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
-                        
+
                         watcher.batchRetry()
                         expect(try watcher.repository.countResources()).to(equal(1))
                     }
                 }
-                
+
                 context("given limit reached") {
                     throwingIt("removes the report from database") {
                         urlSession.response = Mock403Response(url: URL(string: "https://yourteam.backtrace.io")!)
@@ -182,12 +182,12 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        repository: repository)
                         watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
-                        
+
                         watcher.batchRetry()
                         expect(try watcher.repository.countResources()).to(equal(1))
                     }
                 }
-                
+
                 context("given new element") {
                     throwingIt("increments retry counter") {
                         urlSession.response = Mock403Response(url: URL(string: "https://yourteam.backtrace.io")!)
@@ -198,7 +198,7 @@ final class BacktraceWatcherTests: QuickSpec {
                         watcher.enable()
                         let report = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(report)
-                        
+
                         expect(watcher.repository.retryCount(for: report)).to(equal(0))
                         watcher.batchRetry()
                         expect(watcher.repository.retryCount(for: report)).to(equal(1))
@@ -208,7 +208,7 @@ final class BacktraceWatcherTests: QuickSpec {
         }
         // swiftlint:enable function_body_length
     }
-    
+
     private static func backtraceReport(for attributes: Attributes) throws -> BacktraceReport {
         let crashReporter = BacktraceCrashReporter()
         return try crashReporter.generateLiveReport(attributes: attributes)

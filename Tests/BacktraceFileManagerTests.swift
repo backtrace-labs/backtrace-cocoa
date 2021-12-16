@@ -5,7 +5,7 @@ import Quick
 @testable import Backtrace
 
 final class BacktraceFileManagerTests: QuickSpec {
-    
+
     // swiftlint:disable function_body_length
     override func spec() {
         describe("File manager") {

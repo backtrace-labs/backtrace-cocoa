@@ -3,19 +3,19 @@ import Backtrace_PLCrashReporter
 
 /// Model represents single crash report which can be send to Backtrace services.
 @objc final public class BacktraceReport: NSObject {
-    
+
     /// Encoded informations about report like stack trace etc.
     @objc public let reportData: Data
-    
+
     let plCrashReport: PLCrashReport
     let identifier: UUID
-    
+
     /// Array of files paths attached to the report.
     @objc public var attachmentPaths: [String]
-    
+
     /// `Attributes` attached to the report.
     @objc public var attributes: Attributes
-    
+
     init(report: Data, attributes: Attributes, attachmentPaths: [String]) throws {
         self.plCrashReport = try PLCrashReport(data: report)
         reportData = report
@@ -24,7 +24,7 @@ import Backtrace_PLCrashReporter
         self.attributes = attributes
         super.init()
     }
-    
+
     init(managedObject: Crash) throws {
         guard let reportData = managedObject.reportData,
             let identifierString = managedObject.hashProperty,
@@ -44,6 +44,6 @@ import Backtrace_PLCrashReporter
 // MARK: - PersistentStorable
 extension BacktraceReport: PersistentStorable {
     typealias ManagedObjectType = Crash
-    
+
     static var entityName: String { return "Crash" }
 }

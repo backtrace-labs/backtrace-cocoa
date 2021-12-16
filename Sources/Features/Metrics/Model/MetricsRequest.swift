@@ -3,12 +3,12 @@ import Foundation
 struct MetricsRequest {
 
     let request: URLRequest
-    
+
     private enum Constants {
         static let submissionPath = "/post"
         static let queryItems = { token in ["format": "plcrash", "token": token] }
     }
-    
+
     init<T: Event>(url: URL, payload: Payload<T>) throws {
         let request = MetricsRequest.form(submissionUrl: url)
         self.request = try MetricsRequest.writeMetricsRequest(urlRequest: request, payload: payload)

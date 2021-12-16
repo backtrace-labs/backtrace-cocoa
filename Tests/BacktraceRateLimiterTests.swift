@@ -11,7 +11,7 @@ final class BacktraceRateLimiterTests: QuickSpec {
                     expect { rateLimiter.canSend }.to(beTrue())
                 }
             }
-            
+
             context("given list containing not enough elements") {
                 var rateLimiter = BacktraceRateLimiter(reportsPerMin: 3)
                 rateLimiter.addRecord()

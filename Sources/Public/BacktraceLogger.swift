@@ -31,7 +31,7 @@ import Foundation
 
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
-    
+
     /// Set of logging destinations.
     static var destinations: Set<BacktraceBaseDestination> = []
 
@@ -74,7 +74,7 @@ import Foundation
 @objc open class BacktraceBaseDestination: NSObject {
 
     private let level: BacktraceLogLevel
-    
+
     /// Initialize `BacktraceBaseDestination` with given level.
     ///
     /// - Parameters:
@@ -87,7 +87,7 @@ import Foundation
         return self.level.rawValue <= level.rawValue
     }
     // swiftlint:disable line_length
-    
+
     /// An abstract method used to log message to provided destination.
     ///
     /// - Parameters:
@@ -131,7 +131,7 @@ import Foundation
 
 /// Provides logging functionality to IDE console.
 @objc final public class BacktraceConsoleDestination: BacktraceBaseDestination {
-    
+
     // swiftlint:disable line_length
     /// Logs the event to console destination.
     ///

@@ -5,13 +5,13 @@ import Quick
 @testable import Backtrace
 
 final class AttachmentTests: QuickSpec {
-    
+
     override func spec() {
         describe("Attachments") {
             it("cannot be created from non-existing file") {
                 expect(Attachment(filePath: "")).to(beNil())
             }
-            
+
             it("can be created from existing file") {
                 let bundle = Bundle(for: type(of: self))
                 let path = bundle.path(forResource: "test", ofType: "txt")
@@ -21,7 +21,7 @@ final class AttachmentTests: QuickSpec {
                     fail()
                 }
             }
-            
+
             context("Attachment exists") {
                 let bundle = Bundle(for: type(of: self))
                 let path = bundle.path(forResource: "test", ofType: "txt")

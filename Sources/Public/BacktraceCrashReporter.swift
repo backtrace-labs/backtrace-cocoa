@@ -6,13 +6,13 @@ import Backtrace_PLCrashReporter
     private let reporter: PLCrashReporter
     static private let crashName = "live_report"
     private let copiedFileAttachments: [URL]
-    
+
     /// Creates an instance of a crash reporter.
     /// - Parameter config: A `PLCrashReporterConfig` configuration to use.
     @objc public convenience init(config: PLCrashReporterConfig = PLCrashReporterConfig.defaultConfiguration()) {
         self.init(reporter: PLCrashReporter(configuration: config))
     }
-    
+
     /// Creates an instance of a crash reporter.
     /// - Parameter reporter: An instance of `PLCrashReporter` to use.
     @objc public init(reporter: PLCrashReporter) {
@@ -37,17 +37,17 @@ extension BacktraceCrashReporter: CrashReporting {
                 try? AttributesStorage.store(attributesProvider.allAttributes, fileName: BacktraceCrashReporter.crashName)
                 try? AttachmentsStorage.store(attributesProvider.attachments, fileName: BacktraceCrashReporter.crashName)
         }
-        
+
         var callbacks = withUnsafeMutableBytes(of: &mutableContext) { rawMutablePointer in
             PLCrashReporterCallbacks(version: 0, context: rawMutablePointer.baseAddress, handleSignal: handler)
         }
         reporter.setCrash(&callbacks)
     }
-    
+
     func generateLiveReport(exception: NSException? = nil,
                             attributes: Attributes,
                             attachmentPaths: [String] = []) throws -> BacktraceReport {
-        
+
         let reportData = try reporter.generateLiveReport(with: exception)
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
@@ -55,7 +55,7 @@ extension BacktraceCrashReporter: CrashReporting {
     func enableCrashReporting() throws {
         try reporter.enableAndReturnError()
     }
-    
+
     // This function retrieves, constructs, and sends the pending crash report
     func pendingCrashReport() throws -> BacktraceReport {
         let reportData = try reporter.loadPendingCrashReportDataAndReturnError()
@@ -63,7 +63,7 @@ extension BacktraceCrashReporter: CrashReporting {
         let attachmentPaths = copiedFileAttachments.map(\.path)
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
-    
+
     // This function is called to copy stored file attachments
     // from pending crashes so that they are not overwritten by the
     // new app session
@@ -95,18 +95,18 @@ extension BacktraceCrashReporter: CrashReporting {
         }
         return copiedFileAttachments
     }
-        
+
     func hasPendingCrashes() -> Bool {
         return reporter.hasPendingCrashReport()
     }
-    
+
     func purgePendingCrashReport() throws {
         try AttributesStorage.remove(fileName: BacktraceCrashReporter.crashName)
         try AttachmentsStorage.remove(fileName: BacktraceCrashReporter.crashName)
         try deleteCopiedFileAttachments()
         try reporter.purgePendingCrashReportAndReturnError()
     }
-    
+
     func deleteCopiedFileAttachments() throws {
         let fileManager = FileManager.default
         for attachment in copiedFileAttachments {

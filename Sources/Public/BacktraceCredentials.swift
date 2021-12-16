@@ -2,9 +2,9 @@ import Foundation
 
 /// Backtrace server API credentials.
 @objc public class BacktraceCredentials: NSObject {
-    
+
     let configuration: Configuration
-    
+
     enum Configuration {
         case submissionUrl(URL)
         case endpoint(URL, token: String)
@@ -19,7 +19,7 @@ import Foundation
     @objc public init(endpoint: URL, token: String) {
         self.configuration = .endpoint(endpoint, token: token)
     }
-    
+
     /// Produces Backtrace server API credentials.
     ///
     /// - Parameters:
@@ -34,12 +34,12 @@ enum BacktraceUrlParsingError: Error {
 }
 
 extension BacktraceCredentials {
-    
+
     // Using algorithm from backtrace-unity:
     // swiftlint:disable line_length
     // https://github.com/backtrace-labs/backtrace-unity/blob/553aab2b39c318ff96ebed4bc739bf2c87304649/Runtime/Model/BacktraceConfiguration.cs#L290
     func getUniverseName() throws -> String {
-        
+
         switch configuration {
         case .submissionUrl(let url):
             return try parseUniverseName(url.absoluteString)
@@ -47,15 +47,15 @@ extension BacktraceCredentials {
             return try parseUniverseName(endpoint.absoluteString)
         }
     }
-    
+
     private func parseUniverseName(_ urlString: String) throws -> String {
         let backtraceSubmitUrl = "https://submit.backtrace.io/"
-        
+
         if urlString.starts(with: backtraceSubmitUrl) {
             let universeIndexStart =
                 urlString.index(urlString.startIndex, offsetBy: backtraceSubmitUrl.count)
             let substring = urlString[universeIndexStart...urlString.index(before: urlString.endIndex)]
-            
+
             guard var universeIndexEnd = substring.firstIndex(of: "/") else {
                 throw BacktraceUrlParsingError.invalidInput(urlString)
             }
@@ -72,16 +72,16 @@ extension BacktraceCredentials {
             guard let host = url?.host else {
                 throw BacktraceUrlParsingError.invalidInput(urlString)
             }
-            
+
             guard var universeIndexEnd = host.firstIndex(of: ".") else {
                 throw BacktraceUrlParsingError.invalidInput(urlString)
             }
             universeIndexEnd = host.index(before: universeIndexEnd)
-            
+
             return String(host[host.startIndex...universeIndexEnd])
         }
     }
-    
+
     // Using algorithm from backtrace-unity
     // swiftlint:disable line_length
     // https://github.com/backtrace-labs/backtrace-unity/blob/553aab2b39c318ff96ebed4bc739bf2c87304649/Runtime/Model/BacktraceConfiguration.cs#L320
@@ -91,27 +91,27 @@ extension BacktraceCredentials {
             let tokenLength = 64
             let tokenQueryParam = "token="
             let urlString = url.absoluteString
-            
+
             if urlString.contains("submit.backtrace.io") {
                 guard var tokenEndIndex = urlString.lastIndex(of: "/") else {
                     throw BacktraceUrlParsingError.invalidInput(urlString)
                 }
                 tokenEndIndex = urlString.index(before: tokenEndIndex)
-                
+
                 let tokenStartIndex = urlString.index(after: urlString.index(tokenEndIndex, offsetBy: -(tokenLength - 1)))
-                
+
                 return String(urlString[tokenStartIndex...tokenEndIndex])
             } else {
                 guard let tokenQueryParamRange = urlString.range(of: tokenQueryParam) else {
                     throw BacktraceUrlParsingError.invalidInput(urlString)
                 }
-                
+
                 let tokenStartIndex = tokenQueryParamRange.upperBound
                 print(urlString[tokenStartIndex...urlString.index(before: urlString.endIndex)])
                 let tokenEndIndex = urlString.index(before: urlString.index(tokenStartIndex, offsetBy: tokenLength - 1))
 
                 return String(urlString[tokenStartIndex...tokenEndIndex])
-            }            
+            }
         case .endpoint(_, let token):
             return token
         }

@@ -3,7 +3,7 @@ import Foundation
 struct BacktraceHttpResponse: CustomStringConvertible {
     let isSuccess: Bool
     let description: String
-    
+
     init(httpResponse: HTTPURLResponse, responseData: Data?) {
         self.isSuccess = httpResponse.isSuccess
         self.description = """

@@ -2,7 +2,7 @@ import Foundation
 
 class EventsMetadata: Encodable {
     var droppedEvents = 0
-    
+
     private enum CodingKeys: String, CodingKey {
         case droppedEvents = "dropped_events"
     }
@@ -11,14 +11,14 @@ class EventsMetadata: Encodable {
 class Payload<T: Event>: Encodable {
     var applicationName = Backtrace.applicationName ?? ""
     var applicationVersion = Backtrace.applicationVersion ?? ""
-    
+
     var metadata = EventsMetadata()
     var events: [T]
-    
+
     init(events: [T]) {
         self.events = events
     }
-    
+
     private enum CodingKeys: String, CodingKey {
         case metadata, applicationName = "application", applicationVersion = "appversion"
     }
