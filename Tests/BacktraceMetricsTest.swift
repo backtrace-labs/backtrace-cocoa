@@ -18,6 +18,10 @@ final class BacktraceMetricsTests: QuickSpec {
             let summedEventName = "view-changed"
             let uniqueEventName = "guid"
 
+            afterEach {
+                MetricsInfo.disableMetrics()
+            }
+
             it("can add and store summed event") {
                 metrics.enable(settings: BacktraceMetricsSettings())
                 // Account for default unique event

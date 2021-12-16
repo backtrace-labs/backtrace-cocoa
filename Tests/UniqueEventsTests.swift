@@ -24,6 +24,10 @@ final class UniqueEventsTests: QuickSpec {
                 metrics.uniqueEventsDelegate = delegate
             }
 
+            afterEach {
+                MetricsInfo.disableMetrics()
+            }
+
             it("sends unique events startup event") {
                 urlSession.response = MockOkResponse()
                 metrics.enable(settings: BacktraceMetricsSettings())

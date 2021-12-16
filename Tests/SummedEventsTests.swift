@@ -24,6 +24,10 @@ final class SummedEventsTests: QuickSpec {
                 metrics.summedEventsDelegate = delegate
             }
 
+            afterEach {
+                MetricsInfo.disableMetrics()
+            }
+
             it("sends summed events startup event") {
                 urlSession.response = MockOkResponse()
                 metrics.enable(settings: BacktraceMetricsSettings())
