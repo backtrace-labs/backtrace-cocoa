@@ -230,7 +230,7 @@ struct MetricsInfo: AttributesSource {
         isMetricsEnabled = false
     }
     
-    var immutable: [String : Any?] {
+    var immutable: [String: Any?] {
         return MetricsInfo.isMetricsEnabled ?
             ["application.version": Backtrace.applicationVersion,
              "application.session": MetricsInfo.session] :

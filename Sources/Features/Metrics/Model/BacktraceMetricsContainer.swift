@@ -11,9 +11,7 @@ final class BacktraceMetricsContainer {
     static let startupUniqueEventName = "guid"
     
     var count: Int {
-        get {
-            return uniqueEvents.count + summedEvents.count
-        }
+        return uniqueEvents.count + summedEvents.count
     }
     
     init(settings: BacktraceMetricsSettings) {

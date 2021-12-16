@@ -14,7 +14,7 @@ class Event: Encodable {
         self.timestamp = Date().currentTimeSeconds()
     }
     
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case timestamp, attributes
     }
 

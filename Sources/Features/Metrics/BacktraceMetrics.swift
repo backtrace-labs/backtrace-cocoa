@@ -1,6 +1,6 @@
 import Foundation
 
-@objc open class BacktraceMetrics : NSObject {
+@objc open class BacktraceMetrics: NSObject {
     
     @objc public var summedEventsDelegate: BacktraceMetricsDelegate? {
         get {
@@ -27,13 +27,11 @@ import Foundation
     private var backtraceMetricsContainer: BacktraceMetricsContainer?
     
     @objc public var count: Int {
-        get {
-            guard let containerUnwrapped = backtraceMetricsContainer else {
-                BacktraceLogger.warning("Count method called but metrics is not enabled")
-                return 0
-            }
-            return containerUnwrapped.count
+        guard let containerUnwrapped = backtraceMetricsContainer else {
+            BacktraceLogger.warning("Count method called but metrics is not enabled")
+            return 0
         }
+        return containerUnwrapped.count
     }
     
     init(api: BacktraceApi) {

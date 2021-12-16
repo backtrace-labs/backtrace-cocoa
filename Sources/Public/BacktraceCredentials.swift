@@ -36,6 +36,7 @@ enum BacktraceUrlParsingError: Error {
 extension BacktraceCredentials {
     
     // Using algorithm from backtrace-unity:
+    // swiftlint:disable line_length
     // https://github.com/backtrace-labs/backtrace-unity/blob/553aab2b39c318ff96ebed4bc739bf2c87304649/Runtime/Model/BacktraceConfiguration.cs#L290
     func getUniverseName() throws -> String {
         
@@ -50,8 +51,7 @@ extension BacktraceCredentials {
     private func parseUniverseName(_ urlString: String) throws -> String {
         let backtraceSubmitUrl = "https://submit.backtrace.io/"
         
-        if urlString.starts(with: backtraceSubmitUrl)
-        {
+        if urlString.starts(with: backtraceSubmitUrl) {
             let universeIndexStart =
                 urlString.index(urlString.startIndex, offsetBy: backtraceSubmitUrl.count)
             let substring = urlString[universeIndexStart...urlString.index(before: urlString.endIndex)]
@@ -62,9 +62,7 @@ extension BacktraceCredentials {
             universeIndexEnd = substring.index(before: universeIndexEnd)
 
             return String(urlString[universeIndexStart...universeIndexEnd])
-        }
-        else
-        {
+        } else {
             let backtraceDomain = "backtrace.io"
             if !urlString.contains(backtraceDomain) {
                 throw BacktraceUrlParsingError.invalidInput(urlString)
@@ -75,7 +73,7 @@ extension BacktraceCredentials {
                 throw BacktraceUrlParsingError.invalidInput(urlString)
             }
             
-            guard var universeIndexEnd = host.firstIndex(of:".") else {
+            guard var universeIndexEnd = host.firstIndex(of: ".") else {
                 throw BacktraceUrlParsingError.invalidInput(urlString)
             }
             universeIndexEnd = host.index(before: universeIndexEnd)
@@ -85,12 +83,13 @@ extension BacktraceCredentials {
     }
     
     // Using algorithm from backtrace-unity
+    // swiftlint:disable line_length
     // https://github.com/backtrace-labs/backtrace-unity/blob/553aab2b39c318ff96ebed4bc739bf2c87304649/Runtime/Model/BacktraceConfiguration.cs#L320
     func getSubmissionToken() throws -> String {
         switch configuration {
         case .submissionUrl(let url):
-            let tokenLength = 64;
-            let tokenQueryParam = "token=";
+            let tokenLength = 64
+            let tokenQueryParam = "token="
             let urlString = url.absoluteString
             
             if urlString.contains("submit.backtrace.io") {

@@ -1,6 +1,6 @@
 import Foundation
 
-@objc open class BacktraceMetricsResult : NSObject {
+@objc open class BacktraceMetricsResult: NSObject {
     
     @objc public var statusCode: Int
         

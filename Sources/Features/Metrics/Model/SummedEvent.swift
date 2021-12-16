@@ -9,7 +9,7 @@ final class SummedEvent: Event {
         super.init()
     }
     
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case name = "metric_group"
     }
     

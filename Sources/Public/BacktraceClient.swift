@@ -71,7 +71,8 @@ import Foundation
     }
     
     init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
-         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApi, metrics: BacktraceMetrics) throws {
+         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(),
+         api: BacktraceApi, metrics: BacktraceMetrics) throws {
         
         self.dispatcher = dispatcher
         self.reporter = reporter
@@ -205,8 +206,6 @@ extension BacktraceClient: BacktraceLogging {
 extension BacktraceClient: BacktraceMetricsProtocol {
     /// Error-free metrics class instance
     @objc public var metrics: BacktraceMetrics {
-        get {
-            return self.metricsInstance
-        }
+        return self.metricsInstance
     }
 }

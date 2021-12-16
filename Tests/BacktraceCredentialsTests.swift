@@ -17,30 +17,30 @@ final class BacktraceCredentialsTests: QuickSpec {
             context("Given legacy URL endpoint and token") {
                 let credentials = BacktraceCredentials(endpoint: URL(string: legacyUrlEndpoint)!, token: fakeToken)
                 it("Can get Universe name") {
-                    expect { try! credentials.getUniverseName() }.to(equal(fakeUniverse))
+                    expect { try credentials.getUniverseName() }.to(equal(fakeUniverse))
                 }
                 it("Can get token") {
-                    expect { try! credentials.getSubmissionToken() }.to(equal(fakeToken))
+                    expect { try credentials.getSubmissionToken() }.to(equal(fakeToken))
                 }
             }
 
             context("Given legacy URI") {
                 let credentials = BacktraceCredentials(submissionUrl: URL(string: legacyUrl)!)
                 it("Can get Universe name") {
-                    expect { try! credentials.getUniverseName() }.to(equal(fakeUniverse))
+                    expect { try credentials.getUniverseName() }.to(equal(fakeUniverse))
                 }
                 it("Can get token") {
-                    expect { try! credentials.getSubmissionToken() }.to(equal(fakeToken))
+                    expect { try credentials.getSubmissionToken() }.to(equal(fakeToken))
                 }
             }
 
             context("Given URI") {
                 let credentials = BacktraceCredentials(submissionUrl: URL(string: url)!)
                 it("Can get Universe name") {
-                    expect { try! credentials.getUniverseName() }.to(equal(fakeUniverse))
+                    expect { try credentials.getUniverseName() }.to(equal(fakeUniverse))
                 }
                 it("Can get token") {
-                    expect { try! credentials.getSubmissionToken() }.to(equal(fakeToken))
+                    expect { try credentials.getSubmissionToken() }.to(equal(fakeToken))
                 }
             }
         }

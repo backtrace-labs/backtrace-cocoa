@@ -2,7 +2,7 @@ import Foundation
 
 class UniqueEventsPayload: Payload<UniqueEvent> {
        
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case events = "unique_events"
     }
     

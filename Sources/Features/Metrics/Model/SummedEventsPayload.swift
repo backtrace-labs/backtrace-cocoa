@@ -2,7 +2,7 @@ import Foundation
 
 class SummedEventsPayload: Payload<SummedEvent> {
     
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case events = "summed_events"
     }
     

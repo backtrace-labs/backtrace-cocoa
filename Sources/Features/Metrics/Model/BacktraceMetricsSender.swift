@@ -13,7 +13,7 @@ final class BacktraceMetricsSender {
       case summed
       case unique
       
-      var description : String {
+      var description: String {
         switch self {
         case .summed: return "summed-events"
         case .unique: return "unique-events"

@@ -3,7 +3,7 @@ import Foundation
 class EventsMetadata: Encodable {
     var droppedEvents = 0
     
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case droppedEvents = "dropped_events"
     }
 }
@@ -19,7 +19,7 @@ class Payload<T: Event>: Encodable {
         self.events = events
     }
     
-    private enum CodingKeys : String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case metadata, applicationName = "application", applicationVersion = "appversion"
     }
 
