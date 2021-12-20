@@ -99,6 +99,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         1. [Error/NSError](#documentation-sending-error)
         2. [NSException](#documentation-sending-exception)
         3. [macOS note](#documentation-sending-report-macOS)
+    7. [Enable error-free metrics](#documentation-metrics)
 4. [FAQ](#faq)
     1. [Missing dSYM files](#faq-missing-dsym)
         * [Finding dSYMs while building project](#faq-finding-dsym-building)
@@ -416,6 +417,27 @@ UserDefaults.standard.register(defaults: ["NSApplicationCrashOnExceptions": true
 [[NSUserDefaults standardUserDefaults] registerDefaults:@{ @"NSApplicationCrashOnExceptions": @YES }];
 ```
 but it crashes your app if you don't use `@try ... @catch`.
+
+## Error-free metrics <a name="documentation-metrics"><a/>
+
+Error free metrics can be used to answer the following questions:
+
+- How many of your unique users (i.e: unique device IDs) using your app are experiencing errors/crashes?
+- How many application sessions (i.e: individual application sessions from startup till shutdown/exit) of your app are experiencing errors/crashes?
+
+The web UI allows you to track those metrics at-a-glance as well as in detail (what kinds of errors/crashes are most common?, etc.).
+
+### Enable error-free metrics <a name="documentation-enable-metrics"><a/>
+Once the `BacktraceClient` is enabled, you can additionally enable error-free metrics like this:
+- Swift
+```swift
+BacktraceClient.shared?.metrics.enable(settings: BacktraceMetricsSettings())
+```
+- Objective-C
+```objective-c
+BacktraceMetricsSettings *metricsSettings = [[BacktraceMetricsSettings alloc] init];
+[[[BacktraceClient shared] metrics] enableWithSettings: metricsSettings];
+```
 
 # FAQ <a name="faq"></a>
 ## How does your Out of Memory detection algorithm work? <a name="faq-oom-algorithm"></a>
