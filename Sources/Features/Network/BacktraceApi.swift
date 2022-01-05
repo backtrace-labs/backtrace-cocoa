@@ -72,7 +72,7 @@ extension BacktraceApi: BacktraceMetricsApiProtocol {
         try sendMetrics(payload, url: url, metricsDelegate: uniqueEventsDelegate)
     }
 
-    func sendMetrics<T: Event>(_ payload: Payload<T>, url: URL, metricsDelegate: BacktraceMetricsDelegate?)
+    func sendMetrics<T: Payload>(_ payload: T, url: URL, metricsDelegate: BacktraceMetricsDelegate?)
         throws -> BacktraceMetricsResult {
         let payload = payload
 

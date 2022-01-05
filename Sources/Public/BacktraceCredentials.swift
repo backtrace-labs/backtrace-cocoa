@@ -107,7 +107,6 @@ extension BacktraceCredentials {
                 }
 
                 let tokenStartIndex = tokenQueryParamRange.upperBound
-                print(urlString[tokenStartIndex...urlString.index(before: urlString.endIndex)])
                 let tokenEndIndex = urlString.index(before: urlString.index(tokenStartIndex, offsetBy: tokenLength - 1))
 
                 return String(urlString[tokenStartIndex...tokenEndIndex])

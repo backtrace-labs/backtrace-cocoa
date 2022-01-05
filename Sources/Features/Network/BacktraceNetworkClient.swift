@@ -38,6 +38,6 @@ extension BacktraceNetworkClient {
             throw HttpError.unknownError
         }
         // check result
-        return BacktraceMetricsHttpResponse(httpResponse: urlResponse, responseData: response.responseData)
+        return BacktraceMetricsHttpResponse(httpResponse: urlResponse)
     }
 }

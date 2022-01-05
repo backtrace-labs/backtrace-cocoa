@@ -6,7 +6,6 @@ final class BacktraceMetricsSender {
     private let metricsContainer: BacktraceMetricsContainer
     private let settings: BacktraceMetricsSettings
 
-    static let defaultBaseUrl = "https://events.backtrace.io/api"
     private let baseUrl: String
 
     enum MetricsUrlPrefix: CustomStringConvertible {
@@ -25,7 +24,7 @@ final class BacktraceMetricsSender {
         self.api = api
         self.metricsContainer = metricsContainer
         self.settings = settings
-        self.baseUrl = BacktraceMetricsSender.defaultBaseUrl
+        self.baseUrl = defaultMetricsBaseUrl
     }
 
     func enable() {
@@ -83,9 +82,12 @@ final class BacktraceMetricsSender {
 
     private func handleSummedEventsResult(result: BacktraceMetricsResult) {
         metricsContainer.clearSummedEvents()
+
+        // TODO: Add the retry logic here
     }
 
     private func handleUniqueEventsResult(result: BacktraceMetricsResult) {
 
+        // TODO: Add the retry logic here
     }
 }

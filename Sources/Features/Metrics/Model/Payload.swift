@@ -1,6 +1,7 @@
 import Foundation
 
-class EventsMetadata: Encodable {
+struct EventsMetadata: Encodable {
+
     var droppedEvents = 0
 
     private enum CodingKeys: String, CodingKey {
@@ -8,29 +9,25 @@ class EventsMetadata: Encodable {
     }
 }
 
-class Payload<T: Event>: Encodable {
-    var applicationName = Backtrace.applicationName ?? ""
-    var applicationVersion = Backtrace.applicationVersion ?? ""
+protocol Payload: Encodable {
 
-    var metadata = EventsMetadata()
-    var events: [T]
+    associatedtype Event
+    var applicationName: String { get }
+    var applicationVersion: String { get }
 
-    init(events: [T]) {
-        self.events = events
-    }
+    var metadata: EventsMetadata { get set }
+    var events: [Event] { get set }
 
-    private enum CodingKeys: String, CodingKey {
-        case metadata, applicationName = "application", applicationVersion = "appversion"
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(applicationName, forKey: .applicationName)
-        try container.encode(applicationVersion, forKey: .applicationVersion)
-        try container.encode(metadata, forKey: .metadata)
-    }
+    init(events: [Event])
 }
 
 extension Payload {
 
+    func getApplicationName() -> String {
+        return Backtrace.applicationName ?? ""
+    }
+
+    func getApplicationVersion() -> String {
+        return Backtrace.applicationVersion ?? ""
+    }
 }

@@ -1,21 +1,26 @@
 import Foundation
 
-final class SummedEvent: Event {
+struct SummedEvent: Event {
 
-    internal(set) public var name: String
+    var timestamp = Int64()
+    var attributes = DecodableAttributes()
+
+    var name = String()
 
     init(name: String) {
+        self.timestamp = initialTimestamp()
+        self.attributes = initialAttributes()
         self.name = name
-        super.init()
     }
 
     private enum CodingKeys: String, CodingKey {
-        case name = "metric_group"
+        case name = "metric_group", timestamp, attributes
     }
 
-    override func encode(to encoder: Encoder) throws {
-        try super.encode(to: encoder)
+    func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(attributes, forKey: .attributes)
     }
 }

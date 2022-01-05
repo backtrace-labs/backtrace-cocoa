@@ -92,3 +92,5 @@ public typealias Bookmarks = [String: Data]
 public let applicationName = Bundle.main.displayName
 
 public let applicationVersion = Bundle.main.releaseVersionNumber
+
+public let defaultMetricsBaseUrl = "https://events.backtrace.io/api"

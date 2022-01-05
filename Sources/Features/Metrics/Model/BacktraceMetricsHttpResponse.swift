@@ -4,7 +4,7 @@ struct BacktraceMetricsHttpResponse {
 
     let statusCode: Int
 
-    init(httpResponse: HTTPURLResponse, responseData: Data?) {
+    init(httpResponse: HTTPURLResponse) {
         self.statusCode = httpResponse.statusCode
     }
 }
