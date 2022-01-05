@@ -94,3 +94,7 @@ public let applicationName = Bundle.main.displayName
 public let applicationVersion = Bundle.main.releaseVersionNumber
 
 public let defaultMetricsBaseUrl = "https://events.backtrace.io/api"
+
+enum BacktraceUrlParsingError: Error {
+    case invalidInput(String)
+}
