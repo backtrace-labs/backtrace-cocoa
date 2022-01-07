@@ -10,7 +10,7 @@ final class FaultInfo: AttributesSource {
 }
 
 struct ProcessorInfo: AttributesSource {
-    
+
     private let reportHostName: Bool
 
     init(reportHostName: Bool = false) {
@@ -23,7 +23,7 @@ struct ProcessorInfo: AttributesSource {
         let systemVmMemory = try? MemoryInfo.System()
         let systemSwapMemory = try? MemoryInfo.Swap()
         let processVmMemory = try? MemoryInfo.Process()
-        
+
         return [
             // cpu
             "cpu.idle": processor?.cpuTicks.idle,
@@ -57,7 +57,7 @@ struct ProcessorInfo: AttributesSource {
             "process.vm.vma.size": processVmMemory?.virtual
         ]
     }
-    
+
     var immutable: [String: Any?] {
         return [
             "cpu.boottime": try? System.boottime(),
@@ -71,7 +71,7 @@ struct ProcessorInfo: AttributesSource {
 }
 
 struct Device: AttributesSource {
-    
+
     var mutable: [String: Any?] {
         #if os(iOS)
         let device = UIDevice.current
@@ -94,13 +94,26 @@ struct Device: AttributesSource {
     var immutable: [String: Any?] {
         return [
             "device.machine": try? System.machine(),
-            "device.model": try? System.model()
+            "device.model": try? System.model(),
+            "uname.sysname": getSysname()
         ]
+    }
+
+    private func getSysname() -> String {
+#if os(iOS)
+        return "iOS"
+#elseif os(tvOS)
+        return "tvOS"
+#elseif os(macOS)
+        return "macOS"
+#else
+        return "Unsupported device"
+#endif
     }
 }
 
 struct ScreenInfo: AttributesSource {
-    
+
     private enum Key: String {
         case count = "screens.count"
         #if os(iOS) || os(tvOS)
@@ -117,7 +130,7 @@ struct ScreenInfo: AttributesSource {
         case mainScreenScale = "screen.main.scale"
         #endif
     }
-    
+
     var immutable: [String: Any?] {
         var screenAttributes: Attributes = [:]
         #if os(iOS) || os(tvOS)
@@ -137,7 +150,7 @@ struct ScreenInfo: AttributesSource {
             screenAttributes[Key.mainScreenScale.rawValue] = mainScreen.backingScaleFactor
         }
         #endif
-        
+
         #if os(iOS)
         screenAttributes[Key.brightness.rawValue] = UIScreen.main.brightness
         #endif
@@ -146,7 +159,7 @@ struct ScreenInfo: AttributesSource {
 }
 
 struct LocaleInfo: AttributesSource {
-    
+
    var immutable: [String: Any?] {
         var localeAttributes: Attributes = [:]
         if let languageCode = Locale.current.languageCode {
@@ -166,7 +179,7 @@ struct LocaleInfo: AttributesSource {
 }
 
 struct NetworkInfo: AttributesSource {
-    
+
      var mutable: [String: Any?] {
         return ["network.status": NetworkReachability().statusName]
     }
@@ -183,16 +196,16 @@ struct LocationInfo: AttributesSource {
 }
 
 struct LibInfo: AttributesSource {
-    
+
     private static let applicationGuidKey = "backtrace.unique.user.identifier"
     private static let applicationLangName = "backtrace-cocoa"
-    
+
     var immutable: [String: Any?] {
         return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
                 "lang.name": LibInfo.applicationLangName,
                 "lang.version": BacktraceVersionNumber]
     }
-    
+
     static private func guid(store: UserDefaultsStore.Type) -> UUID {
         if let uuidString: String = store.value(forKey: applicationGuidKey), let uuid = UUID(uuidString: uuidString) {
             return uuid
@@ -203,10 +216,32 @@ struct LibInfo: AttributesSource {
         }
     }
 }
+
+struct MetricsInfo: AttributesSource {
+    private static let session = UUID().uuidString
+
+    static private var isMetricsEnabled = false
+
+    static func enableMetrics() {
+        isMetricsEnabled = true
+    }
+
+    static func disableMetrics() {
+        isMetricsEnabled = false
+    }
+
+    var immutable: [String: Any?] {
+        return MetricsInfo.isMetricsEnabled ?
+            ["application.version": Backtrace.applicationVersion,
+             "application.session": MetricsInfo.session] :
+            [:]
+    }
+}
+
 // swiftlint:enable type_name
 
 private extension CLAuthorizationStatus {
-    
+
     var name: String {
         switch self {
         case .authorizedAlways: return "Always"
@@ -220,7 +255,7 @@ private extension CLAuthorizationStatus {
 
 #if os(iOS)
 private extension UIDeviceOrientation {
-    
+
     var name: String {
         switch self {
         case .faceDown: return "FaceDown"
@@ -237,7 +272,7 @@ private extension UIDeviceOrientation {
 
 #if os(iOS)
 private extension UIDevice.BatteryState {
-    
+
     var name: String {
         switch self {
         case .charging: return "Charging"
@@ -251,7 +286,7 @@ private extension UIDevice.BatteryState {
 
 #if os(iOS)
 private extension UIApplication.State {
-    
+
     var name: String {
         switch self {
         case .active: return "Active"

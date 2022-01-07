@@ -5,7 +5,7 @@ import Quick
 @testable import Backtrace
 
 final class DispatcherTests: QuickSpec {
-    
+
     override func spec() {
         describe("Dispatcher") {
             it("calls the completion closure") {

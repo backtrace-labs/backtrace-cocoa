@@ -11,17 +11,17 @@ extension AttributesSource {
 }
 
 final class AttributesProvider {
-    
+
     // attributes can be modified on runtime
     var attributes: Attributes = [:]
     var attachments: Attachments = []
     private let attributesSources: [AttributesSource]
     private let faultInfo: FaultInfo
-    
+
     lazy var immutable: Attributes = {
         return attributesSources.map(\.immutable).merging()
     }()
-    
+
     init(reportHostName: Bool = false) {
         faultInfo = FaultInfo()
         attributesSources = [ProcessorInfo(reportHostName: reportHostName),
@@ -31,7 +31,8 @@ final class AttributesProvider {
                              NetworkInfo(),
                              LibInfo(),
                              LocationInfo(),
-                             faultInfo]
+                             faultInfo,
+                             MetricsInfo()]
     }
 }
 
@@ -39,19 +40,19 @@ extension AttributesProvider: SignalContext {
     func set(faultMessage: String?) {
         self.faultInfo.faultMessage = faultMessage
     }
-    
+
     func set(errorType: String?) {
         self.attributes["error.type"] = errorType
     }
-    
+
     var attachmentPaths: [String] {
         return attachments.map(\.path)
     }
-    
+
     var allAttributes: Attributes {
         return attributes + defaultAttributes
     }
-    
+
     var defaultAttributes: Attributes {
         return immutable + attributesSources.map(\.mutable).merging()
     }
@@ -61,7 +62,7 @@ extension AttributesProvider: CustomStringConvertible, CustomDebugStringConverti
     var description: String {
         return allAttributes.compactMap { "\($0.key): \($0.value)"}.joined(separator: "\n")
     }
-    
+
     var debugDescription: String {
         return description
     }

@@ -3,12 +3,12 @@ import Foundation
 struct MultipartRequest {
 
     let request: URLRequest
-    
+
     private enum Constants {
         static let submissionPath = "/post"
         static let queryItems = { token in ["format": "plcrash", "token": token] }
     }
-    
+
     init(configuration: BacktraceCredentials.Configuration, report: BacktraceReport) throws {
         let request: URLRequest
         switch configuration {
@@ -27,7 +27,7 @@ extension MultipartRequest {
         urlRequest.httpMethod = HttpMethod.post.rawValue
         return urlRequest
     }
-    
+
     static func formUrlRequest(endpoint: URL, token: String) throws -> URLRequest {
         var urlComponents = URLComponents(string: endpoint.absoluteString + Constants.submissionPath)
         urlComponents?.queryItems = Constants.queryItems(token).map(URLQueryItem.init)
@@ -43,12 +43,12 @@ extension MultipartRequest {
 }
 
 extension MultipartRequest {
-    
+
     static func writeReport(urlRequest: URLRequest, report: BacktraceReport) throws -> URLRequest {
         var multipartRequest = urlRequest
         let boundary = generateBoundaryString()
         multipartRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
+
         let boundaryPrefix = "--\(boundary)\r\n"
         let body = NSMutableData()
         // attributes
@@ -73,19 +73,19 @@ extension MultipartRequest {
         }
         body.appendString("\(boundaryPrefix)--")
         multipartRequest.httpBody = body as Data
-        
+
         multipartRequest.setValue("\(body.length)", forHTTPHeaderField: "Content-Length")
-        
+
         return multipartRequest
     }
-    
+
     private static func generateBoundaryString() -> String {
         return "Boundary-\(NSUUID().uuidString)"
     }
 }
 
 private extension NSMutableData {
-    
+
     func appendString(_ string: String) {
         guard let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false) else { return }
         append(data)

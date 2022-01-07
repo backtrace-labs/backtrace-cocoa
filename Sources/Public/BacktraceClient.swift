@@ -2,17 +2,20 @@ import Foundation
 
 /// Provides the default implementation of `BacktraceClientProtocol` protocol.
 @objc open class BacktraceClient: NSObject {
-    
+
     /// Shared instance of BacktraceClient class. Should be created before sending any reports.
     @objc public static var shared: BacktraceClientProtocol?
-    
+
     /// `BacktraceClient`'s configuration. Allows to configure `BacktraceClient` in a custom way.
     @objc public let configuration: BacktraceClientConfiguration
-    
+
+    /// Error-free metrics class instance
+    @objc public let metricsInstance: BacktraceMetrics
+
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
-    
+
     /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
     /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
     /// and https://help.backtrace.io/troubleshooting/what-is-a-submission-token .
@@ -24,7 +27,7 @@ import Foundation
                                   crashReporter: BacktraceCrashReporter = BacktraceCrashReporter()) throws {
         try self.init(configuration: BacktraceClientConfiguration(credentials: credentials), crashReporter: crashReporter)
     }
-    
+
     /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
     /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
     /// and https://help.backtrace.io/troubleshooting/what-is-a-submission-token .
@@ -35,7 +38,7 @@ import Foundation
         try self.init(configuration: BacktraceClientConfiguration(credentials: credentials),
                       crashReporter: BacktraceCrashReporter())
     }
-    
+
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
     /// in a custom way.
     ///
@@ -46,10 +49,11 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
+        let metrics = BacktraceMetrics(api: api)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api)
+                      dispatcher: Dispatcher(), api: api, metrics: metrics)
     }
-    
+
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
     /// in a custom way.
     ///
@@ -61,18 +65,21 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
+        let metrics = BacktraceMetrics(api: api)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api)
+                      dispatcher: Dispatcher(), api: api, metrics: metrics)
     }
-    
+
     init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
-         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(), api: BacktraceApi) throws {
-        
+         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(),
+         api: BacktraceApi, metrics: BacktraceMetrics) throws {
+
         self.dispatcher = dispatcher
         self.reporter = reporter
         self.configuration = configuration
         self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
-        
+        self.metricsInstance = metrics
+
         super.init()
         try startCrashReporter()
     }
@@ -80,7 +87,7 @@ import Foundation
 
 // MARK: - BacktraceClientProviding
 extension BacktraceClient: BacktraceClientCustomizing {
-    
+
     /// The object that acts as the delegate object of the `BacktraceClient`.
     @objc public var delegate: BacktraceClientDelegate? {
         get {
@@ -89,7 +96,7 @@ extension BacktraceClient: BacktraceClientCustomizing {
             reporter.delegate = newValue
         }
     }
-    
+
     /// Additional attributes which are automatically added to each report.
     @objc public var attributes: Attributes {
         get {
@@ -98,7 +105,7 @@ extension BacktraceClient: BacktraceClientCustomizing {
             reporter.attributes = newValue
         }
     }
-    
+
     /// Additional file attachments which are automatically added to each report.
     @objc public var attachments: Attachments {
         get {
@@ -117,39 +124,39 @@ extension BacktraceClient: BacktraceReporting {
                            completion: @escaping ((BacktraceResult) -> Void)) {
         reportCrash(faultMessage: error.localizedDescription, attachmentPaths: attachmentPaths, completion: completion)
     }
-    
+
     @objc public func send(message: String,
                            attachmentPaths: [String],
                            completion: @escaping ((BacktraceResult) -> Void)) {
         reportCrash(faultMessage: message, attachmentPaths: attachmentPaths, completion: completion)
     }
-    
+
     @objc public func send(exception: NSException?,
                            attachmentPaths: [String] = [],
                            completion: @escaping ((_ result: BacktraceResult) -> Void)) {
         reportCrash(faultMessage: exception?.name.rawValue ?? "Unknown exception", exception: exception,
                     attachmentPaths: attachmentPaths, completion: completion)
     }
-    
+
     @objc public func send(attachmentPaths: [String] = [],
                            completion: @escaping ((_ result: BacktraceResult) -> Void)) {
         reportCrash(attachmentPaths: attachmentPaths, completion: completion)
     }
-    
+
     private func reportCrash(faultMessage: String? = nil, exception: NSException? = nil, attachmentPaths: [String] = [],
                              completion: @escaping ((_ result: BacktraceResult) -> Void)) {
         guard reportingPolicy.allowsReporting else {
             completion(BacktraceResult(.debuggerAttached))
             return
         }
-        
+
         guard let resource = try? reporter.generate(exception: exception,
                                                     attachmentPaths: attachmentPaths,
                                                     faultMessage: faultMessage) else {
             completion(BacktraceResult(.unknownError))
             return
         }
-        
+
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             completion(self.reporter.send(resource: resource))
@@ -157,16 +164,16 @@ extension BacktraceClient: BacktraceReporting {
             BacktraceLogger.debug("Finished sending an error report.")
         })
     }
-    
+
     func startCrashReporter() throws {
         guard reportingPolicy.allowsReporting else {
             return
         }
-        
+
         if self.configuration.detectOom {
             self.reporter.enableOomWatcher()
         }
-        
+
         try reporter.enableCrashReporter()
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
@@ -183,7 +190,7 @@ extension BacktraceClient: BacktraceReporting {
 
 // MARK: - BacktraceLogging
 extension BacktraceClient: BacktraceLogging {
-    
+
     /// A collection of logging destinations.
     public var loggingDestinations: Set<BacktraceBaseDestination> {
         get {
@@ -192,5 +199,13 @@ extension BacktraceClient: BacktraceLogging {
         set {
             BacktraceLogger.destinations = newValue
         }
+    }
+}
+
+// MARK: - BacktraceMetricsProtocol
+extension BacktraceClient: BacktraceMetricsProtocol {
+    /// Error-free metrics class instance
+    @objc public var metrics: BacktraceMetrics {
+        return self.metricsInstance
     }
 }

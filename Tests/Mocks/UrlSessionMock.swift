@@ -10,7 +10,7 @@ final class URLSessionMock: URLSession {
     // Properties that enable us to set exactly what data or error
     // we want our mocked URLSession to return for any request.
     var response: MockResponse?
-    
+
     override func dataTask(with request: URLRequest,
                            completionHandler: @escaping CompletionHandler) -> URLSessionDataTask {
         return URLSessionDataTaskMock { [weak self] in
@@ -34,35 +34,35 @@ final class URLSessionDataTaskMock: URLSessionDataTask {
 }
 
 final class BacktraceClientDelegateSpy: BacktraceClientDelegate {
-    
+
     var calledWillSend: Bool = false
     var calledWillSendRequest: Bool = false
     var calledServerDidRespond: Bool = false
     var calledConnectionDidFail: Bool = false
     var calledDidReachLimit: Bool = false
-    
+
     func willSend(_ report: BacktraceReport) -> BacktraceReport {
         calledWillSend = true
         return report
     }
-    
+
     func willSendRequest(_ request: URLRequest) -> URLRequest {
         calledWillSendRequest = true
         return request
     }
-    
+
     func serverDidRespond(_ result: BacktraceResult) {
         calledServerDidRespond = true
     }
-    
+
     func connectionDidFail(_ error: Error) {
         calledConnectionDidFail = true
     }
-    
+
     func didReachLimit(_ result: BacktraceResult) {
         calledDidReachLimit = true
     }
-    
+
     func clear() {
         calledWillSend = false
         calledWillSendRequest = false
@@ -73,29 +73,29 @@ final class BacktraceClientDelegateSpy: BacktraceClientDelegate {
 }
 
 final class BacktraceClientDelegateMock: BacktraceClientDelegate {
-    
+
     var willSendClosure: ((BacktraceReport) -> BacktraceReport)?
     var willSendRequestClosure: ((URLRequest) -> URLRequest)?
     var serverDidRespondClosure: ((BacktraceResult) -> Void)?
     var connectionDidFailClosure: ((Error) -> Void)?
     var didReachLimitClosure: ((BacktraceResult) -> Void)?
-    
+
     func willSend(_ report: BacktraceReport) -> BacktraceReport {
         return willSendClosure?(report) ?? report
     }
-    
+
     func willSendRequest(_ request: URLRequest) -> URLRequest {
         return willSendRequestClosure?(request) ?? request
     }
-    
+
     func serverDidRespond(_ result: BacktraceResult) {
         serverDidRespondClosure?(result)
     }
-    
+
     func connectionDidFail(_ error: Error) {
         connectionDidFailClosure?(error)
     }
-    
+
     func didReachLimit(_ result: BacktraceResult) {
         didReachLimitClosure?(result)
     }
@@ -111,7 +111,7 @@ struct MockOkResponse: MockResponse {
     let data: Data?
     let error: Error?
     let urlResponse: URLResponse?
-    
+
     init(url: URL = URL(string: "https://yourteam.backtrace.io")!) {
         urlResponse = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "1.1", headerFields: nil)
         let body: [String: Any] = ["response": "ok",
@@ -127,7 +127,7 @@ struct Mock403Response: MockResponse {
     let data: Data?
     let error: Error?
     let urlResponse: URLResponse?
-    
+
     init(url: URL = URL(string: "https://yourteam.backtrace.io")!) {
         urlResponse = HTTPURLResponse(url: url, statusCode: 403, httpVersion: "1.1", headerFields: nil)
         let body = ["error": ["code": 6, "message": "invalid token"]]
@@ -140,7 +140,7 @@ struct MockConnectionErrorResponse: MockResponse {
     let data: Data?
     let error: Error?
     let urlResponse: URLResponse?
-    
+
     init(url: URL = URL(string: "https://yourteam.backtrace.io")!) {
         urlResponse = nil
         data = nil
@@ -152,10 +152,55 @@ struct MockNoResponse: MockResponse {
     let data: Data?
     let error: Error?
     let urlResponse: URLResponse?
-    
+
     init() {
         urlResponse = nil
         data = nil
         error = nil
+    }
+}
+
+final class BacktraceMetricsDelegateSpy: BacktraceMetricsDelegate {
+
+    var calledWillSendRequest: Bool = false
+    var calledServerDidRespond: Bool = false
+    var calledConnectionDidFail: Bool = false
+
+    func willSendRequest(_ request: URLRequest) -> URLRequest {
+        calledWillSendRequest = true
+        return request
+    }
+
+    func serverDidRespond(_ result: BacktraceMetricsResult) {
+        calledServerDidRespond = true
+    }
+
+    func connectionDidFail(_ error: Error) {
+        calledConnectionDidFail = true
+    }
+
+    func clear() {
+        calledWillSendRequest = false
+        calledServerDidRespond = false
+        calledConnectionDidFail = false
+    }
+}
+
+final class BacktraceMetricsDelegateMock: BacktraceMetricsDelegate {
+
+    var willSendRequestClosure: ((URLRequest) -> URLRequest)?
+    var serverDidRespondClosure: ((BacktraceMetricsResult) -> Void)?
+    var connectionDidFailClosure: ((Error) -> Void)?
+
+    func willSendRequest(_ request: URLRequest) -> URLRequest {
+        return willSendRequestClosure?(request) ?? request
+    }
+
+    func serverDidRespond(_ result: BacktraceMetricsResult) {
+        serverDidRespondClosure?(result)
+    }
+
+    func connectionDidFail(_ error: Error) {
+        connectionDidFailClosure?(error)
     }
 }

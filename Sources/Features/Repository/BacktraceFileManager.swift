@@ -2,7 +2,7 @@ import Foundation
 
 final class BacktraceFileManager {
     static let fileManger = FileManager.default
-    
+
     /// Returns size of file in bytes.
     static func sizeOfFile(at url: URL) throws -> Int {
         guard url.isFileURL else {
@@ -16,7 +16,7 @@ final class BacktraceFileManager {
         guard let fileSize = values.fileSize else { throw FileError.resourceValueUnavailable }
         return fileSize
     }
-    
+
     /// Excluded file from backup to iTunes or iCloud
     ///
     /// - Parameter url: URL to be excluded from backup.

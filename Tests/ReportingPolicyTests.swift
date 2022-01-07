@@ -10,7 +10,7 @@ final class ReportingPolicyTests: QuickSpec {
             throwingContext("given valid credentials") {
                 let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!,
                                                        token: "")
-                
+
                 context("policy allows debugger attachment") {
                     let configuration = BacktraceClientConfiguration(credentials: credentials,
                                                                      allowsAttachingDebugger: true)
@@ -21,7 +21,7 @@ final class ReportingPolicyTests: QuickSpec {
                                 .to(beTrue())
                         }
                     }
-                    
+
                     context("the debugger is not attached") {
                         it("can report") {
                             expect(ReportingPolicy(configuration: configuration,
@@ -30,7 +30,7 @@ final class ReportingPolicyTests: QuickSpec {
                         }
                     }
                 }
-                
+
                 context("policy disallows debugger attachment") {
                     let configuration = BacktraceClientConfiguration(credentials: credentials,
                                                                      allowsAttachingDebugger: false)
@@ -41,7 +41,7 @@ final class ReportingPolicyTests: QuickSpec {
                                 .to(beFalse())
                         }
                     }
-                    
+
                     context("the debugger is not attached") {
                         it("can report") {
                             expect(ReportingPolicy(configuration: configuration,

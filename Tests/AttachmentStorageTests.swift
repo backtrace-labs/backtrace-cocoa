@@ -5,31 +5,31 @@ import Quick
 @testable import Backtrace
 
 final class AttachmentStorageTests: QuickSpec {
-    
+
     override func spec() {
         describe("AttachmentStorage") {
             it("can save attachments as a plist") {
                 var crashAttachments = Attachments()
                 let storage = ReportMetadataStorageMock.self
                 let bookmarkHandler = AttachmentBookmarkHandlerMock.self
-                
+
                 guard let fileUrl = try? self.createAFile() else {
                     throw FileError.fileNotWritten
                 }
                 crashAttachments.append(fileUrl)
-                
+
                 let attachmentsFileName = "attachments"
                 try? AttachmentsStorage.store(crashAttachments,
                                               fileName: attachmentsFileName,
                                               storage: storage,
                                               bookmarkHandler: bookmarkHandler)
-                
+
                 let attachments =
                     (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName,
                                                       storage: storage,
                                                       bookmarkHandler: bookmarkHandler)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.path)
-                
+
                 expect(attachmentPaths).toNot(beNil())
                 expect(attachmentPaths.count).to(be(1))
                 expect(attachmentPaths[0]).to(equal(fileUrl.path))
@@ -38,25 +38,25 @@ final class AttachmentStorageTests: QuickSpec {
                 let crashAttachments = Attachments()
                 let storage = ReportMetadataStorageMock.self
                 let bookmarkHandler = AttachmentBookmarkHandlerMock.self
-                
+
                 let attachmentsFileName = "attachments"
                 try? AttachmentsStorage.store(crashAttachments,
                                               fileName: attachmentsFileName,
                                               storage: storage,
                                               bookmarkHandler: bookmarkHandler)
-                
+
                 let attachments =
                     (try? AttachmentsStorage.retrieve(fileName: attachmentsFileName,
                                                       storage: storage,
                                                       bookmarkHandler: bookmarkHandler)) ?? Attachments()
                 let attachmentPaths = attachments.map(\.path)
-                
+
                 expect(attachmentPaths).toNot(beNil())
                 expect(attachmentPaths.count).to(be(0))
             }
         }
     }
-    
+
     func createAFile() throws -> URL {
         let fileName = "sample"
         let dirName = "directory"
