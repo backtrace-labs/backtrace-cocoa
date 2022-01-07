@@ -7,12 +7,11 @@ protocol Event: Encodable {
 }
 
 extension Event {
-    func initialTimestamp() -> Int64 {
-        return Date().currentTimeSeconds()
+    static func initialTimestamp(_ date: Date = Date()) -> Int64 {
+        return date.currentTimeSeconds()
     }
 
-    func initialAttributes() -> DecodableAttributes {
-        let attributesProvider = AttributesProvider()
+    static func initialAttributes(_ attributesProvider: AttributesProvider = AttributesProvider()) -> DecodableAttributes {
         let localAttributes = attributesProvider.allAttributes
         let localAttributesConverted: [String: String] = localAttributes.compactMapValues { "\($0)" }
 

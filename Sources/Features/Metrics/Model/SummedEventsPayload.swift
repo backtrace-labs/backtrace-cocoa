@@ -4,14 +4,15 @@ struct SummedEventsPayload: Payload {
 
     typealias Event = SummedEvent
 
-    var applicationName = String()
-    var applicationVersion = String()
-    var metadata = EventsMetadata()
-    var events = [SummedEvent]()
+    var applicationName: String
+    var applicationVersion: String
+    var metadata: EventsMetadata
+    var events: [SummedEvent]
 
     init(events: [SummedEvent]) {
-        self.applicationName = getApplicationName()
-        self.applicationVersion = getApplicationVersion()
+        self.applicationName = SummedEventsPayload.getApplicationName()
+        self.applicationVersion = SummedEventsPayload.getApplicationVersion()
+        self.metadata = EventsMetadata()
         self.events = events
     }
 

@@ -6,7 +6,7 @@ final class BacktraceMetricsSender {
     private let metricsContainer: BacktraceMetricsContainer
     private let settings: BacktraceMetricsSettings
 
-    private let baseUrl: String
+    private let baseUrlString: String
 
     enum MetricsUrlPrefix: CustomStringConvertible {
       case summed
@@ -24,7 +24,7 @@ final class BacktraceMetricsSender {
         self.api = api
         self.metricsContainer = metricsContainer
         self.settings = settings
-        self.baseUrl = defaultMetricsBaseUrl
+        self.baseUrlString = defaultMetricsBaseUrlString
     }
 
     func enable() {
@@ -72,22 +72,33 @@ final class BacktraceMetricsSender {
         let token = try api.credentials.getSubmissionToken()
         let universe = try api.credentials.getUniverseName()
 
-        let urlString = self.baseUrl + "/" + urlPrefix.description + "/submit?token=" + token + "&universe=" + universe
-
-        guard let url = URL(string: urlString) else {
-            throw BacktraceUrlParsingError.invalidInput(urlString)
+        guard let baseUrl = URL(string: baseUrlString) else {
+            throw BacktraceUrlParsingError.invalidInput(baseUrlString)
         }
+
+        guard var components = URLComponents(url: baseUrl, resolvingAgainstBaseURL: true) else {
+            throw BacktraceUrlParsingError.invalidInput(baseUrl.debugDescription)
+        }
+
+        components.path += urlPrefix.description + "/submit"
+        components.queryItems = [
+            URLQueryItem(name: "token", value: token),
+            URLQueryItem(name: "universe", value: universe)
+        ]
+
+        guard let url = components.url else {
+            throw BacktraceUrlParsingError.invalidInput(baseUrl.debugDescription)
+        }
+
         return url
     }
 
     private func handleSummedEventsResult(result: BacktraceMetricsResult) {
         metricsContainer.clearSummedEvents()
-
-        // TODO: Add the retry logic here
+        // TODO: T16698 - Add retry logic
     }
 
     private func handleUniqueEventsResult(result: BacktraceMetricsResult) {
-
-        // TODO: Add the retry logic here
+        // TODO: T16698 - Add retry logic
     }
 }

@@ -25,10 +25,10 @@ extension MetricsRequest {
 
 // From: https://gist.github.com/sourleangchhean168/f1a663c8524936af35221f410b588677
 private extension Data {
-    var prettyPrintedJSONString: NSString? {
+    var prettyPrintedJSONString: String? {
         guard let object = try? JSONSerialization.jsonObject(with: self, options: []),
               let data = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted]),
-              let prettyPrintedString = NSString(data: data, encoding: String.Encoding.utf8.rawValue) else { return nil }
+              let prettyPrintedString = String(data: data, encoding: .utf8) else { return nil }
 
         return prettyPrintedString
     }

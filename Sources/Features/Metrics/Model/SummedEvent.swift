@@ -2,14 +2,14 @@ import Foundation
 
 struct SummedEvent: Event {
 
-    var timestamp = Int64()
-    var attributes = DecodableAttributes()
+    var timestamp: Int64
+    var attributes: DecodableAttributes
 
     var name = String()
 
     init(name: String) {
-        self.timestamp = initialTimestamp()
-        self.attributes = initialAttributes()
+        self.timestamp = SummedEvent.initialTimestamp()
+        self.attributes = SummedEvent.initialAttributes()
         self.name = name
     }
 

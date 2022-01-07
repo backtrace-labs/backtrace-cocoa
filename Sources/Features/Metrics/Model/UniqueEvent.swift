@@ -2,15 +2,15 @@ import Foundation
 
 struct UniqueEvent: Event {
 
-    var timestamp = Int64()
-    var attributes = DecodableAttributes()
+    var timestamp: Int64
+    var attributes: DecodableAttributes
 
     // Backtrace API requires unique event name to be a JSON array
     var name = [String]()
 
     init(name: String) {
-        self.timestamp = initialTimestamp()
-        self.attributes = initialAttributes()
+        self.timestamp = UniqueEvent.initialTimestamp()
+        self.attributes = UniqueEvent.initialAttributes()
         self.name.append(name)
     }
 

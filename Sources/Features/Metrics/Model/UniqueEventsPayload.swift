@@ -4,14 +4,15 @@ struct UniqueEventsPayload: Payload {
 
     typealias Event = UniqueEvent
 
-    var applicationName = String()
-    var applicationVersion = String()
-    var metadata = EventsMetadata()
-    var events = [UniqueEvent]()
+    var applicationName: String
+    var applicationVersion: String
+    var metadata: EventsMetadata
+    var events: [UniqueEvent]
 
     init(events: [UniqueEvent]) {
-        self.applicationName = getApplicationName()
-        self.applicationVersion = getApplicationVersion()
+        self.applicationName = UniqueEventsPayload.getApplicationName()
+        self.applicationVersion = UniqueEventsPayload.getApplicationVersion()
+        self.metadata = EventsMetadata()
         self.events = events
     }
 
