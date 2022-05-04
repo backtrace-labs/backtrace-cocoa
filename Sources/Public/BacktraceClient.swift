@@ -171,7 +171,9 @@ extension BacktraceClient: BacktraceReporting {
         }
 
         if self.configuration.detectOom {
-            self.reporter.enableOomWatcher()
+            if self.reporter.oomSupport {
+                self.reporter.enableOomWatcher()
+            }
         }
 
         try reporter.enableCrashReporter()
