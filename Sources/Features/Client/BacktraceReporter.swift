@@ -32,7 +32,7 @@ final class BacktraceReporter {
         let attributesProvider = AttributesProvider(reportHostName: dbSettings.reportHostName)
         self.attributesProvider = attributesProvider
         if #available(iOS 15.3.1, *) {
-            BacktraceLogger.debug("The OOM support is disadbled for this version of iOS. Skipping OOM check.")
+            BacktraceLogger.debug("The OOM support is disabled for this version of iOS. Skipping OOM check.")
             oomSupport = false
         }
         if(oomSupport == true){
