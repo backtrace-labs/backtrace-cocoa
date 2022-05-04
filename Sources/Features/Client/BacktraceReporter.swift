@@ -8,7 +8,6 @@ final class BacktraceReporter {
     private(set) var attributesProvider: SignalContext
     private(set) var backtraceOomWatcher: BacktraceOomWatcher!
     let repository: PersistentRepository<BacktraceReport>
-    var oomSupport : Bool = true
 
     #if os(macOS)
     lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
@@ -33,9 +32,7 @@ final class BacktraceReporter {
         self.attributesProvider = attributesProvider
         if #available(iOS 15.3.1, *) {
             BacktraceLogger.debug("The OOM support is disabled for this version of iOS. Skipping OOM check.")
-            oomSupport = false
-        }
-        if(oomSupport == true){
+        }else{
             self.backtraceOomWatcher = BacktraceOomWatcher(
                 repository: self.repository,
                 crashReporter: self.reporter,
