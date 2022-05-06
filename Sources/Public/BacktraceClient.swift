@@ -171,7 +171,11 @@ extension BacktraceClient: BacktraceReporting {
         }
 
         if self.configuration.detectOom {
-            self.reporter.enableOomWatcher()
+            if #available(iOS 15.3.1, *) {
+                BacktraceLogger.debug("Not enabling OomWatcher for iOS 15.3.1+")
+            }else{
+                self.reporter.enableOomWatcher()
+            }
         }
 
         try reporter.enableCrashReporter()
