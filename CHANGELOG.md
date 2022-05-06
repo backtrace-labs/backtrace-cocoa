@@ -1,5 +1,8 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.7.2
+- Disable OOM reports for 15.3.1+ for backtrace-cocoa (so invalid OOM reports don't crash it)
+
 ## Version 1.7.1
 - Make `hostname` attribute optional to prevent end-user from getting Local Network permissions pop-up
 
