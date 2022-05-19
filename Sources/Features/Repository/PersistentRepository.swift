@@ -24,10 +24,18 @@ final class PersistentRepository<Resource: PersistentStorable> {
         self.settings = settings
 
         let momdName = "Model"
+#if SWIFT_PACKAGE
+        guard let strURL = Bundle.module.path(forResource:momdName, ofType:"momd"), let modelURL = URL(string: strURL) else {
+            throw RepositoryError
+                .persistentRepositoryInitError(details: "Couldn't find model url for name: \(momdName)")
+        }
+#else
         guard let modelURL = Bundle(for: type(of: self)).url(forResource: momdName, withExtension: "momd") else {
             throw RepositoryError
                 .persistentRepositoryInitError(details: "Couldn't find model url for name: \(momdName)")
         }
+#endif
+        
         guard let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
             // swiftlint:disable line_length
             throw RepositoryError.persistentRepositoryInitError(details: "Couldn't create `NSManagedObjectModel` using model file at url: \(modelURL)")
