@@ -1,5 +1,5 @@
 import Foundation
-import Backtrace_PLCrashReporter
+import CrashReporter
 
 /// A wrapper around `PLCrashReporter`.
 @objc public class BacktraceCrashReporter: NSObject {
@@ -48,7 +48,7 @@ extension BacktraceCrashReporter: CrashReporting {
                             attributes: Attributes,
                             attachmentPaths: [String] = []) throws -> BacktraceReport {
 
-        let reportData = try reporter.generateLiveReport(with: exception)
+        let reportData = try reporter.generateLiveReportAndReturnError()
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
 

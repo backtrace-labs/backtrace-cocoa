@@ -58,7 +58,7 @@ import Foundation
         log(level: .error, msg: msg, file: file, function: function, line: line)
     }
 
-    private class func log(level: BacktraceLogLevel, msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
+    private class func log(level: BacktraceLogLevel, msg: () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
         let message = String(describing: msg())
         destinations
             .filter { $0.shouldLog(level: level) }

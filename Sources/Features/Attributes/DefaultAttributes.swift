@@ -1,6 +1,7 @@
 // swiftlint:disable type_name
 import Foundation
 import CoreLocation
+import UIKit
 
 final class FaultInfo: AttributesSource {
     var faultMessage: String?
@@ -203,7 +204,7 @@ struct LibInfo: AttributesSource {
     var immutable: [String: Any?] {
         return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
                 "lang.name": LibInfo.applicationLangName,
-                "lang.version": BacktraceVersionNumber]
+                "lang.version": Bundle.main.releaseVersionNumber]
     }
 
     static private func guid(store: UserDefaultsStore.Type) -> UUID {
@@ -232,7 +233,7 @@ struct MetricsInfo: AttributesSource {
 
     var immutable: [String: Any?] {
         return MetricsInfo.isMetricsEnabled ?
-            ["application.version": Backtrace.applicationVersion,
+            ["application.version": Bundle.main.releaseVersionNumber,
              "application.session": MetricsInfo.session] :
             [:]
     }
