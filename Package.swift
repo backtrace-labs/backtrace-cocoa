@@ -6,7 +6,9 @@ import PackageDescription
 let package = Package(
     name: "Backtrace",
     platforms: [
-        .iOS(.v10)
+        .iOS(.v10),
+        .macOS(.v10_10),
+        .tvOS(.v12)
     ],
     products: [
         .library(

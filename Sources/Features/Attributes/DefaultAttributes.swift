@@ -1,7 +1,11 @@
 // swiftlint:disable type_name
 import Foundation
 import CoreLocation
+#if !os(macOS)
 import UIKit
+#else
+import AppKit
+#endif
 
 final class FaultInfo: AttributesSource {
     var faultMessage: String?

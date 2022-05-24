@@ -60,17 +60,14 @@ end
 
 target 'Example-iOS-ObjC' do
     use_frameworks!
-    local_backtrace
 end
 
 target 'Example-macOS-ObjC' do
     use_frameworks!
-    local_backtrace
 end
 
 target 'Example-tvOS' do
     use_frameworks!
-    local_backtrace
 end
 
 # Post install configuration
