@@ -25,9 +25,11 @@ final class PersistentRepository<Resource: PersistentStorable> {
 
         let momdName = "Model"
         var modelURL: URL?
+#if SWIFT_PACKAGE
         if let strURL = Bundle.module.path(forResource:momdName, ofType:"momd") {
             modelURL = URL(string: strURL)
         }
+#endif
         if modelURL == nil {
             modelURL = Bundle(for: type(of: self)).url(forResource: momdName, withExtension: "momd")
         }
