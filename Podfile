@@ -4,7 +4,7 @@ source 'https://cdn.cocoapods.org/'
 
 # Definitions
 def shared_pods
-    pod 'Backtrace-PLCrashReporter'
+    pod 'PLCrashReporter'
 end
 
 def shared_test_pods

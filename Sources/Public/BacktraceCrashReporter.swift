@@ -1,9 +1,5 @@
 import Foundation
-#if canImport(CrashReporter)
 import CrashReporter
-#elseif canImport(Backtrace_PLCrashReporter)
-import Backtrace_PLCrashReporter
-#endif
 
 
 /// A wrapper around `PLCrashReporter`.
@@ -52,12 +48,7 @@ extension BacktraceCrashReporter: CrashReporting {
     func generateLiveReport(exception: NSException? = nil,
                             attributes: Attributes,
                             attachmentPaths: [String] = []) throws -> BacktraceReport {
-
-#if SWIFT_PACKAGE
         let reportData = try reporter.generateLiveReportAndReturnError()
-#else
-        let reportData = try reporter.generateLiveReport(with: exception)
-#endif
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
 

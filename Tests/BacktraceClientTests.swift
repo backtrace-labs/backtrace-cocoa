@@ -2,7 +2,7 @@ import XCTest
 
 import Nimble
 import Quick
-import Backtrace_PLCrashReporter
+import CrashReporter
 @testable import Backtrace
 
 final class BacktraceClientTests: QuickSpec {
