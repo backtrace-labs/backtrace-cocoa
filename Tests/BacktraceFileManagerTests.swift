@@ -28,7 +28,15 @@ final class BacktraceFileManagerTests: QuickSpec {
                     throwingContext("given existing file") {
                         it("excludes file from backup") {
                             let bundle = Bundle(for: type(of: self))
-                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
+                            var filePath: String?
+#if SWIFT_PACKAGE
+                            filePath = Bundle.module.path(forResource:"test", ofType:"txt")
+#endif
+                            if filePath == nil {
+                                filePath = bundle.path(forResource: "test", ofType: "txt")
+                            }
+            
+                            guard let path = filePath else { fail(); return }
                             let url = URL(fileURLWithPath: path)
                             expect {
                                 try BacktraceFileManager.excludeFromBackup(url)
@@ -56,7 +64,15 @@ final class BacktraceFileManagerTests: QuickSpec {
                     throwingContext("given existing file") {
                         it("gets the size of a file") {
                             let bundle = Bundle(for: type(of: self))
-                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
+                            var filePath: String?
+#if SWIFT_PACKAGE
+                            filePath = Bundle.module.path(forResource:"test", ofType:"txt")
+#endif
+                            if filePath == nil {
+                                filePath = bundle.path(forResource: "test", ofType: "txt")
+                            }
+            
+                            guard let path = filePath else { fail(); return }
                             let url = URL(fileURLWithPath: path)
                             expect {
                                 try BacktraceFileManager.sizeOfFile(at: url)

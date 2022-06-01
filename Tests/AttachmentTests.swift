@@ -14,7 +14,11 @@ final class AttachmentTests: QuickSpec {
 
             it("can be created from existing file") {
                 let bundle = Bundle(for: type(of: self))
-                let path = bundle.path(forResource: "test", ofType: "txt")
+#if SWIFT_PACKAGE
+         let path = Bundle.module.path(forResource:"test", ofType:"txt")
+#else
+         let path = bundle.path(forResource: "test", ofType: "txt")
+#endif
                 if let path = path {
                     expect(Attachment(filePath: path)).toNot(beNil())
                 } else {

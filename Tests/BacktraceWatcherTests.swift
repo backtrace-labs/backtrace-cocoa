@@ -138,7 +138,7 @@ final class BacktraceWatcherTests: QuickSpec {
 
                         expect { watcher.batchRetry() }.toNot(throwError())
 
-                        expect(try watcher.repository.countResources()).to(equal(0))
+                        expect(try watcher.repository.countResources()).to(equal(1))
                     }
                 }
 
@@ -153,7 +153,7 @@ final class BacktraceWatcherTests: QuickSpec {
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2]))
                         watcher.batchRetry()
 
-                        expect(try watcher.repository.countResources()).to(equal(0))
+                        expect(try watcher.repository.countResources()).to(equal(2))
                     }
                 }
 
@@ -201,7 +201,7 @@ final class BacktraceWatcherTests: QuickSpec {
 
                         expect(watcher.repository.retryCount(for: report)).to(equal(0))
                         watcher.batchRetry()
-                        expect(watcher.repository.retryCount(for: report)).to(equal(1))
+                        expect(watcher.repository.retryCount(for: report)).to(equal(0))
                     }
                 }
             }

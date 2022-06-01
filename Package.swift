@@ -17,6 +17,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/microsoft/plcrashreporter.git", from: "1.10.0"),
+        .package(url: "https://github.com/Quick/Nimble.git", from: "9.1.1"),
+        .package(url: "https://github.com/Quick/Quick.git", from: "4.0.0")
     ],
     targets: [
         .target(
@@ -25,6 +27,18 @@ let package = Package(
                 .product(name: "CrashReporter", package: "plcrashreporter")
             ],
             path: "Sources"
+        ),
+        .testTarget(
+            name: "BacktraceTests",
+            dependencies: [
+                "Backtrace",
+                .product(name: "CrashReporter", package: "plcrashreporter"),
+                .product(name: "Nimble", package: "Nimble"),
+                .product(name: "Quick", package: "Quick")
+            ],
+            path: "Tests",
+            resources: [.process("Resources/test.txt")]
         )
     ]
 )
+

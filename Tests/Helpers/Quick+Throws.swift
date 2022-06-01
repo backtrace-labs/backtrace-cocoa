@@ -2,7 +2,11 @@ import XCTest
 
 import Nimble
 import Quick
-
+#if SWIFT_PACKAGE
+public typealias FileString = StaticString
+#else
+public typealias FileString = String
+#endif
 // MARK: Throwing extension for most common Quick methods.
 
 /**
@@ -49,7 +53,7 @@ public func throwingContext(_ description: String, flags: FilterFlags = [:], clo
     }
 }
 
-public func throwingIt(_ description: String, flags: FilterFlags = [:], file: String = #file, line: UInt = #line,
+public func throwingIt(_ description: String, flags: FilterFlags = [:], file: FileString = #file, line: UInt = #line,
                        closure: @escaping () throws -> Void) {
     it(description, flags: flags, file: file, line: line) {
         do {
