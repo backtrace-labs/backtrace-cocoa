@@ -387,7 +387,7 @@
 		0F44E4FF7064FDAB9C22A500 /* Pods-Backtrace-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		0FCF58387B60BFAB13EC0DE4 /* Pods-Example-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		1BD37485BCF0288739127B82 /* Pods-Backtrace-iOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOSTests.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-iOSTests/Pods-Backtrace-iOSTests.release.xcconfig"; sourceTree = "<group>"; };
-		28202B392847D9D200CAFDD0 /* backtrace-cocoa */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "backtrace-cocoa"; sourceTree = "<group>"; };
+		28202B3A2847E2F500CAFDD0 /* backtrace-cocoa */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "backtrace-cocoa"; sourceTree = "<group>"; };
 		282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceCrashExceptionApplication.swift; sourceTree = "<group>"; };
 		282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceWatcherTests.swift; sourceTree = "<group>"; };
 		2846E1F7222F1DE50035F98C /* NetworkReachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkReachability.swift; sourceTree = "<group>"; };
@@ -664,7 +664,7 @@
 		28B36DB328360B4B0021A020 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				28202B392847D9D200CAFDD0 /* backtrace-cocoa */,
+				28202B3A2847E2F500CAFDD0 /* backtrace-cocoa */,
 			);
 			name = Packages;
 			sourceTree = "<group>";

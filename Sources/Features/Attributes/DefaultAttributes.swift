@@ -208,7 +208,7 @@ struct LibInfo: AttributesSource {
     var immutable: [String: Any?] {
         return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
                 "lang.name": LibInfo.applicationLangName,
-                "lang.version": Bundle.main.releaseVersionNumber]
+                "lang.version": "2.0.0"]
     }
 
     static private func guid(store: UserDefaultsStore.Type) -> UUID {
@@ -237,7 +237,7 @@ struct MetricsInfo: AttributesSource {
 
     var immutable: [String: Any?] {
         return MetricsInfo.isMetricsEnabled ?
-            ["application.version": Bundle.main.releaseVersionNumber,
+            ["application.version": Backtrace.applicationVersion,
              "application.session": MetricsInfo.session] :
             [:]
     }
