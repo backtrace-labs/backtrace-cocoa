@@ -26,8 +26,7 @@ let package = Package(
             dependencies: [
                 .product(name: "CrashReporter", package: "plcrashreporter")
             ],
-            path: "Sources",
-            resources: [.process("Features/Resources/Model.xcdatamodeld")]
+            path: "Sources"
         ),
         .testTarget(
             name: "BacktraceTests",
