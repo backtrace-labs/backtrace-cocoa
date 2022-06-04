@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
   s.tvos.public_header_files = ["Backtrace-tvOS/**/*.h*"]
 
-  s.dependency "Backtrace-PLCrashReporter"
+  s.dependency "PLCrashReporter"
   s.resources = 'Sources/**/*.xcdatamodeld'
   s.swift_version = '4.2'
 end
