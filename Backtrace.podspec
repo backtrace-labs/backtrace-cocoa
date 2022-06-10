@@ -32,4 +32,6 @@ Pod::Spec.new do |s|
   s.dependency "PLCrashReporter"
   s.resources = 'Sources/**/*.xcdatamodeld'
   s.swift_version = '4.2'
+  s.static_framework = true
+
 end
