@@ -213,3 +213,31 @@ extension BacktraceClient: BacktraceMetricsProtocol {
         return self.metricsInstance
     }
 }
+
+#if os(iOS)
+extension BacktraceClient: BacktraceBreadcrumbProtocol {
+    public func addBreadcrumb(_ message: String, attributes: [String : Any], type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) -> Bool {
+        return configuration.addBreadcrumb(message, attributes: attributes, type: type, level: level)
+    }
+    
+    public func addBreadcrumb(_ message: String) -> Bool {
+        return configuration.addBreadcrumb(message)
+    }
+    
+    public func addBreadcrumb(_ message: String, attributes: [String : Any]) -> Bool {
+        return configuration.addBreadcrumb(message, attributes: attributes)
+    }
+    
+    public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) -> Bool {
+        return configuration.addBreadcrumb(message, type: type, level: level)
+    }
+    
+    public func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) -> Bool {
+        return configuration.addBreadcrumb(message, level: level)
+    }
+    
+    public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType) -> Bool {
+        return configuration.addBreadcrumb(message, type: type)
+    }
+}
+#endif

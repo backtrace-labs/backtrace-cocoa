@@ -14,6 +14,9 @@ import Foundation
     /// Error-free metrics settings
     @objc public var metricsSettings: BacktraceMetricsSettings = BacktraceMetricsSettings()
 
+    /// Breadcrumb settings.
+    @objc public var breadcrumbSetting: BacktraceBreadcrumb = BacktraceBreadcrumb()
+    
     /// Number of records sent in 1 minute. Default `30`.
     @objc public var reportsPerMin: Int = 30
 
@@ -50,4 +53,20 @@ import Foundation
         self.allowsAttachingDebugger = allowsAttachingDebugger
         self.detectOom = detectOOM
     }
+#if os(iOS)
+    public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all) {
+        breadcrumbSetting.enableBreadCrumbs(breadCrumbTypes)
+    }
+    
+    public func disableBreadCrumbs() {
+        breadcrumbSetting.disableBreadCrumbs()
+    }
+    
+    public func addBreadcrumb(_ message: String,
+                              attributes:[String:Any]? = nil,
+                              type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
+                              level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
+        return breadcrumbSetting.addBreadcrumb(message, attributes: attributes, type: type, level: level)
+    }
+#endif
 }

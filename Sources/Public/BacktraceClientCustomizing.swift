@@ -1,8 +1,13 @@
 import Foundation
 
 /// Type-alias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
+#if os(iOS)
+public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
+    BacktraceLogging & BacktraceMetricsProtocol & BacktraceBreadcrumbProtocol
+#else
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
     BacktraceLogging & BacktraceMetricsProtocol
+#endif
 
 /// Type-alias of passing attributes to library.
 public typealias Attributes = [String: Any]
