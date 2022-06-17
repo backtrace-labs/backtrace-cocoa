@@ -2,7 +2,7 @@ import Foundation
 
 @objc public class BacktraceBreadcrumbsLogManager: NSObject {
     
-    private var breadcrumbId = Date().timeIntervalSince1970
+    private var breadcrumbId = Date().millisecondsSince1970
     
     private var backtraceQueueFileHelper: BacktraceQueueFileHelper?
 
@@ -15,17 +15,19 @@ import Foundation
                               attributes:[String:Any]? = nil,
                               type: BacktraceBreadcrumbType,
                               level: BacktraceBreadcrumbLevel) -> Bool {
-        let time = Date().timeIntervalSince1970
+        let time = Date().millisecondsSince1970
         
         var info: [String: Any] = ["timestamp": time,
                     "id": breadcrumbId,
                     "level": level.info,
                     "type": type.info,
                     "message": message]
-        if let attributes = attributes {
+        if let attributes = attributes, attributes.keys.count > 0 {
+            var attribInfo: [String: Any] = [String: Any]()
             for attribute in attributes {
-                info[attribute.key] = attribute.value
+                attribInfo[attribute.key] = attribute.value
             }
+            info["attributes"] = attribInfo
         }
         
         if let result = backtraceQueueFileHelper?.addInfo(info), result == true {

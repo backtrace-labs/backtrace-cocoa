@@ -26,15 +26,22 @@ import Foundation
             }
             
             let fileURL = URL(fileURLWithPath: breadcrumbLogDirectory)
+            let content = try? String(contentsOf: fileURL, encoding: .utf8)
             do {
-                var content = try String(contentsOf: fileURL, encoding: .utf8)
-                let contentBytes = Data(content.utf8)
-                if contentBytes.count + textBytes.count > maxQueueFileSizeBytes {
-                    content = ""
+                var fullContent = ""
+                if let content = content {
+                    fullContent = content
                 }
-                
-                content.append("\n\(text)")
-                try content.write(to: fileURL, atomically: false, encoding: .utf8)
+                let contentBytes = Data(fullContent.utf8)
+                if contentBytes.count + textBytes.count > maxQueueFileSizeBytes {
+                    fullContent = ""
+                }
+                if fullContent.count == 0 {
+                    fullContent = text
+                } else {
+                    fullContent.append("\n\n\(text)")
+                }
+                try fullContent.write(to: fileURL, atomically: true, encoding: .utf8)
                 return true
             }
             catch {

@@ -13,19 +13,19 @@ import Foundation
     var info : String {
         switch self {
         case .manual:
-            return "MANUAL"
+            return "manual"
         case .log:
-            return "LOG"
+            return "log"
         case .navigation:
-            return "NAVIGATION"
+            return "navigation"
         case .http:
-            return "HTTP"
+            return "http"
         case .system:
-            return "SYSTEM"
+            return "system"
         case .user:
-            return "USER"
+            return "user"
         case .configuration:
-            return "CONFIGURATION"
+            return "configuration"
         }
     }
     
@@ -46,17 +46,17 @@ import Foundation
     var info : String {
         switch self {
         case .debug:
-            return "DEBUG"
+            return "debug"
         case .info:
-            return "INFO"
+            return "info"
         case .warning:
-            return "WARNING"
+            return "warning"
         case .http:
-            return "HTTP"
+            return "http"
         case .error:
-            return "ERROR"
+            return "error"
         case .fatal:
-            return "FATAL"
+            return "fatal"
         }
     }
     
@@ -86,7 +86,7 @@ import Foundation
     
     private var enabledBreadcrumbTypes = [BacktraceBreadcrumbType]()
         
-    private static let breadcrumbLogFileName = "bt-breadcrumbs-0.json";
+    private static let breadcrumbLogFileName = "bt-breadcrumbs-0";
 
     public static var DEFAULT_MAX_LOG_SIZE_BYTES = 64000;
         
