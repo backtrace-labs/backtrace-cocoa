@@ -53,16 +53,16 @@ import Foundation
         self.allowsAttachingDebugger = allowsAttachingDebugger
         self.detectOom = detectOOM
     }
-#if os(iOS)
-    public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all) {
+#if os(iOS)    
+    public func enableBreadCrumbs( breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all) {
         breadcrumbSetting.enableBreadCrumbs(breadCrumbTypes)
     }
     
-    public func disableBreadCrumbs() {
+    @objc public func disableBreadCrumbs() {
         breadcrumbSetting.disableBreadCrumbs()
     }
     
-    public func addBreadcrumb(_ message: String,
+    @objc public func addBreadcrumb(_ message: String,
                               attributes:[String:Any]? = nil,
                               type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                               level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {

@@ -44,5 +44,9 @@ import Foundation
         }
         return result ?? false
     }
+    
+    public var getCurrentBreadcrumbId: Int {
+        breadcrumbId
+    }
 }
 	

@@ -150,13 +150,16 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
 
-        guard let resource = try? reporter.generate(exception: exception,
+        guard var resource = try? reporter.generate(exception: exception,
                                                     attachmentPaths: attachmentPaths,
                                                     faultMessage: faultMessage) else {
             completion(BacktraceResult(.unknownError))
             return
         }
 
+//         Check breadcrumb and attach report
+        configuration.breadcrumbSetting.processReportBreadcrumbs(&resource)
+        
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             completion(self.reporter.send(resource: resource))

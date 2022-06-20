@@ -92,14 +92,18 @@ import Foundation
         
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     
+    private func breadcrumbLogPath() throws -> String {
+        var fileURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        fileURL.appendPathComponent(BacktraceBreadcrumb.breadcrumbLogFileName)
+        return fileURL.path
+    }
+    
     public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all , maxLogSize: Int = DEFAULT_MAX_LOG_SIZE_BYTES) {
         self.enabledBreadcrumbTypes = breadCrumbTypes
         
         do {
-             var fileURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            fileURL.appendPathComponent(BacktraceBreadcrumb.breadcrumbLogFileName)
-                print(fileURL.path)
-            breadcrumbsLogManager = BacktraceBreadcrumbsLogManager(fileURL.path, maxQueueFileSizeBytes: BacktraceBreadcrumb.DEFAULT_MAX_LOG_SIZE_BYTES)
+            let fileURLPath = try breadcrumbLogPath()
+            breadcrumbsLogManager = BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: BacktraceBreadcrumb.DEFAULT_MAX_LOG_SIZE_BYTES)
             
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enable breadcrumbs")
@@ -122,5 +126,25 @@ import Foundation
     
     private var isBreadcrumbsEnabled: Bool {
         return enabledBreadcrumbTypes.count > 0
+    }
+    
+    private var getCurrentBreadcrumbId : Int? {
+        return breadcrumbsLogManager?.getCurrentBreadcrumbId
+    }
+    
+    public func processReportBreadcrumbs(_ report: inout BacktraceReport) {
+        if !isBreadcrumbsEnabled {
+            return
+        }
+        guard let lastBreadcrumbId = getCurrentBreadcrumbId else {
+            return
+        }
+        do {
+            let fileURLPath = try breadcrumbLogPath()
+            report.attachmentPaths.append(fileURLPath)
+            report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
+        } catch {
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen process breadcrumbs report")
+        }
     }
 }
