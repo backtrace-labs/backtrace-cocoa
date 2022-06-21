@@ -53,8 +53,13 @@ import Foundation
         self.allowsAttachingDebugger = allowsAttachingDebugger
         self.detectOom = detectOOM
     }
-#if os(iOS)    
-    public func enableBreadCrumbs( breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all) {
+#if os(iOS)
+    @objc(enableBreadCrumbs:)
+    public func enableBreadCrumbs(breadCrumbTypes: Array<Int>) {
+        enableBreadCrumbs(breadCrumbTypes: breadCrumbTypes.compactMap({ BacktraceBreadcrumbType(rawValue: $0) }))
+    }
+    
+    public func enableBreadCrumbs(breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all) {
         breadcrumbSetting.enableBreadCrumbs(breadCrumbTypes)
     }
     
