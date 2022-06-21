@@ -30,7 +30,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
                                                                   allowsAttachingDebugger: true)
-        
+        backtraceConfiguration.enableBreadCrumbs()
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
@@ -54,6 +54,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
         
+        BacktraceClient.shared?.addBreadcrumb("Breadcrumb submission test")
         return true
     }
     

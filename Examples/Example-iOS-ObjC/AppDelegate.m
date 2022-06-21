@@ -27,6 +27,7 @@
                                                    reportsPerMin: 3
                                                    allowsAttachingDebugger: TRUE
                                                    detectOOM: FALSE];
+    [configuration enableBreadCrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     BacktraceClient.shared.delegate = self;
 
@@ -50,6 +51,8 @@
         NSLog(@"%@", result);
     }];
 
+    
+    [[BacktraceClient shared] addBreadcrumb:@"Breadcrumb submission test"];
     return YES;
 }
 
