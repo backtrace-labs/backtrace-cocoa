@@ -36,7 +36,7 @@ import Foundation
                 if contentBytes.count + textBytes.count > maxQueueFileSizeBytes {
                     fullContent = ""
                 }
-                if fullContent.count == 0 {
+                if fullContent.isEmpty {
                     fullContent = text
                 } else {
                     fullContent.append("\n\n\(text)")

@@ -22,7 +22,7 @@ import Foundation
                     "level": level.info,
                     "type": type.info,
                     "message": message]
-        if let attributes = attributes, attributes.keys.count > 0 {
+        if let attributes = attributes, !attributes.keys.isEmpty {
             var attribInfo: [String: Any] = [String: Any]()
             for attribute in attributes {
                 attribInfo[attribute.key] = attribute.value

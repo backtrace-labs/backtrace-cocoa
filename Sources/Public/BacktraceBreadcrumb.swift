@@ -88,7 +88,7 @@ import Foundation
         
     private static let breadcrumbLogFileName = "bt-breadcrumbs-0";
 
-    public static var DEFAULT_MAX_LOG_SIZE_BYTES = 64000;
+    public static var defaultMaxLogSize = 64000;
         
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     
@@ -98,12 +98,12 @@ import Foundation
         return fileURL.path
     }
     
-    public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all , maxLogSize: Int = DEFAULT_MAX_LOG_SIZE_BYTES) {
+    public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all , maxLogSize: Int = defaultMaxLogSize) {
         self.enabledBreadcrumbTypes = breadCrumbTypes
         
         do {
             let fileURLPath = try breadcrumbLogPath()
-            breadcrumbsLogManager = BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: BacktraceBreadcrumb.DEFAULT_MAX_LOG_SIZE_BYTES)
+            breadcrumbsLogManager = BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: BacktraceBreadcrumb.defaultMaxLogSize)
             
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enable breadcrumbs")
@@ -125,7 +125,7 @@ import Foundation
     }
     
     private var isBreadcrumbsEnabled: Bool {
-        return enabledBreadcrumbTypes.count > 0
+        return !enabledBreadcrumbTypes.isEmpty
     }
     
     private var getCurrentBreadcrumbId : Int? {
