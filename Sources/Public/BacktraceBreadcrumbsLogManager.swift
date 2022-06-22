@@ -17,21 +17,20 @@ import Foundation
                               level: BacktraceBreadcrumbLevel) -> Bool {
         let time = Date().millisecondsSince1970
         
-        var info: [String: Any] = ["timestamp": time,
-                    "id": breadcrumbId,
-                    "level": level.info,
-                    "type": type.info,
-                    "message": message]
+        var breadcrumb: [String: Any] = ["timestamp": time,
+                                         "id": breadcrumbId,
+                                         "level": level.info,
+                                         "type": type.info,
+                                         "message": message]
         if let attributes = attributes, !attributes.keys.isEmpty {
             var attribInfo: [String: Any] = [String: Any]()
             for attribute in attributes {
                 attribInfo[attribute.key] = attribute.value
             }
-            info["attributes"] = attribInfo
+            breadcrumb["attributes"] = attribInfo
         }
-        
-        if let result = backtraceQueueFileHelper?.addInfo(info), result == true {
-            breadcrumbId += 1
+        breadcrumbId += 1
+        if let result = backtraceQueueFileHelper?.addInfo(breadcrumb), result == true {
             return result
         }
         return false

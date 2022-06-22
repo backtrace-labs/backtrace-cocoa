@@ -45,7 +45,7 @@ import Foundation
                 return true
             }
             catch {
-                BacktraceLogger.warning("\(error.localizedDescription) \nWhen ading breadcrumbs")
+                BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumbs")
                 return false
             }
         }
@@ -73,6 +73,7 @@ extension BacktraceQueueFileHelper {
             let content = try String(contentsOf: fileURL, encoding: .utf8)
             return convertStringIntoInfo(content)
         } catch {
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen try to read breadcrumbs log file")
             return nil
         }
     }
@@ -82,6 +83,7 @@ extension BacktraceQueueFileHelper {
             do {
                 return try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]]
             } catch {
+                BacktraceLogger.warning("\(error.localizedDescription) \nWhen try to convert text into json object")
                 return nil
             }
         }
@@ -89,10 +91,13 @@ extension BacktraceQueueFileHelper {
     }
     
     func convertInfoIntoString(_ info: Any) -> String? {
-        if let theJSONData = try? JSONSerialization.data( withJSONObject: info, options: []) {
+        do {
+            let theJSONData = try JSONSerialization.data( withJSONObject: info, options: [])
             let text = String(data: theJSONData, encoding: .ascii)
             return text
+        } catch {
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen try to convert json object into text")
+            return nil
         }
-        return nil
     }
 }

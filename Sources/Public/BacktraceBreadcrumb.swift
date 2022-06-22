@@ -144,7 +144,7 @@ import Foundation
             report.attachmentPaths.append(fileURLPath)
             report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
         } catch {
-            BacktraceLogger.warning("\(error.localizedDescription) \nWhen process breadcrumbs report")
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen processing breadcrumbs report")
         }
     }
 }
