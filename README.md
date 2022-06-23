@@ -445,11 +445,19 @@ BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration all
 ### Add Breadcrumbs <a name="documentation-add-breadcrumbs"><a/>
 - Swift
 ```swift
-BacktraceClient.shared?.addBreadcrumb("My Native Breadcrumb")
+let attributes = ["My Attribute":"My Attribute Value"]
+BacktraceClient.shared?.addBreadcrumb("My Native Breadcrumb",
+                                      attributes: attributes,
+                                      type: .user,
+                                      level: .error)
 ```
 - Objective-C
 ```objective-c
-[[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"];
+NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
+[[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
+                                 attributes:attributes
+                                       type:BacktraceBreadcrumbTypeUser
+                                      level:BacktraceBreadcrumbLevelError];
 ```
 
 ## Error-free metrics <a name="documentation-metrics"><a/>

@@ -52,7 +52,12 @@
     }];
 
     
-    [[BacktraceClient shared] addBreadcrumb:@"Breadcrumb submission test"];
+    
+    NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
+    [[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
+                                 attributes:attributes
+                                       type:BacktraceBreadcrumbTypeUser
+                                      level:BacktraceBreadcrumbLevelError];
     return YES;
 }
 
