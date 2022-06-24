@@ -8,34 +8,27 @@ final class BacktraceBreadcrumbTests: QuickSpec {
     
     override func spec() {
         describe("Breadcrumbs") {
-            let breadcrumb = BacktraceBreadcrumb()
-            
+            let credentials =
+                BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+            let dbSettings = BacktraceDatabaseSettings()
+            let reportsPerMin = 3
+            var configuration: BacktraceClientConfiguration!
+
+            beforeEach {
+                configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings,
+                                                                 reportsPerMin: reportsPerMin)
+            }
             context("breadcrumb is not enabled") {
                 it("fails to add breadcrumb") {
-                    let dbSettings = BacktraceDatabaseSettings()
-                    let reportsPerMin = 3
-                    let configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings,
-                                                                     reportsPerMin: reportsPerMin)
-                    
                     let result = configuration.addBreadcrumb("Breadcrumb submit test")
-
-                    let result = reporter.send(resource: backtraceReport)
-                    expect { result }.to(beFalse()())
+                    expect { result }.to(beFalse())
                 }
             }
-            
             context("breadcrumb is enabled") {
                 it("Able to add breadcrumb") {
-                    let dbSettings = BacktraceDatabaseSettings()
-                    let reportsPerMin = 3
-                    let configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings,
-                                                                     reportsPerMin: reportsPerMin)
                     configuration.enableBreadCrumbs()
-                    
                     let result = configuration.addBreadcrumb("Breadcrumb submit test")
-
-                    let result = reporter.send(resource: backtraceReport)
-                    expect { result }.to(beTrue()())
+                    expect { result }.to(beTrue())
                 }
             }
         }
