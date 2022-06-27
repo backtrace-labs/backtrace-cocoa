@@ -1,4 +1,5 @@
 import Foundation
+// swiftlint:disable trailing_whitespace
 
 @objc public enum BacktraceBreadcrumbType: Int {
     
@@ -124,11 +125,11 @@ import Foundation
         return false
     }
     
-    private var isBreadcrumbsEnabled: Bool {
+    var isBreadcrumbsEnabled: Bool {
         return !enabledBreadcrumbTypes.isEmpty
     }
     
-    private var getCurrentBreadcrumbId : Int? {
+    var getCurrentBreadcrumbId : Int? {
         return breadcrumbsLogManager?.getCurrentBreadcrumbId
     }
     
