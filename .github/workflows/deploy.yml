@@ -42,12 +42,12 @@ jobs:
         BACKTRACE_VERSION: ${{ github.ref_name }}
 
     - name: Tar files to preserve file permissions
-      run: tar -cvzf Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.sha }}.tar.gz Rome/ dSYM/
+      run: tar -cvzf Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}.tar.gz Rome/ dSYM/
 
     - uses: actions/upload-artifact@v3
       with:
-        name: Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.sha }}
-        path: Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.sha }}.tar.gz
+        name: Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}
+        path: Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}.tar.gz
         
   upload-to-github-release:
     runs-on: ubuntu-latest
@@ -60,10 +60,6 @@ jobs:
         id: download
         with:
           path: artifacts/
-
-      - name: 'Echo download path'
-        if: env.ACTIONS_STEP_DEBUG 
-        run: echo ${{steps.download.outputs.download-path}}
 
       - uses: xresloader/upload-to-github-release@v1
         env:
