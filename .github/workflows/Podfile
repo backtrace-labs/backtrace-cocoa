@@ -1,12 +1,19 @@
+# We do not support iOS <10, so set that as minimum
 platform :ios, '10.0'
 
 plugin 'cocoapods-rome', { :pre_compile => Proc.new { |installer|
     installer.pods_project.targets.each do |target|
         target.build_configurations.each do |config|
-            config.build_settings['SWIFT_VERSION'] = '4.2'
-            config.build_settings['ENABLE_BITCODE'] = ENV['ENABLE_BITCODE']
+            # Based on environment variable, either build with our without Swift libraries embedded (needed for iOS <12.2)
             config.build_settings['ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES'] = ENV['SWIFT_EMBEDDED']
+            # This Swift version works on older iPhone devices
+            config.build_settings['SWIFT_VERSION'] = '4.2'
+            # Based on environment variable, either build with our without Bitcode
+            config.build_settings['ENABLE_BITCODE'] = ENV['ENABLE_BITCODE']
+
+            # Exclude building for arm64 simulator (M1 chipset). XCFrameworks are needed to support this properly, future work
             config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+            # These two options seem to be defaults already, so probably not critical
             config.build_settings['VALIDATE_WORKSPACE'] = 'YES'
             config.build_settings['BUILD_LIBRARIES_FOR_DISTRIBUTION'] = 'YES'
         end
