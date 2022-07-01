@@ -6,7 +6,7 @@ plugin 'cocoapods-rome', { :pre_compile => Proc.new { |installer|
         target.build_configurations.each do |config|
             # Based on environment variable, either build with our without Swift libraries embedded (needed for iOS <12.2)
             config.build_settings['ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES'] = ENV['SWIFT_EMBEDDED']
-            # This Swift version works on older iPhone devices
+            # This Swift version works on older iOS 10 devices, and will not be used for iOS >12.2. https://developer.apple.com/documentation/xcode-release-notes/swift-5-release-notes-for-xcode-10_2
             config.build_settings['SWIFT_VERSION'] = '4.2'
             # Based on environment variable, either build with our without Bitcode
             config.build_settings['ENABLE_BITCODE'] = ENV['ENABLE_BITCODE']
