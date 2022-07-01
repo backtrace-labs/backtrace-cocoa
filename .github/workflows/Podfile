@@ -10,6 +10,7 @@ plugin 'cocoapods-rome', { :pre_compile => Proc.new { |installer|
             config.build_settings['SWIFT_VERSION'] = '4.2'
             # Based on environment variable, either build with our without Bitcode
             config.build_settings['ENABLE_BITCODE'] = ENV['ENABLE_BITCODE']
+            config.build_settings['BITCODE_GENERATION_MODE'] = 'bitcode'
 
             # Exclude building for arm64 simulator (M1 chipset). XCFrameworks are needed to support this properly, future work
             config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
