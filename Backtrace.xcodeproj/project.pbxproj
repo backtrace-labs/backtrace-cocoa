@@ -11,6 +11,9 @@
 		0B6B4CFE25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
 		0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
 		12138C4213111360CFE52AF0 /* Pods_Example_macOS_ObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FCAE8C17A6857F9656EC43A8 /* Pods_Example_macOS_ObjC.framework */; };
+		281193A6287361D5005D2216 /* BacktraceComponentListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281193A5287361D5005D2216 /* BacktraceComponentListener.swift */; };
+		281193A7287361D5005D2216 /* BacktraceComponentListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281193A5287361D5005D2216 /* BacktraceComponentListener.swift */; };
+		281193A8287361D5005D2216 /* BacktraceComponentListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281193A5287361D5005D2216 /* BacktraceComponentListener.swift */; };
 		282C85E7223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */; };
 		282C85EA22419C560014FE75 /* BacktraceWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */; };
 		282C85EB22419C600014FE75 /* BacktraceWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */; };
@@ -396,6 +399,7 @@
 		0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceOomWatcher.swift; sourceTree = "<group>"; };
 		0D7287BDD6CBEA34C43C267F /* Pods_Backtrace_iOSTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_iOSTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		126A69BE01AF731E7D52BD29 /* Pods-Example-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-iOS.release.xcconfig"; path = "Target Support Files/Pods-Example-iOS/Pods-Example-iOS.release.xcconfig"; sourceTree = "<group>"; };
+		281193A5287361D5005D2216 /* BacktraceComponentListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceComponentListener.swift; sourceTree = "<group>"; };
 		282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceCrashExceptionApplication.swift; sourceTree = "<group>"; };
 		282C85E822419BB10014FE75 /* BacktraceWatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceWatcherTests.swift; sourceTree = "<group>"; };
 		2846E1F7222F1DE50035F98C /* NetworkReachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkReachability.swift; sourceTree = "<group>"; };
@@ -955,6 +959,7 @@
 				28A652EB285C6C1500306631 /* BacktraceBreadcrumbsLogManager.swift */,
 				28A652E9285C6C1400306631 /* BacktraceQueueFileHelper.swift */,
 				28A652F9285C6DBC00306631 /* BacktraceBreadcrumb.swift */,
+				281193A5287361D5005D2216 /* BacktraceComponentListener.swift */,
 				F2AFB5A022274F1000AAA1D7 /* Internal */,
 			);
 			path = Public;
@@ -1929,6 +1934,7 @@
 				28F95BD022526064003936E0 /* BacktraceClient.swift in Sources */,
 				28F95BCD2252605A003936E0 /* BacktraceClientDelegate.swift in Sources */,
 				28F95BC92252602C003936E0 /* Foundation+Extensions.swift in Sources */,
+				281193A8287361D5005D2216 /* BacktraceComponentListener.swift in Sources */,
 				28F95BD622526078003936E0 /* DebuggerChecker.swift in Sources */,
 				28A65308285D1BF700306631 /* Date+Extensions.swift in Sources */,
 				28A65300285CDC1F00306631 /* BacktraceBreadcrumb.swift in Sources */,
@@ -2073,6 +2079,7 @@
 				6EB713F1276125760075D1C1 /* BacktraceMetricsSender.swift in Sources */,
 				F26EBF3B23F21BC700A64218 /* BacktraceRateLimiter.swift in Sources */,
 				6EB713F527617ED00075D1C1 /* BacktraceMetricsContainer.swift in Sources */,
+				281193A7287361D5005D2216 /* BacktraceComponentListener.swift in Sources */,
 				F28F165221E2A08F008E4B96 /* HttpMethod.swift in Sources */,
 				0B6B4CFE25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				F29CD78E21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */,
@@ -2144,6 +2151,7 @@
 				F240532121C578AA00FC9394 /* BacktraceLogger.swift in Sources */,
 				28AC773C21FA5A8400FED661 /* BacktraceDatabaseSettings.swift in Sources */,
 				F2CC8ACB21CF8D8400A68CAC /* Dispatcher.swift in Sources */,
+				281193A6287361D5005D2216 /* BacktraceComponentListener.swift in Sources */,
 				F2AFB59D22274EDA00AAA1D7 /* Dispatching.swift in Sources */,
 				28A65306285D1BF700306631 /* Date+Extensions.swift in Sources */,
 				2846E1F8222F1DE60035F98C /* NetworkReachability.swift in Sources */,

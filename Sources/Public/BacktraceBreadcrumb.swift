@@ -93,6 +93,8 @@ import Foundation
         
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     
+    private var backtraceComponentListener: BacktraceComponentListener?
+    
     private func breadcrumbLogPath() throws -> String {
         var fileURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         fileURL.appendPathComponent(BacktraceBreadcrumb.breadcrumbLogFileName)
@@ -100,12 +102,13 @@ import Foundation
     }
     
     public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all , maxLogSize: Int = defaultMaxLogSize) {
-        self.enabledBreadcrumbTypes = breadCrumbTypes
-        
         do {
             let fileURLPath = try breadcrumbLogPath()
             breadcrumbsLogManager = BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: BacktraceBreadcrumb.defaultMaxLogSize)
-            
+            enabledBreadcrumbTypes = breadCrumbTypes
+            if let _ = breadCrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
+                backtraceComponentListener = BacktraceComponentListener()
+            }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enable breadcrumbs")
         }
