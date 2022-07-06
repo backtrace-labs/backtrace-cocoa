@@ -92,9 +92,9 @@ import Foundation
     public static var defaultMaxLogSize = 64000;
         
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
-    
+#if os(iOS)
     private var backtraceComponentListener: BacktraceComponentListener?
-    
+#endif
     private func breadcrumbLogPath() throws -> String {
         var fileURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         fileURL.appendPathComponent(BacktraceBreadcrumb.breadcrumbLogFileName)
@@ -106,9 +106,11 @@ import Foundation
             let fileURLPath = try breadcrumbLogPath()
             breadcrumbsLogManager = BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: BacktraceBreadcrumb.defaultMaxLogSize)
             enabledBreadcrumbTypes = breadCrumbTypes
+#if os(iOS)
             if let _ = breadCrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
                 backtraceComponentListener = BacktraceComponentListener()
             }
+#endif
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enable breadcrumbs")
         }
@@ -116,6 +118,9 @@ import Foundation
     
     public func disableBreadCrumbs() {
         enabledBreadcrumbTypes.removeAll()
+#if os(iOS)
+        self.backtraceComponentListener = nil
+#endif
     }
     
     public func addBreadcrumb(_ message: String,
