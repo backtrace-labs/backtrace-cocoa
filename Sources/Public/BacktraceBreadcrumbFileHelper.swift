@@ -1,11 +1,11 @@
 import Foundation
 import Cassette
 
-enum BacktraceQueueFileError: Error {
+enum BacktraceBreadcrumbFileHelperError: Error {
     case invalidFormat
 }
 
-@objc public class BacktraceQueueFileHelper: NSObject {
+@objc public class BacktraceBreadcrumbFileHelper: NSObject {
     
     private var minimumQueueFileSizeBytes = 4096;
     private var maxQueueFileSizeBytes = 0
@@ -13,14 +13,14 @@ enum BacktraceQueueFileError: Error {
         
     private var queue: QueueFile?
     
-    private lazy var queueByteSize: Int = {
+    private var queueByteSize: Int {
         var size = 0
         queue?.forEach({ data in
             size += data?.count ?? 0
             return true
         })
        return size
-    }()
+    }
     
     public init(_ breadcrumbLogDirectory: String, maxQueueFileSizeBytes: Int) {
         super.init()
@@ -45,8 +45,8 @@ enum BacktraceQueueFileError: Error {
                 BacktraceLogger.error("We should not have a breadcrumb this big, this is a bug!")
                 return false
             }
-            if queueByteSize + textBytes.count > maxQueueFileSizeBytes {
-                queue?.clear()
+            while queueByteSize + textBytes.count > maxQueueFileSizeBytes {
+                queue?.remove()
             }
             queue?.add(textBytes)
             return true
@@ -62,13 +62,13 @@ enum BacktraceQueueFileError: Error {
 }
 
 
-extension BacktraceQueueFileHelper {
+extension BacktraceBreadcrumbFileHelper {
     
     func convertBreadcrumbIntoString(_ breadcrumb: Any) throws -> String {
         let breadcrumbData = try JSONSerialization.data( withJSONObject: breadcrumb, options: [])
-        if let breadcrumbText = String(data: breadcrumbData, encoding: .ascii) {
+        if let breadcrumbText = String(data: breadcrumbData, encoding: .utf8) {
             return breadcrumbText
         }
-        throw BacktraceQueueFileError.invalidFormat
+        throw BacktraceBreadcrumbFileHelperError.invalidFormat
     }
 }

@@ -4,11 +4,11 @@ import Foundation
     
     private var breadcrumbId = Date().millisecondsSince1970
     
-    private var backtraceQueueFileHelper: BacktraceQueueFileHelper?
+    private var backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper?
 
     public init(_ breadcrumbLogPath: String, maxQueueFileSizeBytes: Int) {
         super.init()
-        self.backtraceQueueFileHelper = BacktraceQueueFileHelper(breadcrumbLogPath, maxQueueFileSizeBytes: maxQueueFileSizeBytes)
+        self.backtraceBreadcrumbFileHelper = BacktraceBreadcrumbFileHelper(breadcrumbLogPath, maxQueueFileSizeBytes: maxQueueFileSizeBytes)
     }
     
     public func addBreadcrumb(_ message: String,
@@ -30,14 +30,14 @@ import Foundation
             breadcrumb["attributes"] = attribInfo
         }
         breadcrumbId += 1
-        if let result = backtraceQueueFileHelper?.addBreadcrumb(breadcrumb), result == true {
+        if let result = backtraceBreadcrumbFileHelper?.addBreadcrumb(breadcrumb), result == true {
             return result
         }
         return false
     }
     
     public func clear() -> Bool {
-        let result = backtraceQueueFileHelper?.clear()
+        let result = backtraceBreadcrumbFileHelper?.clear()
         if result == true {
             breadcrumbId = 0;
         }
