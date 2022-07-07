@@ -19,7 +19,7 @@ inhibit_all_warnings!
 target 'Backtrace-iOS' do
     use_frameworks!
     shared_pods
-
+    pod 'Cassette'
     target 'Backtrace-iOSTests' do
         inherit! :search_paths
         shared_test_pods
@@ -48,7 +48,7 @@ end
 
 # Examples
 
-## Definitions
+## Definitions	
 def local_backtrace
     pod 'Backtrace', :path => "./Backtrace.podspec"
 end

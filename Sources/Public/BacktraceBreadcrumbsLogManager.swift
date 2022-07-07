@@ -30,7 +30,7 @@ import Foundation
             breadcrumb["attributes"] = attribInfo
         }
         breadcrumbId += 1
-        if let result = backtraceQueueFileHelper?.addInfo(breadcrumb), result == true {
+        if let result = backtraceQueueFileHelper?.addBreadcrumb(breadcrumb), result == true {
             return result
         }
         return false
