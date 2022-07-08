@@ -68,13 +68,13 @@ import Foundation
     
     private func getMemoryWarningText(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) -> String {
         if memoryPressureEvent.rawValue == DispatchSource.MemoryPressureEvent.normal.rawValue {
-            return "Generic memory warning"
+            return "Normal level memory pressure event"
         } else if memoryPressureEvent.rawValue == DispatchSource.MemoryPressureEvent.critical.rawValue {
-            return "TRIM MEMORY RUNNING CRITICAL"
+            return "Critical level memory pressure event"
         } else if memoryPressureEvent.rawValue == DispatchSource.MemoryPressureEvent.warning.rawValue {
-            return "TRIM MEMORY RUNNING WARNING"
+            return "Warning level memory pressure event"
         } else {
-            return "Generic memory warning"
+            return "Unspecified level memory pressure event"
         }
     }
     
@@ -86,7 +86,7 @@ import Foundation
         } else if memoryPressureEvent.rawValue == DispatchSource.MemoryPressureEvent.warning.rawValue {
             return .error
         } else {
-            return .warning
+            return .debug
         }
     }
     
