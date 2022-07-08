@@ -13,6 +13,11 @@ def shared_test_pods
     pod 'Quick'
 end
 
+def shared_test_iOS_pods
+    shared_test_pods
+    pod 'Cassette'
+end
+
 inhibit_all_warnings!
 
 ## Framework iOS
@@ -22,7 +27,7 @@ target 'Backtrace-iOS' do
     pod 'Cassette'
     target 'Backtrace-iOSTests' do
         inherit! :search_paths
-        shared_test_pods
+        shared_test_iOS_pods
     end
 end
 
