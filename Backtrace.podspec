@@ -25,8 +25,8 @@ Pod::Spec.new do |s|
   s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.{h*,swift}"]
   s.tvos.source_files = ["Sources/**/*.{swift}", "Backtrace-tvOS/**/*.{h*,swift}"]
   
-  s.osx.exclude_files = ["Sources/**/BacktraceComponentListener.{swift}"]
-  s.tvos.exclude_files = ["Sources/**/BacktraceComponentListener.{swift}"]
+  s.osx.exclude_files = ["Sources/Features/Breadcrumb/**/*.{swift}"]
+  s.tvos.exclude_files = ["Sources/Features/Breadcrumb/**/*.{swift}"]
   
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]

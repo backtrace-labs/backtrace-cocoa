@@ -1,22 +1,21 @@
 import Foundation
 
-@objc public class BacktraceBreadcrumbsLogManager: NSObject {
+@objc class BacktraceBreadcrumbsLogManager: NSObject {
     
     private var breadcrumbId = Date().millisecondsSince1970
     
     private var backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper?
 
-    public init(_ breadcrumbLogPath: String, maxQueueFileSizeBytes: Int) {
+    init(_ breadcrumbLogPath: String, maxQueueFileSizeBytes: Int) {
         super.init()
         self.backtraceBreadcrumbFileHelper = BacktraceBreadcrumbFileHelper(breadcrumbLogPath, maxQueueFileSizeBytes: maxQueueFileSizeBytes)
     }
     
-    public func addBreadcrumb(_ message: String,
-                              attributes:[String:Any]? = nil,
-                              type: BacktraceBreadcrumbType,
-                              level: BacktraceBreadcrumbLevel) -> Bool {
+    func addBreadcrumb(_ message: String,
+                       attributes:[String:Any]? = nil,
+                       type: BacktraceBreadcrumbType,
+                       level: BacktraceBreadcrumbLevel) -> Bool {
         let time = Date().millisecondsSince1970
-        
         var breadcrumb: [String: Any] = ["timestamp": time,
                                          "id": breadcrumbId,
                                          "level": level.info,
@@ -36,7 +35,7 @@ import Foundation
         return false
     }
     
-    public func clear() -> Bool {
+    func clear() -> Bool {
         let result = backtraceBreadcrumbFileHelper?.clear()
         if result == true {
             breadcrumbId = 0;
@@ -44,7 +43,7 @@ import Foundation
         return result ?? false
     }
     
-    public var getCurrentBreadcrumbId: Int {
+    var getCurrentBreadcrumbId: Int {
         breadcrumbId
     }
 }

@@ -24,7 +24,6 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     
     public init(_ breadcrumbLogDirectory: String, maxQueueFileSizeBytes: Int) {
         super.init()
-        print(breadcrumbLogDirectory)
         self.queue = QueueFile.init(path: breadcrumbLogDirectory)
         self.breadcrumbLogDirectory =  breadcrumbLogDirectory
         if (maxQueueFileSizeBytes < minimumQueueFileSizeBytes) {

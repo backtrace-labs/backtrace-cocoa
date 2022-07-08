@@ -87,12 +87,11 @@ import Foundation
     
     private var enabledBreadcrumbTypes = [BacktraceBreadcrumbType]()
         
-    private static let breadcrumbLogFileName = "bt-breadcrumbs-0";
+    private static let breadcrumbLogFileName = "bt-breadcrumbs-0"
 
     public static var defaultMaxLogSize = 64000;
-        
-    private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
 #if os(iOS)
+    private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     private var backtraceComponentListener: BacktraceComponentListener?
 #endif
     private func breadcrumbLogPath() throws -> String {
@@ -103,10 +102,10 @@ import Foundation
     
     public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all , maxLogSize: Int = defaultMaxLogSize) {
         do {
+#if os(iOS)
             let fileURLPath = try breadcrumbLogPath()
             breadcrumbsLogManager = BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: BacktraceBreadcrumb.defaultMaxLogSize)
             enabledBreadcrumbTypes = breadCrumbTypes
-#if os(iOS)
             if let _ = breadCrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
                 backtraceComponentListener = BacktraceComponentListener()
             }
@@ -127,9 +126,11 @@ import Foundation
                               attributes:[String:Any]? = nil,
                               type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                               level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
-        if  let breadcrumbsLogManager = breadcrumbsLogManager, isBreadcrumbsEnabled {
+#if os(iOS)
+        if let breadcrumbsLogManager = breadcrumbsLogManager, isBreadcrumbsEnabled {
             return breadcrumbsLogManager.addBreadcrumb(message, attributes: attributes, type: type, level: level)
         }
+#endif
         return false
     }
     
@@ -137,11 +138,13 @@ import Foundation
         return !enabledBreadcrumbTypes.isEmpty
     }
     
+#if os(iOS)
     var getCurrentBreadcrumbId : Int? {
         return breadcrumbsLogManager?.getCurrentBreadcrumbId
     }
-    
+#endif
     public func processReportBreadcrumbs(_ report: inout BacktraceReport) {
+#if os(iOS)
         if !isBreadcrumbsEnabled {
             return
         }
@@ -155,5 +158,6 @@ import Foundation
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen processing breadcrumbs report")
         }
+#endif
     }
 }
