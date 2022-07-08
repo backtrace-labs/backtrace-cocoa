@@ -50,7 +50,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     let result = breadCrumb?.addBreadcrumb("Breadcrumb submit test")
                     expect { result }.to(beFalse())
                     let breadcrumbText = self.readBreadcrumbText()
-                    expect { breadcrumbText?.contains("Breadcrumb submit test") }.to(beFalse())
+                    expect { breadcrumbText }.to(beNil())
                 }
             }
             context("breadcrumb is enabled") {
