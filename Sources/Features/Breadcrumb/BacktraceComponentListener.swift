@@ -23,15 +23,15 @@ import Foundation
     @objc private func notifyOrientationChange() {
         switch UIDevice.current.orientation{
             case .portrait, .portraitUpsideDown:
-                addBradcrumb("portrait")
+                addBreadcrumb("portrait")
             case .landscapeLeft, .landscapeRight:
-                addBradcrumb("landscape")
+                addBreadcrumb("landscape")
             default:
                 print("unknown")
         }
     }
     
-    private func addBradcrumb(_ orientation: String) {
+    private func addBreadcrumb(_ orientation: String) {
         let attributes = ["orientation": orientation]
         let _ = BacktraceClient.shared?.addBreadcrumb("Configuration changed",
                                                       attributes: attributes,
@@ -40,7 +40,7 @@ import Foundation
     }
     
     
-//MARK: Memroy Status Listener
+//MARK: Memory Status Listener
     
     @objc private func notifyMemoryStatusChange() {
         let _ = BacktraceClient.shared?.addBreadcrumb("Critical low memory warning!",
