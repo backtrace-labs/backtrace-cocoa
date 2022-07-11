@@ -3,16 +3,16 @@ import Foundation
 @objc class BacktraceBreadcrumbsLogManager: NSObject {
     
     private var breadcrumbId = Date().millisecondsSince1970
-    
-    private var backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper?
 
-    init(_ breadcrumbLogPath: String, maxQueueFileSizeBytes: Int) {
+    private let backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper
+
+    init(_ breadcrumbLogPath: String, maxQueueFileSizeBytes: Int) throws {
+        self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbLogPath, maxQueueFileSizeBytes: maxQueueFileSizeBytes)
         super.init()
-        self.backtraceBreadcrumbFileHelper = BacktraceBreadcrumbFileHelper(breadcrumbLogPath, maxQueueFileSizeBytes: maxQueueFileSizeBytes)
     }
-    
+
     func addBreadcrumb(_ message: String,
-                       attributes:[String:Any]? = nil,
+                       attributes: [String: Any]? = nil,
                        type: BacktraceBreadcrumbType,
                        level: BacktraceBreadcrumbLevel) -> Bool {
         let time = Date().millisecondsSince1970
@@ -21,6 +21,7 @@ import Foundation
                                          "level": level.info,
                                          "type": type.info,
                                          "message": message]
+
         if let attributes = attributes, !attributes.keys.isEmpty {
             var attribInfo: [String: Any] = [String: Any]()
             for attribute in attributes {
@@ -29,22 +30,18 @@ import Foundation
             breadcrumb["attributes"] = attribInfo
         }
         breadcrumbId += 1
-        if let result = backtraceBreadcrumbFileHelper?.addBreadcrumb(breadcrumb), result == true {
-            return result
-        }
-        return false
+        return backtraceBreadcrumbFileHelper.addBreadcrumb(breadcrumb)
     }
-    
+
     func clear() -> Bool {
-        let result = backtraceBreadcrumbFileHelper?.clear()
-        if result == true {
-            breadcrumbId = 0;
+        let result = backtraceBreadcrumbFileHelper.clear()
+        if result {
+            breadcrumbId = Date().millisecondsSince1970
         }
-        return result ?? false
+        return result
     }
-    
+
     var getCurrentBreadcrumbId: Int {
         breadcrumbId
     }
 }
-	

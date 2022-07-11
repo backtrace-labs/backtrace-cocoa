@@ -9,13 +9,18 @@ end
 
 def shared_test_pods
     shared_pods
-    pod 'Nimble'
-    pod 'Quick'
+    pod 'Nimble', '9.2.1'
+    pod 'Quick', '4.0.0'
+end
+
+def shared_iOS_pods
+    shared_pods
+    pod 'Cassette', '1.0.0-beta5'
 end
 
 def shared_test_iOS_pods
     shared_test_pods
-    pod 'Cassette'
+    shared_iOS_pods
 end
 
 inhibit_all_warnings!
@@ -23,8 +28,7 @@ inhibit_all_warnings!
 ## Framework iOS
 target 'Backtrace-iOS' do
     use_frameworks!
-    shared_pods
-    pod 'Cassette'
+    shared_iOS_pods
     target 'Backtrace-iOSTests' do
         inherit! :search_paths
         shared_test_iOS_pods
@@ -33,6 +37,7 @@ end
 
 ## Framework macOS
 target 'Backtrace-macOS' do
+    platform :osx, '10.11'
     use_frameworks!
     shared_pods
     target 'Backtrace-macOSTests' do
@@ -70,6 +75,7 @@ target 'Example-iOS-ObjC' do
 end
 
 target 'Example-macOS-ObjC' do
+    platform :osx, '10.11'
     use_frameworks!
     local_backtrace
 end

@@ -11,7 +11,7 @@ import Foundation
     case user = 6
     case configuration = 7
     
-    var info : String {
+    var info: String {
         switch self {
         case .manual:
             return "manual"
@@ -44,7 +44,7 @@ import Foundation
     case error = 5
     case fatal = 6
     
-    var info : String {
+    var info: String {
         switch self {
         case .debug:
             return "debug"
@@ -68,19 +68,24 @@ import Foundation
 
 @objc public protocol BacktraceBreadcrumbProtocol {
     @objc func addBreadcrumb(_ message: String,
-                        attributes: [String:Any],
-                        type: BacktraceBreadcrumbType,
-                        level: BacktraceBreadcrumbLevel) -> Bool
+                             attributes: [String: Any],
+                             type: BacktraceBreadcrumbType,
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
     @objc func addBreadcrumb(_ message: String) -> Bool
+
     @objc func addBreadcrumb(_ message: String,
-                        attributes: [String:Any]) -> Bool
+                             attributes: [String: Any]) -> Bool
+
     @objc func addBreadcrumb(_ message: String,
-                        type: BacktraceBreadcrumbType,
-                        level: BacktraceBreadcrumbLevel) -> Bool
+                             type: BacktraceBreadcrumbType,
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
     @objc func addBreadcrumb(_ message: String,
-                        level: BacktraceBreadcrumbLevel) -> Bool
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
     @objc func addBreadcrumb(_ message: String,
-                        type: BacktraceBreadcrumbType) -> Bool
+                             type: BacktraceBreadcrumbType) -> Bool
 }
 
 @objc public class BacktraceBreadcrumb: NSObject {
@@ -89,7 +94,7 @@ import Foundation
         
     private static let breadcrumbLogFileName = "bt-breadcrumbs-0"
 
-    public static var defaultMaxLogSize = 64000;
+    public static var defaultMaxLogSize = 64000
 #if os(iOS)
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     private var backtraceComponentListener: BacktraceComponentListener?
@@ -100,11 +105,12 @@ import Foundation
         return fileURL.path
     }
     
-    public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all , maxLogSize: Int = defaultMaxLogSize) {
+    public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all,
+                                  maxLogSize: Int = defaultMaxLogSize) {
         do {
 #if os(iOS)
             let fileURLPath = try breadcrumbLogPath()
-            breadcrumbsLogManager = BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: BacktraceBreadcrumb.defaultMaxLogSize)
+            breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: maxLogSize)
             enabledBreadcrumbTypes = breadCrumbTypes
             if let _ = breadCrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
                 backtraceComponentListener = BacktraceComponentListener()
@@ -123,7 +129,7 @@ import Foundation
     }
     
     public func addBreadcrumb(_ message: String,
-                              attributes:[String:Any]? = nil,
+                              attributes: [String: Any]? = nil,
                               type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                               level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
 #if os(iOS)
@@ -139,7 +145,7 @@ import Foundation
     }
     
 #if os(iOS)
-    var getCurrentBreadcrumbId : Int? {
+    var getCurrentBreadcrumbId: Int? {
         return breadcrumbsLogManager?.getCurrentBreadcrumbId
     }
 #endif

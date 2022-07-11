@@ -6,68 +6,106 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 }
 
 @objc public class BacktraceBreadcrumbFileHelper: NSObject {
-    
-    private var minimumQueueFileSizeBytes = 4096;
+
+    private static let minimumQueueFileSizeBytes = 4096
     private var maxQueueFileSizeBytes = 0
-    private var breadcrumbLogDirectory: String = ""
-        
-    private var queue: QueueFile?
-    
-    private var queueByteSize: Int {
-        var size = 0
-        queue?.forEach({ data in
-            size += data?.count ?? 0
-            return true
-        })
-       return size
-    }
-    
-    public init(_ breadcrumbLogDirectory: String, maxQueueFileSizeBytes: Int) {
-        super.init()
-        self.queue = QueueFile.init(path: breadcrumbLogDirectory)
-        self.breadcrumbLogDirectory =  breadcrumbLogDirectory
-        if (maxQueueFileSizeBytes < minimumQueueFileSizeBytes) {
-            self.maxQueueFileSizeBytes = minimumQueueFileSizeBytes;
-        } else {
-            self.maxQueueFileSizeBytes = maxQueueFileSizeBytes;
-        }
-    }
-     
-    func addBreadcrumb(_ breadcrumb:[String:Any]) -> Bool {
+    private var breadcrumbLogDirectory: String
+
+    private let queue: CASQueueFile
+
+    public init(_ breadcrumbLogDirectory: String, maxQueueFileSizeBytes: Int) throws {
         do {
-            var text = try convertBreadcrumbIntoString(breadcrumb)
-            if queue?.isEmpty() == false {
-                text = "\n\n\(text)"
-            }
+            self.queue = try CASQueueFile.init(path: breadcrumbLogDirectory)
+        } catch {
+            BacktraceLogger.error("\(error.localizedDescription) \nWhen enabling breadcrumbs")
+            throw error
+        }
+        self.breadcrumbLogDirectory =  breadcrumbLogDirectory
+
+        if maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
+            BacktraceLogger.warning("\(maxQueueFileSizeBytes) is smaller than the minimum of \(BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes), ignoring value.")
+            self.maxQueueFileSizeBytes = BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes
+        } else {
+            self.maxQueueFileSizeBytes = maxQueueFileSizeBytes
+        }
+
+        super.init()
+    }
+
+    private func queueByteSize() -> Int {
+        // This is the current fileLength of the QueueFile
+        guard let fileLength = queue.value(forKey: "fileLength") as? Int else {
+            BacktraceLogger.error("fileLength is not an Int, this is unexpected!")
+            return maxQueueFileSizeBytes
+        }
+
+        // let usedBytes = queue.value(forKey: "usedBytes") as? Int
+
+        // This is the remaining bytes before the file needs to be expanded
+        guard let remainingBytes = queue.value(forKey: "remainingBytes") as? Int else {
+            BacktraceLogger.error("remainingBytes is not an Int, this is unexpected!")
+            return 0
+        }
+
+        return fileLength - remainingBytes
+    }
+
+    func addBreadcrumb(_ breadcrumb: [String: Any]) -> Bool {
+        do {
+            let text = try convertBreadcrumbIntoString(breadcrumb)
+
             let textBytes = Data(text.utf8)
             if textBytes.count > 4096 {
                 BacktraceLogger.error("We should not have a breadcrumb this big, this is a bug!")
                 return false
             }
-            while queueByteSize + textBytes.count > maxQueueFileSizeBytes {
-                queue?.remove()
+            while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
+                queue.pop(1)
             }
-            queue?.add(textBytes)
+            queue.add(textBytes)
             return true
-        } catch  {
+        } catch {
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumb")
             return false
         }
     }
-    
+
     func clear() -> Bool {
-        queue?.clear()
+        queue.clear()
         return true
     }
 }
 
-
 extension BacktraceBreadcrumbFileHelper {
-    
+
     func convertBreadcrumbIntoString(_ breadcrumb: Any) throws -> String {
         let breadcrumbData = try JSONSerialization.data( withJSONObject: breadcrumb, options: [])
         if let breadcrumbText = String(data: breadcrumbData, encoding: .utf8) {
-            return breadcrumbText
+            return "\n\(breadcrumbText)\n"
         }
         throw BacktraceBreadcrumbFileHelperError.invalidFormat
     }
+}
+
+extension CASQueueFile {
+//    /**
+//     * Initial file size in bytes.
+//     */
+//    static NSUInteger const QueueFileInitialLength = 4096;
+//
+//    /**
+//     * Length of header in bytes.
+//     */
+//    static NSUInteger const QueueFileHeaderLength = 16;
+//
+//    /**
+//     * Length of element header in bytes.
+//     */
+//    static NSUInteger const ElementHeaderLength = 4;
+
+//    func usedBytes() -> Int {
+//
+//        let mirror = Mirror(reflecting: self)
+//        mirror.
+//    }
 }
