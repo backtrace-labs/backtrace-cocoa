@@ -99,7 +99,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         1. [Error/NSError](#documentation-sending-error)
         2. [NSException](#documentation-sending-exception)
         3. [macOS note](#documentation-sending-report-macOS)
-4. [Beta](#documentation-beta)
+4. [Beta](#beta)
     1. [Breadcrumbs](#documentation-breadcrumbs)    
     2. [Error-free metrics](#documentation-metrics)
 5. [FAQ](#faq)
