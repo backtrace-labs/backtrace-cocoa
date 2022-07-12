@@ -6,7 +6,7 @@ final class BacktraceReporter {
     private(set) var api: BacktraceApi
     private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
     private(set) var attributesProvider: SignalContext
-    private(set) var backtraceOomWatcher: BacktraceOomWatcher!
+    private(set) var backtraceOomWatcher: BacktraceOomWatcher
     let repository: PersistentRepository<BacktraceReport>
 
     #if os(macOS)
@@ -30,15 +30,11 @@ final class BacktraceReporter {
         self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
         let attributesProvider = AttributesProvider(reportHostName: dbSettings.reportHostName)
         self.attributesProvider = attributesProvider
-        if #available(iOS 15.3.1, *) {
-            BacktraceLogger.debug("The OOM support is disabled for this version of iOS. Skipping OOM check.")
-        }else{
-            self.backtraceOomWatcher = BacktraceOomWatcher(
-                repository: self.repository,
-                crashReporter: self.reporter,
-                attributes: attributesProvider,
-                backtraceApi: self.api)
-        }
+        self.backtraceOomWatcher = BacktraceOomWatcher(
+            repository: self.repository,
+            crashReporter: self.reporter,
+            attributes: attributesProvider,
+            backtraceApi: self.api)
         self.reporter.signalContext(&self.attributesProvider)
     }
 }
