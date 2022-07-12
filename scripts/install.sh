@@ -4,7 +4,9 @@ set -o pipefail # to exit when the status of the last command that threw a non-z
 set -o nounset # to exit when your script tries to use undeclared variables
 set -o xtrace # to trace what gets executed. Useful for debugging
 
-# ignore installation errors silently
-brew bundle || true
+# This verifies if all dependencies are installed, especially when running on Github Actions 
+if ! pod --version || ! swiftlint --version || ! fastlane --version; then
+   brew bundle --no-upgrade || true
+fi
 
 pod install
