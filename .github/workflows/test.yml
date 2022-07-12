@@ -18,8 +18,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: sh scripts/install.sh
+      - name: Brew bundle if needed (ignore errors)
+        run: brew bundle check --no-upgrade || brew bundle || true
+      - name: Pod install 
+        run: pod install
       - name: Run test
         run: fastlane ${{ matrix.platform }} tests
     
