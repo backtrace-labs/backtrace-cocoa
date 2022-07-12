@@ -101,7 +101,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         3. [macOS note](#documentation-sending-report-macOS)
 4. [Beta](#documentation-beta)
     1. [Breadcrumbs](#documentation-breadcrumbs)    
-    2. [Enable error-free metrics](#documentation-metrics)
+    2. [Error-free metrics](#documentation-metrics)
 5. [FAQ](#faq)
     1. [Missing dSYM files](#faq-missing-dsym)
         * [Finding dSYMs while building project](#faq-finding-dsym-building)
