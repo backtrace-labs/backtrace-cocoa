@@ -25,7 +25,6 @@ jobs:
     
   pod-lint:
     runs-on: macos-latest
-    needs: test
     
     steps:
       - uses: actions/checkout@v2
