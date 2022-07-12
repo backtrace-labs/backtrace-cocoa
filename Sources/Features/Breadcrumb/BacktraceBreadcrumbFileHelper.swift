@@ -86,26 +86,3 @@ extension BacktraceBreadcrumbFileHelper {
         throw BacktraceBreadcrumbFileHelperError.invalidFormat
     }
 }
-
-extension CASQueueFile {
-//    /**
-//     * Initial file size in bytes.
-//     */
-//    static NSUInteger const QueueFileInitialLength = 4096;
-//
-//    /**
-//     * Length of header in bytes.
-//     */
-//    static NSUInteger const QueueFileHeaderLength = 16;
-//
-//    /**
-//     * Length of element header in bytes.
-//     */
-//    static NSUInteger const ElementHeaderLength = 4;
-
-//    func usedBytes() -> Int {
-//
-//        let mirror = Mirror(reflecting: self)
-//        mirror.
-//    }
-}
