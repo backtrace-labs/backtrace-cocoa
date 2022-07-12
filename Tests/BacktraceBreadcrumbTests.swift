@@ -16,7 +16,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
         fileURL.appendPathComponent(breadcrumbLogFileName)
         return fileURL.path
     }
-    
+
     func readBreadcrumbText() -> String? {
         do {
             let path = try breadcrumbLogPath(true)
@@ -31,23 +31,23 @@ final class BacktraceBreadcrumbTests: QuickSpec {
     override func spec() {
         describe("Breadcrumbs") {
 
-            var breadCrumb: BacktraceBreadcrumb?
+            var breadcrumb: BacktraceBreadcrumb?
 
             beforeEach {
                 do {
                     try FileManager.default.removeItem(atPath: self.breadcrumbLogPath(false))
                 } catch {
                 }
-                breadCrumb = BacktraceBreadcrumb()
+                breadcrumb = BacktraceBreadcrumb()
             }
             afterEach {
-                breadCrumb = nil
+                breadcrumb = nil
             }
             context("are not enabled") {
                 it("fails to add breadcrumb") {
-                    expect { breadCrumb?.isBreadcrumbsEnabled }.to(beFalse())
-                    expect { breadCrumb?.getCurrentBreadcrumbId }.to(beNil())
-                    let result = breadCrumb?.addBreadcrumb("Breadcrumb submit test")
+                    expect { breadcrumb?.isBreadcrumbsEnabled }.to(beFalse())
+                    expect { breadcrumb?.getCurrentBreadcrumbId }.to(beNil())
+                    let result = breadcrumb?.addBreadcrumb("Breadcrumb submit test")
                     expect { result }.to(beFalse())
                     let breadcrumbText = self.readBreadcrumbText()
                     expect { breadcrumbText }.to(beNil())
@@ -55,13 +55,13 @@ final class BacktraceBreadcrumbTests: QuickSpec {
             }
             context("are enabled") {
                 it("Able to add breadcrumbs and they are all added to the breadcrumb file without overflowing") {
-                    breadCrumb?.enableBreadCrumbs()
-                    expect { breadCrumb?.isBreadcrumbsEnabled }.to(beTrue())
-                    expect { breadCrumb?.getCurrentBreadcrumbId }.toNot(beNil())
+                    breadcrumb?.enableBreadcrumbs()
+                    expect { breadcrumb?.isBreadcrumbsEnabled }.to(beTrue())
+                    expect { breadcrumb?.getCurrentBreadcrumbId }.toNot(beNil())
 
                     //  100 iterations won't overflow the file yet
                     for index in 0...50 {
-                        expect { breadCrumb?.addBreadcrumb("this is Breadcrumb number \(index)") }.to(beTrue())
+                        expect { breadcrumb?.addBreadcrumb("this is Breadcrumb number \(index)") }.to(beTrue())
                     }
 
                     let breadcrumbText = self.readBreadcrumbText()
@@ -70,15 +70,15 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     }
                 }
                 it("Again disable breadcrumb") {
-                    breadCrumb?.disableBreadCrumbs()
-                    expect { breadCrumb?.isBreadcrumbsEnabled }.to(beFalse())
-                    expect { breadCrumb?.getCurrentBreadcrumbId }.to(beNil())
+                    breadcrumb?.disableBreadcrumbs()
+                    expect { breadcrumb?.isBreadcrumbsEnabled }.to(beFalse())
+                    expect { breadcrumb?.getCurrentBreadcrumbId }.to(beNil())
                 }
             }
             context("rollover tests") {
                 it("rolls over after enough breadcrumbs are added to get the maximum file size") {
                     // 8196 is the minimum, setting 1 would just revert to that minimum
-                    breadCrumb?.enableBreadCrumbs(maxLogSize: 1)
+                    breadcrumb?.enableBreadcrumbs(maxLogSize: 1)
                     var size = 0
                     var writeIndex = 0
 
@@ -86,19 +86,34 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     while size < 4096 + 128 {
                         writeIndex += 1
                         let breadcrumbText = "this is Breadcrumb number \(writeIndex)"
-                        expect { breadCrumb?.addBreadcrumb(breadcrumbText) }.to(beTrue())
+                        expect { breadcrumb?.addBreadcrumb(breadcrumbText) }.to(beTrue())
                         size += breadcrumbText.utf8.count
                     }
 
-                    let breadcrumbText = self.readBreadcrumbText()
+                    let breadcrumbText = self.readBreadcrumbText()!
 
                     // should have been rolled away
                     expect { breadcrumbText }.toNot(contain("this is Breadcrumb number 0"))
 
-                    // Not very scientific, but 118 is apparently when the file wraps
-                    for readIndex in 119...writeIndex {
-                        expect { breadcrumbText }.to(contain("this is Breadcrumb number \(readIndex)"))
+                    // Not very scientific, but 119 is apparently when the file wraps
+                    var matches = 0
+                    let wrapIndex = 119
+                    for readIndex in wrapIndex...writeIndex {
+                        let match = breadcrumbText.contains("this is Breadcrumb number \(readIndex)")
+                        if match {
+                            matches += 1
+                        }
                     }
+
+                    // Why the - 1?
+                    // Because one line is liable to get mangled by the wrapping - half will
+                    // be at the bottom and half at the top of the circular file.
+                    // Currently, we accept we lose this Breadcrumb in the UI - it will still be in the file
+                    // for manual inspection.
+                    let expectedNumberOfMatches = writeIndex - wrapIndex - 1
+                    expect(matches).to(beGreaterThanOrEqualTo(expectedNumberOfMatches),
+                                       description: "Not enough (\(expectedNumberOfMatches))" +
+                                       "breadcrumb matches found in breadcrumbs file: \n\(breadcrumbText)")
                 }
             }
         }

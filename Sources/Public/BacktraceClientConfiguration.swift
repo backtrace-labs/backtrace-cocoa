@@ -60,11 +60,11 @@ import Foundation
     }
     
     public func enableBreadCrumbs(breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all) {
-        breadcrumbSetting.enableBreadCrumbs(breadCrumbTypes)
+        breadcrumbSetting.enableBreadcrumbs(breadCrumbTypes)
     }
     
-    @objc public func disableBreadCrumbs() {
-        breadcrumbSetting.disableBreadCrumbs()
+    @objc public func disableBreadcrumbs() {
+        breadcrumbSetting.disableBreadcrumbs()
     }
     
     @objc public func addBreadcrumb(_ message: String,

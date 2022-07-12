@@ -105,7 +105,7 @@ import Foundation
         return fileURL.path
     }
     
-    public func enableBreadCrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all,
+    public func enableBreadcrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all,
                                   maxLogSize: Int = defaultMaxLogSize) {
         do {
 #if os(iOS)
@@ -121,7 +121,7 @@ import Foundation
         }
     }
     
-    public func disableBreadCrumbs() {
+    public func disableBreadcrumbs() {
         enabledBreadcrumbTypes.removeAll()
 #if os(iOS)
         self.backtraceComponentListener = nil

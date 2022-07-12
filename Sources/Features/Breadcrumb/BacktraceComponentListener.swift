@@ -1,7 +1,7 @@
 import Foundation
 
 @objc class BacktraceComponentListener: NSObject {
- 
+
     override init() {
         super.init()
         observeOrientationChange()
@@ -13,59 +13,65 @@ import Foundation
         NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
         self.source?.cancel()
     }
-    
-//MARK: Orientation Status Listener
-    
+
+    // MARK: Orientation Status Listener
+
     private func observeOrientationChange() {
-        NotificationCenter.default.addObserver(self, selector: #selector(notifyOrientationChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(notifyOrientationChange),
+                                               name: UIDevice.orientationDidChangeNotification,
+                                               object: nil)
     }
-    
+
     @objc private func notifyOrientationChange() {
-        switch UIDevice.current.orientation{
-            case .portrait, .portraitUpsideDown:
-                addBreadcrumb("portrait")
-            case .landscapeLeft, .landscapeRight:
-                addBreadcrumb("landscape")
-            default:
-                print("unknown")
+        switch UIDevice.current.orientation {
+        case .portrait, .portraitUpsideDown:
+            addOrientationBreadcrumb("portrait")
+        case .landscapeLeft, .landscapeRight:
+            addOrientationBreadcrumb("landscape")
+        default:
+            print("unknown")
         }
     }
-    
-    private func addBreadcrumb(_ orientation: String) {
+
+    private func addOrientationBreadcrumb(_ orientation: String) {
         let attributes = ["orientation": orientation]
-        let _ = BacktraceClient.shared?.addBreadcrumb("Configuration changed",
+        _ = BacktraceClient.shared?.addBreadcrumb("Configuration changed",
                                                       attributes: attributes,
                                                       type: .system,
                                                       level: .info)
     }
-    
-    
-//MARK: Memory Status Listener
-    
+
+    // MARK: Memory Status Listener
+
     @objc private func notifyMemoryStatusChange() {
-        let _ = BacktraceClient.shared?.addBreadcrumb("Critical low memory warning!",
+        _ = BacktraceClient.shared?.addBreadcrumb("Critical low memory warning!",
                                                       type: .system,
                                                       level: .fatal)
     }
-    
+
     private var source: DispatchSourceMemoryPressure?
     @objc private func observeMemoryStatusChanged() {
-        NotificationCenter.default.addObserver(self, selector: #selector(notifyMemoryStatusChange), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
-        
-        if let source:DispatchSourceMemoryPressure = DispatchSource.makeMemoryPressureSource(eventMask: .all, queue:DispatchQueue.main) as? DispatchSource {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(notifyMemoryStatusChange),
+                                               name: UIApplication.didReceiveMemoryWarningNotification,
+                                               object: nil)
+
+        if let source: DispatchSourceMemoryPressure =
+            DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.main) as? DispatchSource {
             let eventHandler: DispatchSourceProtocol.DispatchSourceHandler = {
-                let event:DispatchSource.MemoryPressureEvent = source.data
+                let event: DispatchSource.MemoryPressureEvent = source.data
                 if source.isCancelled == false {
                     self.didReceive(event)
                 }
             }
-            source.setEventHandler(handler:eventHandler)
-            source.setRegistrationHandler(handler:eventHandler)
+            source.setEventHandler(handler: eventHandler)
+            source.setRegistrationHandler(handler: eventHandler)
             source.activate()
             self.source = source
         }
     }
-    
+
     private func getMemoryWarningText(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) -> String {
         if memoryPressureEvent.rawValue == DispatchSource.MemoryPressureEvent.normal.rawValue {
             return "Normal level memory pressure event"
@@ -77,7 +83,7 @@ import Foundation
             return "Unspecified level memory pressure event"
         }
     }
-    
+
     private func getMemoryWarningLevel(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) -> BacktraceBreadcrumbLevel {
         if memoryPressureEvent.rawValue == DispatchSource.MemoryPressureEvent.normal.rawValue {
             return .warning
@@ -89,21 +95,25 @@ import Foundation
             return .debug
         }
     }
-    
+
     private func didReceive(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) {
         let message = getMemoryWarningText(memoryPressureEvent)
-        let level = getMemoryWarningLevel(memoryPressureEvent);
-        let _ = BacktraceClient.shared?.addBreadcrumb(message,
-                                                      type: .system,
-                                                      level: level)
+        let level = getMemoryWarningLevel(memoryPressureEvent)
+        _ = BacktraceClient.shared?.addBreadcrumb(message,
+                                                  type: .system,
+                                                  level: level)
     }
-    
-//MARK: Battery Status Listener
+
+    // MARK: Battery Status Listener
+
     @objc private func observeBatteryStatusChanged() {
         UIDevice.current.isBatteryMonitoringEnabled = true
-        NotificationCenter.default.addObserver(self, selector: #selector(notifyBatteryStatusChange), name: UIDevice.batteryLevelDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(notifyBatteryStatusChange),
+                                               name: UIDevice.batteryLevelDidChangeNotification,
+                                               object: nil)
     }
-    
+
     private func getBatteryWarningText() -> String {
         let batteryLevel = UIDevice.current.batteryLevel
         switch UIDevice.current.batteryState {
@@ -117,9 +127,9 @@ import Foundation
             return "full battery level : \(batteryLevel * 100)%"
         }
     }
-    
+
     @objc private func notifyBatteryStatusChange() {
-        let _ = BacktraceClient.shared?.addBreadcrumb(getBatteryWarningText(),
+        _ = BacktraceClient.shared?.addBreadcrumb(getBatteryWarningText(),
                                                       type: .system,
                                                       level: .info)
     }

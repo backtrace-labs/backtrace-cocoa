@@ -7,9 +7,14 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 
 @objc public class BacktraceBreadcrumbFileHelper: NSObject {
 
+    /*
+     The underlying library CASQueueFile assigns a minimum of 4k (filled with zeroes).
+     Since we know that space will be allocated (and uploaded) anyways, set it as the minimum.
+     */
     private static let minimumQueueFileSizeBytes = 4096
-    private var maxQueueFileSizeBytes = 0
-    private var breadcrumbLogDirectory: String
+    
+    private let maxQueueFileSizeBytes: Int
+    private let breadcrumbLogDirectory: String
 
     private let queue: CASQueueFile
 
@@ -32,42 +37,28 @@ enum BacktraceBreadcrumbFileHelperError: Error {
         super.init()
     }
 
-    private func queueByteSize() -> Int {
-        // This is the current fileLength of the QueueFile
-        guard let fileLength = queue.value(forKey: "fileLength") as? Int else {
-            BacktraceLogger.error("fileLength is not an Int, this is unexpected!")
-            return maxQueueFileSizeBytes
-        }
-
-        // let usedBytes = queue.value(forKey: "usedBytes") as? Int
-
-        // This is the remaining bytes before the file needs to be expanded
-        guard let remainingBytes = queue.value(forKey: "remainingBytes") as? Int else {
-            BacktraceLogger.error("remainingBytes is not an Int, this is unexpected!")
-            return 0
-        }
-
-        return fileLength - remainingBytes
-    }
-
     func addBreadcrumb(_ breadcrumb: [String: Any]) -> Bool {
+        let text: String
         do {
-            let text = try convertBreadcrumbIntoString(breadcrumb)
-
-            let textBytes = Data(text.utf8)
-            if textBytes.count > 4096 {
-                BacktraceLogger.error("We should not have a breadcrumb this big, this is a bug!")
-                return false
-            }
-            while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
-                queue.pop(1)
-            }
-            queue.add(textBytes)
-            return true
+            text = try convertBreadcrumbIntoString(breadcrumb)
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumb")
             return false
         }
+
+        let textBytes = Data(text.utf8)
+        if textBytes.count > 4096 {
+            BacktraceLogger.warning("We should not have a breadcrumb this big, this is a bug! Discarding breadcrumb.")
+            return false
+        }
+
+        // Keep removing until there's enough space to add the new breadcrumb
+        while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
+            queue.pop(1)
+        }
+
+        queue.add(textBytes)
+        return true
     }
 
     func clear() -> Bool {
@@ -84,5 +75,23 @@ extension BacktraceBreadcrumbFileHelper {
             return "\n\(breadcrumbText)\n"
         }
         throw BacktraceBreadcrumbFileHelperError.invalidFormat
+    }
+
+    func queueByteSize() -> Int {
+        // This is the current fileLength of the QueueFile
+        guard let fileLength = queue.value(forKey: "fileLength") as? Int else {
+            BacktraceLogger.error("fileLength is not an Int, this is unexpected!")
+            return maxQueueFileSizeBytes
+        }
+
+        // let usedBytes = queue.value(forKey: "usedBytes") as? Int
+
+        // This is the remaining bytes before the file needs to be expanded
+        guard let remainingBytes = queue.value(forKey: "remainingBytes") as? Int else {
+            BacktraceLogger.error("remainingBytes is not an Int, this is unexpected!")
+            return 0
+        }
+
+        return fileLength - remainingBytes
     }
 }

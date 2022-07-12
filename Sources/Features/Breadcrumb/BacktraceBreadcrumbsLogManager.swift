@@ -1,13 +1,13 @@
 import Foundation
 
 @objc class BacktraceBreadcrumbsLogManager: NSObject {
-    
-    private var breadcrumbId = Date().millisecondsSince1970
 
+    private var breadcrumbId = Date().millisecondsSince1970
     private let backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper
 
     init(_ breadcrumbLogPath: String, maxQueueFileSizeBytes: Int) throws {
-        self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbLogPath, maxQueueFileSizeBytes: maxQueueFileSizeBytes)
+        self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbLogPath,
+                                                                               maxQueueFileSizeBytes: maxQueueFileSizeBytes)
         super.init()
     }
 
