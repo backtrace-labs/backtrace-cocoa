@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa.git", :tag => "#{s.version}" }
 
   s.ios.deployment_target = "10.0"
-  s.osx.deployment_target = "10.10"
+  s.osx.deployment_target = "10.11"
   s.tvos.deployment_target = "10.0"
 
   s.ios.source_files = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.{h*,swift}"]
@@ -33,7 +33,7 @@ Pod::Spec.new do |s|
   s.tvos.public_header_files = ["Backtrace-tvOS/**/*.h*"]
 
   s.dependency "Backtrace-PLCrashReporter"
-  s.ios.dependency "Cassette"
+  s.ios.dependency "Cassette", "1.0.0-beta5"
   s.resources = 'Sources/**/*.xcdatamodeld'
 
   s.swift_version = '4.2'
