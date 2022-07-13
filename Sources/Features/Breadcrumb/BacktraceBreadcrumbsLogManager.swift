@@ -21,14 +21,7 @@ import Foundation
                                          "level": level.info,
                                          "type": type.info,
                                          "message": message]
-
-        if let attributes = attributes, !attributes.keys.isEmpty {
-            var attribInfo: [String: String] = [String: String]()
-            for attribute in attributes {
-                attribInfo[attribute.key] = attribute.value
-            }
-            breadcrumb["attributes"] = attributes
-        }
+        breadcrumb["attributes"] = attributes
         breadcrumbId += 1
         return backtraceBreadcrumbFileHelper.addBreadcrumb(breadcrumb)
     }
