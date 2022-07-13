@@ -103,3 +103,58 @@ public let defaultMetricsBaseUrlString = "https://events.backtrace.io/api/"
 enum BacktraceUrlParsingError: Error {
     case invalidInput(String)
 }
+
+/// Provides Breadcrumb adding functionality to `BacktraceClient`.
+@objc public protocol BacktraceBreadcrumbProtocol {
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - attributes: The attributes to attach to the the breadcrumb
+    ///   - type: The Breadcrumb type to add
+    ///   - level: The breadcrumb severity level to add
+    @objc func addBreadcrumb(_ message: String,
+                             attributes: [String: String],
+                             type: BacktraceBreadcrumbType,
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    @objc func addBreadcrumb(_ message: String) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - attributes: The attributes to attach to the the breadcrumb
+    @objc func addBreadcrumb(_ message: String,
+                             attributes: [String: String]) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - type: The Breadcrumb type to add
+    ///   - level: The breadcrumb severity level to add
+    @objc func addBreadcrumb(_ message: String,
+                             type: BacktraceBreadcrumbType,
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - level: The breadcrumb severity level to add
+    @objc func addBreadcrumb(_ message: String,
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - level: The breadcrumb severity level to add
+    @objc func addBreadcrumb(_ message: String,
+                             type: BacktraceBreadcrumbType) -> Bool
+}

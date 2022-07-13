@@ -14,7 +14,7 @@ import Foundation
         self.source?.cancel()
     }
 
-    // MARK: Orientation Status Listener
+    // MARK: - Orientation Status Listener
 
     private func observeOrientationChange() {
         NotificationCenter.default.addObserver(self,
@@ -104,7 +104,7 @@ import Foundation
                                                   level: level)
     }
 
-    // MARK: Battery Status Listener
+    // MARK: - Battery Status Listener
 
     @objc private func observeBatteryStatusChanged() {
         UIDevice.current.isBatteryMonitoringEnabled = true

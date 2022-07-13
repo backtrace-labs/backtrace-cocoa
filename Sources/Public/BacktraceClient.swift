@@ -157,9 +157,13 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
 
-//         Check breadcrumb and attach report
-        configuration.breadcrumbSetting.processReportBreadcrumbs(&resource)
-        
+        // Check breadcrumb and attach report
+        // TODO: should this be moved the BacktraceClient.shared?.attachments?
+        // There seems to be no reason to do for each report?
+        if configuration.backtraceBreadcrumb.isBreadcrumbsEnabled {
+            configuration.backtraceBreadcrumb.processReportBreadcrumbs(&resource)
+        }
+
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             completion(self.reporter.send(resource: resource))
@@ -213,28 +217,32 @@ extension BacktraceClient: BacktraceMetricsProtocol {
     }
 }
 
+// MARK: - BacktraceBreadcrumbProtocol
 #if os(iOS)
 extension BacktraceClient: BacktraceBreadcrumbProtocol {
-    public func addBreadcrumb(_ message: String, attributes: [String : Any], type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) -> Bool {
+    public func addBreadcrumb(_ message: String,
+                              attributes: [String: String],
+                              type: BacktraceBreadcrumbType,
+                              level: BacktraceBreadcrumbLevel) -> Bool {
         return configuration.addBreadcrumb(message, attributes: attributes, type: type, level: level)
     }
-    
+
     public func addBreadcrumb(_ message: String) -> Bool {
         return configuration.addBreadcrumb(message)
     }
-    
-    public func addBreadcrumb(_ message: String, attributes: [String : Any]) -> Bool {
+
+    public func addBreadcrumb(_ message: String, attributes: [String: String]) -> Bool {
         return configuration.addBreadcrumb(message, attributes: attributes)
     }
-    
+
     public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) -> Bool {
         return configuration.addBreadcrumb(message, type: type, level: level)
     }
-    
+
     public func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) -> Bool {
         return configuration.addBreadcrumb(message, level: level)
     }
-    
+
     public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType) -> Bool {
         return configuration.addBreadcrumb(message, type: type)
     }

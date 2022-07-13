@@ -66,28 +66,6 @@ import Foundation
     public static let none: [BacktraceBreadcrumbLevel] = []
 }
 
-@objc public protocol BacktraceBreadcrumbProtocol {
-    @objc func addBreadcrumb(_ message: String,
-                             attributes: [String: Any],
-                             type: BacktraceBreadcrumbType,
-                             level: BacktraceBreadcrumbLevel) -> Bool
-
-    @objc func addBreadcrumb(_ message: String) -> Bool
-
-    @objc func addBreadcrumb(_ message: String,
-                             attributes: [String: Any]) -> Bool
-
-    @objc func addBreadcrumb(_ message: String,
-                             type: BacktraceBreadcrumbType,
-                             level: BacktraceBreadcrumbLevel) -> Bool
-
-    @objc func addBreadcrumb(_ message: String,
-                             level: BacktraceBreadcrumbLevel) -> Bool
-
-    @objc func addBreadcrumb(_ message: String,
-                             type: BacktraceBreadcrumbType) -> Bool
-}
-
 @objc public class BacktraceBreadcrumb: NSObject {
     
     private var enabledBreadcrumbTypes = [BacktraceBreadcrumbType]()
@@ -112,7 +90,7 @@ import Foundation
             let fileURLPath = try breadcrumbLogPath()
             breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: maxLogSize)
             enabledBreadcrumbTypes = breadCrumbTypes
-            if let _ = breadCrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
+            if breadCrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) != nil {
                 backtraceComponentListener = BacktraceComponentListener()
             }
 #endif
@@ -129,7 +107,7 @@ import Foundation
     }
     
     public func addBreadcrumb(_ message: String,
-                              attributes: [String: Any]? = nil,
+                              attributes: [String: String]? = nil,
                               type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                               level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
 #if os(iOS)
@@ -160,6 +138,7 @@ import Foundation
         do {
             let fileURLPath = try breadcrumbLogPath()
             report.attachmentPaths.append(fileURLPath)
+            // TODO: for Crashes, the lastBreadcrumbId is from after startup, resulting in too new Breadcrumbs from being shown.
             report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen processing breadcrumbs report")

@@ -12,7 +12,7 @@ import Foundation
     }
 
     func addBreadcrumb(_ message: String,
-                       attributes: [String: Any]? = nil,
+                       attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType,
                        level: BacktraceBreadcrumbLevel) -> Bool {
         let time = Date().millisecondsSince1970
@@ -23,11 +23,11 @@ import Foundation
                                          "message": message]
 
         if let attributes = attributes, !attributes.keys.isEmpty {
-            var attribInfo: [String: Any] = [String: Any]()
+            var attribInfo: [String: String] = [String: String]()
             for attribute in attributes {
                 attribInfo[attribute.key] = attribute.value
             }
-            breadcrumb["attributes"] = attribInfo
+            breadcrumb["attributes"] = attributes
         }
         breadcrumbId += 1
         return backtraceBreadcrumbFileHelper.addBreadcrumb(breadcrumb)

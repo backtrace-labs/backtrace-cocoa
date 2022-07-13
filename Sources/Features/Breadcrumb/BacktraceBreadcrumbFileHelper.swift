@@ -12,7 +12,10 @@ enum BacktraceBreadcrumbFileHelperError: Error {
      Since we know that space will be allocated (and uploaded) anyways, set it as the minimum.
      */
     private static let minimumQueueFileSizeBytes = 4096
-    
+
+    /* We cap the size of an individual breadcrumb at 4k, for performance reasons. */
+    private static let maximumBreadcrumbSize = 4096
+
     private let maxQueueFileSizeBytes: Int
     private let breadcrumbLogDirectory: String
 
@@ -28,7 +31,9 @@ enum BacktraceBreadcrumbFileHelperError: Error {
         self.breadcrumbLogDirectory =  breadcrumbLogDirectory
 
         if maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
-            BacktraceLogger.warning("\(maxQueueFileSizeBytes) is smaller than the minimum of \(BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes), ignoring value.")
+            BacktraceLogger.warning("\(maxQueueFileSizeBytes) is smaller than the minimum of " +
+                                    "\(BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes)" +
+                                    ", ignoring value and overriding with minimum.")
             self.maxQueueFileSizeBytes = BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes
         } else {
             self.maxQueueFileSizeBytes = maxQueueFileSizeBytes
@@ -42,27 +47,38 @@ enum BacktraceBreadcrumbFileHelperError: Error {
         do {
             text = try convertBreadcrumbIntoString(breadcrumb)
         } catch {
-            BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumb")
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen converting breadcrumb to string")
             return false
         }
 
         let textBytes = Data(text.utf8)
-        if textBytes.count > 4096 {
+        if textBytes.count > BacktraceBreadcrumbFileHelper.maximumBreadcrumbSize {
             BacktraceLogger.warning("We should not have a breadcrumb this big, this is a bug! Discarding breadcrumb.")
             return false
         }
 
-        // Keep removing until there's enough space to add the new breadcrumb
-        while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
-            queue.pop(1)
+        do {
+            // Keep removing until there's enough space to add the new breadcrumb
+            while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
+                try queue.pop(1, error: ())
+            }
+
+            try queue.add(textBytes, error: ())
+        } catch {
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumb to file")
+            return false
         }
 
-        queue.add(textBytes)
         return true
     }
 
     func clear() -> Bool {
-        queue.clear()
+        do {
+            try queue.clearAndReturnError()
+        } catch {
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen clearing breadcrumb file")
+            return false
+        }
         return true
     }
 }

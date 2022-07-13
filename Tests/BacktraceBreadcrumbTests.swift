@@ -1,3 +1,5 @@
+// swiftlint:disable function_body_length
+
 import XCTest
 import Nimble
 import Quick
@@ -37,6 +39,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 do {
                     try FileManager.default.removeItem(atPath: self.breadcrumbLogPath(false))
                 } catch {
+                    print("\(error.localizedDescription)")
                 }
                 breadcrumb = BacktraceBreadcrumb()
             }
@@ -69,6 +72,22 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         expect { breadcrumbText }.to(contain("this is Breadcrumb number \(index)"))
                     }
                 }
+                it("Able to add breadcrumbs with all possible options (level, type, attributes)") {
+                    breadcrumb?.enableBreadcrumbs()
+
+                    expect { breadcrumb?.addBreadcrumb("this is a Breadcrumb ",
+                                                       attributes: ["a": "b", "c": "1"],
+                                                       type: .navigation,
+                                                       level: .fatal) }.to(beTrue())
+
+                    let breadcrumbText = self.readBreadcrumbText()
+                    expect { breadcrumbText }.to(contain("this is a Breadcrumb"))
+                    expect { breadcrumbText }.to(contain("\"type\":\"navigation\""))
+                    expect { breadcrumbText }.to(contain("\"level\":\"fatal\""))
+                    expect { breadcrumbText }.to(contain("\"attributes\":{"))
+                    expect { breadcrumbText }.to(contain("\"a\":\"b\""))
+                    expect { breadcrumbText }.to(contain("\"c\":\"1\""))
+                }
                 it("Again disable breadcrumb") {
                     breadcrumb?.disableBreadcrumbs()
                     expect { breadcrumb?.isBreadcrumbsEnabled }.to(beFalse())
@@ -76,7 +95,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 }
             }
             context("rollover tests") {
-                it("rolls over after enough breadcrumbs are added to get the maximum file size") {
+                it("rolls over after enough breadcrumbs are added to get to the maximum file size") {
                     // 8196 is the minimum, setting 1 would just revert to that minimum
                     breadcrumb?.enableBreadcrumbs(maxLogSize: 1)
                     var size = 0
@@ -95,9 +114,9 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     // should have been rolled away
                     expect { breadcrumbText }.toNot(contain("this is Breadcrumb number 0"))
 
-                    // Not very scientific, but 119 is apparently when the file wraps
-                    var matches = 0
+                    // Not very scientific, but 119 is apparently when we reach 4k and the file wraps
                     let wrapIndex = 119
+                    var matches = 0
                     for readIndex in wrapIndex...writeIndex {
                         let match = breadcrumbText.contains("this is Breadcrumb number \(readIndex)")
                         if match {
