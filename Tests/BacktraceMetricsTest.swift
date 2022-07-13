@@ -24,20 +24,22 @@ final class BacktraceMetricsTests: QuickSpec {
 
             it("can add and store summed event") {
                 metrics.enable(settings: BacktraceMetricsSettings())
+
                 // Account for default unique event
-                expect { metrics.count }.to(equal(1))
+                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(11), pollInterval: .seconds(1))
 
                 metrics.addSummedEvent(name: summedEventName)
-                expect { metrics.count }.to(equal(2))
+                expect { metrics.count }.toEventually(equal(2), timeout: .seconds(11), pollInterval: .seconds(1))
             }
 
             it("can add and store unique event") {
                 metrics.enable(settings: BacktraceMetricsSettings())
+
                 // Account for default unique event
-                expect { metrics.count }.to(equal(1))
+                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(11), pollInterval: .seconds(1))
 
                 metrics.addUniqueEvent(name: uniqueEventName)
-                expect { metrics.count }.to(equal(2))
+                expect { metrics.count }.toEventually(equal(2), timeout: .seconds(11), pollInterval: .seconds(1))
             }
         }
     }

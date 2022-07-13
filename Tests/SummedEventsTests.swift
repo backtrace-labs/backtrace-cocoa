@@ -32,9 +32,9 @@ final class SummedEventsTests: QuickSpec {
                 urlSession.response = MockOkResponse()
                 metrics.enable(settings: BacktraceMetricsSettings())
 
-                expect { delegate.calledWillSendRequest }.to(beTrue())
-                expect { delegate.calledServerDidRespond }.to(beTrue())
-                expect { delegate.calledConnectionDidFail }.to(beFalse())
+                expect { delegate.calledWillSendRequest }.toEventually(beTrue(), timeout: .seconds(11), pollInterval: .seconds(1))
+                expect { delegate.calledServerDidRespond }.toEventually(beTrue(), timeout: .seconds(11), pollInterval: .seconds(1))
+                expect { delegate.calledConnectionDidFail }.toEventually(beFalse(), timeout: .seconds(11), pollInterval: .seconds(1))
             }
         }
     }

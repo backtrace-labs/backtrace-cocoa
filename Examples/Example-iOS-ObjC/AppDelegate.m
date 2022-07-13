@@ -27,6 +27,7 @@
                                                    reportsPerMin: 3
                                                    allowsAttachingDebugger: TRUE
                                                    detectOOM: FALSE];
+    [configuration enableBreadCrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     BacktraceClient.shared.delegate = self;
 
@@ -50,6 +51,13 @@
         NSLog(@"%@", result);
     }];
 
+    
+    
+    NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
+    [[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
+                                 attributes:attributes
+                                       type:BacktraceBreadcrumbTypeUser
+                                      level:BacktraceBreadcrumbLevelError];
     return YES;
 }
 

@@ -1,17 +1,35 @@
 name: Run tests
 
-on:
+on: 
+  workflow_dispatch:
   pull_request:
     branches: 
       - develop
       - master
 
 jobs:
-  build:
+
+  test:
     runs-on: macos-latest
+    
+    strategy:
+      matrix:
+          platform: [ios, mac, tvos]
+
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: sh scripts/install.sh
-      - name: Run tests
-        run: sh scripts/test.sh
+      - name: Run test
+        run: fastlane ${{ matrix.platform }} tests
+    
+  pod-lint:
+    runs-on: macos-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sh scripts/install.sh
+      - name: Run pod lib lint
+        run: pod lib lint --verbose --allow-warnings --sources='https://cdn.cocoapods.org/'
+  

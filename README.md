@@ -99,8 +99,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         1. [Error/NSError](#documentation-sending-error)
         2. [NSException](#documentation-sending-exception)
         3. [macOS note](#documentation-sending-report-macOS)
-    7. [Enable error-free metrics](#documentation-metrics)
-4. [FAQ](#faq)
+4. [Beta](#beta)
+    1. [Breadcrumbs](#documentation-breadcrumbs)    
+    2. [Error-free metrics](#documentation-metrics)
+5. [FAQ](#faq)
     1. [Missing dSYM files](#faq-missing-dsym)
         * [Finding dSYMs while building project](#faq-finding-dsym-building)
         * [Finding dSYMs while archiving project](#faq-finding-dsym-archiving)
@@ -417,6 +419,51 @@ UserDefaults.standard.register(defaults: ["NSApplicationCrashOnExceptions": true
 [[NSUserDefaults standardUserDefaults] registerDefaults:@{ @"NSApplicationCrashOnExceptions": @YES }];
 ```
 but it crashes your app if you don't use `@try ... @catch`.
+
+# Beta functionality <a name="beta"></a>
+
+The underlying features are available in BETA. This means they are not covered by the normal Backtrace SLAs.
+
+## Breadcrumbs <a name="documentation-breadcrumbs"><a/>
+
+Breadcrumbs help you track events leading up to your crash, error, or other submitted object.
+
+When breadcrumbs are enabled, any captured breadcrumbs will automatically be attached as a file to your crash, error, or other submitted object (including native crashes) and displayed in the UI in the Breadcrumbs tab.
+
+### Enable Breadcrumbs <a name="documentation-breadcrumbs"><a/>
+- Swift
+```swift
+let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!, token: "token")
+let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials)
+backtraceConfiguration.enableBreadCrumbs(breadCrumbTypes: [BacktraceBreadcrumbType.manual, BacktraceBreadcrumbType.log])
+```
+- Objective-C
+```objective-c
+BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
+                                     initWithEndpoint: [NSURL URLWithString: @"https://backtrace.io"]
+                                     token: @"token"];
+BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
+                                                initWithCredentials: credentials];
+[configuration enableBreadCrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
+```
+
+### Add Breadcrumbs <a name="documentation-add-breadcrumbs"><a/>
+- Swift
+```swift
+let attributes = ["My Attribute":"My Attribute Value"]
+BacktraceClient.shared?.addBreadcrumb("My Native Breadcrumb",
+                                      attributes: attributes,
+                                      type: .user,
+                                      level: .error)
+```
+- Objective-C
+```objective-c
+NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
+[[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
+                                 attributes:attributes
+                                       type:BacktraceBreadcrumbTypeUser
+                                      level:BacktraceBreadcrumbLevelError];
+```
 
 ## Error-free metrics <a name="documentation-metrics"><a/>
 
