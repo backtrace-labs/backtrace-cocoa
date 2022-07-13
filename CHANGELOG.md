@@ -1,5 +1,11 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.7.3
+- Enable OOM reports for 15.3.1 against, disable client side unwinding by default
+- Added BETA Breadcrumbs implementation
+- Updated BETA Crash Free metrics based on feedback from beta testing
+- Updated build scripts
+
 ## Version 1.7.2
 - Disable OOM reports for 15.3.1+ for backtrace-cocoa (so invalid OOM reports don't crash it)
 
