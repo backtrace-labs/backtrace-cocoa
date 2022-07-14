@@ -56,11 +56,11 @@ import Foundation
 #if os(iOS)
     @objc(enableBreadCrumbs:)
     public func enableBreadCrumbs(breadCrumbTypes: [Int]) {
-        enableBreadCrumbs(breadCrumbTypes: breadCrumbTypes.compactMap({ BacktraceBreadcrumbType(rawValue: $0) }))
+        enableBreadCrumbs(breadcrumbTypes: breadCrumbTypes.compactMap({ BacktraceBreadcrumbType(rawValue: $0) }))
     }
 
-    public func enableBreadCrumbs(breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all) {
-        backtraceBreadcrumb.enableBreadcrumbs(breadCrumbTypes)
+    public func enableBreadCrumbs(breadcrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all) {
+        backtraceBreadcrumb.enableBreadcrumbs(breadcrumbTypes)
     }
 
     @objc public func disableBreadcrumbs() {

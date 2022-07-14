@@ -31,7 +31,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   reportsPerMin: 10,
                                                                   allowsAttachingDebugger: true)
         
-        backtraceConfiguration.enableBreadCrumbs(breadCrumbTypes: [BacktraceBreadcrumbType.system, BacktraceBreadcrumbType.log])
+        backtraceConfiguration.enableBreadcrumbs(breadcrumbTypes: [BacktraceBreadcrumbType.system, BacktraceBreadcrumbType.log])
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]

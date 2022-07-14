@@ -11,7 +11,7 @@ import Foundation
     case user = 6
     case configuration = 7
     
-    var info: String {
+    var description: String {
         switch self {
         case .manual:
             return "manual"
@@ -44,7 +44,7 @@ import Foundation
     case error = 5
     case fatal = 6
     
-    var info: String {
+    var description: String {
         switch self {
         case .debug:
             return "debug"
@@ -69,26 +69,18 @@ import Foundation
 @objc public class BacktraceBreadcrumb: NSObject {
     
     private var enabledBreadcrumbTypes = [BacktraceBreadcrumbType]()
-        
-    private static let breadcrumbLogFileName = "bt-breadcrumbs-0"
 
-    public static var defaultMaxLogSize = 64000
+    public static let defaultMaxLogSize = 64000
 #if os(iOS)
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     private var backtraceComponentListener: BacktraceComponentListener?
 #endif
-    private func breadcrumbLogPath() throws -> String {
-        var fileURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        fileURL.appendPathComponent(BacktraceBreadcrumb.breadcrumbLogFileName)
-        return fileURL.path
-    }
-    
+
     public func enableBreadcrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all,
                                   maxLogSize: Int = defaultMaxLogSize) {
         do {
 #if os(iOS)
-            let fileURLPath = try breadcrumbLogPath()
-            breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(fileURLPath, maxQueueFileSizeBytes: maxLogSize)
+            breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(maxQueueFileSizeBytes: maxLogSize)
             enabledBreadcrumbTypes = breadCrumbTypes
             if breadCrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) != nil {
                 backtraceComponentListener = BacktraceComponentListener()
@@ -129,20 +121,15 @@ import Foundation
 #endif
     public func processReportBreadcrumbs(_ report: inout BacktraceReport) {
 #if os(iOS)
-        if !isBreadcrumbsEnabled {
-            return
-        }
         guard let lastBreadcrumbId = getCurrentBreadcrumbId else {
             return
         }
-        do {
-            let fileURLPath = try breadcrumbLogPath()
-            report.attachmentPaths.append(fileURLPath)
-            // TODO: for Crashes, the lastBreadcrumbId is from after startup, resulting in too new Breadcrumbs from being shown.
-            report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
-        } catch {
-            BacktraceLogger.warning("\(error.localizedDescription) \nWhen processing breadcrumbs report")
+        guard let breadcrumbLogPath = breadcrumbsLogManager?.breadcrumbLogPath else {
+            return
         }
+        report.attachmentPaths.append(breadcrumbLogPath)
+        // TODO: for Crashes, the lastBreadcrumbId is from after startup, resulting in too new Breadcrumbs from being shown.
+        report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
 #endif
     }
 }
