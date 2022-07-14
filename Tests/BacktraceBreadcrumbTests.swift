@@ -42,7 +42,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     print("\(error.localizedDescription)")
                 }
                 do {
-                    try manager = BacktraceBreadcrumbsLogManager(self.breadcrumbLogPath(false), maxQueueFileSizeBytes: 8192)
+                    try manager = BacktraceBreadcrumbsLogManager(maxQueueFileSizeBytes: 8192)
                 } catch {
                     fail("\(error.localizedDescription)")
                 }
