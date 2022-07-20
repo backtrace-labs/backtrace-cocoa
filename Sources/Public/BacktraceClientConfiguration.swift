@@ -63,11 +63,11 @@ import Foundation
         backtraceBreadcrumb.enableBreadcrumbs(breadcrumbTypes)
     }
 
-    @objc public func disableBreadcrumbs() {
+    @objc func disableBreadcrumbs() {
         backtraceBreadcrumb.disableBreadcrumbs()
     }
 
-    @objc public func addBreadcrumb(_ message: String,
+    @objc func addBreadcrumb(_ message: String,
                                     attributes: [String: String]? = nil,
                                     type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                                     level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {

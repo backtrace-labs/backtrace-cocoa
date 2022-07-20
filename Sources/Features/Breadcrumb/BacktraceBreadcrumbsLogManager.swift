@@ -39,8 +39,8 @@ import Foundation
         return result
     }
 
-    internal var getCurrentBreadcrumbId: Int {
-        breadcrumbId
+    internal var getCurrentBreadcrumbId: Int? {
+        return backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId
     }
 
     private static func getBreadcrumbLogPath() throws -> String {

@@ -98,7 +98,7 @@ import Foundation
 #endif
     }
     
-    public func addBreadcrumb(_ message: String,
+    func addBreadcrumb(_ message: String,
                               attributes: [String: String]? = nil,
                               type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                               level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
@@ -128,7 +128,6 @@ import Foundation
             return
         }
         report.attachmentPaths.append(breadcrumbLogPath)
-        // TODO: for Crashes, the lastBreadcrumbId is from after startup, resulting in too new Breadcrumbs from being shown.
         report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
 #endif
     }

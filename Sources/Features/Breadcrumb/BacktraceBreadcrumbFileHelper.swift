@@ -5,7 +5,7 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     case invalidFormat
 }
 
-@objc public class BacktraceBreadcrumbFileHelper: NSObject {
+@objc class BacktraceBreadcrumbFileHelper: NSObject {
 
     /*
      The underlying library CASQueueFile assigns a minimum of 4k (filled with zeroes).
@@ -80,6 +80,20 @@ enum BacktraceBreadcrumbFileHelperError: Error {
             return false
         }
         return true
+    }
+    
+    internal var getCurrentBreadcrumbId: Int? {
+        do {
+            if let breadcrumbData = try queue.peek(queue.size(), error: (
+            )).last, let
+                breadcrumbText = String(data: breadcrumbData, encoding: .utf8)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                let data = breadcrumbText.data(using: .utf8),
+               let breadcrumbDic = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any], let breadcrumbId = breadcrumbDic["id"] as? Int {
+                return breadcrumbId
+            }
+        } catch  {
+        }
+        return nil
     }
 }
 
