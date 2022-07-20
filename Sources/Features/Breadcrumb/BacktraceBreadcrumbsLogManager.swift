@@ -6,7 +6,9 @@ import Foundation
 
     private static let breadcrumbLogFileName = "bt-breadcrumbs-0"
 
-    private var breadcrumbId = Date().millisecondsSince1970
+    private lazy var breadcrumbId: Int = {
+        return (backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId ?? Date().millisecondsSince1970) + 1
+    }()
     private let backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper
 
     init(maxQueueFileSizeBytes: Int) throws {
@@ -40,7 +42,7 @@ import Foundation
     }
 
     internal var getCurrentBreadcrumbId: Int? {
-        return backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId
+        return backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId ?? breadcrumbId
     }
 
     private static func getBreadcrumbLogPath() throws -> String {
