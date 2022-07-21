@@ -42,7 +42,8 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     print("\(error.localizedDescription)")
                 }
                 do {
-                    try manager = BacktraceBreadcrumbsLogManager(maxQueueFileSizeBytes: 8192)
+                    let setting = BacktraceBreadcrumbSettings(maxQueueFileSizeBytes: 8192)
+                    try manager = BacktraceBreadcrumbsLogManager(breadcrumbSettings: setting)
                 } catch {
                     fail("\(error.localizedDescription)")
                 }
@@ -71,8 +72,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
         }
         describe("BacktraceClientConfiguration") {
 
-            var breadcrumb: BacktraceBreadcrumb?
-            var backtraceClientConfig: BacktraceClientConfiguration?
+            var breadcrumb: BacktraceBreadcrumbs?
 
             beforeEach {
                 do {
@@ -80,19 +80,17 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 } catch {
                     print("\(error.localizedDescription)")
                 }
-                let credentials =
-                                BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
-                backtraceClientConfig = BacktraceClientConfiguration(credentials: credentials)
-                breadcrumb = backtraceClientConfig?.backtraceBreadcrumb
+                breadcrumb = BacktraceBreadcrumbs()
             }
             afterEach {
                 breadcrumb = nil
             }
             context("breadcrumbs are not enabled") {
                 it("fails to add breadcrumb") {
+                    breadcrumb?.disableBreadcrumbs()
                     expect { breadcrumb?.isBreadcrumbsEnabled }.to(beFalse())
                     expect { breadcrumb?.getCurrentBreadcrumbId }.to(beNil())
-                    let result = backtraceClientConfig?.addBreadcrumb("Breadcrumb submit test")
+                    let result = breadcrumb?.addBreadcrumb("Breadcrumb submit test")
                     expect { result }.to(beFalse())
                     let breadcrumbText = self.readBreadcrumbText()
                     expect { breadcrumbText }.to(beNil())
@@ -106,7 +104,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
 
                     //  50 iterations won't overflow the file yet
                     for index in 0...50 {
-                        expect { backtraceClientConfig?.addBreadcrumb("this is Breadcrumb number \(index)") }.to(beTrue())
+                        expect { breadcrumb?.addBreadcrumb("this is Breadcrumb number \(index)") }.to(beTrue())
                     }
 
                     let breadcrumbText = self.readBreadcrumbText()
@@ -117,7 +115,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 it("Able to add breadcrumbs with all possible options (level, type, attributes)") {
                     breadcrumb?.enableBreadcrumbs()
 
-                    expect { backtraceClientConfig?.addBreadcrumb("this is a Breadcrumb ",
+                    expect { breadcrumb?.addBreadcrumb("this is a Breadcrumb ",
                                                        attributes: ["a": "b", "c": "1"],
                                                        type: .navigation,
                                                        level: .fatal) }.to(beTrue())
@@ -138,7 +136,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         text += text
                     }
 
-                    expect { backtraceClientConfig?.addBreadcrumb(text)}.to(beFalse())
+                    expect { breadcrumb?.addBreadcrumb(text)}.to(beFalse())
 
                     let breadcrumbText = self.readBreadcrumbText()
                     // text will contain a bunch of null bytes from the library, but should contain the breadcrumb itself
@@ -163,7 +161,8 @@ final class BacktraceBreadcrumbTests: QuickSpec {
             context("rollover tests") {
                 it("rolls over after enough breadcrumbs are added to get to the maximum file size") {
                     // 8196 is the minimum, setting 1 would just revert to that minimum
-                    breadcrumb?.enableBreadcrumbs(maxLogSize: 1)
+                    let setting = BacktraceBreadcrumbSettings(maxQueueFileSizeBytes: 1)
+                    breadcrumb?.enableBreadcrumbs(setting)
                     var size = 0
                     var writeIndex = 0
 
@@ -171,7 +170,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     while size < 4096 + 128 {
                         writeIndex += 1
                         let breadcrumbText = "this is Breadcrumb number \(writeIndex)"
-                        expect { backtraceClientConfig?.addBreadcrumb(breadcrumbText) }.to(beTrue())
+                        expect { breadcrumb?.addBreadcrumb(breadcrumbText) }.to(beTrue())
                         size += breadcrumbText.utf8.count
                     }
 
