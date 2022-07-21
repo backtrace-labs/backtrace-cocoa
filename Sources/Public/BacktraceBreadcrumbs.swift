@@ -66,23 +66,31 @@ import Foundation
     public static let none: [BacktraceBreadcrumbLevel] = []
 }
 
-@objc public class BacktraceBreadcrumb: NSObject {
+@objc public class BacktraceBreadcrumbs: NSObject {
     
-    private var enabledBreadcrumbTypes = [BacktraceBreadcrumbType]()
+    private var breadcrumbSettings = BacktraceBreadcrumbSettings()
 
-    public static let defaultMaxLogSize = 64000
 #if os(iOS)
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     private var backtraceComponentListener: BacktraceComponentListener?
 #endif
 
-    public func enableBreadcrumbs(_ breadCrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all,
-                                  maxLogSize: Int = defaultMaxLogSize) {
+    @objc public override init() {
+        super.init()
+        enableBreadcrumbs()
+    }
+    
+    @objc public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) {
+        super.init()
+        enableBreadcrumbs(breadcrumbSettings)
+    }
+    
+    public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) {
         do {
 #if os(iOS)
-            breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(maxQueueFileSizeBytes: maxLogSize)
-            enabledBreadcrumbTypes = breadCrumbTypes
-            if breadCrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) != nil {
+            breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(breadcrumbSettings: breadcrumbSettings)
+            self.breadcrumbSettings = breadcrumbSettings
+            if breadcrumbSettings.breadcrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) != nil {
                 backtraceComponentListener = BacktraceComponentListener()
             }
 #endif
@@ -92,7 +100,7 @@ import Foundation
     }
     
     public func disableBreadcrumbs() {
-        enabledBreadcrumbTypes.removeAll()
+        breadcrumbSettings.breadcrumbTypes.removeAll()
 #if os(iOS)
         self.backtraceComponentListener = nil
 #endif
@@ -111,7 +119,7 @@ import Foundation
     }
     
     var isBreadcrumbsEnabled: Bool {
-        return !enabledBreadcrumbTypes.isEmpty
+        return !breadcrumbSettings.breadcrumbTypes.isEmpty
     }
     
 #if os(iOS)
@@ -124,11 +132,13 @@ import Foundation
         guard let lastBreadcrumbId = getCurrentBreadcrumbId else {
             return
         }
-        guard let breadcrumbLogPath = breadcrumbsLogManager?.breadcrumbLogPath else {
-            return
+        do {
+            let breadcrumbLogPath = try breadcrumbSettings.getBreadcrumbLogPath()
+            report.attachmentPaths.append(breadcrumbLogPath)
+            report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
+        } catch {
+            BacktraceLogger.warning("When attaching breadcremb file with crash report.")
         }
-        report.attachmentPaths.append(breadcrumbLogPath)
-        report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
 #endif
     }
 }

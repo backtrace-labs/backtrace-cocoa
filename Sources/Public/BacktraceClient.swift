@@ -11,6 +11,9 @@ import Foundation
 
     /// Error-free metrics class instance
     @objc public let metricsInstance: BacktraceMetrics
+    
+    /// Error-free breadcrumbs class instance
+    @objc public let breadcrumbsInstance: BacktraceBreadcrumbs
 
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
@@ -50,8 +53,9 @@ import Foundation
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
         let metrics = BacktraceMetrics(api: api)
+        let breadcrumbs = BacktraceBreadcrumbs(configuration.breadcrumbSettings)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api, metrics: metrics)
+                      dispatcher: Dispatcher(), api: api, metrics: metrics, breadcrumbs: breadcrumbs)
     }
 
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
@@ -66,19 +70,23 @@ import Foundation
         let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
         let metrics = BacktraceMetrics(api: api)
+        
+        let breadcrumbs = BacktraceBreadcrumbs(configuration.breadcrumbSettings)
+        
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api, metrics: metrics)
+                      dispatcher: Dispatcher(), api: api, metrics: metrics, breadcrumbs: breadcrumbs)
     }
 
     init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
          reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(),
-         api: BacktraceApi, metrics: BacktraceMetrics) throws {
+         api: BacktraceApi, metrics: BacktraceMetrics, breadcrumbs: BacktraceBreadcrumbs) throws {
 
         self.dispatcher = dispatcher
         self.reporter = reporter
         self.configuration = configuration
         self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
         self.metricsInstance = metrics
+        self.breadcrumbsInstance = breadcrumbs
 
         super.init()
         try startCrashReporter()
@@ -160,8 +168,8 @@ extension BacktraceClient: BacktraceReporting {
         // Check breadcrumb and attach report
         // TODO: should this be moved the BacktraceClient.shared?.attachments?
         // There seems to be no reason to do for each report?
-        if configuration.backtraceBreadcrumb.isBreadcrumbsEnabled {
-            configuration.backtraceBreadcrumb.processReportBreadcrumbs(&resource)
+        if breadcrumbsInstance.isBreadcrumbsEnabled {
+            breadcrumbsInstance.processReportBreadcrumbs(&resource)
         }
 
         dispatcher.dispatch({ [weak self] in
@@ -224,27 +232,27 @@ extension BacktraceClient: BacktraceBreadcrumbProtocol {
                               attributes: [String: String],
                               type: BacktraceBreadcrumbType,
                               level: BacktraceBreadcrumbLevel) -> Bool {
-        return configuration.addBreadcrumb(message, attributes: attributes, type: type, level: level)
+        return breadcrumbsInstance.addBreadcrumb(message, attributes: attributes, type: type, level: level)
     }
 
     public func addBreadcrumb(_ message: String) -> Bool {
-        return configuration.addBreadcrumb(message)
+        return breadcrumbsInstance.addBreadcrumb(message)
     }
 
     public func addBreadcrumb(_ message: String, attributes: [String: String]) -> Bool {
-        return configuration.addBreadcrumb(message, attributes: attributes)
+        return breadcrumbsInstance.addBreadcrumb(message, attributes: attributes)
     }
 
     public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) -> Bool {
-        return configuration.addBreadcrumb(message, type: type, level: level)
+        return breadcrumbsInstance.addBreadcrumb(message, type: type, level: level)
     }
 
     public func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) -> Bool {
-        return configuration.addBreadcrumb(message, level: level)
+        return breadcrumbsInstance.addBreadcrumb(message, level: level)
     }
 
     public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType) -> Bool {
-        return configuration.addBreadcrumb(message, type: type)
+        return breadcrumbsInstance.addBreadcrumb(message, type: type)
     }
 }
 #endif

@@ -17,26 +17,26 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     private static let maximumBreadcrumbSize = 4096
 
     private let maxQueueFileSizeBytes: Int
-    public let breadcrumbFile: String
-
+    
+    private var breadcrumbSettings: BacktraceBreadcrumbSettings
     private let queue: CASQueueFile
 
-    public init(_ breadcrumbFile: String, maxQueueFileSizeBytes: Int) throws {
+    public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
         do {
-            self.queue = try CASQueueFile.init(path: breadcrumbFile)
+            self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath())
         } catch {
             BacktraceLogger.error("\(error.localizedDescription) \nWhen enabling breadcrumbs")
             throw error
         }
-        self.breadcrumbFile =  breadcrumbFile
+        self.breadcrumbSettings =  breadcrumbSettings
 
-        if maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
-            BacktraceLogger.warning("\(maxQueueFileSizeBytes) is smaller than the minimum of " +
+        if breadcrumbSettings.maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
+            BacktraceLogger.warning("\(breadcrumbSettings.maxQueueFileSizeBytes) is smaller than the minimum of " +
                                     "\(BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes)" +
                                     ", ignoring value and overriding with minimum.")
             self.maxQueueFileSizeBytes = BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes
         } else {
-            self.maxQueueFileSizeBytes = maxQueueFileSizeBytes
+            self.maxQueueFileSizeBytes = breadcrumbSettings.maxQueueFileSizeBytes
         }
 
         super.init()

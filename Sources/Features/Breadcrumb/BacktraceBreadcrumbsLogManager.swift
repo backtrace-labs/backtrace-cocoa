@@ -2,19 +2,13 @@ import Foundation
 
 @objc class BacktraceBreadcrumbsLogManager: NSObject {
 
-    public let breadcrumbLogPath: String
-
-    private static let breadcrumbLogFileName = "bt-breadcrumbs-0"
-
     private lazy var breadcrumbId: Int = {
         return (backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId ?? Date().millisecondsSince1970) + 1
     }()
     private let backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper
 
-    init(maxQueueFileSizeBytes: Int) throws {
-        self.breadcrumbLogPath = try BacktraceBreadcrumbsLogManager.getBreadcrumbLogPath()
-        self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(self.breadcrumbLogPath,
-                                                                               maxQueueFileSizeBytes: maxQueueFileSizeBytes)
+    init(breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
+        self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbSettings)
         super.init()
     }
 
@@ -43,11 +37,5 @@ import Foundation
 
     internal var getCurrentBreadcrumbId: Int? {
         return backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId ?? breadcrumbId
-    }
-
-    private static func getBreadcrumbLogPath() throws -> String {
-        var fileURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        fileURL.appendPathComponent(BacktraceBreadcrumbsLogManager.breadcrumbLogFileName)
-        return fileURL.path
     }
 }
