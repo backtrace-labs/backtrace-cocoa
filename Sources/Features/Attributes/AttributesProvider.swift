@@ -32,7 +32,8 @@ final class AttributesProvider {
                              LibInfo(),
                              LocationInfo(),
                              faultInfo,
-                             MetricsInfo()]
+                             MetricsInfo(),
+                             BreadcrumbsInfo()]
     }
 }
 

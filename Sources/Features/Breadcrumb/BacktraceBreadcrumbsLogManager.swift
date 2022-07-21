@@ -3,7 +3,11 @@ import Foundation
 @objc class BacktraceBreadcrumbsLogManager: NSObject {
 
     private lazy var breadcrumbId: Int = {
-        return (backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId ?? Date().millisecondsSince1970) + 1
+        if let bredcrumbId = backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId {
+            BreadcrumbsInfo.currentBreadcrumbsId = bredcrumbId
+            return bredcrumbId + 1
+        }
+        return Date().millisecondsSince1970 + 1
     }()
     private let backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper
 
@@ -23,6 +27,7 @@ import Foundation
                                          "type": type.description,
                                          "message": message]
         breadcrumb["attributes"] = attributes
+        BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
         breadcrumbId += 1
         return backtraceBreadcrumbFileHelper.addBreadcrumb(breadcrumb)
     }

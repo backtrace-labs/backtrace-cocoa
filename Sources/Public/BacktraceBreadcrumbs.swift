@@ -135,7 +135,7 @@ import Foundation
         do {
             let breadcrumbLogPath = try breadcrumbSettings.getBreadcrumbLogPath()
             report.attachmentPaths.append(breadcrumbLogPath)
-            report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
+//            report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
         } catch {
             BacktraceLogger.warning("When attaching breadcremb file with crash report.")
         }
