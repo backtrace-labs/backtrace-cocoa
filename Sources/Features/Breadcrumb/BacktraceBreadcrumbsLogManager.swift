@@ -7,8 +7,10 @@ import Foundation
 
     init(breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
         self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbSettings)
+
         self.breadcrumbId = Date().millisecondsSince1970
         BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
+
         super.init()
     }
 
@@ -16,6 +18,9 @@ import Foundation
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType,
                        level: BacktraceBreadcrumbLevel) -> Bool {
+        breadcrumbId += 1
+        BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
+
         let time = Date().millisecondsSince1970
         var breadcrumb: [String: Any] = ["timestamp": time,
                                          "id": breadcrumbId,
@@ -23,8 +28,7 @@ import Foundation
                                          "type": type.description,
                                          "message": message]
         breadcrumb["attributes"] = attributes
-        BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
-        breadcrumbId += 1
+
         return backtraceBreadcrumbFileHelper.addBreadcrumb(breadcrumb)
     }
 

@@ -86,6 +86,8 @@ import Foundation
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
             disableBreadcrumbs()
         }
+
+        _ = addBreadcrumb("Breadcrumbs enabled.")
 #else
         BacktraceLogger.warning("Breadcrumbs not supported on this platform")
 #endif

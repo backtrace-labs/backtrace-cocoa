@@ -221,6 +221,10 @@ extension BacktraceClient: BacktraceMetricsProtocol {
 // MARK: - BacktraceBreadcrumbProtocol
 #if os(iOS)
 extension BacktraceClient: BacktraceBreadcrumbProtocol {
+    @objc public var breadcrumbs: BacktraceBreadcrumbs {
+        return self.breadcrumbsInstance
+    }
+
     public func addBreadcrumb(_ message: String,
                               attributes: [String: String],
                               type: BacktraceBreadcrumbType,

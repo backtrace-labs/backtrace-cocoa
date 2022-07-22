@@ -30,20 +30,18 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
                                                                   allowsAttachingDebugger: true)
-        
-        backtraceConfiguration.enableBreadcrumbs(breadcrumbTypes: [BacktraceBreadcrumbType.system, BacktraceBreadcrumbType.log])
+
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
+        BacktraceClient.shared?.breadcrumbs.enableBreadcrumbs()
         
         let fileName = "sample.txt"
         guard let fileUrl = try? createAndWriteFile(fileName) else {
             print("Could not create the file attachment")
             return false
         }
-        var crashAttachments = Attachments()
-        crashAttachments.append(fileUrl)
-        BacktraceClient.shared?.attachments = crashAttachments
+        BacktraceClient.shared?.attachments.append(fileUrl)
 
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
         do {
@@ -55,7 +53,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
         let attributes = ["My Attribute":"My Attribute Value"]
-        BacktraceClient.shared?.addBreadcrumb("My Native Breadcrumb",
+        _ = BacktraceClient.shared?.addBreadcrumb("My Native Breadcrumb",
                                               attributes: attributes,
                                               type: .user,
                                               level: .error)

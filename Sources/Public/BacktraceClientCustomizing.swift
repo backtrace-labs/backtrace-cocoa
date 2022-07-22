@@ -106,6 +106,8 @@ enum BacktraceUrlParsingError: Error {
 
 /// Provides Breadcrumb adding functionality to `BacktraceClient`.
 @objc public protocol BacktraceBreadcrumbProtocol {
+    @objc var breadcrumbs: BacktraceBreadcrumbs { get }
+
     /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
     ///
     /// - Parameters:
