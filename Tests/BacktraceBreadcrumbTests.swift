@@ -155,7 +155,6 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     breadcrumb?.processReportBreadcrumbs(&report)
 
                     expect { report.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
-                    expect { report.attributes.first?.key }.to(contain("breadcrumbs.lastId"))
                 }
             }
             context("rollover tests") {
