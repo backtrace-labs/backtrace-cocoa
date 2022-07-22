@@ -2,17 +2,17 @@ import Foundation
 
 @objc class BacktraceBreadcrumbsLogManager: NSObject {
 
-    private lazy var breadcrumbId: Int = {
-        if let bredcrumbId = backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId {
-            BreadcrumbsInfo.currentBreadcrumbsId = bredcrumbId
-            return bredcrumbId + 1
-        }
-        return Date().millisecondsSince1970 + 1
-    }()
+    private var breadcrumbId: Int
     private let backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper
 
     init(breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
         self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbSettings)
+        if let lastBreadcrumbId = backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId {
+            BreadcrumbsInfo.currentBreadcrumbsId = lastBreadcrumbId
+            breadcrumbId = lastBreadcrumbId + 1
+        } else {
+            breadcrumbId = Date().millisecondsSince1970 + 1
+        }
         super.init()
     }
 
