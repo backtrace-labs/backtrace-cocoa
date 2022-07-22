@@ -11,7 +11,7 @@ import Foundation
 
     /// Error-free metrics class instance
     @objc public let metricsInstance: BacktraceMetrics
-    
+
     /// Error-free breadcrumbs class instance
     @objc public let breadcrumbsInstance: BacktraceBreadcrumbs
 
@@ -53,7 +53,7 @@ import Foundation
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
         let metrics = BacktraceMetrics(api: api)
-        let breadcrumbs = BacktraceBreadcrumbs(configuration.breadcrumbSettings)
+        let breadcrumbs = BacktraceBreadcrumbs()
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api, metrics: metrics, breadcrumbs: breadcrumbs)
     }
@@ -70,9 +70,9 @@ import Foundation
         let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
         let metrics = BacktraceMetrics(api: api)
-        
-        let breadcrumbs = BacktraceBreadcrumbs(configuration.breadcrumbSettings)
-        
+
+        let breadcrumbs = BacktraceBreadcrumbs()
+
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api, metrics: metrics, breadcrumbs: breadcrumbs)
     }
@@ -158,18 +158,11 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
 
-        guard var resource = try? reporter.generate(exception: exception,
+        guard let resource = try? reporter.generate(exception: exception,
                                                     attachmentPaths: attachmentPaths,
                                                     faultMessage: faultMessage) else {
             completion(BacktraceResult(.unknownError))
             return
-        }
-
-        // Check breadcrumb and attach report
-        // TODO: should this be moved the BacktraceClient.shared?.attachments?
-        // There seems to be no reason to do for each report?
-        if breadcrumbsInstance.isBreadcrumbsEnabled {
-            breadcrumbsInstance.processReportBreadcrumbs(&resource)
         }
 
         dispatcher.dispatch({ [weak self] in

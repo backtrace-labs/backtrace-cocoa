@@ -7,12 +7,7 @@ import Foundation
 
     init(breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
         self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbSettings)
-        if let lastBreadcrumbId = backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId {
-            BreadcrumbsInfo.currentBreadcrumbsId = lastBreadcrumbId
-            breadcrumbId = lastBreadcrumbId + 1
-        } else {
-            breadcrumbId = Date().millisecondsSince1970 + 1
-        }
+        self.breadcrumbId = Date().millisecondsSince1970
         super.init()
     }
 
@@ -41,6 +36,6 @@ import Foundation
     }
 
     internal var getCurrentBreadcrumbId: Int? {
-        return backtraceBreadcrumbFileHelper.getCurrentBreadcrumbId ?? breadcrumbId
+        return breadcrumbId
     }
 }

@@ -145,7 +145,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.report?.attachmentPaths }.to(equal(attachmentPaths))
                 }
 
-                throwingIt("report should NOT have metrics attributes if metrics is NOT enabled") {
+                it("report should NOT have metrics attributes if metrics is NOT enabled") {
                     let delegate = BacktraceClientDelegateMock()
                     let backtraceReport = try reporter.generate()
                     urlSession.response = MockOkResponse()
@@ -164,7 +164,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.report?.attributes["application.version"] }.to(beNil())
                 }
 
-                throwingIt("report should have metrics attributes if metrics is enabled") {
+                it("report should have metrics attributes if metrics is enabled") {
                     let metrics = BacktraceMetrics(api: backtraceApi)
                     metrics.enable(settings: BacktraceMetricsSettings())
 
@@ -186,6 +186,68 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.report?.attributes["application.version"] }.toNot(beNil())
 
                     MetricsInfo.disableMetrics()
+                }
+
+                it("report should have breadcrumbs attributes if breadcrumbs is enabled") {
+                    // Need to assign BacktraceClient since BacktraceBreadcrumbs uses it to get to attachments
+                    let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
+                                                                    token: "token")
+                    BacktraceClient.shared = try? BacktraceClient(credentials: backtraceCredentials)
+
+                    let breadcrumbs = BacktraceBreadcrumbs()
+                    breadcrumbs.enableBreadcrumbs()
+
+                    // A bit of a hack, get the attachments from the BacktraceClient and set it to the reporter under test
+                    reporter.attachments = BacktraceClient.shared!.attachments
+
+                    let delegate = BacktraceClientDelegateMock()
+                    let backtraceReport = try reporter.generate()
+                    urlSession.response = MockOkResponse()
+                    backtraceApi.delegate = delegate
+
+                    delegate.willSendClosure = { report in
+                        expect { report.attributes["breadcrumbs.lastId"] }.toNot(beNil())
+                        expect { report.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
+                        return report
+                    }
+
+                    let result = reporter.send(resource: backtraceReport)
+
+                    expect { result.backtraceStatus }.to(equal(.ok))
+                    expect { result.report?.attributes["breadcrumbs.lastId"] }.toNot(beNil())
+                    expect { result.report?.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
+
+                    breadcrumbs.disableBreadcrumbs()
+                    BacktraceClient.shared = nil
+                }
+
+                it("report should NOT have breadcrumbs attributes if breadcrumbs is NOT enabled") {
+                    // Need to assign BacktraceClient since BacktraceBreadcrumbs uses it to get to attachments
+                    let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!,
+                                                                    token: "token")
+                    BacktraceClient.shared = try? BacktraceClient(credentials: backtraceCredentials)
+
+                    // A bit of a hack, get the attachments from the BacktraceClient and set it to the reporter under test
+                    reporter.attachments = BacktraceClient.shared!.attachments
+
+                    let delegate = BacktraceClientDelegateMock()
+                    let backtraceReport = try reporter.generate()
+                    urlSession.response = MockOkResponse()
+                    backtraceApi.delegate = delegate
+
+                    delegate.willSendClosure = { report in
+                        expect { report.attributes["breadcrumbs.lastId"] }.to(beNil())
+                        expect { report.attachmentPaths.first }.to(beNil())
+                        return report
+                    }
+
+                    let result = reporter.send(resource: backtraceReport)
+
+                    expect { result.backtraceStatus }.to(equal(.ok))
+                    expect { result.report?.attributes["breadcrumbs.lastId"] }.to(beNil())
+                    expect { result.report?.attachmentPaths.first }.to(beNil())
+
+                    BacktraceClient.shared = nil
                 }
             }
         }

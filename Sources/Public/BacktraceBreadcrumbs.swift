@@ -1,8 +1,7 @@
 import Foundation
-// swiftlint:disable trailing_whitespace
 
 @objc public enum BacktraceBreadcrumbType: Int {
-    
+
     case manual = 1
     case log = 2
     case navigation = 3
@@ -10,7 +9,7 @@ import Foundation
     case system = 5
     case user = 6
     case configuration = 7
-    
+
     var description: String {
         switch self {
         case .manual:
@@ -29,21 +28,21 @@ import Foundation
             return "configuration"
         }
     }
-    
+
     public static let all: [BacktraceBreadcrumbType] = [.manual, .log, .navigation, .http, .system, .user, .configuration]
-    
+
     public static let none: [BacktraceBreadcrumbType] = []
 }
 
 @objc public enum BacktraceBreadcrumbLevel: Int {
-    
+
     case debug = 1
     case info = 2
     case warning = 3
     case http = 4
     case error = 5
     case fatal = 6
-    
+
     var description: String {
         switch self {
         case .debug:
@@ -60,53 +59,61 @@ import Foundation
             return "fatal"
         }
     }
-    
+
     public static let all: [BacktraceBreadcrumbLevel] = [.debug, .info, .warning, .http, .error, .fatal]
-    
+
     public static let none: [BacktraceBreadcrumbLevel] = []
 }
 
 @objc public class BacktraceBreadcrumbs: NSObject {
-    
-    private var breadcrumbSettings = BacktraceBreadcrumbSettings()
+
+    private let breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
 
 #if os(iOS)
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     private var backtraceComponentListener: BacktraceComponentListener?
 #endif
 
-    @objc public override init() {
-        super.init()
-        enableBreadcrumbs()
-    }
-    
-    @objc public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) {
-        super.init()
-        enableBreadcrumbs(breadcrumbSettings)
-    }
-    
     public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) {
-        do {
 #if os(iOS)
+        do {
             breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(breadcrumbSettings: breadcrumbSettings)
-            self.breadcrumbSettings = breadcrumbSettings
-            if breadcrumbSettings.breadcrumbTypes.first(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) != nil {
+            if breadcrumbSettings.breadcrumbTypes.contains(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
                 backtraceComponentListener = BacktraceComponentListener()
             }
-#endif
+            try BacktraceClient.shared?.attachments.append(breadcrumbSettings.getBreadcrumbLogPath())
         } catch {
-            BacktraceLogger.warning("\(error.localizedDescription) \nWhen enable breadcrumbs")
+            BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
+            disableBreadcrumbs()
         }
+#else
+        BacktraceLogger.warning("Breadcrumbs not supported on this platform")
+#endif
     }
-    
+
     public func disableBreadcrumbs() {
         breadcrumbSettings.breadcrumbTypes.removeAll()
 #if os(iOS)
         self.backtraceComponentListener = nil
         self.breadcrumbsLogManager = nil
+
+        // Remove breadcrumbs attachment
+        do {
+            let breadcrumbPath = try breadcrumbSettings.getBreadcrumbLogPath().path
+            BacktraceClient.shared?.attachments.removeAll(where: {
+              return $0.path == breadcrumbPath
+            })
+        } catch {
+            BacktraceLogger.warning("Unable to get breadcrumb path, skipping removing from attachments")
+        }
+
+        // Remove currentBreadcrumbsId, which prevents it from being added
+        BreadcrumbsInfo.currentBreadcrumbsId = nil
+#else
+        BacktraceLogger.warning("Breadcrumbs not supported on this platform")
 #endif
     }
-    
+
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
@@ -115,31 +122,25 @@ import Foundation
         if let breadcrumbsLogManager = breadcrumbsLogManager, isBreadcrumbsEnabled {
             return breadcrumbsLogManager.addBreadcrumb(message, attributes: attributes, type: type, level: level)
         }
+#else
+        BacktraceLogger.warning("Breadcrumbs not supported on this platform")
 #endif
         return false
     }
-    
+
     var isBreadcrumbsEnabled: Bool {
+#if os(iOS)
         return !breadcrumbSettings.breadcrumbTypes.isEmpty
+#else
+        BacktraceLogger.warning("Breadcrumbs not supported on this platform")
+        return false
+#endif
     }
-    
+
 #if os(iOS)
     var getCurrentBreadcrumbId: Int? {
         return breadcrumbsLogManager?.getCurrentBreadcrumbId
     }
 #endif
-    public func processReportBreadcrumbs(_ report: inout BacktraceReport) {
-#if os(iOS)
-        guard let lastBreadcrumbId = getCurrentBreadcrumbId else {
-            return
-        }
-        do {
-            let breadcrumbLogPath = try breadcrumbSettings.getBreadcrumbLogPath()
-            report.attachmentPaths.append(breadcrumbLogPath)
-//            report.attributes["breadcrumbs.lastId"] = lastBreadcrumbId
-        } catch {
-            BacktraceLogger.warning("When attaching breadcremb file with crash report.")
-        }
-#endif
-    }
+
 }

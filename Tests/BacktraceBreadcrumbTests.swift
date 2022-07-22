@@ -70,7 +70,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 }
             }
         }
-        describe("BacktraceClientConfiguration") {
+        describe("BacktraceBreadcrumbs") {
 
             var breadcrumb: BacktraceBreadcrumbs?
 
@@ -90,10 +90,9 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     breadcrumb?.disableBreadcrumbs()
                     expect { breadcrumb?.isBreadcrumbsEnabled }.to(beFalse())
                     expect { breadcrumb?.getCurrentBreadcrumbId }.to(beNil())
-                    let result = breadcrumb?.addBreadcrumb("Breadcrumb submit test")
-                    expect { result }.to(beFalse())
+                    expect { breadcrumb?.addBreadcrumb("Breadcrumb submit test") }.to(beFalse())
                     let breadcrumbText = self.readBreadcrumbText()
-                    expect { breadcrumbText }.toNot(contain("Breadcrumb submit test"))
+                    expect { breadcrumbText }.to(beNil())
                 }
             }
             context("breadcrumbs are enabled") {
@@ -139,7 +138,6 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { breadcrumb?.addBreadcrumb(text)}.to(beFalse())
 
                     let breadcrumbText = self.readBreadcrumbText()
-                    // text will contain a bunch of null bytes from the library, but should contain the breadcrumb itself
                     expect { breadcrumbText }.notTo(contain("this is a Breadcrumb"))
                 }
                 it("Again disable breadcrumb") {
@@ -147,31 +145,29 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { breadcrumb?.isBreadcrumbsEnabled }.to(beFalse())
                     expect { breadcrumb?.getCurrentBreadcrumbId }.to(beNil())
                 }
-                it("processReportBreadcrumbs") {
-                    breadcrumb?.enableBreadcrumbs()
-
-                    let crashReporter = BacktraceCrashReporter()
-                    var report = try crashReporter.generateLiveReport(attributes: [:])
-                    breadcrumb?.processReportBreadcrumbs(&report)
-
-                    expect { report.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
-                }
             }
-            context("rollover tests") {
+            context("rollover and async tests") {
                 it("rolls over after enough breadcrumbs are added to get to the maximum file size") {
-                    // 8196 is the minimum, setting 1 would just revert to that minimum
-                    let setting = BacktraceBreadcrumbSettings(maxQueueFileSizeBytes: 1)
-                    breadcrumb?.enableBreadcrumbs(setting)
+                    breadcrumb?.enableBreadcrumbs()
                     var size = 0
                     var writeIndex = 0
+
+                    let group = DispatchGroup()
 
                     // intentionally write over 4096 bytes, causing the file to overflow and rotate
                     while size < 4096 + 128 {
                         writeIndex += 1
+
                         let breadcrumbText = "this is Breadcrumb number \(writeIndex)"
-                        expect { breadcrumb?.addBreadcrumb(breadcrumbText) }.to(beTrue())
                         size += breadcrumbText.utf8.count
+
+                        // submit a task to the queue for background execution
+                        DispatchQueue.global().async(group: group, execute: {
+                            expect { breadcrumb?.addBreadcrumb(breadcrumbText) }.to(beTrue())
+                        })
                     }
+
+                    group.wait()
 
                     let breadcrumbText = self.readBreadcrumbText()!
 

@@ -17,18 +17,24 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     private static let maximumBreadcrumbSize = 4096
 
     private let maxQueueFileSizeBytes: Int
-    
+
     private var breadcrumbSettings: BacktraceBreadcrumbSettings
     private let queue: CASQueueFile
 
+    /** CASQueueFile is not thread safe, so all interactions with it should be done synchronously through this DispathQueue */
+    private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFileHelper@\(UUID().uuidString)")
+
     public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
+        // TODO: If the CASQueueFile had a problem last run, it leaves a bt-breadcrumbs-0.commit behind and stops working.
+        // Delete it?
+
         do {
-            self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath())
+            self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath().path)
         } catch {
             BacktraceLogger.error("\(error.localizedDescription) \nWhen enabling breadcrumbs")
             throw error
         }
-        self.breadcrumbSettings =  breadcrumbSettings
+        self.breadcrumbSettings = breadcrumbSettings
 
         if breadcrumbSettings.maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
             BacktraceLogger.warning("\(breadcrumbSettings.maxQueueFileSizeBytes) is smaller than the minimum of " +
@@ -58,12 +64,14 @@ enum BacktraceBreadcrumbFileHelperError: Error {
         }
 
         do {
-            // Keep removing until there's enough space to add the new breadcrumb
-            while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
-                try queue.pop(1, error: ())
-            }
+            try dispatchQueue.sync {
+                // Keep removing until there's enough space to add the new breadcrumb
+                while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
+                    try queue.pop(1, error: ())
+                }
 
-            try queue.add(textBytes, error: ())
+                try queue.add(textBytes, error: ())
+            }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumb to file")
             return false
@@ -74,26 +82,14 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 
     func clear() -> Bool {
         do {
-            try queue.clearAndReturnError()
+            try dispatchQueue.sync {
+                try queue.clearAndReturnError()
+            }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen clearing breadcrumb file")
             return false
         }
         return true
-    }
-    
-    internal var getCurrentBreadcrumbId: Int? {
-        do {
-            if let breadcrumbData = try queue.peek(queue.size(), error: (
-            )).last, let
-                breadcrumbText = String(data: breadcrumbData, encoding: .utf8)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
-                let data = breadcrumbText.data(using: .utf8),
-               let breadcrumbDic = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any], let breadcrumbId = breadcrumbDic["id"] as? Int {
-                return breadcrumbId
-            }
-        } catch  {
-        }
-        return nil
     }
 }
 
