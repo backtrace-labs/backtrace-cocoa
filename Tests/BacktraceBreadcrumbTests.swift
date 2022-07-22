@@ -99,7 +99,9 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 it("Able to add breadcrumbs and they are all added to the breadcrumb file without overflowing") {
                     breadcrumb?.enableBreadcrumbs()
                     expect { breadcrumb?.isBreadcrumbsEnabled }.to(beTrue())
+                    expect { BreadcrumbsInfo.currentBreadcrumbsId }.toNot(beNil())
                     expect { breadcrumb?.getCurrentBreadcrumbId }.toNot(beNil())
+                    expect { BreadcrumbsInfo.currentBreadcrumbsId }.to(equal(breadcrumb?.getCurrentBreadcrumbId))
 
                     //  50 iterations won't overflow the file yet
                     for index in 0...50 {

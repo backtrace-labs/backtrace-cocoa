@@ -92,8 +92,8 @@ import Foundation
     }
 
     public func disableBreadcrumbs() {
-        breadcrumbSettings.breadcrumbTypes.removeAll()
 #if os(iOS)
+        breadcrumbSettings.breadcrumbTypes.removeAll()
         self.backtraceComponentListener = nil
         self.breadcrumbsLogManager = nil
 
