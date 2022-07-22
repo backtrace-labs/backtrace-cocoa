@@ -103,13 +103,14 @@ import Foundation
         breadcrumbSettings.breadcrumbTypes.removeAll()
 #if os(iOS)
         self.backtraceComponentListener = nil
+        self.breadcrumbsLogManager = nil
 #endif
     }
     
     func addBreadcrumb(_ message: String,
-                              attributes: [String: String]? = nil,
-                              type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
-                              level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
+                       attributes: [String: String]? = nil,
+                       type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
+                       level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
 #if os(iOS)
         if let breadcrumbsLogManager = breadcrumbsLogManager, isBreadcrumbsEnabled {
             return breadcrumbsLogManager.addBreadcrumb(message, attributes: attributes, type: type, level: level)
