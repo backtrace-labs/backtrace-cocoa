@@ -240,11 +240,20 @@ struct MetricsInfo: AttributesSource {
 
 struct BreadcrumbsInfo: AttributesSource {
     internal static var currentBreadcrumbsId: Int?
+    internal static var breadcrumbFile: URL?
 
     var mutable: [String: Any?] {
-        return (BreadcrumbsInfo.currentBreadcrumbsId != nil) ?
-            ["breadcrumbs.lastId": BreadcrumbsInfo.currentBreadcrumbsId] :
-            [:]
+        if let currentBreadcrumbsId = BreadcrumbsInfo.currentBreadcrumbsId {
+            return ["breadcrumbs.lastId": currentBreadcrumbsId]
+        }
+        return [:]
+    }
+
+    var attachments: Attachments {
+        if let breadcrumbFile = BreadcrumbsInfo.breadcrumbFile {
+            return [breadcrumbFile]
+        }
+        return []
     }
 }
 

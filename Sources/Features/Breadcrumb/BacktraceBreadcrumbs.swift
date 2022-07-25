@@ -77,7 +77,7 @@ import Foundation
             if breadcrumbSettings.breadcrumbTypes.contains(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
                 backtraceComponentListener = BacktraceComponentListener()
             }
-            try BacktraceClient.shared?.attachments.append(breadcrumbSettings.getBreadcrumbLogPath())
+            try BreadcrumbsInfo.breadcrumbFile = breadcrumbSettings.getBreadcrumbLogPath()
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
             disableBreadcrumbs()
@@ -92,14 +92,7 @@ import Foundation
         self.breadcrumbsLogManager = nil
 
         // Remove breadcrumbs attachment
-        do {
-            let breadcrumbPath = try breadcrumbSettings.getBreadcrumbLogPath().path
-            BacktraceClient.shared?.attachments.removeAll(where: {
-              return $0.path == breadcrumbPath
-            })
-        } catch {
-            BacktraceLogger.warning("Unable to get breadcrumb path, skipping removing from attachments")
-        }
+        BreadcrumbsInfo.breadcrumbFile = nil
 
         // Remove currentBreadcrumbsId, which prevents it from being added
         BreadcrumbsInfo.currentBreadcrumbsId = nil
