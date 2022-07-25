@@ -187,6 +187,7 @@ final class BacktraceReporterTests: QuickSpec {
 
                     MetricsInfo.disableMetrics()
                 }
+#if os(iOS)
                 it("report should have breadcrumbs attributes if breadcrumbs is enabled") {
                     let breadcrumbs = BacktraceBreadcrumbs()
                     breadcrumbs.enableBreadcrumbs()
@@ -234,6 +235,7 @@ final class BacktraceReporterTests: QuickSpec {
 
                     BacktraceClient.shared = nil
                 }
+#endif
             }
         }
     }
