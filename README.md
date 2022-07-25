@@ -435,7 +435,7 @@ When breadcrumbs are enabled, any captured breadcrumbs will automatically be att
 ```swift
 let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: "https://backtrace.io")!, token: "token")
 let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials)
-backtraceConfiguration.enableBreadCrumbs(breadCrumbTypes: [BacktraceBreadcrumbType.manual, BacktraceBreadcrumbType.log])
+backtraceConfiguration.enableBreadcrumbs(breadcrumbTypes: [BacktraceBreadcrumbType.manual, BacktraceBreadcrumbType.log])
 ```
 - Objective-C
 ```objective-c
@@ -444,7 +444,7 @@ BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                      token: @"token"];
 BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
                                                 initWithCredentials: credentials];
-[configuration enableBreadCrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
+[configuration enableBreadcrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
 ```
 
 ### Add Breadcrumbs <a name="documentation-add-breadcrumbs"><a/>
