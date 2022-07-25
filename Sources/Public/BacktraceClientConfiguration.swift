@@ -14,8 +14,10 @@ import Foundation
     /// Error-free metrics settings
     @objc public var metricsSettings: BacktraceMetricsSettings = BacktraceMetricsSettings()
 
+#if os(iOS)
     /// Breadcrumbs settings.
     @objc public var breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
+#endif
 
     /// Number of records sent in 1 minute. Default `30`.
     @objc public var reportsPerMin: Int = 30

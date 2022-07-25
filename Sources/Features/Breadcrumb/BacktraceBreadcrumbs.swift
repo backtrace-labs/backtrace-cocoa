@@ -68,14 +68,10 @@ import Foundation
 @objc public class BacktraceBreadcrumbs: NSObject {
 
     private let breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
-
-#if os(iOS)
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     private var backtraceComponentListener: BacktraceComponentListener?
-#endif
 
     public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) {
-#if os(iOS)
         do {
             breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(breadcrumbSettings: breadcrumbSettings)
             if breadcrumbSettings.breadcrumbTypes.contains(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
@@ -88,13 +84,9 @@ import Foundation
         }
 
         _ = addBreadcrumb("Breadcrumbs enabled.")
-#else
-        BacktraceLogger.warning("Breadcrumbs not supported on this platform")
-#endif
     }
 
     public func disableBreadcrumbs() {
-#if os(iOS)
         breadcrumbSettings.breadcrumbTypes.removeAll()
         self.backtraceComponentListener = nil
         self.breadcrumbsLogManager = nil
@@ -111,38 +103,24 @@ import Foundation
 
         // Remove currentBreadcrumbsId, which prevents it from being added
         BreadcrumbsInfo.currentBreadcrumbsId = nil
-#else
-        BacktraceLogger.warning("Breadcrumbs not supported on this platform")
-#endif
+
     }
 
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                        level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
-#if os(iOS)
         if let breadcrumbsLogManager = breadcrumbsLogManager, isBreadcrumbsEnabled {
             return breadcrumbsLogManager.addBreadcrumb(message, attributes: attributes, type: type, level: level)
         }
-#else
-        BacktraceLogger.warning("Breadcrumbs not supported on this platform")
-#endif
         return false
     }
 
     var isBreadcrumbsEnabled: Bool {
-#if os(iOS)
         return !breadcrumbSettings.breadcrumbTypes.isEmpty
-#else
-        BacktraceLogger.warning("Breadcrumbs not supported on this platform")
-        return false
-#endif
     }
 
-#if os(iOS)
     var getCurrentBreadcrumbId: Int? {
         return breadcrumbsLogManager?.getCurrentBreadcrumbId
     }
-#endif
-
 }

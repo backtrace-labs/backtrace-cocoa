@@ -12,9 +12,11 @@ import Foundation
     /// Error-free metrics class instance
     @objc public let metricsInstance: BacktraceMetrics
 
-    /// Error-free breadcrumbs class instance
+#if os(iOS)
+    /// Breadcrumbs class instance
     @objc public let breadcrumbsInstance: BacktraceBreadcrumbs
-
+#endif
+    
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
@@ -53,9 +55,14 @@ import Foundation
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
         let metrics = BacktraceMetrics(api: api)
+#if os(iOS)
         let breadcrumbs = BacktraceBreadcrumbs()
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api, metrics: metrics, breadcrumbs: breadcrumbs)
+#else
+        try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
+                      dispatcher: Dispatcher(), api: api, metrics: metrics)
+#endif
     }
 
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
@@ -71,12 +78,17 @@ import Foundation
                                              credentials: configuration.credentials)
         let metrics = BacktraceMetrics(api: api)
 
+#if os(iOS)
         let breadcrumbs = BacktraceBreadcrumbs()
-
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api, metrics: metrics, breadcrumbs: breadcrumbs)
+#else
+        try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
+                      dispatcher: Dispatcher(), api: api, metrics: metrics)
+#endif
     }
 
+#if os(iOS)
     init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
          reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(),
          api: BacktraceApi, metrics: BacktraceMetrics, breadcrumbs: BacktraceBreadcrumbs) throws {
@@ -91,6 +103,21 @@ import Foundation
         super.init()
         try startCrashReporter()
     }
+#else
+    init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
+         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(),
+         api: BacktraceApi, metrics: BacktraceMetrics) throws {
+
+        self.dispatcher = dispatcher
+        self.reporter = reporter
+        self.configuration = configuration
+        self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
+        self.metricsInstance = metrics
+
+        super.init()
+        try startCrashReporter()
+    }
+#endif
 }
 
 // MARK: - BacktraceClientProviding

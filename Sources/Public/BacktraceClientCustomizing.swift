@@ -104,6 +104,7 @@ enum BacktraceUrlParsingError: Error {
     case invalidInput(String)
 }
 
+#if os(iOS)
 /// Provides Breadcrumb adding functionality to `BacktraceClient`.
 @objc public protocol BacktraceBreadcrumbProtocol {
     @objc var breadcrumbs: BacktraceBreadcrumbs { get }
@@ -160,3 +161,4 @@ enum BacktraceUrlParsingError: Error {
     @objc func addBreadcrumb(_ message: String,
                              type: BacktraceBreadcrumbType) -> Bool
 }
+#endif
