@@ -60,9 +60,10 @@ import Foundation
 
 @objc public class BacktraceBreadcrumbs: NSObject {
 
-    private let breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
     private var backtraceComponentListener: BacktraceComponentListener?
+    private var breadcrumbLevel: BacktraceBreadcrumbLevel?
+    private var breadcrumbTypes: [BacktraceBreadcrumbType]?
 
     public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) {
         do {
@@ -76,11 +77,13 @@ import Foundation
             disableBreadcrumbs()
         }
 
+        self.breadcrumbLevel = breadcrumbSettings.breadcrumbLevel
+        self.breadcrumbTypes = breadcrumbSettings.breadcrumbTypes
+
         _ = addBreadcrumb("Breadcrumbs enabled.")
     }
 
     public func disableBreadcrumbs() {
-        breadcrumbSettings.breadcrumbTypes.removeAll()
         self.backtraceComponentListener = nil
         self.breadcrumbsLogManager = nil
 
@@ -103,11 +106,18 @@ import Foundation
     }
 
     func allowBreadcrumbsToAdd(_ level: BacktraceBreadcrumbLevel) -> Bool {
-        return isBreadcrumbsEnabled && breadcrumbSettings.breadcrumbLevel.rawValue <= level.rawValue
+        guard let breadcrumbLevel = self.breadcrumbLevel else {
+            return false
+        }
+
+        return isBreadcrumbsEnabled && breadcrumbLevel.rawValue <= level.rawValue
     }
 
     var isBreadcrumbsEnabled: Bool {
-        return !breadcrumbSettings.breadcrumbTypes.isEmpty
+        guard let breadcrumbTypes = self.breadcrumbTypes else {
+            return false
+        }
+        return !breadcrumbTypes.isEmpty
     }
 
     var getCurrentBreadcrumbId: Int? {

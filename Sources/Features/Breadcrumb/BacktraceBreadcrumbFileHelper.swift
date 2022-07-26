@@ -15,7 +15,6 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 
     private let maximumIndividualBreadcrumbSize: Int
     private let maxQueueFileSizeBytes: Int
-    private let breadcrumbSettings: BacktraceBreadcrumbSettings
     private let queue: CASQueueFile
 
     /** CASQueueFile is not thread safe, so all interactions with it should be done synchronously through this DispathQueue */
@@ -28,7 +27,6 @@ enum BacktraceBreadcrumbFileHelperError: Error {
             BacktraceLogger.error("\(error.localizedDescription) \nWhen enabling breadcrumbs")
             throw error
         }
-        self.breadcrumbSettings = breadcrumbSettings
 
         self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
 
