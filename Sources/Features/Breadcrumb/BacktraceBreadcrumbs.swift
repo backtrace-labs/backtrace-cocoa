@@ -39,9 +39,8 @@ import Foundation
     case debug = 1
     case info = 2
     case warning = 3
-    case http = 4
-    case error = 5
-    case fatal = 6
+    case error = 4
+    case fatal = 5
 
     var description: String {
         switch self {
@@ -51,18 +50,12 @@ import Foundation
             return "info"
         case .warning:
             return "warning"
-        case .http:
-            return "http"
         case .error:
             return "error"
         case .fatal:
             return "fatal"
         }
     }
-
-    public static let all: [BacktraceBreadcrumbLevel] = [.debug, .info, .warning, .http, .error, .fatal]
-
-    public static let none: [BacktraceBreadcrumbLevel] = []
 }
 
 @objc public class BacktraceBreadcrumbs: NSObject {
@@ -103,12 +96,16 @@ import Foundation
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                        level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
-        if let breadcrumbsLogManager = breadcrumbsLogManager, isBreadcrumbsEnabled {
+        if let breadcrumbsLogManager = breadcrumbsLogManager, allowBreadcrumbsToAdd(level) {
             return breadcrumbsLogManager.addBreadcrumb(message, attributes: attributes, type: type, level: level)
         }
         return false
     }
 
+    func allowBreadcrumbsToAdd(_ level: BacktraceBreadcrumbLevel) -> Bool {
+        return isBreadcrumbsEnabled && breadcrumbSettings.breadcrumbLevel.rawValue >= level.rawValue
+    }
+    
     var isBreadcrumbsEnabled: Bool {
         return !breadcrumbSettings.breadcrumbTypes.isEmpty
     }
