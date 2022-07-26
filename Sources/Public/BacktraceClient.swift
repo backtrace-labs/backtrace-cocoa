@@ -10,13 +10,13 @@ import Foundation
     @objc public let configuration: BacktraceClientConfiguration
 
     /// Error-free metrics class instance
-    @objc public let metricsInstance: BacktraceMetrics
+    @objc private let metricsInstance: BacktraceMetrics
 
 #if os(iOS)
     /// Breadcrumbs class instance
-    @objc public let breadcrumbsInstance: BacktraceBreadcrumbs
+    @objc private let breadcrumbsInstance: BacktraceBreadcrumbs = BacktraceBreadcrumbs()
 #endif
-    
+
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
@@ -54,15 +54,8 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
-        let metrics = BacktraceMetrics(api: api)
-#if os(iOS)
-        let breadcrumbs = BacktraceBreadcrumbs()
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api, metrics: metrics, breadcrumbs: breadcrumbs)
-#else
-        try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api, metrics: metrics)
-#endif
+                      dispatcher: Dispatcher(), api: api)
     }
 
     /// Initialize `BacktraceClient` with `BacktraceClientConfiguration` instance. Allows to configure `BacktraceClient`
@@ -76,48 +69,24 @@ import Foundation
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
-        let metrics = BacktraceMetrics(api: api)
 
-#if os(iOS)
-        let breadcrumbs = BacktraceBreadcrumbs()
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api, metrics: metrics, breadcrumbs: breadcrumbs)
-#else
-        try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
-                      dispatcher: Dispatcher(), api: api, metrics: metrics)
-#endif
+                      dispatcher: Dispatcher(), api: api)
     }
 
-#if os(iOS)
     init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
          reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(),
-         api: BacktraceApi, metrics: BacktraceMetrics, breadcrumbs: BacktraceBreadcrumbs) throws {
+         api: BacktraceApi) throws {
 
         self.dispatcher = dispatcher
         self.reporter = reporter
         self.configuration = configuration
         self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
-        self.metricsInstance = metrics
-        self.breadcrumbsInstance = breadcrumbs
+        self.metricsInstance = BacktraceMetrics(api: api)
 
         super.init()
         try startCrashReporter()
     }
-#else
-    init(configuration: BacktraceClientConfiguration, debugger: DebuggerChecking.Type = DebuggerChecker.self,
-         reporter: BacktraceReporter, dispatcher: Dispatching = Dispatcher(),
-         api: BacktraceApi, metrics: BacktraceMetrics) throws {
-
-        self.dispatcher = dispatcher
-        self.reporter = reporter
-        self.configuration = configuration
-        self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
-        self.metricsInstance = metrics
-
-        super.init()
-        try startCrashReporter()
-    }
-#endif
 }
 
 // MARK: - BacktraceClientProviding
