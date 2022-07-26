@@ -210,7 +210,6 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.report?.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
 
                     breadcrumbs.disableBreadcrumbs()
-                    BacktraceClient.shared = nil
                 }
 
                 it("report should NOT have breadcrumbs attributes if breadcrumbs is NOT enabled") {
@@ -232,8 +231,6 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.backtraceStatus }.to(equal(.ok))
                     expect { result.report?.attributes["breadcrumbs.lastId"] }.to(beNil())
                     expect { result.report?.attachmentPaths.first }.to(beNil())
-
-                    BacktraceClient.shared = nil
                 }
 #endif
             }
