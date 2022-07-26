@@ -103,9 +103,9 @@ import Foundation
     }
 
     func allowBreadcrumbsToAdd(_ level: BacktraceBreadcrumbLevel) -> Bool {
-        return isBreadcrumbsEnabled && breadcrumbSettings.breadcrumbLevel.rawValue >= level.rawValue
+        return isBreadcrumbsEnabled && breadcrumbSettings.breadcrumbLevel.rawValue <= level.rawValue
     }
-    
+
     var isBreadcrumbsEnabled: Bool {
         return !breadcrumbSettings.breadcrumbTypes.isEmpty
     }

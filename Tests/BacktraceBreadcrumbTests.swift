@@ -1,4 +1,4 @@
-// swiftlint:disable function_body_length
+// swiftlint:disable function_body_length cyclomatic_complexity
 
 import XCTest
 import Nimble

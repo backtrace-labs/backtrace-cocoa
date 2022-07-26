@@ -18,7 +18,7 @@ import Foundation
 
     /// Breadcrumb level allow to add
     @objc public var breadcrumbLevel: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.debug
-    
+
     @objc
     public init(_ maxIndividualBreadcrumbSizeBytes: Int = 4096,
                 maxQueueFileSizeBytes: Int = defaultMaxBreadcrumbFileSize,
@@ -33,22 +33,19 @@ import Foundation
         super.init()
     }
 
-    public init(_ maxBreadcrumbSizeBytes: Int = 4096,
+    public init(_ maxIndividualBreadcrumbSizeBytes: Int = 4096,
                 maxQueueFileSizeBytes: Int = defaultMaxBreadcrumbFileSize,
                 breadcrumbLogFileName: String = "bt-breadcrumbs-0",
                 breadcrumbTypes: [BacktraceBreadcrumbType] = BacktraceBreadcrumbType.all,
                 breadcrumbLevel: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.debug) {
-        self.maxIndividualBreadcrumbSizeBytes = maxBreadcrumbSizeBytes
+        self.maxIndividualBreadcrumbSizeBytes = maxIndividualBreadcrumbSizeBytes
         self.maxQueueFileSizeBytes = maxQueueFileSizeBytes
+        self.breadcrumbLogFileName = breadcrumbLogFileName
         self.breadcrumbTypes = breadcrumbTypes
         self.breadcrumbLevel = breadcrumbLevel
         super.init()
     }
 
-    @objc public override init() {
-        super.init()
-    }
-    
     @objc public func getBreadcrumbLogPath() throws -> URL {
         var fileURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         fileURL.appendPathComponent(breadcrumbLogFileName)
