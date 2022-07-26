@@ -10,7 +10,6 @@ import Quick
 final class BacktraceBreadcrumbTests: QuickSpec {
 
     let breadcrumbLogFileName = "bt-breadcrumbs-0"
-    let defaultMaxLogSize = 64000
 
     func breadcrumbLogPath(_ create: Bool) throws -> String {
         var fileURL = try FileManager.default.url(for: .documentDirectory,
@@ -72,7 +71,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
         }
         describe("BacktraceBreadcrumbs") {
 
-            var breadcrumb: BacktraceBreadcrumbs?
+            var breadcrumbs: BacktraceBreadcrumbs?
 
             beforeEach {
                 do {
@@ -80,32 +79,32 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 } catch {
                     print("\(error.localizedDescription)")
                 }
-                breadcrumb = BacktraceBreadcrumbs()
+                breadcrumbs = BacktraceBreadcrumbs()
             }
             afterEach {
-                breadcrumb = nil
+                breadcrumbs = nil
             }
             context("breadcrumbs are not enabled") {
                 it("fails to add breadcrumb") {
-                    breadcrumb?.disableBreadcrumbs()
-                    expect { breadcrumb?.isBreadcrumbsEnabled }.to(beFalse())
-                    expect { breadcrumb?.getCurrentBreadcrumbId }.to(beNil())
-                    expect { breadcrumb?.addBreadcrumb("Breadcrumb submit test") }.to(beFalse())
+                    breadcrumbs?.disableBreadcrumbs()
+                    expect { breadcrumbs?.isBreadcrumbsEnabled }.to(beFalse())
+                    expect { breadcrumbs?.getCurrentBreadcrumbId }.to(beNil())
+                    expect { breadcrumbs?.addBreadcrumb("Breadcrumb submit test") }.to(beFalse())
                     let breadcrumbText = self.readBreadcrumbText()
                     expect { breadcrumbText }.to(beNil())
                 }
             }
             context("breadcrumbs are enabled") {
                 it("Able to add breadcrumbs and they are all added to the breadcrumb file without overflowing") {
-                    breadcrumb?.enableBreadcrumbs()
-                    expect { breadcrumb?.isBreadcrumbsEnabled }.to(beTrue())
+                    breadcrumbs?.enableBreadcrumbs()
+                    expect { breadcrumbs?.isBreadcrumbsEnabled }.to(beTrue())
                     expect { BreadcrumbsInfo.currentBreadcrumbsId }.toNot(beNil())
-                    expect { breadcrumb?.getCurrentBreadcrumbId }.toNot(beNil())
-                    expect { BreadcrumbsInfo.currentBreadcrumbsId }.to(equal(breadcrumb?.getCurrentBreadcrumbId))
+                    expect { breadcrumbs?.getCurrentBreadcrumbId }.toNot(beNil())
+                    expect { BreadcrumbsInfo.currentBreadcrumbsId }.to(equal(breadcrumbs?.getCurrentBreadcrumbId))
 
                     //  50 iterations won't overflow the file yet
                     for index in 0...50 {
-                        expect { breadcrumb?.addBreadcrumb("this is Breadcrumb number \(index)") }.to(beTrue())
+                        expect { breadcrumbs?.addBreadcrumb("this is Breadcrumb number \(index)") }.to(beTrue())
                     }
 
                     let breadcrumbText = self.readBreadcrumbText()
@@ -114,9 +113,9 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     }
                 }
                 it("Able to add breadcrumbs with all possible options (level, type, attributes)") {
-                    breadcrumb?.enableBreadcrumbs()
+                    breadcrumbs?.enableBreadcrumbs()
 
-                    expect { breadcrumb?.addBreadcrumb("this is a Breadcrumb ",
+                    expect { breadcrumbs?.addBreadcrumb("this is a Breadcrumb ",
                                                        attributes: ["a": "b", "c": "1"],
                                                        type: .navigation,
                                                        level: .fatal) }.to(beTrue())
@@ -130,71 +129,81 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { breadcrumbText }.to(contain("\"c\":\"1\""))
                 }
                 it("Too long breadcrumb (>4kB) gets rejected") {
-                    breadcrumb?.enableBreadcrumbs()
+                    breadcrumbs?.enableBreadcrumbs()
 
                     var text = "this is a Breadcrumb"
                     while text.utf8.count < 4096 {
                         text += text
                     }
 
-                    expect { breadcrumb?.addBreadcrumb(text)}.to(beFalse())
+                    expect { breadcrumbs?.addBreadcrumb(text)}.to(beFalse())
 
                     let breadcrumbText = self.readBreadcrumbText()
                     expect { breadcrumbText }.notTo(contain("this is a Breadcrumb"))
                 }
                 it("Again disable breadcrumb") {
-                    breadcrumb?.disableBreadcrumbs()
-                    expect { breadcrumb?.isBreadcrumbsEnabled }.to(beFalse())
-                    expect { breadcrumb?.getCurrentBreadcrumbId }.to(beNil())
+                    breadcrumbs?.disableBreadcrumbs()
+                    expect { breadcrumbs?.isBreadcrumbsEnabled }.to(beFalse())
+                    expect { breadcrumbs?.getCurrentBreadcrumbId }.to(beNil())
                 }
             }
             context("rollover and async tests") {
                 it("rolls over after enough breadcrumbs are added to get to the maximum file size") {
-                    breadcrumb?.enableBreadcrumbs()
-                    var size = 0
-                    var writeIndex = 0
+                    let settings = BacktraceBreadcrumbSettings()
+                    settings.maxQueueFileSizeBytes = 32 * 1024
+                    breadcrumbs?.enableBreadcrumbs(settings)
 
                     let group = DispatchGroup()
 
-                    // intentionally write over 4096 bytes, causing the file to overflow and rotate
-                    while size < 4096 + 128 {
-                        writeIndex += 1
-
-                        let breadcrumbText = "this is Breadcrumb number \(writeIndex)"
-                        size += breadcrumbText.utf8.count
-
+                    // intentionally write over allowed bytes, causing the file to overflow and rotate
+                    var writeIndex = 0
+                    while writeIndex < 1000 {
+                        let text = "this is Breadcrumb number \(writeIndex)"
                         // submit a task to the queue for background execution
                         DispatchQueue.global().async(group: group, execute: {
-                            expect { breadcrumb?.addBreadcrumb(breadcrumbText) }.to(beTrue())
+                            expect { breadcrumbs?.addBreadcrumb(text) }.to(beTrue())
                         })
+                        writeIndex += 1
                     }
 
                     group.wait()
 
                     let breadcrumbText = self.readBreadcrumbText()!
 
-                    // should have been rolled away
-                    expect { breadcrumbText }.toNot(contain("this is Breadcrumb number 0"))
-
-                    // Not very scientific, but 119 is apparently when we reach 4k and the file wraps
-                    let wrapIndex = 119
-                    var matches = 0
-                    for readIndex in wrapIndex...writeIndex {
-                        let match = breadcrumbText.contains("this is Breadcrumb number \(readIndex)")
-                        if match {
-                            matches += 1
-                        }
+                    // Not very scientific, but this is apparently when the file wraps
+                    let wrapIndex = 742
+                    for readIndex in 0...wrapIndex {
+                        // should have been rolled away
+                        expect { breadcrumbText }.toNot(contain("\"this is Breadcrumb number \(readIndex)\""))
                     }
 
-                    // Why the - 1?
-                    // Because one line is liable to get mangled by the wrapping - half will
-                    // be at the bottom and half at the top of the circular file.
-                    // Currently, we accept we lose this Breadcrumb in the UI - it will still be in the file
-                    // for manual inspection.
-                    let expectedNumberOfMatches = writeIndex - wrapIndex - 1
-                    expect(matches).to(beGreaterThanOrEqualTo(expectedNumberOfMatches),
-                                       description: "Not enough (\(expectedNumberOfMatches))" +
-                                       "breadcrumb matches found in breadcrumbs file: \n\(breadcrumbText)")
+                    var matches = 0
+                    if writeIndex < wrapIndex {
+                        fail("\(writeIndex) is smaller than \(wrapIndex)")
+                    } else {
+                        for readIndex in wrapIndex...writeIndex {
+                            let match = breadcrumbText.contains("\"this is Breadcrumb number \(readIndex)\"")
+                            if match {
+                                matches += 1
+                            }
+                        }
+
+                        // Why the - 1?
+                        // Because one line is liable to get mangled by the wrapping - half will
+                        // be at the bottom and half at the top of the circular file.
+                        // Currently, we accept we lose this Breadcrumb in the UI - it will still be in the file
+                        // for manual inspection.
+                        let expectedNumberOfMatches = writeIndex - wrapIndex - 1
+                        expect(matches).to(beGreaterThanOrEqualTo(expectedNumberOfMatches),
+                                           description: "Not enough (\(matches) out of \(expectedNumberOfMatches)) " +
+                                           "breadcrumb matches found in breadcrumbs file: \n\(breadcrumbText)")
+
+                        let attr = try FileManager.default.attributesOfItem(atPath: self.breadcrumbLogPath(false))
+                        let fileSize = attr[FileAttributeKey.size] as? Int
+                        let requestedSize = settings.maxQueueFileSizeBytes
+                        expect { fileSize }.to(beLessThanOrEqualTo(requestedSize))
+                        expect { fileSize }.to(beGreaterThanOrEqualTo(requestedSize - 1000))
+                    }
                 }
             }
         }

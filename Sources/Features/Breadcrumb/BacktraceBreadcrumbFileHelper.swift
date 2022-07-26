@@ -13,21 +13,15 @@ enum BacktraceBreadcrumbFileHelperError: Error {
      */
     private static let minimumQueueFileSizeBytes = 4096
 
-    /* We cap the size of an individual breadcrumb at 4k, for performance reasons. */
-    private static let maximumBreadcrumbSize = 4096
-
+    private let maximumIndividualBreadcrumbSize: Int
     private let maxQueueFileSizeBytes: Int
-
-    private var breadcrumbSettings: BacktraceBreadcrumbSettings
+    private let breadcrumbSettings: BacktraceBreadcrumbSettings
     private let queue: CASQueueFile
 
     /** CASQueueFile is not thread safe, so all interactions with it should be done synchronously through this DispathQueue */
     private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFileHelper@\(UUID().uuidString)")
 
     public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
-        // TODO: If the CASQueueFile had a problem last run, it leaves a bt-breadcrumbs-0.commit behind and stops working.
-        // Delete it?
-
         do {
             self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath().path)
         } catch {
@@ -35,6 +29,8 @@ enum BacktraceBreadcrumbFileHelperError: Error {
             throw error
         }
         self.breadcrumbSettings = breadcrumbSettings
+
+        self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
 
         if breadcrumbSettings.maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
             BacktraceLogger.warning("\(breadcrumbSettings.maxQueueFileSizeBytes) is smaller than the minimum of " +
@@ -58,15 +54,16 @@ enum BacktraceBreadcrumbFileHelperError: Error {
         }
 
         let textBytes = Data(text.utf8)
-        if textBytes.count > BacktraceBreadcrumbFileHelper.maximumBreadcrumbSize {
-            BacktraceLogger.warning("We should not have a breadcrumb this big, this is a bug! Discarding breadcrumb.")
+        if textBytes.count > maximumIndividualBreadcrumbSize {
+            BacktraceLogger.warning(
+                "Discarding breadcrumb that was larger than the maximum specified (\(maximumIndividualBreadcrumbSize).")
             return false
         }
 
         do {
             try dispatchQueue.sync {
-                // Keep removing until there's enough space to add the new breadcrumb
-                while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
+                // Keep removing until there's enough space to add the new breadcrumb (leaving 512 bytes room)
+                while (queueByteSize() + textBytes.count) > (maxQueueFileSizeBytes - 512) {
                     try queue.pop(1, error: ())
                 }
 
