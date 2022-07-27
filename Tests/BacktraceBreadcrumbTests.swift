@@ -82,6 +82,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 breadcrumbs = BacktraceBreadcrumbs()
             }
             afterEach {
+                breadcrumbs?.disableBreadcrumbs()
                 breadcrumbs = nil
             }
             context("breadcrumbs are not enabled") {
