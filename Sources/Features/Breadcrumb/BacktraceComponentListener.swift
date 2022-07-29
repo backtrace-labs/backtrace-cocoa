@@ -139,9 +139,9 @@ import IOKit.ps
                 message = "unplugged battery level : \(batteryLevel)%"
             }
 
-            let result = BacktraceClient.shared?.addBreadcrumb(message,
-                                                      type: .system,
-                                                      level: .info)
+            BacktraceClient.shared?.addBreadcrumb(message,
+                                                  type: .system,
+                                                  level: .info)
         }
 #endif
     }
