@@ -1,21 +1,28 @@
 import Foundation
+#if os(OSX)
+import IOKit.ps
+#endif
 
 @objc class BacktraceComponentListener: NSObject {
 
     override init() {
         super.init()
+#if os(iOS)
         observeOrientationChange()
+#endif
         observeMemoryStatusChanged()
         observeBatteryStatusChanged()
     }
 
     deinit {
+#if os(iOS)
         NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
+#endif
         self.source?.cancel()
     }
 
     // MARK: - Orientation Status Listener
-
+#if os(iOS)
     private func observeOrientationChange() {
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(notifyOrientationChange),
@@ -41,7 +48,7 @@ import Foundation
                                                       type: .system,
                                                       level: .info)
     }
-
+#endif
     // MARK: Memory Status Listener
 
     @objc private func notifyMemoryStatusChange() {
@@ -52,10 +59,12 @@ import Foundation
 
     private var source: DispatchSourceMemoryPressure?
     @objc private func observeMemoryStatusChanged() {
+#if os(iOS)
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(notifyMemoryStatusChange),
                                                name: UIApplication.didReceiveMemoryWarningNotification,
                                                object: nil)
+#endif
 
         if let source: DispatchSourceMemoryPressure =
             DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.main) as? DispatchSource {
@@ -67,7 +76,11 @@ import Foundation
             }
             source.setEventHandler(handler: eventHandler)
             source.setRegistrationHandler(handler: eventHandler)
-            source.activate()
+            if #available(iOS 11.0, macOS 10.12, *) {
+                source.activate()
+            } else {
+                source.resume()
+            }
             self.source = source
         }
     }
@@ -107,13 +120,32 @@ import Foundation
     // MARK: - Battery Status Listener
 
     @objc private func observeBatteryStatusChanged() {
+#if os(iOS)
         UIDevice.current.isBatteryMonitoringEnabled = true
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(notifyBatteryStatusChange),
                                                name: UIDevice.batteryLevelDidChangeNotification,
                                                object: nil)
-    }
+#else
+        let psInfo = IOPSCopyPowerSourcesInfo().takeRetainedValue()
+        let psList = IOPSCopyPowerSourcesList(psInfo).takeRetainedValue() as [CFTypeRef]
+        if let psDesc = IOPSGetPowerSourceDescription(psInfo, psList.first).takeUnretainedValue() as? [String: Any],
+           let isCharging = (psDesc[kIOPSIsChargingKey] as? Bool),
+           let batteryLevel = psDesc[kIOPSCurrentCapacityKey] {
+            var message = ""
+            if isCharging {
+                message = "charging battery level : \(batteryLevel)%"
+            } else {
+                message = "unplugged battery level : \(batteryLevel)%"
+            }
 
+            let result = BacktraceClient.shared?.addBreadcrumb(message,
+                                                      type: .system,
+                                                      level: .info)
+        }
+#endif
+    }
+#if os(iOS)
     private func getBatteryWarningText() -> String {
         let batteryLevel = UIDevice.current.batteryLevel
         switch UIDevice.current.batteryState {
@@ -133,4 +165,5 @@ import Foundation
                                                       type: .system,
                                                       level: .info)
     }
+#endif
 }

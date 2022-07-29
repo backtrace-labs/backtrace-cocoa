@@ -27,6 +27,8 @@
                                                    allowsAttachingDebugger: TRUE
                                                    detectOOM: FALSE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
+    [BacktraceClient.shared enableBreadcrumbs];
+
     [BacktraceClient.shared setAttributes: @{@"foo": @"bar"}];
     BacktraceClient.shared.delegate = self;
     
@@ -41,6 +43,11 @@
     } @finally {
         
     }
+    NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
+    [BacktraceClient.shared addBreadcrumb:@"My Native Breadcrumb"
+                               attributes:attributes
+                                     type:BacktraceBreadcrumbTypeUser
+                                    level:BacktraceBreadcrumbLevelError];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
