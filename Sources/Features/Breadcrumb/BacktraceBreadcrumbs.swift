@@ -61,7 +61,7 @@ import Foundation
 @objc public class BacktraceBreadcrumbs: NSObject {
 
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
-    private var backtraceComponentListener: BacktraceComponentListener?
+    private var backtraceComponentListener: BacktraceNotificationObserver?
     private var breadcrumbLevel: BacktraceBreadcrumbLevel?
     private var breadcrumbTypes: [BacktraceBreadcrumbType]?
 
@@ -69,7 +69,7 @@ import Foundation
         do {
             breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(breadcrumbSettings: breadcrumbSettings)
             if breadcrumbSettings.breadcrumbTypes.contains(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
-                backtraceComponentListener = BacktraceComponentListener()
+                backtraceComponentListener = BacktraceNotificationObserver()
             }
             try BreadcrumbsInfo.breadcrumbFile = breadcrumbSettings.getBreadcrumbLogPath()
         } catch {

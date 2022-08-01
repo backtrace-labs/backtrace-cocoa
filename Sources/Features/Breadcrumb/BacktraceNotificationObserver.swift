@@ -3,15 +3,17 @@ import Foundation
 import IOKit.ps
 #endif
 
-@objc class BacktraceComponentListener: NSObject {
+@objc class BacktraceNotificationObserver: NSObject {
 
     override init() {
         super.init()
 #if os(iOS)
         observeOrientationChange()
+        observeBatteryStatusChanged()
+#elseif os(OSX)
+        addCurrentBatteryPercentage()
 #endif
         observeMemoryStatusChanged()
-        observeBatteryStatusChanged()
     }
 
     deinit {
@@ -20,6 +22,28 @@ import IOKit.ps
 #endif
         self.source?.cancel()
     }
+
+#if os(OSX)
+    private func addCurrentBatteryPercentage() {
+        let psInfo = IOPSCopyPowerSourcesInfo().takeRetainedValue()
+        let psList = IOPSCopyPowerSourcesList(psInfo).takeRetainedValue() as [CFTypeRef]
+        if let psPowerSource = psList.first,
+           let psDesc = IOPSGetPowerSourceDescription(psInfo, psPowerSource).takeUnretainedValue() as? [String: Any],
+           let isCharging = (psDesc[kIOPSIsChargingKey] as? Bool),
+           let batteryLevel = psDesc[kIOPSCurrentCapacityKey] {
+            let message
+            if isCharging {
+                message = "charging battery level : \(batteryLevel)%"
+            } else {
+                message = "unplugged battery level : \(batteryLevel)%"
+            }
+
+            BacktraceClient.shared?.addBreadcrumb(message,
+                                                  type: .system,
+                                                  level: .info)
+        }
+    }
+#endif
 
     // MARK: - Orientation Status Listener
 #if os(iOS)
@@ -50,7 +74,6 @@ import IOKit.ps
     }
 #endif
     // MARK: Memory Status Listener
-
     @objc private func notifyMemoryStatusChange() {
         _ = BacktraceClient.shared?.addBreadcrumb("Critical low memory warning!",
                                                       type: .system,
@@ -126,24 +149,6 @@ import IOKit.ps
                                                selector: #selector(notifyBatteryStatusChange),
                                                name: UIDevice.batteryLevelDidChangeNotification,
                                                object: nil)
-#else
-        let psInfo = IOPSCopyPowerSourcesInfo().takeRetainedValue()
-        let psList = IOPSCopyPowerSourcesList(psInfo).takeRetainedValue() as [CFTypeRef]
-        if let psPowerSource = psList.first,
-           let psDesc = IOPSGetPowerSourceDescription(psInfo, psPowerSource).takeUnretainedValue() as? [String: Any],
-           let isCharging = (psDesc[kIOPSIsChargingKey] as? Bool),
-           let batteryLevel = psDesc[kIOPSCurrentCapacityKey] {
-            var message = ""
-            if isCharging {
-                message = "charging battery level : \(batteryLevel)%"
-            } else {
-                message = "unplugged battery level : \(batteryLevel)%"
-            }
-
-            BacktraceClient.shared?.addBreadcrumb(message,
-                                                  type: .system,
-                                                  level: .info)
-        }
 #endif
     }
 #if os(iOS)
