@@ -129,7 +129,8 @@ import IOKit.ps
 #else
         let psInfo = IOPSCopyPowerSourcesInfo().takeRetainedValue()
         let psList = IOPSCopyPowerSourcesList(psInfo).takeRetainedValue() as [CFTypeRef]
-        if let psDesc = IOPSGetPowerSourceDescription(psInfo, psList.first).takeUnretainedValue() as? [String: Any],
+        if let psPowerSource = psList.first,
+           let psDesc = IOPSGetPowerSourceDescription(psInfo, psPowerSource).takeUnretainedValue() as? [String: Any],
            let isCharging = (psDesc[kIOPSIsChargingKey] as? Bool),
            let batteryLevel = psDesc[kIOPSCurrentCapacityKey] {
             var message = ""
