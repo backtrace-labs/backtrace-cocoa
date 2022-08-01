@@ -91,11 +91,25 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { breadcrumbs?.isBreadcrumbsEnabled }.to(beFalse())
                     expect { breadcrumbs?.getCurrentBreadcrumbId }.to(beNil())
                     expect { breadcrumbs?.addBreadcrumb("Breadcrumb submit test") }.to(beFalse())
-                    let breadcrumbText = self.readBreadcrumbText()
-                    expect { breadcrumbText }.to(beNil())
+                    expect { self.readBreadcrumbText() }.to(beNil())
                 }
             }
             context("breadcrumbs are enabled") {
+                it("fails to add breadcrumb for lower breadcrumb level") {
+                    breadcrumbs?.enableBreadcrumbs(BacktraceBreadcrumbSettings(breadcrumbLevel: BacktraceBreadcrumbLevel.error))
+                    expect { breadcrumbs?.allowBreadcrumbsToAdd(.info) }.to(beFalse())
+                    expect { breadcrumbs?.addBreadcrumb("Info Breadcrumb", level: .info) }.to(beFalse())
+                    expect { self.readBreadcrumbText() }.toNot(contain("Info Breadcrumb"))
+                }
+                it("able to add breadcrumb for higher breadcrumb level") {
+                    breadcrumbs?.enableBreadcrumbs(BacktraceBreadcrumbSettings(breadcrumbLevel: BacktraceBreadcrumbLevel.error))
+                    expect { breadcrumbs?.allowBreadcrumbsToAdd(.fatal) }.to(beTrue())
+                    expect { breadcrumbs?.addBreadcrumb("Fatal Breadcrumb", level: .fatal) }.to(beTrue())
+                    let breadcrumbText = self.readBreadcrumbText()
+                    expect { breadcrumbText }.toNot(beNil())
+                    expect { breadcrumbText }.to(contain("Fatal Breadcrumb"))
+                    expect { breadcrumbText }.to(contain("\"level\":\"fatal\""))
+                }
                 it("Able to add breadcrumbs and they are all added to the breadcrumb file without overflowing") {
                     breadcrumbs?.enableBreadcrumbs()
                     expect { breadcrumbs?.isBreadcrumbsEnabled }.to(beTrue())

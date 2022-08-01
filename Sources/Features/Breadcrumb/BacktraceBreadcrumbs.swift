@@ -69,7 +69,7 @@ import Foundation
         do {
             breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(breadcrumbSettings: breadcrumbSettings)
             if breadcrumbSettings.breadcrumbTypes.contains(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
-                backtraceComponentListener = BacktraceNotificationObserver()
+                backtraceComponentListener = BacktraceNotificationObserver(breadcrumbs: self)
             }
             try BreadcrumbsInfo.breadcrumbFile = breadcrumbSettings.getBreadcrumbLogPath()
         } catch {

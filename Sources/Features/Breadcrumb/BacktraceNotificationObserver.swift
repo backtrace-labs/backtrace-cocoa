@@ -5,7 +5,9 @@ import IOKit.ps
 
 @objc class BacktraceNotificationObserver: NSObject {
 
-    override init() {
+    private let breadcrumbs: BacktraceBreadcrumbs
+    init(breadcrumbs: BacktraceBreadcrumbs) {
+        self.breadcrumbs = breadcrumbs
         super.init()
 #if os(iOS)
         observeOrientationChange()
@@ -38,7 +40,7 @@ import IOKit.ps
                 message = "unplugged battery level : \(batteryLevel)%"
             }
 
-            _ = BacktraceClient.shared?.addBreadcrumb(message,
+            _ = breadcrumbs.addBreadcrumb(message,
                                                   type: .system,
                                                   level: .info)
         }
@@ -67,17 +69,17 @@ import IOKit.ps
 
     private func addOrientationBreadcrumb(_ orientation: String) {
         let attributes = ["orientation": orientation]
-        _ = BacktraceClient.shared?.addBreadcrumb("Configuration changed",
-                                                      attributes: attributes,
-                                                      type: .system,
-                                                      level: .info)
+        _ = breadcrumbs.addBreadcrumb("Orientation changed",
+                                                  attributes: attributes,
+                                                  type: .system,
+                                                  level: .info)
     }
 #endif
     // MARK: Memory Status Listener
     @objc private func notifyMemoryStatusChange() {
-        _ = BacktraceClient.shared?.addBreadcrumb("Critical low memory warning!",
-                                                      type: .system,
-                                                      level: .fatal)
+        _ = breadcrumbs.addBreadcrumb("Critical low memory warning!",
+                                                  type: .system,
+                                                  level: .fatal)
     }
 
     private var source: DispatchSourceMemoryPressure?
@@ -94,7 +96,11 @@ import IOKit.ps
             let eventHandler: DispatchSourceProtocol.DispatchSourceHandler = {
                 let event: DispatchSource.MemoryPressureEvent = source.data
                 if source.isCancelled == false {
-                    self.didReceive(event)
+                    let message = self.getMemoryWarningText(event)
+                    let level = self.getMemoryWarningLevel(event)
+                    _ = self.breadcrumbs.addBreadcrumb(message,
+                                                              type: .system,
+                                                              level: level)
                 }
             }
             source.setEventHandler(handler: eventHandler)
@@ -132,14 +138,6 @@ import IOKit.ps
         }
     }
 
-    private func didReceive(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) {
-        let message = getMemoryWarningText(memoryPressureEvent)
-        let level = getMemoryWarningLevel(memoryPressureEvent)
-        _ = BacktraceClient.shared?.addBreadcrumb(message,
-                                                  type: .system,
-                                                  level: level)
-    }
-
     // MARK: - Battery Status Listener
 
     @objc private func observeBatteryStatusChanged() {
@@ -167,7 +165,7 @@ import IOKit.ps
     }
 
     @objc private func notifyBatteryStatusChange() {
-        _ = BacktraceClient.shared?.addBreadcrumb(getBatteryWarningText(),
+        _ = breadcrumbs.addBreadcrumb(getBatteryWarningText(),
                                                       type: .system,
                                                       level: .info)
     }
