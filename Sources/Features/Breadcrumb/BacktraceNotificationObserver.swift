@@ -76,21 +76,9 @@ import IOKit.ps
     }
 #endif
     // MARK: Memory Status Listener
-    @objc private func notifyMemoryStatusChange() {
-        _ = breadcrumbs.addBreadcrumb("Critical low memory warning!",
-                                                  type: .system,
-                                                  level: .fatal)
-    }
-
+    
     private var source: DispatchSourceMemoryPressure?
     @objc private func observeMemoryStatusChanged() {
-#if os(iOS)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(notifyMemoryStatusChange),
-                                               name: UIApplication.didReceiveMemoryWarningNotification,
-                                               object: nil)
-#endif
-
         if let source: DispatchSourceMemoryPressure =
             DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.main) as? DispatchSource {
             let eventHandler: DispatchSourceProtocol.DispatchSourceHandler = {
