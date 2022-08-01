@@ -31,14 +31,14 @@ import IOKit.ps
            let psDesc = IOPSGetPowerSourceDescription(psInfo, psPowerSource).takeUnretainedValue() as? [String: Any],
            let isCharging = (psDesc[kIOPSIsChargingKey] as? Bool),
            let batteryLevel = psDesc[kIOPSCurrentCapacityKey] {
-            let message
+            let message: String
             if isCharging {
                 message = "charging battery level : \(batteryLevel)%"
             } else {
                 message = "unplugged battery level : \(batteryLevel)%"
             }
 
-            BacktraceClient.shared?.addBreadcrumb(message,
+            _ = BacktraceClient.shared?.addBreadcrumb(message,
                                                   type: .system,
                                                   level: .info)
         }
