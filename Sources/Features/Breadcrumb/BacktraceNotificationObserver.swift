@@ -3,59 +3,78 @@ import Foundation
 import IOKit.ps
 #endif
 
-@objc class BacktraceNotificationObserver: NSObject {
+protocol BacktraceNotificationObserverDelegate: class {
+    
+    func addBreadcrumb(_ message: String,
+                       attributes: [String: String]?,
+                       type: BacktraceBreadcrumbType,
+                       level: BacktraceBreadcrumbLevel)
+}
+
+@objc class BacktraceNotificationObserver: NSObject, BacktraceNotificationObserverDelegate {
 
     private let breadcrumbs: BacktraceBreadcrumbs
-    init(breadcrumbs: BacktraceBreadcrumbs) {
+    
+    private var handlerDelegates: [BacktraceNotificationHandlerDelegate]?
+    
+    init(breadcrumbs: BacktraceBreadcrumbs,
+         handlerDelegates: [BacktraceNotificationHandlerDelegate] =  [
+            BacktraceOrientationNotificationObserver(),
+            BacktraceMemoryNotificationObserver(),
+            BacktraceBatteryNotificationObserver()]) {
         self.breadcrumbs = breadcrumbs
+        self.handlerDelegates = handlerDelegates
         super.init()
-#if os(iOS)
-        observeOrientationChange()
-        observeBatteryStatusChanged()
-#elseif os(OSX)
-        addCurrentBatteryPercentage()
-#endif
-        observeMemoryStatusChanged()
+        self.enableNotificationObserver()
     }
 
+    func enableNotificationObserver() {
+        handlerDelegates?.forEach({ $0.startObserving(self) })
+    }
+    
     deinit {
-#if os(iOS)
-        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
-#endif
-        self.source?.cancel()
+        self.handlerDelegates = nil
+    }
+    
+    func addBreadcrumb(_ message: String, attributes: [String : String]?, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) {
+        let result = breadcrumbs.addBreadcrumb(message,
+                                      attributes: attributes,
+                                      type: .system,
+                                      level: .info)
+        print(result)
+    }
+}
+
+protocol BacktraceNotificationHandlerDelegate: class {
+    
+    var delegate: BacktraceNotificationObserverDelegate? { get set }
+    
+    func startObserving(_ delegate: BacktraceNotificationObserverDelegate)
+}
+
+// MARK: - Orientation Status Listener
+class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
+        
+    weak var delegate: BacktraceNotificationObserverDelegate?
+        
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
+        self.delegate = delegate
+        observeOrientationChange()
     }
 
-#if os(OSX)
-    private func addCurrentBatteryPercentage() {
-        let psInfo = IOPSCopyPowerSourcesInfo().takeRetainedValue()
-        let psList = IOPSCopyPowerSourcesList(psInfo).takeRetainedValue() as [CFTypeRef]
-        if let psPowerSource = psList.first,
-           let psDesc = IOPSGetPowerSourceDescription(psInfo, psPowerSource).takeUnretainedValue() as? [String: Any],
-           let isCharging = (psDesc[kIOPSIsChargingKey] as? Bool),
-           let batteryLevel = psDesc[kIOPSCurrentCapacityKey] {
-            let message: String
-            if isCharging {
-                message = "charging battery level : \(batteryLevel)%"
-            } else {
-                message = "unplugged battery level : \(batteryLevel)%"
-            }
-
-            _ = breadcrumbs.addBreadcrumb(message,
-                                                  type: .system,
-                                                  level: .info)
-        }
-    }
-#endif
-
-    // MARK: - Orientation Status Listener
-#if os(iOS)
     private func observeOrientationChange() {
+#if os(iOS)
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(notifyOrientationChange),
                                                name: UIDevice.orientationDidChangeNotification,
                                                object: nil)
+#endif
     }
-
+#if os(iOS)
     @objc private func notifyOrientationChange() {
         switch UIDevice.current.orientation {
         case .portrait, .portraitUpsideDown:
@@ -69,16 +88,24 @@ import IOKit.ps
 
     private func addOrientationBreadcrumb(_ orientation: String) {
         let attributes = ["orientation": orientation]
-        _ = breadcrumbs.addBreadcrumb("Orientation changed",
-                                                  attributes: attributes,
-                                                  type: .system,
-                                                  level: .info)
+        _ = delegate?.addBreadcrumb("Orientation changed",
+                                    attributes: attributes,
+                                    type: .system,
+                                    level: .info)
     }
 #endif
-    // MARK: Memory Status Listener
+
+}
+
+// MARK: Memory Status Listener
+class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
     
+    weak var delegate: BacktraceNotificationObserverDelegate?
+   
     private var source: DispatchSourceMemoryPressure?
-    @objc private func observeMemoryStatusChanged() {
+        
+    func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
+        self.delegate = delegate
         if let source: DispatchSourceMemoryPressure =
             DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.main) as? DispatchSource {
             let eventHandler: DispatchSourceProtocol.DispatchSourceHandler = {
@@ -86,9 +113,10 @@ import IOKit.ps
                 if source.isCancelled == false {
                     let message = self.getMemoryWarningText(event)
                     let level = self.getMemoryWarningLevel(event)
-                    _ = self.breadcrumbs.addBreadcrumb(message,
-                                                              type: .system,
-                                                              level: level)
+                    self.delegate?.addBreadcrumb(message,
+                                                 attributes: nil,
+                                                 type: .system,
+                                                 level: level)
                 }
             }
             source.setEventHandler(handler: eventHandler)
@@ -101,7 +129,7 @@ import IOKit.ps
             self.source = source
         }
     }
-
+    
     private func getMemoryWarningText(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) -> String {
         if memoryPressureEvent.rawValue == DispatchSource.MemoryPressureEvent.normal.rawValue {
             return "Normal level memory pressure event"
@@ -125,19 +153,50 @@ import IOKit.ps
             return .debug
         }
     }
+    
+    deinit {
+        self.source?.cancel()
+        self.source = nil
+    }
+}
 
-    // MARK: - Battery Status Listener
-
-    @objc private func observeBatteryStatusChanged() {
-#if os(iOS)
+// MARK: - Battery Status Listener
+class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
+    
+    var delegate: BacktraceNotificationObserverDelegate?
+    
+#if os(OSX)
+    func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
+        self.delegate = delegate
+        let psInfo = IOPSCopyPowerSourcesInfo().takeRetainedValue()
+        let psList = IOPSCopyPowerSourcesList(psInfo).takeRetainedValue() as [CFTypeRef]
+        if let psPowerSource = psList.first,
+           let psDesc = IOPSGetPowerSourceDescription(psInfo, psPowerSource).takeUnretainedValue() as? [String: Any],
+           let isCharging = (psDesc[kIOPSIsChargingKey] as? Bool),
+           let batteryLevel = psDesc[kIOPSCurrentCapacityKey] {
+            let message: String
+            if isCharging {
+                message = "charging battery level : \(batteryLevel)%"
+            } else {
+                message = "unplugged battery level : \(batteryLevel)%"
+            }
+            self.delegate?.addBreadcrumb(message,
+                                         attributes: nil,
+                                         type: .system,
+                                         level: .info)
+        }
+    }
+    
+#elseif os(iOS)
+    
+    func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
+        self.delegate = delegate
         UIDevice.current.isBatteryMonitoringEnabled = true
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(notifyBatteryStatusChange),
                                                name: UIDevice.batteryLevelDidChangeNotification,
                                                object: nil)
-#endif
     }
-#if os(iOS)
     private func getBatteryWarningText() -> String {
         let batteryLevel = UIDevice.current.batteryLevel
         switch UIDevice.current.batteryState {
@@ -153,9 +212,14 @@ import IOKit.ps
     }
 
     @objc private func notifyBatteryStatusChange() {
-        _ = breadcrumbs.addBreadcrumb(getBatteryWarningText(),
-                                                      type: .system,
-                                                      level: .info)
+        delegate?.addBreadcrumb(getBatteryWarningText(),
+                                attributes: nil,
+                                type: .system,
+                                level: .info)
     }
 #endif
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }

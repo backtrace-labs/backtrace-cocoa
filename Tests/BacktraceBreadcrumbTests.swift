@@ -222,5 +222,38 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 }
             }
         }
+        describe("BacktraceNotificationObserver") {
+            beforeEach {
+                do {
+                    try FileManager.default.removeItem(atPath: self.breadcrumbLogPath(false))
+                } catch {
+                    print("\(error.localizedDescription)")
+                }
+            }
+            context("when notification observed") {
+                let breadcrumbs = BacktraceBreadcrumbs()
+                breadcrumbs.enableBreadcrumbs()
+                let mockOrientationNotificationObserver = BacktraceOrientationNotificationObserverMock()
+                let mockBatteryNotificationObserver = BacktraceBatteryNotificationObserverMock()
+                let mockMemoryNotificationObserver = BacktraceMemoryNotificationObserverMock()
+                _ = BacktraceNotificationObserver(breadcrumbs: breadcrumbs, handlerDelegates: [
+                    mockOrientationNotificationObserver,
+                    mockBatteryNotificationObserver,
+                    mockMemoryNotificationObserver])
+                mockOrientationNotificationObserver.addOrientationBreadcrumb("Landscape")
+                mockBatteryNotificationObserver.addBatteryBreadcrumb(10)
+                mockMemoryNotificationObserver.addMemoryBreadcrumb("Normal level memory pressure event")
+                let breadcrumbText = self.readBreadcrumbText()
+
+                it("notification breadcremb added") {
+#if os(iOS)
+                    expect { breadcrumbText }.to(contain("\"orientation\":\"Landscape\""))
+                    expect { breadcrumbText }.to(contain("Orientation changed"))
+#endif
+                    expect { breadcrumbText }.to(contain("full battery level : 10%"))
+                    expect { breadcrumbText }.to(contain("Normal level memory pressure event"))
+                }
+            }
+        }
     }
 }

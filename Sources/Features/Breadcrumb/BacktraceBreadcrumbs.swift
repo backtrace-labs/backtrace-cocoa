@@ -61,30 +61,28 @@ import Foundation
 @objc public class BacktraceBreadcrumbs: NSObject {
 
     private var breadcrumbsLogManager: BacktraceBreadcrumbsLogManager?
-    private var backtraceComponentListener: BacktraceNotificationObserver?
+    private var backtraceNotificationObserver: BacktraceNotificationObserver?
     private var breadcrumbLevel: BacktraceBreadcrumbLevel?
     private var breadcrumbTypes: [BacktraceBreadcrumbType]?
 
     public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) {
         do {
+            self.breadcrumbLevel = breadcrumbSettings.breadcrumbLevel
+            self.breadcrumbTypes = breadcrumbSettings.breadcrumbTypes
             breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(breadcrumbSettings: breadcrumbSettings)
             if breadcrumbSettings.breadcrumbTypes.contains(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
-                backtraceComponentListener = BacktraceNotificationObserver(breadcrumbs: self)
+                backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: self)
             }
             try BreadcrumbsInfo.breadcrumbFile = breadcrumbSettings.getBreadcrumbLogPath()
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
             disableBreadcrumbs()
         }
-
-        self.breadcrumbLevel = breadcrumbSettings.breadcrumbLevel
-        self.breadcrumbTypes = breadcrumbSettings.breadcrumbTypes
-
         _ = addBreadcrumb("Breadcrumbs enabled.")
     }
 
     public func disableBreadcrumbs() {
-        self.backtraceComponentListener = nil
+        self.backtraceNotificationObserver = nil
         self.breadcrumbsLogManager = nil
 
         // Remove breadcrumbs attachment
