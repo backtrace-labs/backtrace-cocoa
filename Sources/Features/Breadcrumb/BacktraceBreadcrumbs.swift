@@ -72,7 +72,9 @@ import Foundation
             breadcrumbsLogManager = try BacktraceBreadcrumbsLogManager(breadcrumbSettings: breadcrumbSettings)
             if breadcrumbSettings.breadcrumbTypes.contains(where: { $0.rawValue == BacktraceBreadcrumbType.system.rawValue }) {
                 backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: self)
+                backtraceNotificationObserver?.enableNotificationObserver()
             }
+
             try BreadcrumbsInfo.breadcrumbFile = breadcrumbSettings.getBreadcrumbLogPath()
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")

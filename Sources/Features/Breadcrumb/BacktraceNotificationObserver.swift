@@ -4,7 +4,7 @@ import IOKit.ps
 #endif
 
 protocol BacktraceNotificationObserverDelegate: class {
-    
+
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]?,
                        type: BacktraceBreadcrumbType,
@@ -14,9 +14,9 @@ protocol BacktraceNotificationObserverDelegate: class {
 @objc class BacktraceNotificationObserver: NSObject, BacktraceNotificationObserverDelegate {
 
     private let breadcrumbs: BacktraceBreadcrumbs
-    
+
     private var handlerDelegates: [BacktraceNotificationHandlerDelegate]?
-    
+
     init(breadcrumbs: BacktraceBreadcrumbs,
          handlerDelegates: [BacktraceNotificationHandlerDelegate] =  [
             BacktraceOrientationNotificationObserver(),
@@ -25,18 +25,19 @@ protocol BacktraceNotificationObserverDelegate: class {
         self.breadcrumbs = breadcrumbs
         self.handlerDelegates = handlerDelegates
         super.init()
-        self.enableNotificationObserver()
     }
 
     func enableNotificationObserver() {
         handlerDelegates?.forEach({ $0.startObserving(self) })
     }
-    
+
     deinit {
         self.handlerDelegates = nil
     }
-    
-    func addBreadcrumb(_ message: String, attributes: [String : String]?, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) {
+
+    func addBreadcrumb(_ message: String, attributes: [String: String]?,
+                       type: BacktraceBreadcrumbType,
+                       level: BacktraceBreadcrumbLevel) {
         let result = breadcrumbs.addBreadcrumb(message,
                                       attributes: attributes,
                                       type: .system,
@@ -46,21 +47,21 @@ protocol BacktraceNotificationObserverDelegate: class {
 }
 
 protocol BacktraceNotificationHandlerDelegate: class {
-    
+
     var delegate: BacktraceNotificationObserverDelegate? { get set }
-    
+
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate)
 }
 
 // MARK: - Orientation Status Listener
 class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
-        
+
     weak var delegate: BacktraceNotificationObserverDelegate?
-        
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         observeOrientationChange()
@@ -99,11 +100,11 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
 
 // MARK: Memory Status Listener
 class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
-    
+
     weak var delegate: BacktraceNotificationObserverDelegate?
-   
+
     private var source: DispatchSourceMemoryPressure?
-        
+
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         if let source: DispatchSourceMemoryPressure =
@@ -129,7 +130,7 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
             self.source = source
         }
     }
-    
+
     private func getMemoryWarningText(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) -> String {
         if memoryPressureEvent.rawValue == DispatchSource.MemoryPressureEvent.normal.rawValue {
             return "Normal level memory pressure event"
@@ -153,7 +154,7 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
             return .debug
         }
     }
-    
+
     deinit {
         self.source?.cancel()
         self.source = nil
@@ -162,9 +163,9 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
 
 // MARK: - Battery Status Listener
 class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
-    
+
     var delegate: BacktraceNotificationObserverDelegate?
-    
+
 #if os(OSX)
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
@@ -186,9 +187,9 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                                          level: .info)
         }
     }
-    
+
 #elseif os(iOS)
-    
+
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -218,7 +219,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                                 level: .info)
     }
 #endif
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
