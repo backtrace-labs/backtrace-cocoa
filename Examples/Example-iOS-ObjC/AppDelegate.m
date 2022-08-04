@@ -27,7 +27,7 @@
                                                    reportsPerMin: 3
                                                    allowsAttachingDebugger: TRUE
                                                    detectOOM: FALSE];
-    //[configuration enableBreadcrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
+    [configuration enableBreadcrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     BacktraceClient.shared.delegate = self;
 
