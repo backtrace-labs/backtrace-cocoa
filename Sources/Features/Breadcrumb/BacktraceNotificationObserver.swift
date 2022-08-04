@@ -38,11 +38,10 @@ protocol BacktraceNotificationObserverDelegate: class {
     func addBreadcrumb(_ message: String, attributes: [String: String]?,
                        type: BacktraceBreadcrumbType,
                        level: BacktraceBreadcrumbLevel) {
-        let result = breadcrumbs.addBreadcrumb(message,
+        _ = breadcrumbs.addBreadcrumb(message,
                                       attributes: attributes,
                                       type: .system,
                                       level: .info)
-        print(result)
     }
 }
 
