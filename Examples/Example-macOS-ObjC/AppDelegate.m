@@ -27,10 +27,10 @@
                                                    allowsAttachingDebugger: TRUE
                                                    detectOOM: FALSE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
-    [BacktraceClient.shared enableBreadcrumbs];
-
+    
     [BacktraceClient.shared setAttributes: @{@"foo": @"bar"}];
     BacktraceClient.shared.delegate = self;
+    [BacktraceClient.shared enableBreadcrumbs];
     
     @try {
         NSArray *array = @[];
