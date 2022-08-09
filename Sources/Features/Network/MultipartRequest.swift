@@ -70,6 +70,7 @@ extension MultipartRequest {
         // attachments
         for attachment in report.attachmentPaths.compactMap(Attachment.init(filePath:)) {
             if attachment.data.count > maximumAttachmentSize {
+                BacktraceLogger.warning("Attachment with size more than 10 MB is skipped.")
                continue
             }
             body.appendString(boundaryPrefix)
