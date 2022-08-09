@@ -21,10 +21,10 @@ protocol BacktraceNotificationObserverDelegate: class {
         self.breadcrumbs = breadcrumbs
         self.handlerDelegates = [
             BacktraceMemoryNotificationObserver(),
-            BacktraceBatteryNotificationObserver(),
-            BacktraceAppStateNotificationObserver()]
+            BacktraceBatteryNotificationObserver()]
 #if os(iOS)
         self.handlerDelegates?.append(BacktraceOrientationNotificationObserver())
+        self.handlerDelegates?.append(BacktraceAppStateNotificationObserver())
 #endif
         super.init()
     }
@@ -232,6 +232,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 }
 
+#if os(iOS)
 // MARK: - Application State Observer
 class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
     
@@ -243,7 +244,6 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
     }
     
     private func observeApplicationStateChange() {
-#if os(iOS)
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(applicationWillEnterForeground),
                                                name: Application.willEnterForegroundNotification,
@@ -253,9 +253,7 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
                                                selector: #selector(didEnterBackgroundNotification),
                                                name: Application.didEnterBackgroundNotification,
                                                object: nil)
-#endif
     }
-#if os(iOS)
     @objc private func applicationWillEnterForeground() {
         addApplicationStateBreadcrumb("Application will enter in foreground")
     }
@@ -270,6 +268,5 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
                                     type: .system,
                                     level: .info)
     }
-#endif
-    
 }
+#endif

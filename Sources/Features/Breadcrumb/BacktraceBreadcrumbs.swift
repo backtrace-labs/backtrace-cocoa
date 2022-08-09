@@ -64,6 +64,7 @@ import Foundation
     private var backtraceNotificationObserver: BacktraceNotificationObserver?
     private var breadcrumbLevel: BacktraceBreadcrumbLevel?
     private var breadcrumbTypes: [BacktraceBreadcrumbType]?
+    private(set) var isBreadcrumbsEnabled: Bool = false
 
     public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) {
         do {
@@ -77,6 +78,7 @@ import Foundation
 
             try BreadcrumbsInfo.breadcrumbFile = breadcrumbSettings.getBreadcrumbLogPath()
 
+            isBreadcrumbsEnabled = true
             _ = addBreadcrumb("Breadcrumbs enabled.")
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
@@ -85,6 +87,7 @@ import Foundation
     }
 
     public func disableBreadcrumbs() {
+        self.isBreadcrumbsEnabled = false
         self.backtraceNotificationObserver = nil
         self.breadcrumbsLogManager = nil
         self.breadcrumbTypes = nil
@@ -95,7 +98,6 @@ import Foundation
 
         // Remove currentBreadcrumbsId, which prevents it from being added
         BreadcrumbsInfo.currentBreadcrumbsId = nil
-
     }
 
     func addBreadcrumb(_ message: String,
@@ -118,10 +120,6 @@ import Foundation
 
     public func clear() -> Bool {
         return breadcrumbsLogManager?.clear() ?? false
-    }
-    
-    var isBreadcrumbsEnabled: Bool {
-        return self.breadcrumbTypes?.isEmpty ?? false
     }
 
     var getCurrentBreadcrumbId: Int? {
