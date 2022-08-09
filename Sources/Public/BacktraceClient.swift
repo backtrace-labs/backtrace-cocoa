@@ -255,7 +255,7 @@ extension BacktraceClient: BacktraceBreadcrumbProtocol {
     @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType) -> Bool {
         return breadcrumbsInstance.addBreadcrumb(message, type: type)
     }
-    
+
     @objc public func clearBreadcrumbs() -> Bool {
         return breadcrumbsInstance.clear()
     }

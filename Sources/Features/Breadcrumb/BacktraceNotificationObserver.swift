@@ -225,24 +225,24 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                                 type: .system,
                                 level: .info)
     }
-#endif
 
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
+#endif
 }
 
 #if os(iOS)
 // MARK: - Application State Observer
 class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
-    
+
     var delegate: BacktraceNotificationObserverDelegate?
-    
+
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         observeApplicationStateChange()
     }
-    
+
     private func observeApplicationStateChange() {
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(applicationWillEnterForeground),
@@ -261,7 +261,7 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
     @objc private func didEnterBackgroundNotification() {
         addApplicationStateBreadcrumb("Application did enter in background")
     }
-    
+
     private func addApplicationStateBreadcrumb(_ message: String) {
         _ = delegate?.addBreadcrumb(message,
                                     attributes: nil,
