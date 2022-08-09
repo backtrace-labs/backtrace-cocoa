@@ -6,7 +6,7 @@ import CoreServices
 #endif
 
 struct Attachment {
-    let data: Data?
+    let data: Data
     let name: String
     let mimeType: String
 
