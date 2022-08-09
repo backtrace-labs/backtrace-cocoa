@@ -65,13 +65,12 @@ protocol BacktraceNotificationHandlerDelegate: class {
 // MARK: - Orientation Status Listener
 class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
-    var delegate: BacktraceNotificationObserverDelegate?
+    weak var delegate: BacktraceNotificationObserverDelegate?
 
     var orientation: UIDeviceOrientation { UIDevice.current.orientation }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-        delegate = nil
     }
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
@@ -164,14 +163,13 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
     deinit {
         self.source?.cancel()
         self.source = nil
-        self.delegate = nil
     }
 }
 
 // MARK: - Battery Status Listener
 class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
-    var delegate: BacktraceNotificationObserverDelegate?
+    weak var delegate: BacktraceNotificationObserverDelegate?
 
 #if os(OSX)
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
@@ -231,6 +229,5 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-        delegate = nil
     }
 }

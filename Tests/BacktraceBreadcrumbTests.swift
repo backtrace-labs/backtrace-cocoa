@@ -239,7 +239,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 it("notification startObserving called for each observer") {
                     let backtraceObserverMock1 = BacktraceObserverMock()
                     let backtraceObserverMock2 = BacktraceObserverMock()
-                    BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs, handlerDelegates: [
+                    _ = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs, handlerDelegates: [
                         backtraceObserverMock1,
                         backtraceObserverMock2]).enableNotificationObserver()
 
@@ -271,8 +271,9 @@ final class BacktraceBreadcrumbTests: QuickSpec {
 
                     let backtraceObserver = OverriddenOrientationNotificationObsrvr()
 
-                    BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
-                                                  handlerDelegates: [backtraceObserver]).enableNotificationObserver()
+                    let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                  handlerDelegates: [backtraceObserver])
+                    backtraceNotificationObserver.enableNotificationObserver()
 
                     NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                                     object: nil)
@@ -310,8 +311,9 @@ final class BacktraceBreadcrumbTests: QuickSpec {
 
                     backtraceBreadcrumbs.enableBreadcrumbs()
 
-                    BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
-                                                  handlerDelegates: [backtraceObserver]).enableNotificationObserver()
+                    let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                  handlerDelegates: [backtraceObserver])
+                    backtraceNotificationObserver.enableNotificationObserver()
 
                     NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
                                                     object: nil)
