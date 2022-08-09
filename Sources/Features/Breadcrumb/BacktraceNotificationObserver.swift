@@ -17,11 +17,19 @@ protocol BacktraceNotificationObserverDelegate: class {
 
     private var handlerDelegates: [BacktraceNotificationHandlerDelegate]?
 
-    init(breadcrumbs: BacktraceBreadcrumbs,
-         handlerDelegates: [BacktraceNotificationHandlerDelegate] =  [
-            BacktraceOrientationNotificationObserver(),
+    init(breadcrumbs: BacktraceBreadcrumbs) {
+        self.breadcrumbs = breadcrumbs
+        self.handlerDelegates = [
             BacktraceMemoryNotificationObserver(),
-            BacktraceBatteryNotificationObserver()]) {
+            BacktraceBatteryNotificationObserver()]
+#if os(iOS)
+        self.handlerDelegates?.append(BacktraceOrientationNotificationObserver())
+#endif
+        super.init()
+    }
+
+    init(breadcrumbs: BacktraceBreadcrumbs,
+         handlerDelegates: [BacktraceNotificationHandlerDelegate]) {
         self.breadcrumbs = breadcrumbs
         self.handlerDelegates = handlerDelegates
         super.init()
@@ -53,37 +61,35 @@ protocol BacktraceNotificationHandlerDelegate: class {
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate)
 }
 
+#if os(iOS)
 // MARK: - Orientation Status Listener
 class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
-    weak var delegate: BacktraceNotificationObserverDelegate?
+    var delegate: BacktraceNotificationObserverDelegate?
+
+    var orientation: UIDeviceOrientation { UIDevice.current.orientation }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        delegate = nil
     }
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
-        observeOrientationChange()
-    }
-
-    private func observeOrientationChange() {
-#if os(iOS)
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(notifyOrientationChange),
                                                name: UIDevice.orientationDidChangeNotification,
                                                object: nil)
-#endif
     }
-#if os(iOS)
+
     @objc private func notifyOrientationChange() {
-        switch UIDevice.current.orientation {
+        switch orientation {
         case .portrait, .portraitUpsideDown:
             addOrientationBreadcrumb("portrait")
         case .landscapeLeft, .landscapeRight:
             addOrientationBreadcrumb("landscape")
         default:
-            print("unknown")
+            BacktraceLogger.warning("Unknown orientation type: \(orientation)")
         }
     }
 
@@ -94,9 +100,9 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
                                     type: .system,
                                     level: .info)
     }
-#endif
 
 }
+#endif
 
 // MARK: Memory Status Listener
 class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
@@ -158,6 +164,7 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
     deinit {
         self.source?.cancel()
         self.source = nil
+        self.delegate = nil
     }
 }
 
@@ -189,6 +196,8 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
 #elseif os(iOS)
+    var batteryState: UIDevice.BatteryState { UIDevice.current.batteryState }
+    var batteryLevel: Float { UIDevice.current.batteryLevel }
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
@@ -198,17 +207,17 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                                                name: UIDevice.batteryLevelDidChangeNotification,
                                                object: nil)
     }
+
     private func getBatteryWarningText() -> String {
-        let batteryLevel = UIDevice.current.batteryLevel
-        switch UIDevice.current.batteryState {
+        switch batteryState {
         case .unknown:
-            return "Unknown battery level : \(batteryLevel * 100)%"
+            return "Unknown battery level"
         case .unplugged:
-            return "unplugged battery level : \(batteryLevel * 100)%"
+            return "Unplugged battery level: \(batteryLevel * 100)%"
         case .charging:
-            return "charging battery level : \(batteryLevel * 100)%"
+            return "Charging battery level: \(batteryLevel * 100)%"
         case .full:
-            return "full battery level : \(batteryLevel * 100)%"
+            return "Full battery level: \(batteryLevel * 100)%"
         }
     }
 
@@ -222,5 +231,6 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        delegate = nil
     }
 }
