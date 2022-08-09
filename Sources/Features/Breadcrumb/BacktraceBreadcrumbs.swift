@@ -116,6 +116,10 @@ import Foundation
         return isBreadcrumbsEnabled && breadcrumbLevel.rawValue <= level.rawValue
     }
 
+    public func clear() -> Bool {
+        return breadcrumbsLogManager?.clear() ?? false
+    }
+    
     var isBreadcrumbsEnabled: Bool {
         return self.breadcrumbTypes?.isEmpty ?? false
     }
