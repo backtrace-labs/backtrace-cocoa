@@ -63,8 +63,15 @@ extension MultipartRequest {
         body.appendString("Content-Type: application/octet-stream\r\n\r\n")
         body.append(report.reportData)
         body.appendString("\r\n")
+        
+        // make sure attachments are not bigger than 10 MB.
+        let maximumAttachmentSize = 10 * 1024 * 1024
+        
         // attachments
         for attachment in report.attachmentPaths.compactMap(Attachment.init(filePath:)) {
+            if attachment.data.count > maximumAttachmentSize {
+               continue
+            }
             body.appendString(boundaryPrefix)
             body.appendString("Content-Disposition: form-data; name=\"\(attachment.name)\"; filename=\"\(attachment.name)\"\r\n")
             body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
