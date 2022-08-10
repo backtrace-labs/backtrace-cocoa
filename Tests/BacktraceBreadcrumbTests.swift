@@ -1,4 +1,4 @@
-// swiftlint:disable function_body_length cyclomatic_complexity
+// swiftlint:disable function_body_length
 
 import XCTest
 import Nimble
@@ -36,13 +36,9 @@ final class BacktraceBreadcrumbTests: QuickSpec {
             var manager: BacktraceBreadcrumbsLogManager?
             beforeEach {
                 do {
-                    try FileManager.default.removeItem(atPath: self.breadcrumbLogPath(false))
-                } catch {
-                    print("\(error.localizedDescription)")
-                }
-                do {
                     let setting = BacktraceBreadcrumbSettings(maxQueueFileSizeBytes: 8192)
                     try manager = BacktraceBreadcrumbsLogManager(breadcrumbSettings: setting)
+                    _ = manager?.clear()
                 } catch {
                     fail("\(error.localizedDescription)")
                 }
@@ -70,56 +66,47 @@ final class BacktraceBreadcrumbTests: QuickSpec {
             }
         }
         describe("BacktraceBreadcrumbs") {
+            let breadcrumbs = BacktraceBreadcrumbs()
 
-            var breadcrumbs: BacktraceBreadcrumbs?
-
-            beforeEach {
-                do {
-                    try FileManager.default.removeItem(atPath: self.breadcrumbLogPath(false))
-                } catch {
-                    print("\(error.localizedDescription)")
-                }
-                breadcrumbs = BacktraceBreadcrumbs()
-            }
             afterEach {
-                breadcrumbs?.disableBreadcrumbs()
-                breadcrumbs = nil
+                _ = breadcrumbs.clear()
+                breadcrumbs.disableBreadcrumbs()
             }
             context("breadcrumbs are not enabled") {
                 it("fails to add breadcrumb") {
-                    breadcrumbs?.disableBreadcrumbs()
-                    expect { breadcrumbs?.isBreadcrumbsEnabled }.to(beFalse())
-                    expect { breadcrumbs?.getCurrentBreadcrumbId }.to(beNil())
-                    expect { breadcrumbs?.addBreadcrumb("Breadcrumb submit test") }.to(beFalse())
-                    expect { self.readBreadcrumbText() }.to(beNil())
+                    breadcrumbs.disableBreadcrumbs()
+                    expect { breadcrumbs.isBreadcrumbsEnabled }.to(beFalse())
+                    expect { breadcrumbs.getCurrentBreadcrumbId }.to(beNil())
+                    expect { breadcrumbs.addBreadcrumb("Breadcrumb submit test") }.to(beFalse())
+                    expect { self.readBreadcrumbText() }.toNot(contain("Breadcrumb submit test"))
                 }
             }
             context("breadcrumbs are enabled") {
                 it("fails to add breadcrumb for lower breadcrumb level") {
-                    breadcrumbs?.enableBreadcrumbs(BacktraceBreadcrumbSettings(breadcrumbLevel: BacktraceBreadcrumbLevel.error))
-                    expect { breadcrumbs?.allowBreadcrumbsToAdd(.info) }.to(beFalse())
-                    expect { breadcrumbs?.addBreadcrumb("Info Breadcrumb", level: .info) }.to(beFalse())
+                    breadcrumbs.enableBreadcrumbs(BacktraceBreadcrumbSettings(breadcrumbLevel: BacktraceBreadcrumbLevel.error))
+                    expect { breadcrumbs.allowBreadcrumbsToAdd(.info) }.to(beFalse())
+                    expect { breadcrumbs.addBreadcrumb("Info Breadcrumb", level: .info) }.to(beFalse())
                     expect { self.readBreadcrumbText() }.toNot(contain("Info Breadcrumb"))
                 }
                 it("able to add breadcrumb for higher breadcrumb level") {
-                    breadcrumbs?.enableBreadcrumbs(BacktraceBreadcrumbSettings(breadcrumbLevel: BacktraceBreadcrumbLevel.error))
-                    expect { breadcrumbs?.allowBreadcrumbsToAdd(.fatal) }.to(beTrue())
-                    expect { breadcrumbs?.addBreadcrumb("Fatal Breadcrumb", level: .fatal) }.to(beTrue())
+                    breadcrumbs.enableBreadcrumbs(BacktraceBreadcrumbSettings(breadcrumbLevel: BacktraceBreadcrumbLevel.error))
+                    expect { breadcrumbs.allowBreadcrumbsToAdd(.fatal) }.to(beTrue())
+                    expect { breadcrumbs.addBreadcrumb("Fatal Breadcrumb", level: .fatal) }.to(beTrue())
                     let breadcrumbText = self.readBreadcrumbText()
                     expect { breadcrumbText }.toNot(beNil())
                     expect { breadcrumbText }.to(contain("Fatal Breadcrumb"))
                     expect { breadcrumbText }.to(contain("\"level\":\"fatal\""))
                 }
                 it("Able to add breadcrumbs and they are all added to the breadcrumb file without overflowing") {
-                    breadcrumbs?.enableBreadcrumbs()
-                    expect { breadcrumbs?.isBreadcrumbsEnabled }.to(beTrue())
+                    breadcrumbs.enableBreadcrumbs()
+                    expect { breadcrumbs.isBreadcrumbsEnabled }.to(beTrue())
                     expect { BreadcrumbsInfo.currentBreadcrumbsId }.toNot(beNil())
-                    expect { breadcrumbs?.getCurrentBreadcrumbId }.toNot(beNil())
-                    expect { BreadcrumbsInfo.currentBreadcrumbsId }.to(equal(breadcrumbs?.getCurrentBreadcrumbId))
+                    expect { breadcrumbs.getCurrentBreadcrumbId }.toNot(beNil())
+                    expect { BreadcrumbsInfo.currentBreadcrumbsId }.to(equal(breadcrumbs.getCurrentBreadcrumbId))
 
                     //  50 iterations won't overflow the file yet
                     for index in 0...50 {
-                        expect { breadcrumbs?.addBreadcrumb("this is Breadcrumb number \(index)") }.to(beTrue())
+                        expect { breadcrumbs.addBreadcrumb("this is Breadcrumb number \(index)") }.to(beTrue())
                     }
 
                     let breadcrumbText = self.readBreadcrumbText()
@@ -128,9 +115,9 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     }
                 }
                 it("Able to add breadcrumbs with all possible options (level, type, attributes)") {
-                    breadcrumbs?.enableBreadcrumbs()
+                    breadcrumbs.enableBreadcrumbs()
 
-                    expect { breadcrumbs?.addBreadcrumb("this is a Breadcrumb ",
+                    expect { breadcrumbs.addBreadcrumb("this is a Breadcrumb ",
                                                        attributes: ["a": "b", "c": "1"],
                                                        type: .navigation,
                                                        level: .fatal) }.to(beTrue())
@@ -144,29 +131,29 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { breadcrumbText }.to(contain("\"c\":\"1\""))
                 }
                 it("Too long breadcrumb (>4kB) gets rejected") {
-                    breadcrumbs?.enableBreadcrumbs()
+                    breadcrumbs.enableBreadcrumbs()
 
                     var text = "this is a Breadcrumb"
                     while text.utf8.count < 4096 {
                         text += text
                     }
 
-                    expect { breadcrumbs?.addBreadcrumb(text)}.to(beFalse())
+                    expect { breadcrumbs.addBreadcrumb(text)}.to(beFalse())
 
                     let breadcrumbText = self.readBreadcrumbText()
                     expect { breadcrumbText }.notTo(contain("this is a Breadcrumb"))
                 }
                 it("Again disable breadcrumb") {
-                    breadcrumbs?.disableBreadcrumbs()
-                    expect { breadcrumbs?.isBreadcrumbsEnabled }.to(beFalse())
-                    expect { breadcrumbs?.getCurrentBreadcrumbId }.to(beNil())
+                    breadcrumbs.disableBreadcrumbs()
+                    expect { breadcrumbs.isBreadcrumbsEnabled }.to(beFalse())
+                    expect { breadcrumbs.getCurrentBreadcrumbId }.to(beNil())
                 }
             }
             context("rollover and async tests") {
                 it("rolls over after enough breadcrumbs are added to get to the maximum file size") {
                     let settings = BacktraceBreadcrumbSettings()
                     settings.maxQueueFileSizeBytes = 32 * 1024
-                    breadcrumbs?.enableBreadcrumbs(settings)
+                    breadcrumbs.enableBreadcrumbs(settings)
 
                     let group = DispatchGroup()
 
@@ -176,7 +163,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         let text = "this is Breadcrumb number \(writeIndex)"
                         // submit a task to the queue for background execution
                         DispatchQueue.global().async(group: group, execute: {
-                            expect { breadcrumbs?.addBreadcrumb(text) }.to(beTrue())
+                            expect { breadcrumbs.addBreadcrumb(text) }.to(beTrue())
                         })
                         writeIndex += 1
                     }
@@ -225,21 +212,15 @@ final class BacktraceBreadcrumbTests: QuickSpec {
         describe("BacktraceNotificationObserver") {
             let backtraceBreadcrumbs = BacktraceBreadcrumbs()
 
-            beforeEach {
-                do {
-                    try FileManager.default.removeItem(atPath: self.breadcrumbLogPath(false))
-                } catch {
-                    print("\(error.localizedDescription)")
-                }
-            }
             afterEach {
+                _ = backtraceBreadcrumbs.clear()
                 backtraceBreadcrumbs.disableBreadcrumbs()
             }
             context("when notifications are enabled") {
                 it("notification startObserving called for each observer") {
                     let backtraceObserverMock1 = BacktraceObserverMock()
                     let backtraceObserverMock2 = BacktraceObserverMock()
-                    _ = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs, handlerDelegates: [
+                    BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs, handlerDelegates: [
                         backtraceObserverMock1,
                         backtraceObserverMock2]).enableNotificationObserver()
 
@@ -291,7 +272,6 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                                     object: nil)
 
-                    expect { self.readBreadcrumbText() }.to(contain("Orientation changed"))
                     expect { self.readBreadcrumbText() }.to(contain("\"orientation\":\"portrait\""))
                 }
 
