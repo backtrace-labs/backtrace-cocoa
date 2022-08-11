@@ -27,13 +27,14 @@ extension BacktraceCrashReporter: CrashReporting {
         let handler: @convention(c) (_ signalInfo: UnsafeMutablePointer<siginfo_t>?,
             _ uContext: UnsafeMutablePointer<ucontext_t>?,
             _ context: UnsafeMutableRawPointer?) -> Void = { signalInfoPointer, _, context in
+                BacktraceOomWatcher.clean()
                 guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee,
                     let signalInfo = signalInfoPointer?.pointee else {
                     return
                 }
                 attributesProvider.set(errorType: "Crash")
                 attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
-                BacktraceOomWatcher.clean()
+
                 try? AttributesStorage.store(attributesProvider.allAttributes, fileName: BacktraceCrashReporter.crashName)
                 try? AttachmentsStorage.store(attributesProvider.attachments, fileName: BacktraceCrashReporter.crashName)
         }
