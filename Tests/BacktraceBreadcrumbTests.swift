@@ -317,6 +317,20 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                                                     object: nil)
                     expect { self.readBreadcrumbText() }.to(contain("Full battery level: 100.0%"))
                 }
+
+                it("iOS app state breadcrumb added") {
+                    backtraceBreadcrumbs.enableBreadcrumbs()
+
+                    NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
+                                                    object: nil)
+
+                    expect { self.readBreadcrumbText() }.to(contain("Application will enter in foreground"))
+
+                    NotificationCenter.default.post(name: Application.didEnterBackgroundNotification,
+                                                    object: nil)
+
+                    expect { self.readBreadcrumbText() }.to(contain("Application did enter in background"))
+                }
             }
 #endif
         }
