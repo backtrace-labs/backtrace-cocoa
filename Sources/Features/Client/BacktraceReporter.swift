@@ -1,6 +1,12 @@
 import Foundation
 
 final class BacktraceReporter {
+    
+#if os(macOS)
+    lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
+        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
+    }()
+#endif
 
     let reporter: CrashReporting
     private(set) var api: BacktraceApi
@@ -123,11 +129,6 @@ typealias Application = NSApplication
 
 //// Provides notification interfaces for BacktraceOOMWatcher and Breadcrumbs support
 extension BacktraceReporter {
-#if os(macOS)
-    lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
-        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
-    }()
-#endif
 
     internal func enableOomWatcher() {
         self.backtraceOomWatcher.start()
