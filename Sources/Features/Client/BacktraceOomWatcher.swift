@@ -2,7 +2,8 @@ import Foundation
 
 final class BacktraceOomWatcher {
 
-    private var state: ApplicationInfo
+    // Relaxed visibility for testing
+    internal var state: ApplicationInfo
 
     let lowMemoryFilePrefix = "_lowMemory"
     private(set) static var oomFilePath: URL? = getStatusFilePath()
@@ -10,6 +11,7 @@ final class BacktraceOomWatcher {
     private(set) var crashReporter: CrashReporting
     private(set) var attributesProvider: AttributesProvider
     private(set) var backtraceApi: BacktraceApi
+    private(set) var enabled = false
     private let repository: PersistentRepository<BacktraceReport>
 
     init(
@@ -25,12 +27,12 @@ final class BacktraceOomWatcher {
         // set default state
         state = ApplicationInfo()
 
-        // set status file url
+        // set status file url if the default (in the cache dir) didn't work
         if BacktraceOomWatcher.oomFilePath == nil {
             // database path will point out sqlite database path
             // oom status should exist in the same directory where database exists.
             BacktraceOomWatcher.oomFilePath = self.repository.url.deletingLastPathComponent().absoluteURL
-                .appendingPathComponent("BacktraceOOMState.plist")
+                .appendingPathComponent("BacktraceOomState.plist")
         }
     }
 
@@ -50,6 +52,13 @@ final class BacktraceOomWatcher {
     }
 
     public func start() {
+        guard !enabled else {
+            BacktraceLogger.warning("BacktraceOomWatcher started already. Ignoring additional call to start.")
+            return
+        }
+        enabled = true
+
+        // TODO: Can be called multiple times, resulting in potentially incorrect oomReports being sent
         sendPendingOomReports()
         // override previous application state after reading all information
         saveState()
@@ -64,7 +73,10 @@ final class BacktraceOomWatcher {
         return cacheDir.appendingPathComponent("BacktraceOomState.plist")
     }
 
-    private func sendPendingOomReports() {
+    internal func sendPendingOomReports() {
+        // Remove the state file regardless of what happens
+        defer { BacktraceOomWatcher.clean() }
+
         // if oom state file doesn't exist it means that we deleted it to
         // prevent sending false oom crashes
         if let oomFilePath = BacktraceOomWatcher.oomFilePath, !FileManager.default.fileExists(atPath: oomFilePath.path) {
@@ -80,7 +92,6 @@ final class BacktraceOomWatcher {
         }
 
         reportOom(appState: appState)
-        BacktraceOomWatcher.clean()
     }
 
     private func shouldReportOom(appState: ApplicationInfo) -> Bool {
@@ -108,7 +119,7 @@ final class BacktraceOomWatcher {
         return true
     }
 
-    private func reportOom(appState: ApplicationInfo) {
+    internal func reportOom(appState: ApplicationInfo) {
         guard let reportData = appState.resource else {
             return
         }
@@ -156,7 +167,7 @@ extension BacktraceOomWatcher {
 }
 
 extension BacktraceOomWatcher {
-    func appChanedState(_ newState: ApplicationState) {
+    func appChangedState(_ newState: ApplicationState) {
         self.state.state = newState
         saveState()
     }
@@ -164,10 +175,10 @@ extension BacktraceOomWatcher {
     func handleTermination() {
         // application terminates correctly - for example: user decide to close app
         BacktraceOomWatcher.clean()
-        NotificationCenter.default.removeObserver(self)
     }
 
     func handleLowMemoryWarning() {
+        // TODO: Are attachments omitted intentionally?
         guard let resource = try? crashReporter.generateLiveReport(exception: nil,
                                                                    attributes: attributesProvider.allAttributes,
                                                                    attachmentPaths: []) else {
@@ -182,7 +193,7 @@ extension BacktraceOomWatcher {
         saveState()
     }
 
-    private func loadPreviousState() -> ApplicationInfo? {
+    internal func loadPreviousState() -> ApplicationInfo? {
         let decoder = PropertyListDecoder()
 
         guard let destPath = BacktraceOomWatcher.oomFilePath,
