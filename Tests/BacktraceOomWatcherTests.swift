@@ -23,6 +23,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                                                  crashReporter: crashReporter,
                                                  attributes: AttributesProvider(),
                                                  backtraceApi: backtraceApi)
+                BacktraceOomWatcher.clean()
 
                 urlSession.response = MockConnectionErrorResponse()
             }
