@@ -1,12 +1,6 @@
 import Foundation
 
 final class BacktraceReporter {
-    
-#if os(macOS)
-    lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
-        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
-    }()
-#endif
 
     let reporter: CrashReporting
     private(set) var api: BacktraceApi
@@ -118,17 +112,6 @@ extension BacktraceReporter {
         return resource
     }
 }
-
-#if os(iOS) || os(tvOS)
-typealias Application = UIApplication
-#elseif os(macOS)
-typealias Application = NSApplication
-#else
-#error("Unsupported platform")
-#endif
-
-//// Provides notification interfaces for BacktraceOOMWatcher and Breadcrumbs support
-extension BacktraceReporter {
 
 //// Provides notification interfaces for BacktraceOOMWatcher
 extension BacktraceReporter {
