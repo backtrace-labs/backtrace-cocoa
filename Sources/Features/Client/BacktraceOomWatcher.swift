@@ -1,18 +1,36 @@
 import Foundation
+#if os(iOS) || os(tvOS)
+typealias Application = UIApplication
+#elseif os(macOS)
+typealias Application = NSApplication
+#else
+#error("Unsupported platform")
+#endif
+
+enum State {
+    case running, stopped, starting, stopping
+}
 
 final class BacktraceOomWatcher {
 
     // Relaxed visibility for testing
-    internal var state: ApplicationInfo
+    internal var appContext: AppContext?
 
     let lowMemoryFilePrefix = "_lowMemory"
-    private(set) static var oomFilePath: URL? = getStatusFilePath()
+    private(set) static var oomFilePath: URL? = getAppContextFilePath()
 
     private(set) var crashReporter: CrashReporting
     private(set) var attributesProvider: AttributesProvider
     private(set) var backtraceApi: BacktraceApi
-    private(set) var enabled = false
+    private(set) var state = State.stopped
     private let repository: PersistentRepository<BacktraceReport>
+    private var lock = NSLock()
+
+#if os(macOS)
+    lazy private var memoryPressureSource: DispatchSourceMemoryPressure = {
+        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
+    }()
+#endif
 
     init(
         repository: PersistentRepository<BacktraceReport>,
@@ -23,23 +41,16 @@ final class BacktraceOomWatcher {
         self.attributesProvider = attributes
         self.backtraceApi = backtraceApi
         self.repository = repository
-
-        // set default state
-        state = ApplicationInfo()
-
-        // set status file url if the default (in the cache dir) didn't work
-        if BacktraceOomWatcher.oomFilePath == nil {
-            // database path will point out sqlite database path
-            // oom status should exist in the same directory where database exists.
-            BacktraceOomWatcher.oomFilePath = self.repository.url.deletingLastPathComponent().absoluteURL
-                .appendingPathComponent("BacktraceOomState.plist")
-        }
     }
 
     internal static func clean() {
-        if let oomFilePath = BacktraceOomWatcher.oomFilePath {
-            // ignore errors or use do/catch block to handle errors more gracefully
-            try? FileManager.default.removeItem(at: oomFilePath)
+        if let oomFilePath = BacktraceOomWatcher.oomFilePath,
+           FileManager.default.fileExists(atPath: oomFilePath.path) {
+            do {
+                try FileManager.default.removeItem(at: oomFilePath)
+            } catch {
+                BacktraceLogger.error("Deleting \(oomFilePath.path) failed: \(error.localizedDescription).")
+            }
         }
     }
 
@@ -51,20 +62,98 @@ final class BacktraceOomWatcher {
         }
     }
 
-    public func start() {
-        guard !enabled else {
-            BacktraceLogger.warning("BacktraceOomWatcher started already. Ignoring additional call to start.")
+    internal func start() {
+        lock.lock()
+        if state != State.stopped {
+            BacktraceLogger.warning("BacktraceOomWatcher in state \(state), can't start. Ignoring call.")
+            lock.unlock()
             return
         }
-        enabled = true
+        state = State.starting
+        lock.unlock()
 
-        // TODO: Can be called multiple times, resulting in potentially incorrect oomReports being sent
-        sendPendingOomReports()
+        // set default state
+        appContext = AppContext()
+
+        // set status file url if the default (in the cache dir) didn't work
+        if BacktraceOomWatcher.oomFilePath == nil {
+            // database path will point out sqlite database path
+            // oom status should exist in the same directory where database exists.
+            BacktraceOomWatcher.oomFilePath = self.repository.url.deletingLastPathComponent().absoluteURL
+                .appendingPathComponent("BacktraceOomState.plist")
+        }
+
+        self.sendPendingOomReports()
         // override previous application state after reading all information
-        saveState()
+        self.saveAppContext()
+        self.enableObservers()
+        self.state = State.running
     }
 
-    internal static func getStatusFilePath() -> URL? {
+    internal func stop() {
+        lock.lock()
+        if state != State.running {
+            BacktraceLogger.warning("BacktraceOomWatcher in state \(state), can't stop. Ignoring call.")
+            lock.unlock()
+            return
+        }
+        state = State.stopping
+        lock.unlock()
+
+        appContext = nil
+        BacktraceOomWatcher.clean()
+        // swiftlint:disable notification_center_detachment
+        NotificationCenter.default.removeObserver(self)
+
+        state = State.stopped
+    }
+
+    private func enableObservers() {
+        // https://developer.apple.com/documentation/uikit/uiapplicationdelegate/1623111-applicationwillterminate
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleTermination),
+                                               name: Application.willTerminateNotification,
+                                               object: nil)
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(didBecomeActiveNotification),
+                                               name: Application.didBecomeActiveNotification,
+                                               object: nil)
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(willResignActiveNotification),
+                                               name: Application.willResignActiveNotification,
+                                               object: nil)
+
+        #if os(iOS) || os(tvOS)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(applicationWillEnterForeground),
+                                               name: Application.willEnterForegroundNotification,
+                                               object: nil)
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(didEnterBackgroundNotification),
+                                               name: Application.didEnterBackgroundNotification,
+                                               object: nil)
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleLowMemoryWarning),
+                                               name: Application.didReceiveMemoryWarningNotification,
+                                               object: nil)
+        #endif
+
+        #if os(macOS)
+        self.memoryPressureSource.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            if [.warning, .critical].contains(self.memoryPressureSource.mask) {
+                self.handleLowMemoryWarning()
+            }
+            self.memoryPressureSource.resume()
+        }
+        #endif
+    }
+
+    internal static func getAppContextFilePath() -> URL? {
         // oom status file is available in application cache dir - the same dir
         // where we store attributes
         guard let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
@@ -83,20 +172,20 @@ final class BacktraceOomWatcher {
             return
         }
 
-        guard let appState = self.loadPreviousState() else {
+        guard let appContext = self.loadSavedAppContext() else {
             return
         }
 
-        if !shouldReportOom(appState: appState) {
+        if !shouldReportOom(appState: appContext) {
             return
         }
 
-        reportOom(appState: appState)
+        reportOom(appState: appContext)
     }
 
-    private func shouldReportOom(appState: ApplicationInfo) -> Bool {
+    private func shouldReportOom(appState: AppContext) -> Bool {
         // no low memory warning
-        if appState.resource == nil {
+        if !appState.memoryWarningReceived {
             return false
         }
 
@@ -119,15 +208,20 @@ final class BacktraceOomWatcher {
         return true
     }
 
-    internal func reportOom(appState: ApplicationInfo) {
-        guard let reportData = appState.resource else {
+    private func reportOom(appState: AppContext) {
+        guard let reportData = try? crashReporter.generateLiveReport(exception: nil,
+                                                                     attributes: [:],
+                                                                     attachmentPaths: []).reportData else {
+            BacktraceLogger.warning("Could not create live_report for OomReport.")
             return
         }
 
-        var reportAttributes: Attributes = [:]
+        let reportAttributes: Attributes
         if let stateAttributes = appState.attributes,
            let attributes = try? JSONSerialization.jsonObject(with: stateAttributes, options: []) as? Attributes {
             reportAttributes = attributes ?? [:]
+        } else {
+            reportAttributes = [:]
         }
 
         // ok - we detected oom and we should report it
@@ -146,7 +240,7 @@ final class BacktraceOomWatcher {
 
 extension BacktraceOomWatcher {
     /// Describes the current application's state
-    enum ApplicationState: String, Codable {
+    enum AppState: String, Codable {
         /// The app is in the foreground and actively in use.
         case active
         /// The app is in an inactive state when it is in the foreground but receiving events.
@@ -156,62 +250,76 @@ extension BacktraceOomWatcher {
     }
 
     //// Describes the current application's information
-    struct ApplicationInfo: Codable {
-        var state: ApplicationState = .active
+    struct AppContext: Codable {
+        var state: AppState = .active
         var debugger: Bool = DebuggerChecker.isAttached()
         var appVersion: String = BacktraceOomWatcher.getAppVersion()
         var version: String = ProcessInfo.processInfo.operatingSystemVersionString
         var attributes: Data?
-        var resource: Data?
+        var memoryWarningReceived = false
+        var memoryWarningTimestamp: Int?
     }
 }
 
 extension BacktraceOomWatcher {
-    func appChangedState(_ newState: ApplicationState) {
-        self.state.state = newState
-        saveState()
+    func appChangedState(_ newState: AppState) {
+        appContext?.state = newState
+        saveAppContext()
     }
 
-    func handleTermination() {
+    @objc private func handleTermination() {
         // application terminates correctly - for example: user decide to close app
-        BacktraceOomWatcher.clean()
+        self.stop()
     }
 
-    func handleLowMemoryWarning() {
-        // TODO: Are attachments omitted intentionally?
-        guard let resource = try? crashReporter.generateLiveReport(exception: nil,
-                                                                   attributes: attributesProvider.allAttributes,
-                                                                   attachmentPaths: []) else {
-            return
-        }
-        self.state.resource = resource.reportData
-        resource.attributes["error.message"] = "Out of memory detected."
-        resource.attributes["error.type"] = "Low Memory"
-        resource.attributes["state"] = state.state.rawValue
-
-        self.state.attributes = try? JSONSerialization.data(withJSONObject: resource.attributes)
-        saveState()
+    @objc private func applicationWillEnterForeground() {
+        self.appChangedState(.active)
     }
 
-    internal func loadPreviousState() -> ApplicationInfo? {
+    @objc private func didBecomeActiveNotification() {
+        self.appChangedState(.active)
+    }
+
+    @objc private func willResignActiveNotification() {
+        self.appChangedState(.inactive)
+    }
+
+    @objc private func didEnterBackgroundNotification() {
+        self.appChangedState(.background)
+    }
+
+    @objc internal func handleLowMemoryWarning() {
+        appContext?.memoryWarningReceived = true
+        appContext?.memoryWarningTimestamp = Date().millisecondsSince1970
+
+        var attributes = attributesProvider.allAttributes
+        attributes["error.message"] = "Out of memory detected."
+        attributes["error.type"] = "Low Memory"
+        attributes["memory.warning.timestamp"] = appContext?.memoryWarningTimestamp
+        attributes["state"] = appContext?.state.rawValue
+
+        appContext?.attributes = try? JSONSerialization.data(withJSONObject: attributes)
+        saveAppContext()
+    }
+
+    internal func loadSavedAppContext() -> AppContext? {
         let decoder = PropertyListDecoder()
 
         guard let destPath = BacktraceOomWatcher.oomFilePath,
               let data = try? Data(contentsOf: destPath),
-              let previousAppState = try? decoder.decode(ApplicationInfo.self, from: data) else { return nil }
+              let previousAppState = try? decoder.decode(AppContext.self, from: data) else { return nil }
         return previousAppState
     }
 
-    private func saveState() {
+    internal func saveAppContext() {
         let encoder = PropertyListEncoder()
-        if let data = try? encoder.encode(self.state),
+        if let data = try? encoder.encode(self.appContext),
            let destPath = BacktraceOomWatcher.oomFilePath {
             if FileManager.default.fileExists(atPath: destPath.path) {
                 try? data.write(to: destPath)
             } else {
                 FileManager.default.createFile(atPath: destPath.path, contents: data, attributes: nil)
             }
-
         }
     }
 }

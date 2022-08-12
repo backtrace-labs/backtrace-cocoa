@@ -1,7 +1,7 @@
 import Foundation
 
 struct BacktraceRateLimiter {
-    private(set) var timestamps: [TimeInterval] = []
+    internal var timestamps: [TimeInterval] = []
     let reportsPerMin: Int
     private let cacheInterval = 60.0
     private let lock = NSLock()
@@ -15,8 +15,11 @@ struct BacktraceRateLimiter {
     }
 
     mutating func addRecord() {
+        let currentTimestamp = Date().timeIntervalSince1970
         lock.lock()
-        timestamps.append(Date().timeIntervalSince1970)
+        // evict old entries
+        timestamps.removeAll(where: { currentTimestamp - $0 >= cacheInterval })
+        timestamps.append(currentTimestamp)
         lock.unlock()
     }
 }
