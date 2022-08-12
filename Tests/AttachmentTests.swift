@@ -35,6 +35,30 @@ final class AttachmentTests: QuickSpec {
                     fail()
                 }
             }
+
+            context("Attachment size is larger than 10 MB") {
+                it("attachment get nil") {
+                    let bundle = Bundle(for: type(of: self))
+                    if let path = bundle.path(forResource: "10_6_MB_test_file", ofType: "pdf") {
+                        let attachment = Attachment(filePath: path)
+                        expect(attachment).to(beNil())
+                    } else {
+                        fail()
+                    }
+                }
+            }
+
+            context("Attachment size is less than 10 MB") {
+                it("attachment get created") {
+                    let bundle = Bundle(for: type(of: self))
+                    if let path = bundle.path(forResource: "4_MB_test_file", ofType: "pdf") {
+                        let attachment = Attachment(filePath: path)
+                        expect(attachment).toNot(beNil())
+                    } else {
+                        fail()
+                    }
+                }
+            }
         }
     }
 }
