@@ -1,7 +1,6 @@
 import Nimble
 import Quick
 @testable import Backtrace
-
 final class BacktraceDatabaseTests: QuickSpec {
 
     override func spec() {
@@ -36,11 +35,17 @@ final class BacktraceDatabaseTests: QuickSpec {
                     }
                 }
 
-                throwingIt("can add 100 new reports") {
-                    for _ in 0...100 {
-                        let report = try crashReporter.generateLiveReport(attributes: [:])
-                        try repository.save(report)
+                throwingIt("can add 100 new reports (async)") {
+                    try? repository.clear()
+                    for _ in 1...100 {
+                        let group = DispatchGroup()
+                        let report = try? crashReporter.generateLiveReport(attributes: [:])
+                        DispatchQueue.global().async(group: group) {
+                            try? repository.save(report!)
+                        }
+                        group.wait()
                     }
+                    expect { try? repository.countResources() }.toEventually(equal(100))
                 }
             }
         }
