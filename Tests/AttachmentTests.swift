@@ -34,29 +34,11 @@ final class AttachmentTests: QuickSpec {
                 } else {
                     fail()
                 }
-            }
 
-            context("Attachment size is larger than 10 MB") {
-                it("attachment get nil") {
-                    let bundle = Bundle(for: type(of: self))
-                    if let path = bundle.path(forResource: "10_6_MB_test_file", ofType: "pdf") {
-                        let attachment = Attachment(filePath: path)
-                        expect(attachment).to(beNil())
-                    } else {
-                        fail()
-                    }
-                }
-            }
-
-            context("Attachment size is less than 10 MB") {
-                it("attachment get created") {
-                    let bundle = Bundle(for: type(of: self))
-                    if let path = bundle.path(forResource: "4_MB_test_file", ofType: "pdf") {
-                        let attachment = Attachment(filePath: path)
-                        expect(attachment).toNot(beNil())
-                    } else {
-                        fail()
-                    }
+                throwingIt("attachment won't init if size is larger than 10 MB") {
+                    try NSMutableData.init(bytes: [], length: 11 * 1024 * 1024).write(toFile: "11mb.file")
+                    let attachment = Attachment(filePath: "11mb.file")
+                    expect(attachment).to(beNil())
                 }
             }
         }

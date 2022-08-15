@@ -12,26 +12,27 @@ struct Attachment {
 
     // Make sure attachments are not bigger than 10 MB.
     private static let maximumAttachmentSize = 10 * 1024 * 1024
-    
+
     init?(filePath: String) {
-        do {
-            let fileURL = URL(fileURLWithPath: filePath)
-            
-            let fileAttributes: [FileAttributeKey : Any] = try FileManager.default.attributesOfItem(atPath: filePath)
-            
-            if let fileSize = fileAttributes[FileAttributeKey.size] as? UInt64,
-               Attachment.maximumAttachmentSize >= fileSize,
-               let fileData = try? Data(contentsOf: fileURL,
-                                              options: Data.ReadingOptions.mappedIfSafe) {
-                mimeType = Attachment.mimeTypeForPath(fileUrl: fileURL)
-                name = "attachment_" + (fileURL.lastPathComponent as NSString).deletingPathExtension + "_\(arc4random())"
-                data = fileData
-            } else {
-                return nil
-            }
-        } catch  {
+        let fileURL = URL(fileURLWithPath: filePath)
+
+        // Don't allow too large attachments
+        guard let fileAttributes = try? FileManager.default.attributesOfItem(atPath: filePath),
+              let fileSize = fileAttributes[FileAttributeKey.size] as? UInt64,
+              fileSize < Attachment.maximumAttachmentSize else {
+            BacktraceLogger.warning("Skipping attachment because fileSize couldn't be read or is larger than 10MB: \(filePath)")
             return nil
         }
+
+        do {
+            data = try Data(contentsOf: fileURL, options: Data.ReadingOptions.mappedIfSafe)
+        } catch {
+            BacktraceLogger.warning("Skipping attachment: \(filePath): \(error.localizedDescription)")
+            return nil
+        }
+
+        mimeType = Attachment.mimeTypeForPath(fileUrl: fileURL)
+        name = "attachment_" + (fileURL.lastPathComponent as NSString).deletingPathExtension + "_\(arc4random())"
     }
 
     static private func mimeTypeForPath(fileUrl: URL) -> String {
