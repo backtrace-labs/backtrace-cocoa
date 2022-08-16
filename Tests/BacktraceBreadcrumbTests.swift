@@ -332,6 +332,36 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { self.readBreadcrumbText() }.to(contain("Application did enter in background"))
                 }
             }
+#elseif os(macOS)
+            context("when macOS notifications update") {
+
+                it("macOS memory warning breadcrumb added") {
+                    backtraceBreadcrumbs.enableBreadcrumbs()
+
+                    let delegate: BacktraceNotificationObserverDelegate = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs)
+
+                    let backtraceObserver = BacktraceMemoryNotificationObserver()
+                    backtraceObserver.startObserving(delegate)
+
+                    backtraceObserver.addBreadcrumb("Warning level memory pressure event", level: .warning)
+
+                    expect { self.readBreadcrumbText() }.toEventually(contain("Warning level memory pressure event"))
+                }
+
+                it("macOS battery state breadcrumb added") {
+                    backtraceBreadcrumbs.enableBreadcrumbs()
+
+                    let delegate: BacktraceNotificationObserverDelegate = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs)
+
+                    let backtraceObserver = BacktraceBatteryNotificationObserver()
+                    backtraceObserver.startObserving(delegate)
+
+                    backtraceObserver.addBreadcrumb("Charging battery level: 25.0%")
+
+                    expect { self.readBreadcrumbText() }.toEventually(contain("Charging battery level: 25.0%"))
+
+                }
+            }
 #endif
         }
     }

@@ -119,10 +119,7 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
                 if source.isCancelled == false {
                     let message = self.getMemoryWarningText(event)
                     let level = self.getMemoryWarningLevel(event)
-                    self.delegate?.addBreadcrumb(message,
-                                                 attributes: nil,
-                                                 type: .system,
-                                                 level: level)
+                    self.addBreadcrumb(message, level: level)
                 }
             }
             source.setEventHandler(handler: eventHandler)
@@ -134,6 +131,13 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
             }
             self.source = source
         }
+    }
+
+    func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) {
+        self.delegate?.addBreadcrumb(message,
+                                     attributes: nil,
+                                     type: .system,
+                                     level: level)
     }
 
     private func getMemoryWarningText(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) -> String {
@@ -171,6 +175,13 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
 
     weak var delegate: BacktraceNotificationObserverDelegate?
 
+    func addBreadcrumb(_ message: String) {
+        delegate?.addBreadcrumb(message,
+                                attributes: nil,
+                                type: .system,
+                                level: .info)
+    }
+    
 #if os(OSX)
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
@@ -186,10 +197,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
             } else {
                 message = "unplugged battery level : \(batteryLevel)%"
             }
-            self.delegate?.addBreadcrumb(message,
-                                         attributes: nil,
-                                         type: .system,
-                                         level: .info)
+            self.addBreadcrumb(message)
         }
     }
 
@@ -220,10 +228,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
     @objc private func notifyBatteryStatusChange() {
-        delegate?.addBreadcrumb(getBatteryWarningText(),
-                                attributes: nil,
-                                type: .system,
-                                level: .info)
+        addBreadcrumb(getBatteryWarningText())
     }
 
     deinit {
