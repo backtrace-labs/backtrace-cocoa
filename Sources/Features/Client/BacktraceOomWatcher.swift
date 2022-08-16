@@ -24,7 +24,6 @@ final class BacktraceOomWatcher {
     private(set) var backtraceApi: BacktraceApi
     private(set) var state = State.stopped
     private let repository: PersistentRepository<BacktraceReport>
-    private var lock = NSLock()
 
 #if os(macOS)
     lazy private var memoryPressureSource: DispatchSourceMemoryPressure = {
@@ -41,6 +40,10 @@ final class BacktraceOomWatcher {
         self.attributesProvider = attributes
         self.backtraceApi = backtraceApi
         self.repository = repository
+    }
+
+    deinit {
+        self.stop()
     }
 
     internal static func clean() {
@@ -63,14 +66,11 @@ final class BacktraceOomWatcher {
     }
 
     internal func start() {
-        lock.lock()
         if state != State.stopped {
             BacktraceLogger.warning("BacktraceOomWatcher in state \(state), can't start. Ignoring call.")
-            lock.unlock()
             return
         }
         state = State.starting
-        lock.unlock()
 
         // set default state
         appContext = AppContext()
@@ -91,14 +91,11 @@ final class BacktraceOomWatcher {
     }
 
     internal func stop() {
-        lock.lock()
         if state != State.running {
             BacktraceLogger.warning("BacktraceOomWatcher in state \(state), can't stop. Ignoring call.")
-            lock.unlock()
             return
         }
         state = State.stopping
-        lock.unlock()
 
         appContext = nil
         BacktraceOomWatcher.clean()
