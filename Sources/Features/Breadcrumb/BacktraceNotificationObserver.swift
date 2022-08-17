@@ -69,10 +69,6 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
 
     var orientation: UIDeviceOrientation { UIDevice.current.orientation }
 
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         NotificationCenter.default.addObserver(self,
@@ -100,6 +96,9 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
                                     level: .info)
     }
 
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }
 #endif
 
@@ -186,7 +185,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                                 type: .system,
                                 level: .info)
     }
-    
+
 #if os(OSX)
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
@@ -277,6 +276,10 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
                                     attributes: nil,
                                     type: .system,
                                     level: .info)
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }
 #endif
