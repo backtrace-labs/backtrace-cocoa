@@ -82,6 +82,7 @@ import Foundation
             _ = addBreadcrumb("Breadcrumbs enabled.")
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
+            // disable breadcrumbs, to not leave the class half initialized (errors can be thrown from various dependencies)
             disableBreadcrumbs()
         }
     }
@@ -96,7 +97,7 @@ import Foundation
         // Remove breadcrumbs attachment
         BreadcrumbsInfo.breadcrumbFile = nil
 
-        // Remove currentBreadcrumbsId, which prevents it from being added
+        // Remove currentBreadcrumbsId, which prevents it from being added to reports
         BreadcrumbsInfo.currentBreadcrumbsId = nil
     }
 

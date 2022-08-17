@@ -21,12 +21,7 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFileHelper@\(UUID().uuidString)")
 
     public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
-        do {
-            self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath().path)
-        } catch {
-            BacktraceLogger.error("\(error.localizedDescription) \nWhen enabling breadcrumbs")
-            throw error
-        }
+        self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath().path)
 
         self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
 
