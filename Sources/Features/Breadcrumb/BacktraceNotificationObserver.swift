@@ -15,17 +15,18 @@ protocol BacktraceNotificationObserverDelegate: class {
 
     private let breadcrumbs: BacktraceBreadcrumbs
 
-    private var handlerDelegates: [BacktraceNotificationHandlerDelegate]?
+    private let handlerDelegates: [BacktraceNotificationHandlerDelegate]
 
     init(breadcrumbs: BacktraceBreadcrumbs) {
         self.breadcrumbs = breadcrumbs
-        self.handlerDelegates = [
+        var handlerDelegates: [BacktraceNotificationHandlerDelegate] = [
             BacktraceMemoryNotificationObserver(),
             BacktraceBatteryNotificationObserver()]
 #if os(iOS)
-        self.handlerDelegates?.append(BacktraceOrientationNotificationObserver())
-        self.handlerDelegates?.append(BacktraceAppStateNotificationObserver())
+        handlerDelegates.append(BacktraceOrientationNotificationObserver())
+        handlerDelegates.append(BacktraceAppStateNotificationObserver())
 #endif
+        self.handlerDelegates = handlerDelegates
         super.init()
     }
 
@@ -37,11 +38,7 @@ protocol BacktraceNotificationObserverDelegate: class {
     }
 
     func enableNotificationObserver() {
-        handlerDelegates?.forEach({ $0.startObserving(self) })
-    }
-
-    deinit {
-        self.handlerDelegates = nil
+        handlerDelegates.forEach({ $0.startObserving(self) })
     }
 
     func addBreadcrumb(_ message: String, attributes: [String: String]?,
