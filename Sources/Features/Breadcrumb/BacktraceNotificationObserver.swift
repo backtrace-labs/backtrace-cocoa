@@ -122,7 +122,7 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         if let source: DispatchSourceMemoryPressure =
-            DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.global()) as? DispatchSource {
+            DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.main) as? DispatchSource {
             self.source = source
             source.setEventHandler(handler: memoryPressureEventHandler)
             source.setRegistrationHandler(handler: memoryPressureEventHandler)
