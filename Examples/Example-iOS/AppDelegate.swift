@@ -53,7 +53,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
         let attributes = ["My Attribute":"My Attribute Value"]
-        _ = BacktraceClient.shared?.addBreadcrumb("My Native Breadcrumb",
+        _ = BacktraceClient.shared?.addBreadcrumb("My Breadcrumb",
                                               attributes: attributes,
                                               type: .user,
                                               level: .error)
