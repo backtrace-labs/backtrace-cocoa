@@ -336,16 +336,30 @@ final class BacktraceBreadcrumbTests: QuickSpec {
             context("when macOS notifications update") {
 
                 it("macOS memory warning breadcrumb added") {
+
+                    class OverriddenOrientationNotificationObserver: BacktraceMemoryNotificationObserver {
+                        var mockMemoryPressureEvent: DispatchSource.MemoryPressureEvent?
+
+                        override var memoryPressureEvent: DispatchSource.MemoryPressureEvent? { mockMemoryPressureEvent ?? super.memoryPressureEvent }
+                    }
+
+                    let backtraceObserver = OverriddenOrientationNotificationObserver()
+                    
                     backtraceBreadcrumbs.enableBreadcrumbs()
+                    
+                    let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                  handlerDelegates: [backtraceObserver])
+                    backtraceNotificationObserver.enableNotificationObserver()
 
-                    let delegate: BacktraceNotificationObserverDelegate = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs)
-
-                    let backtraceObserver = BacktraceMemoryNotificationObserver()
-                    backtraceObserver.startObserving(delegate)
-
-                    backtraceObserver.addBreadcrumb("Warning level memory pressure event", level: .warning)
+                    backtraceObserver.mockMemoryPressureEvent = .warning
+                    backtraceObserver.memoryPressureEventHandler()
 
                     expect { self.readBreadcrumbText() }.toEventually(contain("Warning level memory pressure event"))
+
+                    backtraceObserver.mockMemoryPressureEvent = .critical
+                    backtraceObserver.memoryPressureEventHandler()
+
+                    expect { self.readBreadcrumbText() }.toEventually(contain("Critical level memory pressure event"))
                 }
 
                 it("macOS battery state breadcrumb added") {

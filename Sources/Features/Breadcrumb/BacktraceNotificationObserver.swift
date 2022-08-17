@@ -110,26 +110,31 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
 
     private var source: DispatchSourceMemoryPressure?
 
+    var memoryPressureEvent: DispatchSource.MemoryPressureEvent? {
+        return source?.data
+    }
+
+    lazy var memoryPressureEventHandler: DispatchSourceProtocol.DispatchSourceHandler = { [weak self] in
+        guard let self = self else { return }
+        if let event = self.memoryPressureEvent, self.source?.isCancelled == false {
+            let message = self.getMemoryWarningText(event)
+            let level = self.getMemoryWarningLevel(event)
+            self.addBreadcrumb(message, level: level)
+        }
+    }
+
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         if let source: DispatchSourceMemoryPressure =
-            DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.main) as? DispatchSource {
-            let eventHandler: DispatchSourceProtocol.DispatchSourceHandler = {
-                let event: DispatchSource.MemoryPressureEvent = source.data
-                if source.isCancelled == false {
-                    let message = self.getMemoryWarningText(event)
-                    let level = self.getMemoryWarningLevel(event)
-                    self.addBreadcrumb(message, level: level)
-                }
-            }
-            source.setEventHandler(handler: eventHandler)
-            source.setRegistrationHandler(handler: eventHandler)
+            DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.global()) as? DispatchSource {
+            self.source = source
+            source.setEventHandler(handler: memoryPressureEventHandler)
+            source.setRegistrationHandler(handler: memoryPressureEventHandler)
             if #available(iOS 11.0, macOS 10.12, *) {
                 source.activate()
             } else {
                 source.resume()
             }
-            self.source = source
         }
     }
 
