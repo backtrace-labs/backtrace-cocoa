@@ -222,11 +222,11 @@ extension BacktraceClient: BacktraceBreadcrumbProtocol {
     }
 
     @objc public func enableBreadcrumbs() {
-        breadcrumbs.enableBreadcrumbs()
+        breadcrumbsInstance.enableBreadcrumbs()
     }
 
     @objc public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings) {
-        breadcrumbs.enableBreadcrumbs(breadcrumbSettings)
+        breadcrumbsInstance.enableBreadcrumbs(breadcrumbSettings)
     }
 
     @objc public func addBreadcrumb(_ message: String,
