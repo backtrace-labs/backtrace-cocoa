@@ -337,16 +337,18 @@ final class BacktraceBreadcrumbTests: QuickSpec {
 
                 it("macOS memory warning breadcrumb added") {
 
-                    class OverriddenOrientationNotificationObserver: BacktraceMemoryNotificationObserver {
+                    class OverriddenMemoryNotificationObserver: BacktraceMemoryNotificationObserver {
                         var mockMemoryPressureEvent: DispatchSource.MemoryPressureEvent?
 
-                        override var memoryPressureEvent: DispatchSource.MemoryPressureEvent? { mockMemoryPressureEvent ?? super.memoryPressureEvent }
+                        override var memoryPressureEvent: DispatchSource.MemoryPressureEvent? {
+                            mockMemoryPressureEvent ?? super.memoryPressureEvent
+                        }
                     }
 
-                    let backtraceObserver = OverriddenOrientationNotificationObserver()
-                    
+                    let backtraceObserver = OverriddenMemoryNotificationObserver()
+
                     backtraceBreadcrumbs.enableBreadcrumbs()
-                    
+
                     let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
                                                   handlerDelegates: [backtraceObserver])
                     backtraceNotificationObserver.enableNotificationObserver()
@@ -360,20 +362,6 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     backtraceObserver.memoryPressureEventHandler()
 
                     expect { self.readBreadcrumbText() }.toEventually(contain("Critical level memory pressure event"))
-                }
-
-                it("macOS battery state breadcrumb added") {
-                    backtraceBreadcrumbs.enableBreadcrumbs()
-
-                    let delegate: BacktraceNotificationObserverDelegate = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs)
-
-                    let backtraceObserver = BacktraceBatteryNotificationObserver()
-                    backtraceObserver.startObserving(delegate)
-
-                    backtraceObserver.addBreadcrumb("Charging battery level: 25.0%")
-
-                    expect { self.readBreadcrumbText() }.toEventually(contain("Charging battery level: 25.0%"))
-
                 }
             }
 #endif
