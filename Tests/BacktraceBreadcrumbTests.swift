@@ -363,6 +363,42 @@ final class BacktraceBreadcrumbTests: QuickSpec {
 
                     expect { self.readBreadcrumbText() }.toEventually(contain("Critical level memory pressure event"))
                 }
+
+                it("macOS battery state breadcrumb added") {
+                    class OverriddenBatteryNotificationObserver: BacktraceBatteryNotificationObserver {
+
+                        var isMockCharging: Bool?
+                        var mockBatteryLevel: Int?
+
+                        override var isCharging: Bool? {
+                            return isMockCharging ?? super.isCharging
+                        }
+
+                        override var batteryLevel: Int? {
+                            return mockBatteryLevel ?? super.batteryLevel
+                        }
+                    }
+
+                    let backtraceObserver = OverriddenBatteryNotificationObserver()
+
+                    backtraceBreadcrumbs.enableBreadcrumbs()
+
+                    let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                  handlerDelegates: [backtraceObserver])
+                    backtraceNotificationObserver.enableNotificationObserver()
+
+                    backtraceObserver.isMockCharging = true
+                    backtraceObserver.mockBatteryLevel = 50
+                    backtraceObserver.powerSourceChanged()
+
+                    expect { self.readBreadcrumbText() }.toEventually(contain("charging battery level : 50%"))
+
+                    backtraceObserver.isMockCharging = false
+                    backtraceObserver.mockBatteryLevel = 74
+                    backtraceObserver.powerSourceChanged()
+
+                    expect { self.readBreadcrumbText() }.toEventually(contain("unplugged battery level : 74%"))
+                }
             }
 #endif
         }

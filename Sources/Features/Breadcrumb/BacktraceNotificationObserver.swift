@@ -172,6 +172,16 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
 }
 
 // MARK: - Battery Status Observer
+#if os(OSX)
+func powerSourceObserver(context: UnsafeMutableRawPointer?) {
+    if let context = context {
+        let opaque = Unmanaged<BacktraceBatteryNotificationObserver>.fromOpaque(context)
+        let unretainSelf = opaque.takeUnretainedValue()
+        unretainSelf.powerSourceChanged()
+    }
+}
+#endif
+
 class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
     weak var delegate: BacktraceNotificationObserverDelegate?
@@ -184,15 +194,41 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
 #if os(OSX)
+    var loop: CFRunLoopSource?
+
+    private var powerSourceInfo: [String: Any]? {
+        let psInfo = IOPSCopyPowerSourcesInfo().takeUnretainedValue()
+        let psList = IOPSCopyPowerSourcesList(psInfo).takeUnretainedValue() as [CFTypeRef]
+        if let psPowerSource = psList.first {
+            return IOPSGetPowerSourceDescription(psInfo, psPowerSource).takeUnretainedValue() as? [String: Any]
+        } else {
+            return nil
+        }
+    }
+
+    var isCharging: Bool? {
+        powerSourceInfo?[kIOPSIsChargingKey] as? Bool
+    }
+
+    var batteryLevel: Int? {
+        powerSourceInfo?[kIOPSCurrentCapacityKey] as? Int
+    }
+
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
-        let psInfo = IOPSCopyPowerSourcesInfo().takeRetainedValue()
-        let psList = IOPSCopyPowerSourcesList(psInfo).takeRetainedValue() as [CFTypeRef]
-        if let psPowerSource = psList.first,
-           let psDesc = IOPSGetPowerSourceDescription(psInfo, psPowerSource).takeUnretainedValue() as? [String: Any],
-           let isCharging = (psDesc[kIOPSIsChargingKey] as? Bool),
-           let batteryLevel = psDesc[kIOPSCurrentCapacityKey] {
-            let message: String
+        stopLoopSourceIfExist()
+        let opaque = Unmanaged.passUnretained(self).toOpaque()
+        let context = UnsafeMutableRawPointer(opaque)
+        loop = IOPSNotificationCreateRunLoopSource(
+            powerSourceObserver,
+                context
+        ).takeRetainedValue() as CFRunLoopSource
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), loop, CFRunLoopMode.commonModes)
+    }
+
+    func powerSourceChanged() {
+        if let isCharging = isCharging, let batteryLevel = batteryLevel {
+            var message = ""
             if isCharging {
                 message = "charging battery level : \(batteryLevel)%"
             } else {
@@ -202,6 +238,15 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
         }
     }
 
+    func stopLoopSourceIfExist() {
+        if let loop = loop, CFRunLoopContainsSource(CFRunLoopGetCurrent(), loop, CFRunLoopMode.commonModes) {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), loop, CFRunLoopMode.commonModes)
+        }
+    }
+
+    deinit {
+        stopLoopSourceIfExist()
+    }
 #elseif os(iOS)
     var batteryState: UIDevice.BatteryState { UIDevice.current.batteryState }
     var batteryLevel: Float { UIDevice.current.batteryLevel }
