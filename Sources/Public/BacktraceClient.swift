@@ -120,13 +120,13 @@ extension BacktraceClient: BacktraceClientCustomizing {
 extension BacktraceClient: BacktraceReporting {
 
     @objc public func send(error: Error,
-                           attachmentPaths: [String],
+                           attachmentPaths: [String] = [],
                            completion: @escaping ((BacktraceResult) -> Void)) {
         reportCrash(faultMessage: error.localizedDescription, attachmentPaths: attachmentPaths, completion: completion)
     }
 
     @objc public func send(message: String,
-                           attachmentPaths: [String],
+                           attachmentPaths: [String] = [],
                            completion: @escaping ((BacktraceResult) -> Void)) {
         reportCrash(faultMessage: message, attachmentPaths: attachmentPaths, completion: completion)
     }
