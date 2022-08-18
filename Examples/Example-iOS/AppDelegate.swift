@@ -34,7 +34,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
-        BacktraceClient.shared?.breadcrumbs.enableBreadcrumbs()
+        BacktraceClient.shared?.enableBreadcrumbs()
         
         let fileName = "sample.txt"
         guard let fileUrl = try? createAndWriteFile(fileName) else {
