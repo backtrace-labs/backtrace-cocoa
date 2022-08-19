@@ -256,6 +256,10 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
         UIDevice.current.isBatteryMonitoringEnabled = true
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(notifyBatteryStatusChange),
+                                               name: UIDevice.batteryStateDidChangeNotification,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(notifyBatteryStatusChange),
                                                name: UIDevice.batteryLevelDidChangeNotification,
                                                object: nil)
     }
