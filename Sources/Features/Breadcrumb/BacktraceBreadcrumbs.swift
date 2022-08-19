@@ -79,7 +79,7 @@ import Foundation
             try BreadcrumbsInfo.breadcrumbFile = breadcrumbSettings.getBreadcrumbLogPath()
 
             isBreadcrumbsEnabled = true
-            _ = addBreadcrumb("Breadcrumbs enabled.")
+            _ = addBreadcrumb("Breadcrumbs enabled.", type: .system)
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
             // disable breadcrumbs, to not leave the class half initialized (errors can be thrown from various dependencies)
