@@ -238,6 +238,25 @@ struct MetricsInfo: AttributesSource {
     }
 }
 
+struct BreadcrumbsInfo: AttributesSource {
+    internal static var currentBreadcrumbsId: Int?
+    internal static var breadcrumbFile: URL?
+
+    var mutable: [String: Any?] {
+        if let currentBreadcrumbsId = BreadcrumbsInfo.currentBreadcrumbsId {
+            return ["breadcrumbs.lastId": currentBreadcrumbsId]
+        }
+        return [:]
+    }
+
+    var attachments: Attachments {
+        if let breadcrumbFile = BreadcrumbsInfo.breadcrumbFile {
+            return [breadcrumbFile]
+        }
+        return []
+    }
+}
+
 // swiftlint:enable type_name
 
 private extension CLAuthorizationStatus {

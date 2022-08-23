@@ -5,8 +5,6 @@ final class BacktraceMetricsContainer {
     private var uniqueEvents = [UniqueEvent]()
     private var summedEvents = [SummedEvent]()
 
-    private let settings: BacktraceMetricsSettings
-
     static let startupSummedEventName = "Application Launches"
     static let startupUniqueEventName = "guid"
 
@@ -15,7 +13,6 @@ final class BacktraceMetricsContainer {
     }
 
     init(settings: BacktraceMetricsSettings) {
-        self.settings = settings
         self.add(event: SummedEvent(name: BacktraceMetricsContainer.startupSummedEventName))
         self.add(event: UniqueEvent(name: BacktraceMetricsContainer.startupUniqueEventName))
     }

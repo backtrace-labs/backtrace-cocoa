@@ -5,7 +5,7 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     case invalidFormat
 }
 
-@objc public class BacktraceBreadcrumbFileHelper: NSObject {
+@objc class BacktraceBreadcrumbFileHelper: NSObject {
 
     /*
      The underlying library CASQueueFile assigns a minimum of 4k (filled with zeroes).
@@ -13,30 +13,25 @@ enum BacktraceBreadcrumbFileHelperError: Error {
      */
     private static let minimumQueueFileSizeBytes = 4096
 
-    /* We cap the size of an individual breadcrumb at 4k, for performance reasons. */
-    private static let maximumBreadcrumbSize = 4096
-
+    private let maximumIndividualBreadcrumbSize: Int
     private let maxQueueFileSizeBytes: Int
-    private let breadcrumbLogDirectory: String
-
     private let queue: CASQueueFile
 
-    public init(_ breadcrumbLogDirectory: String, maxQueueFileSizeBytes: Int) throws {
-        do {
-            self.queue = try CASQueueFile.init(path: breadcrumbLogDirectory)
-        } catch {
-            BacktraceLogger.error("\(error.localizedDescription) \nWhen enabling breadcrumbs")
-            throw error
-        }
-        self.breadcrumbLogDirectory =  breadcrumbLogDirectory
+    /** CASQueueFile is not thread safe, so all interactions with it should be done synchronously through this DispathQueue */
+    private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFileHelper@\(UUID().uuidString)")
 
-        if maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
-            BacktraceLogger.warning("\(maxQueueFileSizeBytes) is smaller than the minimum of " +
+    public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
+        self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath().path)
+
+        self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
+
+        if breadcrumbSettings.maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
+            BacktraceLogger.warning("\(breadcrumbSettings.maxQueueFileSizeBytes) is smaller than the minimum of " +
                                     "\(BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes)" +
                                     ", ignoring value and overriding with minimum.")
             self.maxQueueFileSizeBytes = BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes
         } else {
-            self.maxQueueFileSizeBytes = maxQueueFileSizeBytes
+            self.maxQueueFileSizeBytes = breadcrumbSettings.maxQueueFileSizeBytes
         }
 
         super.init()
@@ -52,18 +47,21 @@ enum BacktraceBreadcrumbFileHelperError: Error {
         }
 
         let textBytes = Data(text.utf8)
-        if textBytes.count > BacktraceBreadcrumbFileHelper.maximumBreadcrumbSize {
-            BacktraceLogger.warning("We should not have a breadcrumb this big, this is a bug! Discarding breadcrumb.")
+        if textBytes.count > maximumIndividualBreadcrumbSize {
+            BacktraceLogger.warning(
+                "Discarding breadcrumb that was larger than the maximum specified (\(maximumIndividualBreadcrumbSize).")
             return false
         }
 
         do {
-            // Keep removing until there's enough space to add the new breadcrumb
-            while (queueByteSize() + textBytes.count) > maxQueueFileSizeBytes {
-                try queue.pop(1, error: ())
-            }
+            try dispatchQueue.sync {
+                // Keep removing until there's enough space to add the new breadcrumb (leaving 512 bytes room)
+                while (queueByteSize() + textBytes.count) > (maxQueueFileSizeBytes - 512) {
+                    try queue.pop(1, error: ())
+                }
 
-            try queue.add(textBytes, error: ())
+                try queue.add(textBytes, error: ())
+            }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumb to file")
             return false
@@ -74,7 +72,9 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 
     func clear() -> Bool {
         do {
-            try queue.clearAndReturnError()
+            try dispatchQueue.sync {
+                try queue.clearAndReturnError()
+            }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen clearing breadcrumb file")
             return false

@@ -120,16 +120,35 @@ final class BacktraceReporterTests: QuickSpec {
             }
 
             context("given new report") {
-                throwingIt("can modify the report") {
+                throwingIt("can modify multiple reports via reporter attachments and attributes properties") {
                     let delegate = BacktraceClientDelegateMock()
-                    let backtraceReport = try reporter.generate()
+                    let attachmentPaths = [URL(fileURLWithPath: "/path1"), URL(fileURLWithPath: "/path2")]
+                    reporter.attachments += attachmentPaths
+                    reporter.attributes = ["a": "b"]
+
+                    urlSession.response = MockOkResponse()
+                    backtraceApi.delegate = delegate
+
+                    for _ in 0...5 {
+                        let backtraceReport = try reporter.generate()
+                        let result = reporter.send(resource: backtraceReport)
+
+                        expect { result.backtraceStatus }.to(equal(.ok))
+                        expect { result.report?.attachmentPaths }.to(equal(attachmentPaths.map(\.path)))
+                        expect { result.report?.attributes["a"] }.to(be("b"))
+                    }
+                }
+
+                throwingIt("can modify report and request if modified in willSend callbacks") {
+                    let delegate = BacktraceClientDelegateMock()
                     let attachmentPaths = ["path1", "path2"]
                     let header = (key: "foo", value: "bar")
                     urlSession.response = MockOkResponse()
                     backtraceApi.delegate = delegate
 
                     delegate.willSendClosure = { report in
-                        report.attachmentPaths = attachmentPaths
+                        report.attachmentPaths += attachmentPaths
+                        report.attributes = ["a": "b"]
                         return report
                     }
 
@@ -139,13 +158,28 @@ final class BacktraceReporterTests: QuickSpec {
                         return request
                     }
 
-                    let result = reporter.send(resource: backtraceReport)
+                    let result = reporter.send(resource: try reporter.generate())
 
                     expect { result.backtraceStatus }.to(equal(.ok))
                     expect { result.report?.attachmentPaths }.to(equal(attachmentPaths))
+                    expect { result.report?.attributes["a"] }.to(be("b"))
+
+                    // Now result the closures and verify the attributes and attachments disappear
+                    delegate.willSendClosure = { report in
+                        return report
+                    }
+                    delegate.willSendRequestClosure = { request in
+                        return request
+                    }
+
+                    let result2 = reporter.send(resource: try reporter.generate())
+
+                    expect { result2.backtraceStatus }.to(equal(.ok))
+                    expect { result2.report?.attachmentPaths }.to(beEmpty())
+                    expect { result2.report?.attributes["a"] }.to(beNil())
                 }
 
-                throwingIt("report should NOT have metrics attributes if metrics is NOT enabled") {
+                it("report should NOT have metrics attributes if metrics is NOT enabled") {
                     let delegate = BacktraceClientDelegateMock()
                     let backtraceReport = try reporter.generate()
                     urlSession.response = MockOkResponse()
@@ -164,7 +198,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.report?.attributes["application.version"] }.to(beNil())
                 }
 
-                throwingIt("report should have metrics attributes if metrics is enabled") {
+                it("report should have metrics attributes if metrics is enabled") {
                     let metrics = BacktraceMetrics(api: backtraceApi)
                     metrics.enable(settings: BacktraceMetricsSettings())
 
@@ -187,6 +221,52 @@ final class BacktraceReporterTests: QuickSpec {
 
                     MetricsInfo.disableMetrics()
                 }
+#if os(iOS)
+                it("report should have breadcrumbs attributes if breadcrumbs is enabled") {
+                    let breadcrumbs = BacktraceBreadcrumbs()
+                    breadcrumbs.enableBreadcrumbs()
+
+                    let delegate = BacktraceClientDelegateMock()
+                    let backtraceReport = try reporter.generate()
+                    urlSession.response = MockOkResponse()
+                    backtraceApi.delegate = delegate
+
+                    delegate.willSendClosure = { report in
+                        expect { report.attributes["breadcrumbs.lastId"] }.toNot(beNil())
+                        expect { report.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
+                        return report
+                    }
+
+                    let result = reporter.send(resource: backtraceReport)
+
+                    expect { result.backtraceStatus }.to(equal(.ok))
+                    expect { result.report?.attributes["breadcrumbs.lastId"] }.toNot(beNil())
+                    expect { result.report?.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
+
+                    breadcrumbs.disableBreadcrumbs()
+                }
+
+                it("report should NOT have breadcrumbs attributes if breadcrumbs is NOT enabled") {
+                    _ = BacktraceBreadcrumbs()
+
+                    let delegate = BacktraceClientDelegateMock()
+                    let backtraceReport = try reporter.generate()
+                    urlSession.response = MockOkResponse()
+                    backtraceApi.delegate = delegate
+
+                    delegate.willSendClosure = { report in
+                        expect { report.attributes["breadcrumbs.lastId"] }.to(beNil())
+                        expect { report.attachmentPaths.first }.to(beNil())
+                        return report
+                    }
+
+                    let result = reporter.send(resource: backtraceReport)
+
+                    expect { result.backtraceStatus }.to(equal(.ok))
+                    expect { result.report?.attributes["breadcrumbs.lastId"] }.to(beNil())
+                    expect { result.report?.attachmentPaths.first }.to(beNil())
+                }
+#endif
             }
         }
     }

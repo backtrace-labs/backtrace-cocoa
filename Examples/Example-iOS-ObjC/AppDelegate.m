@@ -26,11 +26,11 @@
                                                    dbSettings: backtraceDatabaseSettings
                                                    reportsPerMin: 3
                                                    allowsAttachingDebugger: TRUE
-                                                   detectOOM: FALSE];
-    [configuration enableBreadCrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
+                                                   detectOOM: TRUE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     BacktraceClient.shared.delegate = self;
-
+    [BacktraceClient.shared enableBreadcrumbs];
+    
     // sending NSException
     @try {
         NSArray *array = @[];
