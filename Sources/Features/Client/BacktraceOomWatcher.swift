@@ -221,7 +221,7 @@ extension BacktraceOomWatcher {
         attributes["state"] = self.state.state.rawValue
 
         BacktraceOomWatcher.reportAttributes = attributes
-        BacktraceOomWatcher.reportAttachments = attributesProvider.attachments
+        BacktraceOomWatcher.reportAttachments = attributesProvider.allAttachments
 
         saveState()
     }

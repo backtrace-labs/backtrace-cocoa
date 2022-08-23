@@ -49,7 +49,11 @@ extension AttributesProvider: SignalContext {
     }
 
     var attachmentPaths: [String] {
-        return attachments.map(\.path) + attributesSources.map(\.attachments).reduce([], +).map(\.path)
+        return allAttachments.map(\.path)
+    }
+
+    var allAttachments: Attachments {
+        attachments + attributesSources.map(\.attachments).reduce([], +)
     }
 
     var allAttributes: Attributes {

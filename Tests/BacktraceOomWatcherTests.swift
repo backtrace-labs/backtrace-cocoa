@@ -21,7 +21,7 @@ class BacktraceOomWatcherTests: QuickSpec {
 
             throwingBeforeEach {
                 let attributesProvider = AttributesProvider()
-
+                
                 try "".write(to: newFile, atomically: true, encoding: .utf8)
                 attributesProvider.attachments.append(newFile)
 
@@ -114,7 +114,8 @@ class BacktraceOomWatcherTests: QuickSpec {
 
                     delegate.willSendClosure = { report in
                         calledWillSend += 1
-                        expect { report.attachmentPaths }.to(contain(newFile.path))
+                        expect { report.attachmentPaths.count }.to(equal(1))
+                        expect { report.attachmentPaths.first }.to(contain(newFile.path))
                         // Oom specific attributes
                         expect { report.attributes["error.message"] as? String }.to(equal("Out of memory detected."))
                         expect { report.attributes["error.type"] as? String }.to(equal("Low Memory"))
