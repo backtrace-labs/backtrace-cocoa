@@ -26,7 +26,7 @@
                                                    dbSettings: backtraceDatabaseSettings
                                                    reportsPerMin: 3
                                                    allowsAttachingDebugger: TRUE
-                                                   detectOOM: FALSE];
+                                                   detectOOM: TRUE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     BacktraceClient.shared.delegate = self;
     [BacktraceClient.shared enableBreadcrumbs];
