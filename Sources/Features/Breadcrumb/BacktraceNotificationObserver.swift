@@ -132,22 +132,6 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
                 source.resume()
             }
         }
-#if os(iOS)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(didReceiveMemoryWarningNotification),
-                                               name: Application.didReceiveMemoryWarningNotification,
-                                               object: nil)
-#endif
-    }
-    
-    @objc private func didReceiveMemoryWarningNotification() {
-        if let event = self.memoryPressureEvent, self.source?.isCancelled == false {
-            let message = self.getMemoryWarningText(event)
-            let level = self.getMemoryWarningLevel(event)
-            addBreadcrumb(message, level: level)
-        } else {
-            addBreadcrumb("Test memory warning", level: .debug)
-        }
     }
 
     func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) {
@@ -184,9 +168,6 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
     deinit {
         self.source?.cancel()
         self.source = nil
-#if os(iOS)
-        NotificationCenter.default.removeObserver(self)
-#endif
     }
 }
 
