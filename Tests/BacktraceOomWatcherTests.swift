@@ -67,7 +67,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                 it("calling handleLowMemory again within quiet times is noop") {
 
                     // Modify the quiet time so we can check if it re-saved the state after the quiet time expires
-                    oomWatcher?.quietTimeInMillis = 100
+                    oomWatcher?.quietTimeInMillis = 500
                     oomWatcher?.attributesProvider.attachments.removeAll()
 
                     oomWatcher?.start()
@@ -89,7 +89,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                     expect { BacktraceOomWatcher.reportAttributes?["should-not"] }.to(beNil())
 
                     // after sleeping for the quietTime interval, it should add new attachments and attributes
-                    Thread.sleep(forTimeInterval: 0.1)
+                    Thread.sleep(forTimeInterval: 0.5)
 
                     oomWatcher?.attributesProvider.attachments.removeAll()
 
