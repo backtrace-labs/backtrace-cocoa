@@ -535,4 +535,4 @@ Make sure your project is configured to generate the debug symbols:
 ![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/master/docs/screenshots/finder-xcarchive.png)
 * Search for `dSYMs` directory
 ![alt text](https://github.com/backtrace-labs/backtrace-cocoa/blob/master/docs/screenshots/finder-dsyms-archive.png)
-* Zip all the `dSYM` files and upload to Backtrace services (see: <a href="https://help.backtrace.io/product-guide/symbolification">Symbolification</a>)
+* Zip all the `dSYM` files and upload to Backtrace services (see: <a href="https://support.backtrace.io/hc/en-us/articles/360040517071-Symbolication-Overview">Symbolification</a>)
