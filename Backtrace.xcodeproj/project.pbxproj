@@ -144,6 +144,9 @@
 		6EB7140C27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */; };
 		6EB7140D27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */; };
 		8A9652A1835DAC0DB0E416F7 /* Pods_Backtrace_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD588062124AE4A2282D2B40 /* Pods_Backtrace_macOS.framework */; };
+		A24A4B0528B53532004F5052 /* BacktraceOomWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B0128B534FC004F5052 /* BacktraceOomWatcherTests.swift */; };
+		A24A4B0628B53532004F5052 /* BacktraceOomWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B0128B534FC004F5052 /* BacktraceOomWatcherTests.swift */; };
+		A24A4B0728B53533004F5052 /* BacktraceOomWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B0128B534FC004F5052 /* BacktraceOomWatcherTests.swift */; };
 		AF1D0F3C2618304100C02F81 /* AttachmentStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */; };
 		AF1D0F3D2618304200C02F81 /* AttachmentStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */; };
 		AF1D0F3E2618304200C02F81 /* AttachmentStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */; };
@@ -450,6 +453,7 @@
 		7C8C618DCA2B499742CDC68E /* Pods-Example-macOS-ObjC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-macOS-ObjC.release.xcconfig"; path = "Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC.release.xcconfig"; sourceTree = "<group>"; };
 		8F32F5DB6C5520D826748AA7 /* Pods-Backtrace-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		A22D62BA819BA635DA1175B5 /* Pods_Example_macOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_macOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A24A4B0128B534FC004F5052 /* BacktraceOomWatcherTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceOomWatcherTests.swift; sourceTree = "<group>"; };
 		A2979254DB459126773463E6 /* Pods-Example-iOS-ObjC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-iOS-ObjC.debug.xcconfig"; path = "Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC.debug.xcconfig"; sourceTree = "<group>"; };
 		A6D2A9845A030896D5A2333E /* Pods-Backtrace-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentStorageTests.swift; sourceTree = "<group>"; };
@@ -840,6 +844,7 @@
 				F2A81B5023F02279007C63E4 /* BacktraceRateLimiterTests.swift */,
 				AF1D0F3B2618304100C02F81 /* AttachmentStorageTests.swift */,
 				6E896E83272748F60005CDF2 /* BacktraceMetricsTest.swift */,
+				A24A4B0128B534FC004F5052 /* BacktraceOomWatcherTests.swift */,
 				6EB713FB276298670075D1C1 /* BacktraceCredentialsTests.swift */,
 				6EB7140A27641BBD0075D1C1 /* SummedEventsTests.swift */,
 				6E317C6F276901F500CC1C17 /* UniqueEventsTests.swift */,
@@ -2021,6 +2026,7 @@
 				F21DD3A72255666F00404CC3 /* BacktraceWatcherTests.swift in Sources */,
 				F21DD3A82255666F00404CC3 /* AttachmentTests.swift in Sources */,
 				AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
+				A24A4B0728B53533004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
 				F2981BCB22901B1400DFE098 /* AttributesTests.swift in Sources */,
 				F21DD3A92255666F00404CC3 /* ReportingPolicyTests.swift in Sources */,
 				F2A81B5623F02297007C63E4 /* BacktraceRateLimiterTests.swift in Sources */,
@@ -2122,6 +2128,7 @@
 				F2AB636B2244243500939BC9 /* Quick+Throws.swift in Sources */,
 				F25C0FC721C79EFB0083029C /* Backtrace_macOSTests.swift in Sources */,
 				F2AB63762246484100939BC9 /* WatcherRepositoryMock.swift in Sources */,
+				A24A4B0628B53532004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
 				F229D7862239A172008EC851 /* BacktraceClientTests.swift in Sources */,
 				6EB7140C27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */,
 				282C85EB22419C600014FE75 /* BacktraceWatcherTests.swift in Sources */,
@@ -2238,6 +2245,7 @@
 				F2AB636A2244243500939BC9 /* Quick+Throws.swift in Sources */,
 				F25C0FC621C79EF50083029C /* Backtrace_iOSTests.swift in Sources */,
 				F2AB63752246484100939BC9 /* WatcherRepositoryMock.swift in Sources */,
+				A24A4B0528B53532004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
 				F229D7852239A172008EC851 /* BacktraceClientTests.swift in Sources */,
 				6EB7140B27641BBD0075D1C1 /* SummedEventsTests.swift in Sources */,
 				282C85EA22419C560014FE75 /* BacktraceWatcherTests.swift in Sources */,

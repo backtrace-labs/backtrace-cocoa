@@ -9,14 +9,14 @@ struct BacktraceRateLimiter {
     var canSend: Bool {
         let currentTimestamp = Date().timeIntervalSince1970
         lock.lock()
+        defer { lock.unlock() }
         let sentCount = timestamps.filter { currentTimestamp - $0 < cacheInterval }.count
-        lock.unlock()
         return sentCount < reportsPerMin
     }
 
     mutating func addRecord() {
         lock.lock()
+        defer { lock.unlock() }
         timestamps.append(Date().timeIntervalSince1970)
-        lock.unlock()
     }
 }

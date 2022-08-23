@@ -5,13 +5,15 @@ final class BacktraceOomWatcher {
     // Relaxed visibility for testing
     internal var state: ApplicationInfo
 
+    // time the OomWatcher will ignore new lowMemoryWarnings for after a lowMemoryWarning was processed
+    var quietTimeInMillis: Int = 60 * 1000 // default is 60 seconds
+
     let lowMemoryFilePrefix = "_lowMemory"
     private(set) static var oomFilePath: URL? = getStatusFilePath()
 
     private(set) var crashReporter: CrashReporting
     private(set) var attributesProvider: AttributesProvider
     private(set) var backtraceApi: BacktraceApi
-    private(set) var enabled = false
     private let repository: PersistentRepository<BacktraceReport>
 
     init(
@@ -36,11 +38,43 @@ final class BacktraceOomWatcher {
         }
     }
 
+    internal static var reportAttributes: Attributes? {
+        get {
+            return try? AttributesStorage.retrieve(fileName: "oom_report")
+        }
+        set {
+            if let newValue = newValue {
+                try? AttributesStorage.store(newValue, fileName: "oom_report")
+            } else {
+                try? AttributesStorage.remove(fileName: "oom_report")
+            }
+        }
+    }
+
+    internal static var reportAttachments: Attachments? {
+        get {
+            return try? AttachmentsStorage.retrieve(fileName: "oom_report")
+        }
+        set {
+            if let newValue = newValue {
+                try? AttachmentsStorage.store(newValue, fileName: "oom_report")
+            } else {
+                try? AttachmentsStorage.remove(fileName: "oom_report")
+            }
+        }
+    }
+
+    deinit {
+        BacktraceOomWatcher.clean()
+    }
+
     internal static func clean() {
         if let oomFilePath = BacktraceOomWatcher.oomFilePath {
             // ignore errors or use do/catch block to handle errors more gracefully
             try? FileManager.default.removeItem(at: oomFilePath)
         }
+        reportAttributes = nil
+        reportAttachments = nil
     }
 
     internal static func getAppVersion() -> String {
@@ -51,14 +85,7 @@ final class BacktraceOomWatcher {
         }
     }
 
-    public func start() {
-        guard !enabled else {
-            BacktraceLogger.warning("BacktraceOomWatcher started already. Ignoring additional call to start.")
-            return
-        }
-        enabled = true
-
-        // TODO: Can be called multiple times, resulting in potentially incorrect oomReports being sent
+    internal func start() {
         sendPendingOomReports()
         // override previous application state after reading all information
         saveState()
@@ -96,7 +123,7 @@ final class BacktraceOomWatcher {
 
     private func shouldReportOom(appState: ApplicationInfo) -> Bool {
         // no low memory warning
-        if appState.resource == nil {
+        if !appState.memoryWarningReceived {
             return false
         }
 
@@ -119,19 +146,18 @@ final class BacktraceOomWatcher {
         return true
     }
 
-    internal func reportOom(appState: ApplicationInfo) {
-        guard let reportData = appState.resource else {
-            return
-        }
-
-        var reportAttributes: Attributes = [:]
-        if let stateAttributes = appState.attributes,
-           let attributes = try? JSONSerialization.jsonObject(with: stateAttributes, options: []) as? Attributes {
-            reportAttributes = attributes ?? [:]
-        }
+    private func reportOom(appState: ApplicationInfo) {
+        guard let reportData = try? crashReporter.generateLiveReport(exception: nil,
+                                                                      attributes: [:],
+                                                                      attachmentPaths: []).reportData else {
+             BacktraceLogger.warning("Could not create live_report for OomReport.")
+             return
+         }
 
         // ok - we detected oom and we should report it
-        guard let report = try? BacktraceReport(report: reportData, attributes: reportAttributes, attachmentPaths: [])
+        guard let report = try? BacktraceReport(report: reportData,
+                                                attributes: BacktraceOomWatcher.reportAttributes ?? [:],
+                                                attachmentPaths: BacktraceOomWatcher.reportAttachments?.map(\.path) ?? [])
         else {
             return
         }
@@ -161,8 +187,8 @@ extension BacktraceOomWatcher {
         var debugger: Bool = DebuggerChecker.isAttached()
         var appVersion: String = BacktraceOomWatcher.getAppVersion()
         var version: String = ProcessInfo.processInfo.operatingSystemVersionString
-        var attributes: Data?
-        var resource: Data?
+        var memoryWarningReceived = false
+        var memoryWarningTimestamp: Int?
     }
 }
 
@@ -178,18 +204,25 @@ extension BacktraceOomWatcher {
     }
 
     func handleLowMemoryWarning() {
-        // TODO: Are attachments omitted intentionally?
-        guard let resource = try? crashReporter.generateLiveReport(exception: nil,
-                                                                   attributes: attributesProvider.allAttributes,
-                                                                   attachmentPaths: []) else {
+        // If the quiet time hasn't passed, skip to prevent excessive work when app is under memory pressure
+        let now = Date().millisecondsSince1970
+        if let memoryWarningTimestamp = self.state.memoryWarningTimestamp,
+           now - memoryWarningTimestamp < quietTimeInMillis {
             return
         }
-        self.state.resource = resource.reportData
-        resource.attributes["error.message"] = "Out of memory detected."
-        resource.attributes["error.type"] = "Low Memory"
-        resource.attributes["state"] = state.state.rawValue
 
-        self.state.attributes = try? JSONSerialization.data(withJSONObject: resource.attributes)
+        self.state.memoryWarningTimestamp = now
+        self.state.memoryWarningReceived = true
+
+        var attributes = attributesProvider.allAttributes
+        attributes["error.message"] = "Out of memory detected."
+        attributes["error.type"] = "Low Memory"
+        attributes["memory.warning.timestamp"] = self.state.memoryWarningTimestamp
+        attributes["state"] = self.state.state.rawValue
+
+        BacktraceOomWatcher.reportAttributes = attributes
+        BacktraceOomWatcher.reportAttachments = attributesProvider.attachments
+
         saveState()
     }
 

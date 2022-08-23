@@ -17,11 +17,17 @@ class BacktraceOomWatcherTests: QuickSpec {
             let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
             let crashReporter = BacktraceCrashReporter()
             let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+            let newFile = URL(fileURLWithPath: "newfile")
 
             throwingBeforeEach {
+                let attributesProvider = AttributesProvider()
+
+                try "".write(to: newFile, atomically: true, encoding: .utf8)
+                attributesProvider.attachments.append(newFile)
+
                 oomWatcher = BacktraceOomWatcher(repository: repository,
                                                  crashReporter: crashReporter,
-                                                 attributes: AttributesProvider(),
+                                                 attributes: attributesProvider,
                                                  backtraceApi: backtraceApi)
                 BacktraceOomWatcher.clean()
 
@@ -37,8 +43,9 @@ class BacktraceOomWatcherTests: QuickSpec {
                     expect { savedState?.appVersion }.to(equal(BacktraceOomWatcher.getAppVersion()))
                     expect { savedState?.version }.to(equal(ProcessInfo.processInfo.operatingSystemVersionString))
                     expect { savedState?.debugger }.to(equal(DebuggerChecker.isAttached()))
-                    expect { savedState?.resource }.to(beNil())
-                    expect { savedState?.attributes }.to(beNil())
+                    expect { savedState?.memoryWarningReceived }.to(beFalse())
+                    expect { BacktraceOomWatcher.reportAttributes }.to(beNil())
+                    expect { BacktraceOomWatcher.reportAttachments }.to(beNil())
                 }
                 it("application state change results in updated state file") {
 
@@ -56,8 +63,9 @@ class BacktraceOomWatcherTests: QuickSpec {
                     oomWatcher?.handleLowMemoryWarning()
                     let savedState = oomWatcher?.loadPreviousState()
 
-                    expect { savedState?.resource }.toNot(beNil())
-                    expect { savedState?.attributes }.toNot(beNil())
+                    expect { savedState?.memoryWarningReceived }.to(beTrue())
+                    expect { BacktraceOomWatcher.reportAttributes }.toNot(beNil())
+                    expect { BacktraceOomWatcher.reportAttachments?.first?.path }.to(contain("newfile"))
 
                     let delegate = BacktraceClientDelegateMock()
                     backtraceApi.delegate = delegate
@@ -66,7 +74,7 @@ class BacktraceOomWatcherTests: QuickSpec {
 
                     delegate.willSendClosure = { report in
                         calledWillSend += 1
-                        expect { report.attachmentPaths }.to(beEmpty())
+                        expect { report.attachmentPaths }.to(contain(newFile.path))
                         // Oom specific attributes
                         expect { report.attributes["error.message"] as? String }.to(equal("Out of memory detected."))
                         expect { report.attributes["error.type"] as? String }.to(equal("Low Memory"))
@@ -80,22 +88,43 @@ class BacktraceOomWatcherTests: QuickSpec {
 
                     expect { calledWillSend }.toEventually(equal(1))
                 }
-                it("calling start mulitple times doesn't send a 'pending' report") {
-                    // otherwise won't send the report
-                    oomWatcher?.state.debugger = false
+                it("calling handleLowMemory again within quiet times is noop") {
 
-                    let delegate = BacktraceClientDelegateMock()
-                    backtraceApi.delegate = delegate
-
-                    delegate.willSendClosure = { report in
-                        fail("Not expected to call willSendClosure")
-                        return report
-                    }
+                    // Modify the quiet time so we can check if it re-saved the state after the quiet time expires
+                    oomWatcher?.quietTimeInMillis = 100
+                    oomWatcher?.attributesProvider.attachments.removeAll()
 
                     oomWatcher?.start()
                     oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.start()
-                    oomWatcher?.start()
+
+                    let shouldNotBeAddedFile = URL(fileURLWithPath: "should-not-be-added")
+                    try "".write(to: shouldNotBeAddedFile, atomically: true, encoding: .utf8)
+
+                    oomWatcher?.attributesProvider.attachments.append(shouldNotBeAddedFile)
+                    oomWatcher?.attributesProvider.attributes["should-not"] = "be-added"
+
+                    // All these should be NOOPs
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.handleLowMemoryWarning()
+
+                    expect { BacktraceOomWatcher.reportAttachments }.to(beEmpty())
+                    expect { BacktraceOomWatcher.reportAttributes?["should-not"] }.to(beNil())
+
+                    // after sleeping for the quietTime interval, it should add new attachments and attributes
+                    Thread.sleep(forTimeInterval: 0.1)
+
+                    oomWatcher?.attributesProvider.attachments.removeAll()
+
+                    let shouldBeAddedFile = URL(fileURLWithPath: "should-be-added")
+                    try "".write(to: shouldBeAddedFile, atomically: true, encoding: .utf8)
+                    oomWatcher?.attributesProvider.attachments.append(shouldBeAddedFile)
+                    oomWatcher?.attributesProvider.attributes["should"] = "be-added"
+
+                    oomWatcher?.handleLowMemoryWarning()
+                    expect { BacktraceOomWatcher.reportAttachments?.first?.path }.to(contain("should-be-added"))
+                    expect { BacktraceOomWatcher.reportAttributes?["should"] }.toNot(beNil())
                 }
             }
         }
