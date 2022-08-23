@@ -16,8 +16,8 @@ static NSMutableData *wastedMemory = nil;
 }
 
 - (IBAction) outOfMemoryReportAction: (id) sender {
-    for (int i = 0; i < 100 ; i++) {
-        [wastedMemory appendData:[NSMutableData dataWithLength:500000000]];
+    for (int i = 0; i < 10000 ; i++) {
+        [wastedMemory appendData:[NSMutableData dataWithLength:500000]];
     }
 }
 
