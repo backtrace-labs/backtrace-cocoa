@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 @testable import Backtrace
 
+#if os(iOS) || os(OSX)
 class BacktraceObserverMock: BacktraceNotificationHandlerDelegate {
 
     var delegate: BacktraceNotificationObserverDelegate?
@@ -12,3 +13,4 @@ class BacktraceObserverMock: BacktraceNotificationHandlerDelegate {
         startObservingCalled = true
     }
 }
+#endif

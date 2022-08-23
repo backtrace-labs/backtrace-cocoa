@@ -21,7 +21,7 @@ class BacktraceOomWatcherTests: QuickSpec {
 
             throwingBeforeEach {
                 let attributesProvider = AttributesProvider()
-                
+
                 try "".write(to: newFile, atomically: true, encoding: .utf8)
                 attributesProvider.attachments.append(newFile)
 
