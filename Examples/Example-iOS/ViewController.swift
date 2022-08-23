@@ -2,11 +2,21 @@ import UIKit
 import Backtrace
 
 class ViewController: UIViewController {
+    
+    static var wastedMemory: Data = Data()
+    
     @IBOutlet weak var textView: UITextView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
+    }
+    
+    @IBAction func outOfMemoryReportAction(_ sender: Any) {
+        for _ in 1...100 {
+            let data = Data(repeating: 0, count: 500_000_000)
+            ViewController.wastedMemory.append(data)
+        }
     }
 
     @IBAction func liveReportAction(_ sender: Any) {

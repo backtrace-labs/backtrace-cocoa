@@ -29,8 +29,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
-                                                                  allowsAttachingDebugger: true)
-
+                                                                  allowsAttachingDebugger: true,
+                                                                  detectOOM: true)
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
