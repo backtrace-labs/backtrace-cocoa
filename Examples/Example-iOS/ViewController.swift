@@ -13,8 +13,8 @@ class ViewController: UIViewController {
     }
     
     @IBAction func outOfMemoryReportAction(_ sender: Any) {
-        for _ in 1...100 {
-            let data = Data(repeating: 0, count: 500_000_000)
+        for _ in 1...10000 {
+            let data = Data(repeating: 0, count: 500_000)
             ViewController.wastedMemory.append(data)
         }
     }
