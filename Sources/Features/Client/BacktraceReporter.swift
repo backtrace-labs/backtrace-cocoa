@@ -1,7 +1,7 @@
 import Foundation
 
 final class BacktraceReporter {
-    
+
 #if os(macOS)
     lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
         DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())

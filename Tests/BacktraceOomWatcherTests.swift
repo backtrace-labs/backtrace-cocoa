@@ -9,7 +9,7 @@ import Quick
 class BacktraceOomWatcherTests: QuickSpec {
 
     override func spec() {
-        describe("BreadcrumbsLogManager") {
+        describe("BacktraceOomWatcher") {
             var oomWatcher: BacktraceOomWatcher?
             let urlSession = URLSessionMock()
             let credentials =
@@ -56,9 +56,6 @@ class BacktraceOomWatcherTests: QuickSpec {
                     expect { savedState?.state }.to(equal(BacktraceOomWatcher.ApplicationState.background))
                 }
                 it("low memory warning results in updated state file with resource and attributes") {
-                    // otherwise won't send the report
-                    oomWatcher?.state.debugger = false
-
                     oomWatcher?.start()
                     oomWatcher?.handleLowMemoryWarning()
                     let savedState = oomWatcher?.loadPreviousState()
@@ -66,27 +63,6 @@ class BacktraceOomWatcherTests: QuickSpec {
                     expect { savedState?.memoryWarningReceived }.to(beTrue())
                     expect { BacktraceOomWatcher.reportAttributes }.toNot(beNil())
                     expect { BacktraceOomWatcher.reportAttachments?.first?.path }.to(contain("newfile"))
-
-                    let delegate = BacktraceClientDelegateMock()
-                    backtraceApi.delegate = delegate
-                    urlSession.response = MockOkResponse()
-                    var calledWillSend = 0
-
-                    delegate.willSendClosure = { report in
-                        calledWillSend += 1
-                        expect { report.attachmentPaths }.to(contain(newFile.path))
-                        // Oom specific attributes
-                        expect { report.attributes["error.message"] as? String }.to(equal("Out of memory detected."))
-                        expect { report.attributes["error.type"] as? String }.to(equal("Low Memory"))
-                        expect { report.attributes["state"] as? String }.to(equal("active"))
-                        // Random "generic" attribute
-                        expect { report.attributes["guid"] as? String }.toNot(beNil())
-                        return report
-                    }
-
-                    oomWatcher?.sendPendingOomReports()
-
-                    expect { calledWillSend }.toEventually(equal(1))
                 }
                 it("calling handleLowMemory again within quiet times is noop") {
 
@@ -125,6 +101,116 @@ class BacktraceOomWatcherTests: QuickSpec {
                     oomWatcher?.handleLowMemoryWarning()
                     expect { BacktraceOomWatcher.reportAttachments?.first?.path }.to(contain("should-be-added"))
                     expect { BacktraceOomWatcher.reportAttributes?["should"] }.toNot(beNil())
+                }
+            }
+            context("with sending mocks") {
+                var calledWillSend = 0
+                var delegate = BacktraceClientDelegateMock()
+
+                beforeEach {
+                    urlSession.response = MockOkResponse()
+                    calledWillSend = 0
+                    delegate = BacktraceClientDelegateMock()
+
+                    delegate.willSendClosure = { report in
+                        calledWillSend += 1
+                        expect { report.attachmentPaths }.to(contain(newFile.path))
+                        // Oom specific attributes
+                        expect { report.attributes["error.message"] as? String }.to(equal("Out of memory detected."))
+                        expect { report.attributes["error.type"] as? String }.to(equal("Low Memory"))
+                        expect { report.attributes["state"] as? String }.to(equal("active"))
+                        // Random "generic" attribute
+                        expect { report.attributes["guid"] as? String }.toNot(beNil())
+                        return report
+                    }
+                }
+
+                it("results in oom report being sent when oom requirements met") {
+                    oomWatcher?.start()
+
+                    // may be true when running in XCode: override bc otherwise won't send the report
+                    oomWatcher?.state.debugger = false
+
+                    oomWatcher?.handleLowMemoryWarning()
+
+                    backtraceApi.delegate = delegate
+                    oomWatcher?.sendPendingOomReports()
+
+                    expect { calledWillSend }.to(equal(1))
+                 }
+                 it("can handle missing attributes and attachments") {
+                     urlSession.response = MockOkResponse()
+
+                     oomWatcher?.start()
+
+                     // may be true when running in XCode: override bc otherwise won't send the report
+                     oomWatcher?.state.debugger = false
+
+                     oomWatcher?.handleLowMemoryWarning()
+
+                     BacktraceOomWatcher.reportAttributes = nil
+                     BacktraceOomWatcher.reportAttachments = nil
+
+                     let delegate = BacktraceClientDelegateMock()
+                     delegate.willSendClosure = { report in
+                         calledWillSend += 1
+
+                         expect { report.attributes }.to(beEmpty())
+                         expect { report.attachmentPaths }.to(beEmpty())
+
+                         return report
+                     }
+
+                     backtraceApi.delegate = delegate
+                     oomWatcher?.sendPendingOomReports()
+
+                     expect { calledWillSend }.to(be(1))
+                 }
+                 it("results in oom report NOT being sent when oom requirements NOT met: no warning") {
+                     // debugger attached: no report.
+                     oomWatcher?.start()
+                     oomWatcher?.state.debugger = true
+                     oomWatcher?.state.memoryWarningReceived = false
+                     oomWatcher?.handleLowMemoryWarning()
+
+                     backtraceApi.delegate = delegate
+                     oomWatcher?.sendPendingOomReports()
+
+                     expect { calledWillSend }.to(be(0))
+                 }
+                it("results in oom report NOT being sent when oom requirements NOT met: no report") {
+                    // no memory warning: no report.
+                    oomWatcher?.start()
+                    oomWatcher?.state.debugger = false
+
+                    backtraceApi.delegate = delegate
+                    oomWatcher?.sendPendingOomReports()
+
+                    expect { calledWillSend }.to(be(0))
+                }
+                it("results in oom report NOT being sent when oom requirements NOT met: other app version") {
+                    // app version different: no report.
+                    oomWatcher?.start()
+                    oomWatcher?.state.debugger = false
+                    oomWatcher?.state.appVersion = "1.2.3"
+                    oomWatcher?.handleLowMemoryWarning()
+
+                    backtraceApi.delegate = delegate
+                    oomWatcher?.sendPendingOomReports()
+
+                    expect { calledWillSend }.to(be(0))
+                }
+                it("results in oom report NOT being sent when oom requirements NOT met: other OS version") {
+                    // OS version different: no report.
+                    oomWatcher?.start()
+                    oomWatcher?.state.debugger = false
+                    oomWatcher?.state.version = "1.2.3"
+                    oomWatcher?.handleLowMemoryWarning()
+
+                    backtraceApi.delegate = delegate
+                    oomWatcher?.sendPendingOomReports()
+
+                    expect { calledWillSend }.to(be(0))
                 }
             }
         }
