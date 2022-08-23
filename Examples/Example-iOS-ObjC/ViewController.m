@@ -16,8 +16,11 @@ static NSMutableData *wastedMemory = nil;
 }
 
 - (IBAction) outOfMemoryReportAction: (id) sender {
+    // The trick is: to aggressively take up memory but not allocate a block too large to cause a crash
+    // This is obviously device dependent, so the 500k may have to be tweaked
+    int size = 500000;
     for (int i = 0; i < 10000 ; i++) {
-        [wastedMemory appendData:[NSMutableData dataWithLength:500000]];
+        [wastedMemory appendData:[NSMutableData dataWithLength:size]];
     }
 }
 
