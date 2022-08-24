@@ -36,7 +36,7 @@ extension BacktraceCrashReporter: CrashReporting {
                 attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
 
                 try? AttributesStorage.store(attributesProvider.allAttributes, fileName: BacktraceCrashReporter.crashName)
-                try? AttachmentsStorage.store(attributesProvider.attachments, fileName: BacktraceCrashReporter.crashName)
+                try? AttachmentsStorage.store(attributesProvider.allAttachments, fileName: BacktraceCrashReporter.crashName)
         }
 
         var callbacks = withUnsafeMutableBytes(of: &mutableContext) { rawMutablePointer in
