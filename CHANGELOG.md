@@ -4,6 +4,7 @@
 - Modifies the CI job to run tests daily on schedule in #81
 - Skip file attachments that are larger than 10MB in #84
 - Adds additional functionality for breadcrumbs in beta in #79
+- Improves out of memory (OOM) reporting in #88 
 - Updates README by @lysannep in #89
 
 ## Version 1.7.3
