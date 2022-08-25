@@ -25,14 +25,14 @@ Pod::Spec.new do |s|
   s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.{h*,swift}"]
   s.tvos.source_files = ["Sources/**/*.{swift}", "Backtrace-tvOS/**/*.{h*,swift}"]
   
-  s.osx.exclude_files = ["Sources/Features/Breadcrumb/**/*.{swift}"]
   s.tvos.exclude_files = ["Sources/Features/Breadcrumb/**/*.{swift}"]
   
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
   s.tvos.public_header_files = ["Backtrace-tvOS/**/*.h*"]
 
-  s.ios.dependency "Cassette", "1.0.0-beta5"
+  s.ios.dependency "Cassette", '1.0.0-beta5'
+  s.osx.dependency "Cassette", '1.0.0-beta5'
   s.dependency "Backtrace-PLCrashReporter", '1.5.3'
   
   s.resources = 'Sources/**/*.xcdatamodeld'

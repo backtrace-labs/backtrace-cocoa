@@ -10,34 +10,34 @@
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
+    NSString *fileName = @"myCustomFile.txt";
+    NSURL *libraryUrl = [[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory
+             inDomains:NSUserDomainMask] lastObject];
+    NSURL *fileUrl = [libraryUrl URLByAppendingPathComponent:fileName];
+
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithEndpoint: [NSURL URLWithString: Keys.backtraceUrl]
                                          token: [Keys backtraceToken]];
     BacktraceDatabaseSettings *backtraceDatabaseSettings = [[BacktraceDatabaseSettings alloc] init];
-    backtraceDatabaseSettings.maxRecordCount = 1000;
-    backtraceDatabaseSettings.maxDatabaseSize = 10;
-    backtraceDatabaseSettings.retryInterval = 5;
-    backtraceDatabaseSettings.retryLimit = 3;
-    backtraceDatabaseSettings.retryBehaviour = RetryBehaviourInterval;
-    backtraceDatabaseSettings.retryOrder = RetryOrderStack;
-    
+    backtraceDatabaseSettings.maxRecordCount = 10;
+
     BacktraceClientConfiguration *configuration = [[BacktraceClientConfiguration alloc]
                                                    initWithCredentials: credentials
                                                    dbSettings: backtraceDatabaseSettings
                                                    reportsPerMin: 3
                                                    allowsAttachingDebugger: TRUE
-                                                   detectOOM: FALSE];
-    [configuration enableBreadCrumbs:@[@(BacktraceBreadcrumbTypeManual), @(BacktraceBreadcrumbTypeLog)]];
+                                                   detectOOM: TRUE];
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
-    BacktraceClient.shared.delegate = self;
+    BacktraceClient.shared.attributes = @{@"foo": @"bar", @"testing": @YES};
+    BacktraceClient.shared.attachments = [NSArray arrayWithObjects:fileUrl, nil];
 
     // sending NSException
     @try {
         NSArray *array = @[];
-        NSObject *object = array[1]; // will throw exception
+        array[1]; // will throw exception
     } @catch (NSException *exception) {
-        NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
-        [[BacktraceClient shared] sendWithAttachmentPaths: paths completion: ^(BacktraceResult * _Nonnull result) {
+        [[BacktraceClient shared] sendWithAttachmentPaths: [NSArray init]  completion: ^(BacktraceResult * _Nonnull result) {
             NSLog(@"%@", result);
         }];
     } @finally {
@@ -45,14 +45,12 @@
     }
 
     //sending NSError
-    NSError *error = [NSError errorWithDomain: @"backtrace.domain" code: 100 userInfo: @{}];
-    NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
     [[BacktraceClient shared] sendWithAttachmentPaths: paths completion: ^(BacktraceResult * _Nonnull result) {
         NSLog(@"%@", result);
     }];
 
-    
-    
+    BacktraceClient.shared.delegate = self;
+    [BacktraceClient.shared enableBreadcrumbs];
     NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
     [[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
                                  attributes:attributes

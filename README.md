@@ -22,10 +22,8 @@ pod 'Backtrace'
 ### Swift
 https://github.com/backtrace-labs/backtrace-cocoa/blob/8551020be9334f61cd9f27d39a7b4e7d2733d4b0/Examples/Example-iOS/AppDelegate.swift#L21-L41
 
-
 ### Objective-C
 https://github.com/backtrace-labs/backtrace-cocoa/blob/8551020be9334f61cd9f27d39a7b4e7d2733d4b0/Examples/Example-iOS-ObjC/AppDelegate.m#L19-L45
-
 
 ## Documentation
 For more information about the iOS SDK, including installation, usage, and configuration options, see the [iOS Integration guide](https://docs.saucelabs.com/error-reporting/platform-integrations/ios/setup/) in the Sauce Labs documentation.
