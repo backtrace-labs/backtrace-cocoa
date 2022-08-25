@@ -2,7 +2,6 @@
 
 ## Version 1.7.4-beta1
 - Modifies the CI job to run tests daily on schedule in #81
-- fixing broken symbolification link in #80
 - Skip file attachments that are larger than 10MB in #84
 - Adds additional functionality for breadcrumbs in beta in #79
 - Updates README by @lysannep in #89
