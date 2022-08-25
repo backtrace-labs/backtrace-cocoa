@@ -3,11 +3,13 @@ import Foundation
 protocol AttributesSource {
     var immutable: [String: Any?] { get }
     var mutable: [String: Any?] { get }
+    var attachments: Attachments { get }
 }
 
 extension AttributesSource {
     var immutable: [String: Any?] { return [:] }
     var mutable: [String: Any?] { return [:] }
+    var attachments: Attachments { return [] }
 }
 
 final class AttributesProvider {
@@ -32,7 +34,8 @@ final class AttributesProvider {
                              LibInfo(),
                              LocationInfo(),
                              faultInfo,
-                             MetricsInfo()]
+                             MetricsInfo(),
+                             BreadcrumbsInfo()]
     }
 }
 
@@ -46,7 +49,11 @@ extension AttributesProvider: SignalContext {
     }
 
     var attachmentPaths: [String] {
-        return attachments.map(\.path)
+        return allAttachments.map(\.path)
+    }
+
+    var allAttachments: Attachments {
+        attachments + attributesSources.map(\.attachments).reduce([], +)
     }
 
     var allAttributes: Attributes {

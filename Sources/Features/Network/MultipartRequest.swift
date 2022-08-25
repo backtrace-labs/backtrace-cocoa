@@ -63,6 +63,7 @@ extension MultipartRequest {
         body.appendString("Content-Type: application/octet-stream\r\n\r\n")
         body.append(report.reportData)
         body.appendString("\r\n")
+
         // attachments
         for attachment in report.attachmentPaths.compactMap(Attachment.init(filePath:)) {
             body.appendString(boundaryPrefix)

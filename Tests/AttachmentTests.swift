@@ -34,6 +34,12 @@ final class AttachmentTests: QuickSpec {
                 } else {
                     fail()
                 }
+
+                throwingIt("attachment won't init if size is larger than 10 MB") {
+                    try NSMutableData.init(bytes: [], length: 11 * 1024 * 1024).write(toFile: "11mb.file")
+                    let attachment = Attachment(filePath: "11mb.file")
+                    expect(attachment).to(beNil())
+                }
             }
         }
     }

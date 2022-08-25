@@ -2,18 +2,18 @@ import Foundation
 
 final class BacktraceReporter {
 
+#if os(macOS)
+    lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
+        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
+    }()
+#endif
+
     let reporter: CrashReporting
     private(set) var api: BacktraceApi
     private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
     private(set) var attributesProvider: SignalContext
     private(set) var backtraceOomWatcher: BacktraceOomWatcher
     let repository: PersistentRepository<BacktraceReport>
-
-    #if os(macOS)
-    lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
-        DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
-    }()
-    #endif
 
     init(reporter: CrashReporting,
          api: BacktraceApi,
@@ -129,6 +129,7 @@ typealias Application = NSApplication
 
 //// Provides notification interfaces for BacktraceOOMWatcher and Breadcrumbs support
 extension BacktraceReporter {
+
     internal func enableOomWatcher() {
         self.backtraceOomWatcher.start()
 
@@ -176,22 +177,23 @@ extension BacktraceReporter {
     }
 
     @objc private func applicationWillEnterForeground() {
-        self.backtraceOomWatcher.appChanedState(.active)
+        self.backtraceOomWatcher.appChangedState(.active)
     }
 
     @objc private func didBecomeActiveNotification() {
-        self.backtraceOomWatcher.appChanedState(.active)
+        self.backtraceOomWatcher.appChangedState(.active)
     }
 
     @objc private func willResignActiveNotification() {
-        self.backtraceOomWatcher.appChanedState(.inactive)
+        self.backtraceOomWatcher.appChangedState(.inactive)
     }
 
     @objc private func didEnterBackgroundNotification() {
-        self.backtraceOomWatcher.appChanedState(.background)
+        self.backtraceOomWatcher.appChangedState(.background)
     }
 
     @objc private func handleTermination() {
+        NotificationCenter.default.removeObserver(self)
         self.backtraceOomWatcher.handleTermination()
     }
     @objc private func handleLowMemoryWarning() {

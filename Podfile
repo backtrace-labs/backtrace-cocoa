@@ -14,14 +14,14 @@ def shared_test_pods
     pod 'Quick', '4.0.0'
 end
 
-def shared_iOS_pods
+def shared_ios_mac_pods
     shared_pods
     pod 'Cassette', '1.0.0-beta5'
 end
 
-def shared_test_iOS_pods
+def shared_test_ios_mac_pods
     shared_test_pods
-    shared_iOS_pods
+    shared_ios_mac_pods
 end
 
 inhibit_all_warnings!
@@ -29,10 +29,10 @@ inhibit_all_warnings!
 ## Framework iOS
 target 'Backtrace-iOS' do
     use_frameworks!
-    shared_iOS_pods
+    shared_ios_mac_pods
     target 'Backtrace-iOSTests' do
         inherit! :search_paths
-        shared_test_iOS_pods
+        shared_test_ios_mac_pods
     end
 end
 
@@ -40,10 +40,10 @@ end
 target 'Backtrace-macOS' do
     platform :osx, '10.11'
     use_frameworks!
-    shared_pods
+    shared_ios_mac_pods
     target 'Backtrace-macOSTests' do
         inherit! :search_paths
-        shared_test_pods
+        shared_test_ios_mac_pods
     end
 end
 

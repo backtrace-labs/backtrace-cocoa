@@ -2,12 +2,15 @@ import Foundation
 
 @objc class BacktraceBreadcrumbsLogManager: NSObject {
 
-    private var breadcrumbId = Date().millisecondsSince1970
+    private var breadcrumbId: Int
     private let backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper
 
-    init(_ breadcrumbLogPath: String, maxQueueFileSizeBytes: Int) throws {
-        self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbLogPath,
-                                                                               maxQueueFileSizeBytes: maxQueueFileSizeBytes)
+    init(breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
+        self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbSettings)
+
+        self.breadcrumbId = Date().millisecondsSince1970
+        BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
+
         super.init()
     }
 
@@ -15,14 +18,17 @@ import Foundation
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType,
                        level: BacktraceBreadcrumbLevel) -> Bool {
+        breadcrumbId += 1
+        BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
+
         let time = Date().millisecondsSince1970
         var breadcrumb: [String: Any] = ["timestamp": time,
                                          "id": breadcrumbId,
-                                         "level": level.info,
-                                         "type": type.info,
+                                         "level": level.description,
+                                         "type": type.description,
                                          "message": message]
         breadcrumb["attributes"] = attributes
-        breadcrumbId += 1
+
         return backtraceBreadcrumbFileHelper.addBreadcrumb(breadcrumb)
     }
 
@@ -30,11 +36,12 @@ import Foundation
         let result = backtraceBreadcrumbFileHelper.clear()
         if result {
             breadcrumbId = Date().millisecondsSince1970
+            BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
         }
         return result
     }
 
-    var getCurrentBreadcrumbId: Int {
-        breadcrumbId
+    internal var getCurrentBreadcrumbId: Int? {
+        return breadcrumbId
     }
 }

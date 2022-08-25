@@ -32,9 +32,15 @@ final class UniqueEventsTests: QuickSpec {
                 urlSession.response = MockOkResponse()
                 metrics.enable(settings: BacktraceMetricsSettings())
 
-                expect { delegate.calledWillSendRequest }.toEventually(beTrue(), timeout: .seconds(11), pollInterval: .seconds(1))
-                expect { delegate.calledServerDidRespond }.toEventually(beTrue(), timeout: .seconds(11), pollInterval: .seconds(1))
-                expect { delegate.calledConnectionDidFail }.toEventually(beFalse(), timeout: .seconds(11), pollInterval: .seconds(1))
+                expect { delegate.calledWillSendRequest }.toEventually(beTrue(),
+                                                                       timeout: .seconds(11),
+                                                                       pollInterval: .seconds(1))
+                expect { delegate.calledServerDidRespond }.toEventually(beTrue(),
+                                                                        timeout: .seconds(11),
+                                                                        pollInterval: .seconds(1))
+                expect { delegate.calledConnectionDidFail }.toEventually(beFalse(),
+                                                                         timeout: .seconds(11),
+                                                                         pollInterval: .seconds(1))
             }
         }
     }
