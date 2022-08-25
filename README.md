@@ -20,11 +20,11 @@ pod 'Backtrace'
 
 ## Usage
 ### Swift
-https://github.com/backtrace-labs/backtrace-cocoa/blob/98f74d5cb0ab51b03bb79e6b0e5d8f41d73dfc23/Examples/Example-iOS/AppDelegate.swift#L17-L37
+https://github.com/backtrace-labs/backtrace-cocoa/blob/master/Examples/Example-iOS/AppDelegate.swift#L17-L37
 
 
 ### Objective-C
-https://github.com/backtrace-labs/backtrace-cocoa/blob/98f74d5cb0ab51b03bb79e6b0e5d8f41d73dfc23/Examples/Example-iOS-ObjC/AppDelegate.m#L12-L32
+https://github.com/backtrace-labs/backtrace-cocoa/blob/master/Examples/Example-iOS-ObjC/AppDelegate.m#L12-L32
 
 
 ## Documentation
