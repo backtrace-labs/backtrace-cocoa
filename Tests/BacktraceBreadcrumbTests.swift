@@ -6,6 +6,7 @@ import Quick
 
 @testable import Backtrace
 
+// swiftlint:disable type_body_length file_length
 /** Module test, not unit test. Tests the entire breadcrumbs module */
 final class BacktraceBreadcrumbTests: QuickSpec {
 
@@ -31,6 +32,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
         }
     }
 
+// swiftlint:disable cyclomatic_complexity
     override func spec() {
         describe("BreadcrumbsLogManager") {
             var manager: BacktraceBreadcrumbsLogManager?
@@ -229,53 +231,89 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 }
             }
 #if os(iOS)
-            context("when iOS notifications update") {
-                it("iOS memory warning breadcrumb added") {
-                    backtraceBreadcrumbs.enableBreadcrumbs()
+            describe("when iOS notifications update") {
+                context("for memory warning notification") {
+                    it("iOS breadcrumb added") {
+                        backtraceBreadcrumbs.enableBreadcrumbs()
 
-                    // Simulate memory event:
-                    // https://stackoverflow.com/questions/4717138/ios-development-how-can-i-induce-low-memory-warnings-on-device
-                    // Can't seem to control much of the levels (warning vs fatal, etc), so we just test the warning level
-                    UIControl().sendAction(Selector(("_performMemoryWarning")), to: UIApplication.shared, for: nil)
+                        // Simulate memory event:
+                        // https://stackoverflow.com/questions/4717138/ios-development-how-can-i-induce-low-memory-warnings-on-device
+                        // Can't seem to control much of the levels (warning vs fatal, etc), so we just test the warning level
+                        UIControl().sendAction(Selector(("_performMemoryWarning")), to: UIApplication.shared, for: nil)
 
-                    expect { self.readBreadcrumbText() }.toEventually(contain("Warning level memory pressure event"))
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Warning level memory pressure event"))
+                    }
                 }
 
-                it("iOS orientation breadcrumb added") {
-                    backtraceBreadcrumbs.enableBreadcrumbs()
-
+                context("for orientation notification") {
                     class OverriddenOrientationNotificationObsrvr: BacktraceOrientationNotificationObserver {
                         var mockOrientation: UIDeviceOrientation?
 
                         override var orientation: UIDeviceOrientation { mockOrientation ?? super.orientation }
                     }
 
-                    let backtraceObserver = OverriddenOrientationNotificationObsrvr()
+                    it("iOS breadcrumb added") {
+                        backtraceBreadcrumbs.enableBreadcrumbs()
 
-                    let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
-                                                  handlerDelegates: [backtraceObserver])
-                    backtraceNotificationObserver.enableNotificationObserver()
+                        let backtraceObserver = OverriddenOrientationNotificationObsrvr()
 
-                    NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
-                                                    object: nil)
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
 
-                    expect { self.readBreadcrumbText() }.toNot(contain("Orientation changed"))
+                        NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
+                                                        object: nil)
 
-                    backtraceObserver.mockOrientation = UIDeviceOrientation.landscapeLeft
-                    NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
-                                                    object: nil)
+                        expect { self.readBreadcrumbText() }.toNot(contain("Orientation changed"))
 
-                    expect { self.readBreadcrumbText() }.to(contain("Orientation changed"))
-                    expect { self.readBreadcrumbText() }.to(contain("\"orientation\":\"landscape\""))
+                        backtraceObserver.mockOrientation = UIDeviceOrientation.landscapeLeft
+                        NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
+                                                        object: nil)
 
-                    backtraceObserver.mockOrientation = UIDeviceOrientation.portraitUpsideDown
-                    NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
-                                                    object: nil)
+                        expect { self.readBreadcrumbText() }.to(contain("Orientation changed"))
+                        expect { self.readBreadcrumbText() }.to(contain("\"orientation\":\"landscape\""))
 
-                    expect { self.readBreadcrumbText() }.to(contain("\"orientation\":\"portrait\""))
+                        backtraceObserver.mockOrientation = UIDeviceOrientation.portraitUpsideDown
+                        NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
+                                                        object: nil)
+
+                        expect { self.readBreadcrumbText() }.to(contain("\"orientation\":\"portrait\""))
+                    }
+
+                    it("same breadcrumb in row not allow to add") {
+                        backtraceBreadcrumbs.enableBreadcrumbs()
+
+                        let backtraceObserver = OverriddenOrientationNotificationObsrvr()
+
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
+
+                        backtraceObserver.mockOrientation = UIDeviceOrientation.portrait
+                        NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
+                                                        object: nil)
+
+                        var breadcrumbsText = self.readBreadcrumbText()
+                        if let attributes = backtraceObserver.lastBreadcrumbInfo?[BreadcrumbInfoKey.attributes] as? [String: Any],
+                            let orientation = attributes["orientation"] as? String {
+                            expect { orientation }.to(equal("portrait"))
+                        }
+                        if let count = breadcrumbsText?.components(separatedBy: "\"orientation\":\"portrait\"").count {
+                            expect { count - 1 }.to(equal(1))
+                        }
+
+                        backtraceObserver.mockOrientation = UIDeviceOrientation.portrait
+                        NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
+                                                        object: nil)
+
+                        breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "\"orientation\":\"portrait\"").count {
+                            expect { count - 1 }.toNot(equal(2))
+                        }
+                    }
                 }
 
-                it("iOS battery state breadcrumb added") {
+                context("for battery state notification") {
                     // On simulator, we don't expected an actual batteryLevel according to:
                     // https://stackoverflow.com/questions/11801523/ios-how-to-get-correctly-battery-level
                     // So, override and set it manually
@@ -287,56 +325,104 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         override var batteryState: UIDevice.BatteryState { mockBatteryState ?? super.batteryState }
                     }
 
-                    let backtraceObserver = OverriddenBatteryNotificationObserver()
+                    it("iOS breadcrumb added") {
+                        let backtraceObserver = OverriddenBatteryNotificationObserver()
 
-                    backtraceBreadcrumbs.enableBreadcrumbs()
+                        backtraceBreadcrumbs.enableBreadcrumbs()
 
-                    let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
-                                                  handlerDelegates: [backtraceObserver])
-                    backtraceNotificationObserver.enableNotificationObserver()
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
 
-                    NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
-                                                    object: nil)
-                    expect { self.readBreadcrumbText() }.to(contain("Unknown battery level"))
+                        NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
+                                                        object: nil)
+                        expect { self.readBreadcrumbText() }.to(contain("Unknown battery level"))
 
-                    backtraceObserver.mockBatteryLevel = 0.25
-                    backtraceObserver.mockBatteryState = UIDevice.BatteryState.charging
-                    NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
-                                                    object: nil)
-                    expect { self.readBreadcrumbText() }.to(contain("Charging battery level: 25.0%"))
+                        backtraceObserver.mockBatteryLevel = 0.25
+                        backtraceObserver.mockBatteryState = UIDevice.BatteryState.charging
+                        NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
+                                                        object: nil)
+                        expect { self.readBreadcrumbText() }.to(contain("Charging battery level: 25.0%"))
 
-                    backtraceObserver.mockBatteryLevel = 0.5
-                    backtraceObserver.mockBatteryState = UIDevice.BatteryState.unplugged
-                    NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
-                                                    object: nil)
-                    expect { self.readBreadcrumbText() }.to(contain("Unplugged battery level: 50.0%"))
+                        backtraceObserver.mockBatteryLevel = 0.5
+                        backtraceObserver.mockBatteryState = UIDevice.BatteryState.unplugged
+                        NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
+                                                        object: nil)
+                        expect { self.readBreadcrumbText() }.to(contain("Unplugged battery level: 50.0%"))
 
-                    backtraceObserver.mockBatteryLevel = 1
-                    backtraceObserver.mockBatteryState = UIDevice.BatteryState.full
-                    NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
-                                                    object: nil)
-                    expect { self.readBreadcrumbText() }.to(contain("Full battery level: 100.0%"))
+                        backtraceObserver.mockBatteryLevel = 1
+                        backtraceObserver.mockBatteryState = UIDevice.BatteryState.full
+                        NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
+                                                        object: nil)
+                        expect { self.readBreadcrumbText() }.to(contain("Full battery level: 100.0%"))
+                    }
+
+                    it("same breadcrumb in row not allow to add") {
+                        let backtraceObserver = OverriddenBatteryNotificationObserver()
+
+                        backtraceBreadcrumbs.enableBreadcrumbs()
+
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
+
+                        backtraceObserver.mockBatteryLevel = 1
+                        backtraceObserver.mockBatteryState = UIDevice.BatteryState.full
+                        NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
+                                                        object: nil)
+                        var breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "Full battery level: 100.0%").count {
+                            expect { count - 1 }.to(equal(1))
+                        }
+
+                        backtraceObserver.mockBatteryLevel = 1
+                        backtraceObserver.mockBatteryState = UIDevice.BatteryState.full
+                        NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
+                                                        object: nil)
+                        breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "Full battery level: 100.0%").count {
+                            expect { count - 1 }.toNot(equal(2))
+                        }
+                    }
                 }
 
-                it("iOS app state breadcrumb added") {
-                    backtraceBreadcrumbs.enableBreadcrumbs()
+                context("for app state notification") {
+                    it("iOS breadcrumb added") {
+                        backtraceBreadcrumbs.enableBreadcrumbs()
 
-                    NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
-                                                    object: nil)
+                        NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
+                                                        object: nil)
 
-                    expect { self.readBreadcrumbText() }.to(contain("Application will enter in foreground"))
+                        expect { self.readBreadcrumbText() }.to(contain("Application will enter in foreground"))
 
-                    NotificationCenter.default.post(name: Application.didEnterBackgroundNotification,
-                                                    object: nil)
+                        NotificationCenter.default.post(name: Application.didEnterBackgroundNotification,
+                                                        object: nil)
 
-                    expect { self.readBreadcrumbText() }.to(contain("Application did enter in background"))
+                        expect { self.readBreadcrumbText() }.to(contain("Application did enter in background"))
+                    }
+
+                    it("same breadcrumb in row not allow to add") {
+                        backtraceBreadcrumbs.enableBreadcrumbs()
+
+                        NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
+                                                        object: nil)
+                        var breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "Application will enter in foreground").count {
+                            expect { count - 1 }.to(equal(1))
+                        }
+
+                        NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
+                                                        object: nil)
+                        breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "Application will enter in foreground").count {
+                            expect { count - 1 }.toNot(equal(2))
+                        }
+                    }
                 }
             }
 #elseif os(macOS)
-            context("when macOS notifications update") {
-
-                it("macOS memory warning breadcrumb added") {
-
+            describe("when macOS notifications update") {
+                context("for memory warning notification") {
                     class OverriddenMemoryNotificationObserver: BacktraceMemoryNotificationObserver {
                         var mockMemoryPressureEvent: DispatchSource.MemoryPressureEvent?
 
@@ -345,26 +431,54 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         }
                     }
 
-                    let backtraceObserver = OverriddenMemoryNotificationObserver()
+                    it("macOS breadcrumb added") {
 
-                    backtraceBreadcrumbs.enableBreadcrumbs()
+                        let backtraceObserver = OverriddenMemoryNotificationObserver()
 
-                    let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
-                                                  handlerDelegates: [backtraceObserver])
-                    backtraceNotificationObserver.enableNotificationObserver()
+                        backtraceBreadcrumbs.enableBreadcrumbs()
 
-                    backtraceObserver.mockMemoryPressureEvent = .warning
-                    backtraceObserver.memoryPressureEventHandler()
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
 
-                    expect { self.readBreadcrumbText() }.toEventually(contain("Warning level memory pressure event"))
+                        backtraceObserver.mockMemoryPressureEvent = .warning
+                        backtraceObserver.memoryPressureEventHandler()
 
-                    backtraceObserver.mockMemoryPressureEvent = .critical
-                    backtraceObserver.memoryPressureEventHandler()
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Warning level memory pressure event"))
 
-                    expect { self.readBreadcrumbText() }.toEventually(contain("Critical level memory pressure event"))
+                        backtraceObserver.mockMemoryPressureEvent = .critical
+                        backtraceObserver.memoryPressureEventHandler()
+
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Critical level memory pressure event"))
+                    }
+
+                    it("same breadcrumb in row not allow to add") {
+                        let backtraceObserver = OverriddenMemoryNotificationObserver()
+
+                        backtraceBreadcrumbs.enableBreadcrumbs()
+
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
+
+                        backtraceObserver.mockMemoryPressureEvent = .warning
+                        backtraceObserver.memoryPressureEventHandler()
+
+                        var breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "Warning level memory pressure event").count {
+                            expect { count - 1 }.to(equal(1))
+                        }
+
+                        backtraceObserver.mockMemoryPressureEvent = .warning
+                        backtraceObserver.memoryPressureEventHandler()
+                        breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "Warning level memory pressure event").count {
+                            expect { count - 1 }.toNot(equal(2))
+                        }
+                    }
                 }
 
-                it("macOS battery state breadcrumb added") {
+                context("for battery state notification") {
                     class OverriddenBatteryNotificationObserver: BacktraceBatteryNotificationObserver {
 
                         var isMockCharging: Bool?
@@ -379,25 +493,54 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         }
                     }
 
-                    let backtraceObserver = OverriddenBatteryNotificationObserver()
+                    it("macOS breadcrumb added") {
+                        let backtraceObserver = OverriddenBatteryNotificationObserver()
 
-                    backtraceBreadcrumbs.enableBreadcrumbs()
+                        backtraceBreadcrumbs.enableBreadcrumbs()
 
-                    let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
-                                                  handlerDelegates: [backtraceObserver])
-                    backtraceNotificationObserver.enableNotificationObserver()
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
 
-                    backtraceObserver.isMockCharging = true
-                    backtraceObserver.mockBatteryLevel = 50
-                    backtraceObserver.powerSourceChanged()
+                        backtraceObserver.isMockCharging = true
+                        backtraceObserver.mockBatteryLevel = 50
+                        backtraceObserver.powerSourceChanged()
 
-                    expect { self.readBreadcrumbText() }.toEventually(contain("charging battery level : 50%"))
+                        expect { self.readBreadcrumbText() }.toEventually(contain("charging battery level : 50%"))
 
-                    backtraceObserver.isMockCharging = false
-                    backtraceObserver.mockBatteryLevel = 74
-                    backtraceObserver.powerSourceChanged()
+                        backtraceObserver.isMockCharging = false
+                        backtraceObserver.mockBatteryLevel = 74
+                        backtraceObserver.powerSourceChanged()
 
-                    expect { self.readBreadcrumbText() }.toEventually(contain("unplugged battery level : 74%"))
+                        expect { self.readBreadcrumbText() }.toEventually(contain("unplugged battery level : 74%"))
+                    }
+
+                    it("same breadcrumb in row not allow to add") {
+                        let backtraceObserver = OverriddenBatteryNotificationObserver()
+
+                        backtraceBreadcrumbs.enableBreadcrumbs()
+
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
+
+                        backtraceObserver.isMockCharging = true
+                        backtraceObserver.mockBatteryLevel = 50
+                        backtraceObserver.powerSourceChanged()
+
+                        var breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "charging battery level : 50%").count {
+                            expect { count - 1 }.to(equal(1))
+                        }
+
+                        backtraceObserver.isMockCharging = true
+                        backtraceObserver.mockBatteryLevel = 50
+                        backtraceObserver.powerSourceChanged()
+                        breadcrumbsText = self.readBreadcrumbText()
+                        if let count = breadcrumbsText?.components(separatedBy: "charging battery level : 50%").count {
+                            expect { count - 1 }.toNot(equal(2))
+                        }
+                    }
                 }
             }
 #endif

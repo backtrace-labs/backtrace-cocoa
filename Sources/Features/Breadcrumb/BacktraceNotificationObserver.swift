@@ -8,7 +8,8 @@ protocol BacktraceNotificationObserverDelegate: class {
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]?,
                        type: BacktraceBreadcrumbType,
-                       level: BacktraceBreadcrumbLevel)
+                       level: BacktraceBreadcrumbLevel,
+                       notificationHandler: BacktraceNotificationHandlerDelegate)
 }
 
 @objc class BacktraceNotificationObserver: NSObject, BacktraceNotificationObserverDelegate {
@@ -41,21 +42,57 @@ protocol BacktraceNotificationObserverDelegate: class {
         handlerDelegates.forEach({ $0.startObserving(self) })
     }
 
-    func addBreadcrumb(_ message: String, attributes: [String: String]?,
+    func addBreadcrumb(_ message: String,
+                       attributes: [String: String]?,
                        type: BacktraceBreadcrumbType,
-                       level: BacktraceBreadcrumbLevel) {
-        _ = breadcrumbs.addBreadcrumb(message,
-                                      attributes: attributes,
-                                      type: .system,
-                                      level: .info)
+                       level: BacktraceBreadcrumbLevel,
+                       notificationHandler: BacktraceNotificationHandlerDelegate) {
+        var breadcrumbInfo: [BreadcrumbInfoKey: Any] = [.message: message,
+                                                        .level: level,
+                                                        .type: type]
+        if let attributes = attributes {
+            breadcrumbInfo[.attributes] = attributes
+        }
+        if !notificationHandler.isBreadcrumbAlreadyAdded(breadcrumbInfo) {
+            let result = breadcrumbs.addBreadcrumb(message,
+                                                   attributes: attributes,
+                                                   type: type,
+                                                   level: level)
+            if result {
+                notificationHandler.lastBreadcrumbInfo = breadcrumbInfo
+            }
+        }
     }
+}
+
+enum BreadcrumbInfoKey: String {
+    case message
+    case attributes
+    case type
+    case level
 }
 
 protocol BacktraceNotificationHandlerDelegate: class {
 
     var delegate: BacktraceNotificationObserverDelegate? { get set }
 
+    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]? { get set }
+
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate)
+
+    func isBreadcrumbAlreadyAdded(_ backtraceInfo: [BreadcrumbInfoKey: Any]) -> Bool
+}
+
+extension BacktraceNotificationHandlerDelegate {
+
+    func isBreadcrumbAlreadyAdded(_ backtraceInfo: [BreadcrumbInfoKey: Any]) -> Bool {
+        if let lastBreadcrumbInfo = lastBreadcrumbInfo,
+           let lastBreadcrumbMessage = lastBreadcrumbInfo[.message] as? String,
+           let breadcrumbMessage = backtraceInfo[.message] as? String {
+            return lastBreadcrumbMessage == breadcrumbMessage
+        }
+        return false
+    }
 }
 
 #if os(iOS)
@@ -63,6 +100,8 @@ protocol BacktraceNotificationHandlerDelegate: class {
 class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
     weak var delegate: BacktraceNotificationObserverDelegate?
+
+    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
 
     var orientation: UIDeviceOrientation { UIDevice.current.orientation }
 
@@ -72,6 +111,16 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
                                                selector: #selector(notifyOrientationChange),
                                                name: UIDevice.orientationDidChangeNotification,
                                                object: nil)
+    }
+
+    func isBreadcrumbAlreadyAdded(_ backtraceInfo: [BreadcrumbInfoKey: Any]) -> Bool {
+        if let lastBreadcrumbAttributes = lastBreadcrumbInfo?[.attributes] as? [String: String],
+           let lastOrientation = lastBreadcrumbAttributes["orientation"],
+           let breadcrumbAttributes = backtraceInfo[.attributes] as? [String: String],
+           let orientation = breadcrumbAttributes["orientation"] {
+            return lastOrientation == orientation
+        }
+        return false
     }
 
     @objc private func notifyOrientationChange() {
@@ -87,10 +136,11 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
 
     private func addOrientationBreadcrumb(_ orientation: String) {
         let attributes = ["orientation": orientation]
-        _ = delegate?.addBreadcrumb("Orientation changed",
-                                    attributes: attributes,
-                                    type: .system,
-                                    level: .info)
+        delegate?.addBreadcrumb("Orientation changed",
+                                attributes: attributes,
+                                type: .system,
+                                level: .info,
+                                notificationHandler: self)
     }
 
     deinit {
@@ -103,6 +153,8 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
 class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
     weak var delegate: BacktraceNotificationObserverDelegate?
+
+    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
 
     private var source: DispatchSourceMemoryPressure?
 
@@ -138,7 +190,8 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
         self.delegate?.addBreadcrumb(message,
                                      attributes: nil,
                                      type: .system,
-                                     level: level)
+                                     level: level,
+                                     notificationHandler: self)
     }
 
     private func getMemoryWarningText(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) -> String {
@@ -186,11 +239,14 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
 
     weak var delegate: BacktraceNotificationObserverDelegate?
 
+    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
+
     func addBreadcrumb(_ message: String) {
         delegate?.addBreadcrumb(message,
                                 attributes: nil,
                                 type: .system,
-                                level: .info)
+                                level: .info,
+                                notificationHandler: self)
     }
 
 #if os(OSX)
@@ -291,7 +347,9 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
 // MARK: - Application State Observer
 class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
-    var delegate: BacktraceNotificationObserverDelegate?
+    weak var delegate: BacktraceNotificationObserverDelegate?
+
+    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
@@ -318,10 +376,11 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
     }
 
     private func addApplicationStateBreadcrumb(_ message: String) {
-        _ = delegate?.addBreadcrumb(message,
-                                    attributes: nil,
-                                    type: .system,
-                                    level: .info)
+        delegate?.addBreadcrumb(message,
+                                attributes: nil,
+                                type: .system,
+                                level: .info,
+                                notificationHandler: self)
     }
 
     deinit {

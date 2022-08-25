@@ -6,6 +6,7 @@ import XCTest
 class BacktraceObserverMock: BacktraceNotificationHandlerDelegate {
 
     var delegate: BacktraceNotificationObserverDelegate?
+    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
     var startObservingCalled = false
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
