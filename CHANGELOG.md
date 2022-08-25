@@ -1,5 +1,12 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.7.4-beta1
+- Modify CI job to run tests daily on schedule in #81
+- fixing broken symbolification link in #80
+- Bug/crash large attachment in #84
+- Breadcrumbs further development in #79
+- Updates README by @lysannep in #89
+
 ## Version 1.7.3
 - Enable OOM reports for 15.3.1 against, disable client side unwinding by default
 - Added BETA Breadcrumbs implementation
