@@ -261,7 +261,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     func isDirty() -> Bool {
         if let lastCharging = lastCharging,
            let lastBatteryLevel = lastBatteryLevel {
-            return lastCharging != isCharging && lastBatteryLevel != batteryLevel
+            return lastCharging != isCharging || lastBatteryLevel != batteryLevel
         }
         return true
     }
@@ -311,7 +311,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     func isDirty() -> Bool {
         if let lastBatteryState = lastBatteryState,
            let lastBatteryLevel = lastBatteryLevel {
-            return lastBatteryState != batteryState && lastBatteryLevel != batteryLevel
+            return lastBatteryState != batteryState || lastBatteryLevel != batteryLevel
         }
         return true
     }
