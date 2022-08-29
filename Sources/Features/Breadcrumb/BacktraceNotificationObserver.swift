@@ -8,8 +8,7 @@ protocol BacktraceNotificationObserverDelegate: class {
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]?,
                        type: BacktraceBreadcrumbType,
-                       level: BacktraceBreadcrumbLevel,
-                       notificationHandler: BacktraceNotificationHandlerDelegate)
+                       level: BacktraceBreadcrumbLevel) -> Bool
 }
 
 @objc class BacktraceNotificationObserver: NSObject, BacktraceNotificationObserverDelegate {
@@ -45,54 +44,19 @@ protocol BacktraceNotificationObserverDelegate: class {
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]?,
                        type: BacktraceBreadcrumbType,
-                       level: BacktraceBreadcrumbLevel,
-                       notificationHandler: BacktraceNotificationHandlerDelegate) {
-        var breadcrumbInfo: [BreadcrumbInfoKey: Any] = [.message: message,
-                                                        .level: level,
-                                                        .type: type]
-        if let attributes = attributes {
-            breadcrumbInfo[.attributes] = attributes
-        }
-        if !notificationHandler.isBreadcrumbAlreadyAdded(breadcrumbInfo) {
-            let result = breadcrumbs.addBreadcrumb(message,
-                                                   attributes: attributes,
-                                                   type: type,
-                                                   level: level)
-            if result {
-                notificationHandler.lastBreadcrumbInfo = breadcrumbInfo
-            }
-        }
+                       level: BacktraceBreadcrumbLevel) -> Bool {
+        return breadcrumbs.addBreadcrumb(message,
+                                         attributes: attributes,
+                                         type: type,
+                                         level: level)
     }
-}
-
-enum BreadcrumbInfoKey: String {
-    case message
-    case attributes
-    case type
-    case level
 }
 
 protocol BacktraceNotificationHandlerDelegate: class {
 
     var delegate: BacktraceNotificationObserverDelegate? { get set }
 
-    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]? { get set }
-
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate)
-
-    func isBreadcrumbAlreadyAdded(_ backtraceInfo: [BreadcrumbInfoKey: Any]) -> Bool
-}
-
-extension BacktraceNotificationHandlerDelegate {
-
-    func isBreadcrumbAlreadyAdded(_ backtraceInfo: [BreadcrumbInfoKey: Any]) -> Bool {
-        if let lastBreadcrumbInfo = lastBreadcrumbInfo,
-           let lastBreadcrumbMessage = lastBreadcrumbInfo[.message] as? String,
-           let breadcrumbMessage = backtraceInfo[.message] as? String {
-            return lastBreadcrumbMessage == breadcrumbMessage
-        }
-        return false
-    }
 }
 
 #if os(iOS)
@@ -101,7 +65,7 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
 
     weak var delegate: BacktraceNotificationObserverDelegate?
 
-    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
+    var lastOrientation: UIDeviceOrientation?
 
     var orientation: UIDeviceOrientation { UIDevice.current.orientation }
 
@@ -113,14 +77,11 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
                                                object: nil)
     }
 
-    func isBreadcrumbAlreadyAdded(_ backtraceInfo: [BreadcrumbInfoKey: Any]) -> Bool {
-        if let lastBreadcrumbAttributes = lastBreadcrumbInfo?[.attributes] as? [String: String],
-           let lastOrientation = lastBreadcrumbAttributes["orientation"],
-           let breadcrumbAttributes = backtraceInfo[.attributes] as? [String: String],
-           let orientation = breadcrumbAttributes["orientation"] {
-            return lastOrientation == orientation
+    func isDirty() -> Bool {
+        if let lastOrientation = lastOrientation {
+            return lastOrientation != orientation
         }
-        return false
+        return true
     }
 
     @objc private func notifyOrientationChange() {
@@ -135,12 +96,16 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
     }
 
     private func addOrientationBreadcrumb(_ orientation: String) {
-        let attributes = ["orientation": orientation]
-        delegate?.addBreadcrumb("Orientation changed",
-                                attributes: attributes,
-                                type: .system,
-                                level: .info,
-                                notificationHandler: self)
+        if isDirty() {
+            let attributes = ["orientation": orientation]
+            if let result = delegate?.addBreadcrumb("Orientation changed",
+                                                    attributes: attributes,
+                                                    type: .system,
+                                                    level: .info),
+               result {
+                lastOrientation = self.orientation
+            }
+        }
     }
 
     deinit {
@@ -154,7 +119,7 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
 
     weak var delegate: BacktraceNotificationObserverDelegate?
 
-    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
+    var lastMemoryPressureEvent: DispatchSource.MemoryPressureEvent?
 
     private var source: DispatchSourceMemoryPressure?
 
@@ -186,12 +151,23 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
         }
     }
 
+    func isDirty() -> Bool {
+        if let lastMemoryPressureEvent = lastMemoryPressureEvent {
+            return lastMemoryPressureEvent.rawValue != memoryPressureEvent?.rawValue
+         }
+         return true
+    }
+
     func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) {
-        self.delegate?.addBreadcrumb(message,
-                                     attributes: nil,
-                                     type: .system,
-                                     level: level,
-                                     notificationHandler: self)
+        if isDirty() {
+            if let result = delegate?.addBreadcrumb(message,
+                                                    attributes: nil,
+                                                    type: .system,
+                                                    level: level),
+               result {
+                lastMemoryPressureEvent = memoryPressureEvent
+            }
+        }
     }
 
     private func getMemoryWarningText(_ memoryPressureEvent: DispatchSource.MemoryPressureEvent) -> String {
@@ -239,14 +215,11 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
 
     weak var delegate: BacktraceNotificationObserverDelegate?
 
-    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
-
-    func addBreadcrumb(_ message: String) {
-        delegate?.addBreadcrumb(message,
-                                attributes: nil,
-                                type: .system,
-                                level: .info,
-                                notificationHandler: self)
+    func addBreadcrumb(_ message: String) -> Bool? {
+        return delegate?.addBreadcrumb(message,
+                                       attributes: nil,
+                                       type: .system,
+                                       level: .info)
     }
 
 #if os(OSX)
@@ -261,6 +234,9 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
             return nil
         }
     }
+
+    var lastCharging: Bool?
+    var lastBatteryLevel: Int?
 
     var isCharging: Bool? {
         powerSourceInfo?[kIOPSIsChargingKey] as? Bool
@@ -282,15 +258,24 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
         CFRunLoopAddSource(CFRunLoopGetCurrent(), loop, CFRunLoopMode.commonModes)
     }
 
+    func isDirty() -> Bool {
+        if let lastCharging = lastCharging,
+           let lastBatteryLevel = lastBatteryLevel {
+            return lastCharging != isCharging && lastBatteryLevel != batteryLevel
+        }
+        return true
+    }
+
     func powerSourceChanged() {
         if let isCharging = isCharging, let batteryLevel = batteryLevel {
-            var message = ""
-            if isCharging {
-                message = "charging battery level : \(batteryLevel)%"
-            } else {
-                message = "unplugged battery level : \(batteryLevel)%"
+            if isDirty() {
+                let message = isCharging ? "charging battery level : \(batteryLevel)%"
+                : "unplugged battery level : \(batteryLevel)%"
+                if let result = addBreadcrumb(message), result {
+                    lastCharging = isCharging
+                    lastBatteryLevel = batteryLevel
+                }
             }
-            self.addBreadcrumb(message)
         }
     }
 
@@ -304,6 +289,9 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
         stopLoopSourceIfExist()
     }
 #elseif os(iOS)
+    var lastBatteryState: UIDevice.BatteryState?
+    var lastBatteryLevel: Float?
+
     var batteryState: UIDevice.BatteryState { UIDevice.current.batteryState }
     var batteryLevel: Float { UIDevice.current.batteryLevel }
 
@@ -320,6 +308,14 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                                                object: nil)
     }
 
+    func isDirty() -> Bool {
+        if let lastBatteryState = lastBatteryState,
+           let lastBatteryLevel = lastBatteryLevel {
+            return lastBatteryState != batteryState && lastBatteryLevel != batteryLevel
+        }
+        return true
+    }
+
     private func getBatteryWarningText() -> String {
         switch batteryState {
         case .unknown:
@@ -334,7 +330,12 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
     @objc private func notifyBatteryStatusChange() {
-        addBreadcrumb(getBatteryWarningText())
+        if isDirty() {
+            if let result = addBreadcrumb(getBatteryWarningText()), result {
+                lastBatteryState = batteryState
+                lastBatteryLevel = batteryLevel
+            }
+        }
     }
 
     deinit {
@@ -345,15 +346,32 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
 
 #if os(iOS)
 // MARK: - Application State Observer
+enum ApplicationState: Int {
+    case willEnterForeground
+    case didEnterBackground
+}
+
 class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
     weak var delegate: BacktraceNotificationObserverDelegate?
 
-    var lastBreadcrumbInfo: [BreadcrumbInfoKey: Any]?
+    var lastAppState: ApplicationState?
+    var appState: ApplicationState? {
+        didSet {
+            self.addApplicationStateBreadcrumb()
+        }
+    }
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         observeApplicationStateChange()
+    }
+
+    func isDirty() -> Bool {
+        if let lastAppState = lastAppState {
+            return lastAppState != appState
+        }
+        return true
     }
 
     private func observeApplicationStateChange() {
@@ -367,20 +385,27 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
                                                name: Application.didEnterBackgroundNotification,
                                                object: nil)
     }
+
     @objc private func applicationWillEnterForeground() {
-        addApplicationStateBreadcrumb("Application will enter in foreground")
+        appState = .willEnterForeground
     }
 
     @objc private func didEnterBackgroundNotification() {
-        addApplicationStateBreadcrumb("Application did enter in background")
+        appState = .didEnterBackground
     }
 
-    private func addApplicationStateBreadcrumb(_ message: String) {
-        delegate?.addBreadcrumb(message,
-                                attributes: nil,
-                                type: .system,
-                                level: .info,
-                                notificationHandler: self)
+    private func addApplicationStateBreadcrumb() {
+        if let appState = appState, isDirty() {
+            let message = (appState == .willEnterForeground) ? "Application will enter in foreground"
+            : "Application did enter in background"
+            if let result = delegate?.addBreadcrumb(message,
+                                                    attributes: nil,
+                                                    type: .system,
+                                                    level: .info),
+            result {
+                lastAppState = appState
+            }
+        }
     }
 
     deinit {

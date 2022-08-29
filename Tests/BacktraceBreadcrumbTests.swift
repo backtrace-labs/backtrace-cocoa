@@ -294,10 +294,6 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                                                         object: nil)
 
                         var breadcrumbsText = self.readBreadcrumbText()
-                        if let attributes = backtraceObserver.lastBreadcrumbInfo?[BreadcrumbInfoKey.attributes] as? [String: Any],
-                            let orientation = attributes["orientation"] as? String {
-                            expect { orientation }.to(equal("portrait"))
-                        }
                         if let count = breadcrumbsText?.components(separatedBy: "\"orientation\":\"portrait\"").count {
                             expect { count - 1 }.to(equal(1))
                         }
