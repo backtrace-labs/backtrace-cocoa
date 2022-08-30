@@ -28,9 +28,8 @@ final class BacktraceMetricsSender {
     }
 
     func enable() {
-        // TODO: this timeout is set to give the crashreporter time to start up so that errors during startup will be sent
-        // remove once root cause for crashes is found
-        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + .seconds(5)) {
+        // No need to do in the running thread, can be backgrounded
+        DispatchQueue.global(qos: .background).async {
             self.sendStartupEvents()
         }
     }
