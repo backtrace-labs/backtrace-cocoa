@@ -236,7 +236,6 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
     var lastCharging: Bool?
-    var lastBatteryLevel: Int?
 
     var isCharging: Bool? {
         powerSourceInfo?[kIOPSIsChargingKey] as? Bool
@@ -259,9 +258,8 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
     func isDirty() -> Bool {
-        if let lastCharging = lastCharging,
-           let lastBatteryLevel = lastBatteryLevel {
-            return lastCharging != isCharging || lastBatteryLevel != batteryLevel
+        if let lastCharging = lastCharging {
+            return lastCharging != isCharging
         }
         return true
     }
@@ -273,7 +271,6 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                 : "unplugged battery level : \(batteryLevel)%"
                 if let result = addBreadcrumb(message), result {
                     lastCharging = isCharging
-                    lastBatteryLevel = batteryLevel
                 }
             }
         }
@@ -290,7 +287,6 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 #elseif os(iOS)
     var lastBatteryState: UIDevice.BatteryState?
-    var lastBatteryLevel: Float?
 
     var batteryState: UIDevice.BatteryState { UIDevice.current.batteryState }
     var batteryLevel: Float { UIDevice.current.batteryLevel }
@@ -309,9 +305,8 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
     func isDirty() -> Bool {
-        if let lastBatteryState = lastBatteryState,
-           let lastBatteryLevel = lastBatteryLevel {
-            return lastBatteryState != batteryState || lastBatteryLevel != batteryLevel
+        if let lastBatteryState = lastBatteryState {
+            return lastBatteryState != batteryState
         }
         return true
     }
@@ -333,7 +328,6 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
         if isDirty() {
             if let result = addBreadcrumb(getBatteryWarningText()), result {
                 lastBatteryState = batteryState
-                lastBatteryLevel = batteryLevel
             }
         }
     }
