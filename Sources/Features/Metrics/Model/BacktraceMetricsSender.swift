@@ -53,8 +53,7 @@ final class BacktraceMetricsSender {
 
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.unique)
-            let result = try api.sendMetrics(payload, url: url)
-            handleUniqueEventsResult(result: result)
+            api.sendMetrics(payload, url: url)
         } catch {
             BacktraceLogger.error(error)
         }
@@ -65,8 +64,7 @@ final class BacktraceMetricsSender {
 
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.summed)
-            let result = try api.sendMetrics(payload, url: url)
-            handleSummedEventsResult(result: result)
+            api.sendMetrics(payload, url: url)
         } catch {
             BacktraceLogger.error(error)
         }
@@ -97,12 +95,7 @@ final class BacktraceMetricsSender {
         return url
     }
 
-    private func handleSummedEventsResult(result: BacktraceMetricsResult) {
+    private func handleSummedEventsResult() {
         metricsContainer.clearSummedEvents()
-        // TODO: T16698 - Add retry logic
-    }
-
-    private func handleUniqueEventsResult(result: BacktraceMetricsResult) {
-        // TODO: T16698 - Add retry logic
     }
 }
