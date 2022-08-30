@@ -1,13 +1,8 @@
 import Foundation
 
 /// Type-alias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
-#if os(iOS) || os(OSX)
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
     BacktraceLogging & BacktraceMetricsProtocol & BacktraceBreadcrumbProtocol
-#else
-public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
-    BacktraceLogging & BacktraceMetricsProtocol
-#endif
 
 /// Type-alias of passing attributes to library.
 public typealias Attributes = [String: Any]
@@ -104,7 +99,6 @@ enum BacktraceUrlParsingError: Error {
     case invalidInput(String)
 }
 
-#if os(iOS) || os(OSX)
 /// Provides Breadcrumb adding functionality to `BacktraceClient`.
 @objc public protocol BacktraceBreadcrumbProtocol {
     @objc var breadcrumbs: BacktraceBreadcrumbs { get }
@@ -175,4 +169,3 @@ enum BacktraceUrlParsingError: Error {
     ///
     @objc func clearBreadcrumbs() -> Bool
 }
-#endif

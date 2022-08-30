@@ -32,6 +32,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
+        BacktraceClient.shared?.enableBreadcrumbs()
+
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
 
         do {
@@ -43,6 +45,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
 
+        let attributes = ["My Attribute":"My Attribute Value"]
+        _ = BacktraceClient.shared?.addBreadcrumb("My Breadcrumb",
+                                              attributes: attributes,
+                                              type: .user,
+                                              level: .error)
         return true
     }
 }

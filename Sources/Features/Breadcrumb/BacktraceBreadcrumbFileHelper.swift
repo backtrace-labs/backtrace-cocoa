@@ -1,6 +1,7 @@
 import Foundation
+#if os(iOS) || os(macOS)
 import Cassette
-
+#endif
 enum BacktraceBreadcrumbFileHelperError: Error {
     case invalidFormat
 }
@@ -15,16 +16,15 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 
     private let maximumIndividualBreadcrumbSize: Int
     private let maxQueueFileSizeBytes: Int
+    private let breadcrumbLogURL: URL
+#if os(iOS) || os(macOS)
     private let queue: CASQueueFile
-
+#endif
     /** CASQueueFile is not thread safe, so all interactions with it should be done synchronously through this DispathQueue */
     private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFileHelper@\(UUID().uuidString)")
 
     public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
-        self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath().path)
-
         self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
-
         if breadcrumbSettings.maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
             BacktraceLogger.warning("\(breadcrumbSettings.maxQueueFileSizeBytes) is smaller than the minimum of " +
                                     "\(BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes)" +
@@ -33,7 +33,10 @@ enum BacktraceBreadcrumbFileHelperError: Error {
         } else {
             self.maxQueueFileSizeBytes = breadcrumbSettings.maxQueueFileSizeBytes
         }
-
+        self.breadcrumbLogURL = try breadcrumbSettings.getBreadcrumbLogPath()
+#if os(iOS) || os(macOS)
+        self.queue = try CASQueueFile.init(path: self.breadcrumbLogURL.path)
+#endif
         super.init()
     }
 
@@ -55,12 +58,30 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 
         do {
             try dispatchQueue.sync {
+#if os(tvOS)
+                let content = try? String(contentsOf: breadcrumbLogURL, encoding: .utf8)
+                var fullContent = ""
+                if let content = content {
+                    fullContent = content
+                }
+
+                let contentBytes = Data(fullContent.utf8)
+                if contentBytes.count + textBytes.count > (maxQueueFileSizeBytes - 512) {
+                    fullContent = ""
+                }
+                if fullContent.isEmpty {
+                    fullContent = text
+                } else {
+                    fullContent.append("\n\(text)\n")
+                }
+                try fullContent.write(to: breadcrumbLogURL, atomically: true, encoding: .utf8)
+#else
                 // Keep removing until there's enough space to add the new breadcrumb (leaving 512 bytes room)
                 while (queueByteSize() + textBytes.count) > (maxQueueFileSizeBytes - 512) {
                     try queue.pop(1, error: ())
                 }
-
                 try queue.add(textBytes, error: ())
+#endif
             }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumb to file")
@@ -73,7 +94,11 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     func clear() -> Bool {
         do {
             try dispatchQueue.sync {
-                try queue.clearAndReturnError()
+#if os(tvOS)
+            try "".write(to: breadcrumbLogURL, atomically: false, encoding: .utf8)
+#else
+            try queue.clearAndReturnError()
+#endif
             }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen clearing breadcrumb file")
@@ -93,6 +118,7 @@ extension BacktraceBreadcrumbFileHelper {
         throw BacktraceBreadcrumbFileHelperError.invalidFormat
     }
 
+#if os(iOS) || os(macOS)
     func queueByteSize() -> Int {
         // This is the current fileLength of the QueueFile
         guard let fileLength = queue.value(forKey: "fileLength") as? Int else {
@@ -110,4 +136,5 @@ extension BacktraceBreadcrumbFileHelper {
 
         return fileLength - remainingBytes
     }
+#endif
 }
