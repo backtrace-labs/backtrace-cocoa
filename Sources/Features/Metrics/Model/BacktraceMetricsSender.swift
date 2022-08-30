@@ -60,6 +60,9 @@ final class BacktraceMetricsSender {
     }
 
     private func sendSummedEvent() {
+        // TODO: Unit test me
+        defer { metricsContainer.clearSummedEvents() }
+
         let payload = metricsContainer.getSummedEventsPayload()
 
         do {
@@ -93,9 +96,5 @@ final class BacktraceMetricsSender {
         }
 
         return url
-    }
-
-    private func handleSummedEventsResult() {
-        metricsContainer.clearSummedEvents()
     }
 }
