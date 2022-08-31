@@ -461,14 +461,14 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         backtraceObserver.memoryPressureEventHandler()
 
                         var breadcrumbsText = self.readBreadcrumbText()
-                        var count = countOccurrencesOfSubstring(str: breadcrumbsText,
+                        var count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
                                                                 substr: "Warning level memory pressure event")
                         expect { count }.to(equal(1))
 
                         backtraceObserver.mockMemoryPressureEvent = .warning
                         backtraceObserver.memoryPressureEventHandler()
                         breadcrumbsText = self.readBreadcrumbText()
-                        count = countOccurrencesOfSubstring(str: breadcrumbsText, substr: "Warning level memory pressure event")
+                        count = self.countOccurrencesOfSubstring(str: breadcrumbsText, substr: "Warning level memory pressure event")
                         expect { count }.toNot(equal(2))
                     }
                 }
@@ -524,14 +524,14 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         backtraceObserver.powerSourceChanged()
 
                         var breadcrumbsText = self.readBreadcrumbText()
-                        var count = countOccurrencesOfSubstring(str: breadcrumbsText, substr: "charging battery level : 50%")
+                        var count = self.countOccurrencesOfSubstring(str: breadcrumbsText, substr: "charging battery level : 50%")
                         expect { count }.to(equal(1))
 
                         backtraceObserver.isMockCharging = true
                         backtraceObserver.mockBatteryLevel = 50
                         backtraceObserver.powerSourceChanged()
                         breadcrumbsText = self.readBreadcrumbText()
-                        count = countOccurrencesOfSubstring(str: breadcrumbsText, substr: "charging battery level : 50%")
+                        count = self.countOccurrencesOfSubstring(str: breadcrumbsText, substr: "charging battery level : 50%")
                         expect { count }.toNot(equal(2))
                     }
                 }
