@@ -174,10 +174,6 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
 
-        if self.configuration.detectOom {
-            self.reporter.enableOomWatcher()
-        }
-
         try reporter.enableCrashReporter()
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
@@ -189,6 +185,15 @@ extension BacktraceClient: BacktraceReporting {
             }, completion: {
                 BacktraceLogger.debug("Started error reporter.")
         })
+
+        if self.configuration.detectOom {
+            dispatcher.dispatch({ [weak self] in
+                guard let self = self else { return }
+                self.reporter.enableOomWatcher()
+                }, completion: {
+                    BacktraceLogger.debug("Started error reporter.")
+            })
+        }
     }
 }
 
