@@ -21,40 +21,62 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Hallo Backtrace!" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="veV-HX-OPH">
-                                <rect key="frame" x="823" y="517" width="274" height="46"/>
+                                <rect key="frame" x="823" y="68" width="274" height="46"/>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gPz-1q-PTQ">
-                                <rect key="frame" x="868" y="618" width="184" height="86"/>
-                                <inset key="contentEdgeInsets" minX="40" minY="20" maxX="40" maxY="20"/>
-                                <state key="normal" title="crash!"/>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" sectionHeaderHeight="66" sectionFooterHeight="66" translatesAutoresizingMaskIntoConstraints="NO" id="rZh-UE-59E">
+                                <rect key="frame" x="468" y="151" width="984" height="869"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="984" id="rav-em-q6R"/>
+                                </constraints>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="CaseCell" id="eXx-sF-ZJr" customClass="SimulatorCaseCell" customModule="Example_tvOS" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="66" width="984" height="66"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="eXx-sF-ZJr" id="Lel-Jc-4ef">
+                                            <rect key="frame" x="0.0" y="0.0" width="984" height="66"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="J5d-Hw-Nce">
+                                                    <rect key="frame" x="58" y="10" width="868" height="46"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="J5d-Hw-Nce" firstAttribute="bottom" secondItem="Lel-Jc-4ef" secondAttribute="bottomMargin" id="LcW-3j-2NO"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="J5d-Hw-Nce" secondAttribute="trailing" constant="38" id="P12-qS-NAt"/>
+                                                <constraint firstItem="J5d-Hw-Nce" firstAttribute="top" secondItem="Lel-Jc-4ef" secondAttribute="topMargin" id="c0r-Fx-TjI"/>
+                                                <constraint firstItem="J5d-Hw-Nce" firstAttribute="leading" secondItem="Lel-Jc-4ef" secondAttribute="leadingMargin" constant="38" id="vSa-Rx-MXM"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="titleLabel" destination="J5d-Hw-Nce" id="vdp-sX-sbb"/>
+                                        </connections>
+                                    </tableViewCell>
+                                </prototypes>
                                 <connections>
-                                    <action selector="crashButtonTapped:" destination="BYZ-38-t0r" eventType="primaryActionTriggered" id="ZM4-I6-LK8"/>
+                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="isa-te-d3u"/>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="3gx-7g-HO6"/>
                                 </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="h51-nh-gL6">
-                                <rect key="frame" x="868" y="752" width="184" height="86"/>
-                                <inset key="contentEdgeInsets" minX="40" minY="20" maxX="40" maxY="20"/>
-                                <state key="normal" title="report"/>
-                                <connections>
-                                    <action selector="liveReportAction:" destination="BYZ-38-t0r" eventType="primaryActionTriggered" id="uIJ-lS-CdJ"/>
-                                </connections>
-                            </button>
+                            </tableView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="wu6-TO-1qx"/>
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="veV-HX-OPH" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="17k-zz-Pug"/>
-                            <constraint firstItem="h51-nh-gL6" firstAttribute="leading" secondItem="gPz-1q-PTQ" secondAttribute="leading" id="Afd-hR-gvj"/>
-                            <constraint firstItem="gPz-1q-PTQ" firstAttribute="centerX" secondItem="veV-HX-OPH" secondAttribute="centerX" id="QGb-qr-5bA"/>
-                            <constraint firstItem="h51-nh-gL6" firstAttribute="trailing" secondItem="gPz-1q-PTQ" secondAttribute="trailing" id="VVl-st-9zp"/>
-                            <constraint firstItem="h51-nh-gL6" firstAttribute="top" secondItem="gPz-1q-PTQ" secondAttribute="bottom" constant="48" id="fe1-xN-kS8"/>
-                            <constraint firstItem="veV-HX-OPH" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="hk3-YU-TgW"/>
-                            <constraint firstItem="gPz-1q-PTQ" firstAttribute="top" secondItem="veV-HX-OPH" secondAttribute="bottom" constant="55" id="m11-Tg-aLY"/>
+                            <constraint firstItem="rZh-UE-59E" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="BWI-wp-TRe"/>
+                            <constraint firstItem="veV-HX-OPH" firstAttribute="top" secondItem="wu6-TO-1qx" secondAttribute="top" constant="8" id="Guy-V6-h8O"/>
+                            <constraint firstItem="rZh-UE-59E" firstAttribute="bottom" secondItem="wu6-TO-1qx" secondAttribute="bottom" id="ZRX-p7-i16"/>
+                            <constraint firstItem="rZh-UE-59E" firstAttribute="top" secondItem="veV-HX-OPH" secondAttribute="bottom" constant="37" id="rNb-Si-0Zs"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="tableView" destination="rZh-UE-59E" id="AdL-Ug-JZg"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>

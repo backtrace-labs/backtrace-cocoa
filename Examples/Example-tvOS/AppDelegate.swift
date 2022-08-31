@@ -10,9 +10,7 @@ func throwingFunc() throws {
 }
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-
-    var window: UIWindow?
+final class AppDelegate: AppDelegateBase {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -44,29 +42,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         return true
-    }
-}
-
-extension AppDelegate: BacktraceClientDelegate {
-    func willSend(_ report: BacktraceReport) -> BacktraceReport {
-        print("AppDelegate: willSend")
-        return report
-    }
-    
-    func willSendRequest(_ request: URLRequest) -> URLRequest {
-        print("AppDelegate: willSendRequest")
-        return request
-    }
-    
-    func serverDidRespond(_ result: BacktraceResult) {
-        print("AppDelegate:serverDidRespond: \(result)")
-    }
-    
-    func connectionDidFail(_ error: Error) {
-        print("AppDelegate: connectionDidFail: \(error)")
-    }
-    
-    func didReachLimit(_ result: BacktraceResult) {
-        print("AppDelegate: didReachLimit: \(result)")
     }
 }

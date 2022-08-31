@@ -188,6 +188,17 @@
 		AFCCCE232625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
 		AFCCCE242625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
 		AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
+		B52FE18228B6A1E400EF69F0 /* BacktraceSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE18128B6A1E400EF69F0 /* BacktraceSimulator.swift */; };
+		B52FE18528BE0D8E00EF69F0 /* AppDelegateBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE18428BE0D8E00EF69F0 /* AppDelegateBase.swift */; };
+		B52FE18628BE0D8E00EF69F0 /* AppDelegateBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE18428BE0D8E00EF69F0 /* AppDelegateBase.swift */; };
+		B52FE18728BE1F9A00EF69F0 /* BacktraceSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE18128B6A1E400EF69F0 /* BacktraceSimulator.swift */; };
+		B52FE18928BE3C5700EF69F0 /* SimulatorCaseCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE18828BE3C5700EF69F0 /* SimulatorCaseCell.swift */; };
+		B52FE18A28BE3C5700EF69F0 /* SimulatorCaseCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE18828BE3C5700EF69F0 /* SimulatorCaseCell.swift */; };
+		B52FE18B28BE431F00EF69F0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A11BFB22553C2800354640 /* ViewController.swift */; };
+		B52FE19628BF90C900EF69F0 /* MockView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B52FE19528BF90C900EF69F0 /* MockView.xib */; };
+		B52FE19728BF90C900EF69F0 /* MockView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B52FE19528BF90C900EF69F0 /* MockView.xib */; };
+		B52FE19928BF91A300EF69F0 /* MockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE19828BF91A300EF69F0 /* MockView.swift */; };
+		B52FE19A28BF91A300EF69F0 /* MockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE19828BF91A300EF69F0 /* MockView.swift */; };
 		DAF627C0CA0FE995B581C33B /* Pods_Backtrace_tvOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD097A22120C3DCE08382BA5 /* Pods_Backtrace_tvOSTests.framework */; };
 		F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
 		F21211A6222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
@@ -299,7 +310,6 @@
 		F2D7122421F10E78002D2A26 /* BacktraceCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D7122321F10E78002D2A26 /* BacktraceCredentials.swift */; };
 		F2D7122521F10E78002D2A26 /* BacktraceCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D7122321F10E78002D2A26 /* BacktraceCredentials.swift */; };
 		F2D8BE0721BC065E007CFEFA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE0621BC065E007CFEFA /* AppDelegate.swift */; };
-		F2D8BE0921BC065E007CFEFA /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE0821BC065E007CFEFA /* ViewController.swift */; };
 		F2D8BE0C21BC065E007CFEFA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F2D8BE0A21BC065E007CFEFA /* Main.storyboard */; };
 		F2D8BE0E21BC065F007CFEFA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F2D8BE0D21BC065F007CFEFA /* Assets.xcassets */; };
 		F2D8BE1121BC065F007CFEFA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F2D8BE0F21BC065F007CFEFA /* LaunchScreen.storyboard */; };
@@ -461,6 +471,13 @@
 		AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsStorage.swift; sourceTree = "<group>"; };
 		AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportMetadataStorageMock.swift; sourceTree = "<group>"; };
 		AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentBookmarkHandler.swift; sourceTree = "<group>"; };
+		B52FE18128B6A1E400EF69F0 /* BacktraceSimulator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceSimulator.swift; sourceTree = "<group>"; };
+		B52FE18428BE0D8E00EF69F0 /* AppDelegateBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateBase.swift; sourceTree = "<group>"; };
+		B52FE18828BE3C5700EF69F0 /* SimulatorCaseCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorCaseCell.swift; sourceTree = "<group>"; };
+		B52FE18F28BE441100EF69F0 /* Konstantin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Konstantin.swift; sourceTree = "<group>"; };
+		B52FE19428BE4F3C00EF69F0 /* Examples-Bridging-Header-Swift.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Examples-Bridging-Header-Swift.h"; sourceTree = "<group>"; };
+		B52FE19528BF90C900EF69F0 /* MockView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MockView.xib; sourceTree = "<group>"; };
+		B52FE19828BF91A300EF69F0 /* MockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockView.swift; sourceTree = "<group>"; };
 		B7B445FAC6841A65683F35E9 /* Pods-Backtrace-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		BECDC44D2F82A1F1FD5CD9D1 /* Pods_Backtrace_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFAF826CD2E1314532AD4FF6 /* Pods_Example_iOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -480,7 +497,7 @@
 		F22EB87621BBD36800DEE94E /* BacktraceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClient.swift; sourceTree = "<group>"; };
 		F240531D21C5680600FC9394 /* CrashReporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporting.swift; sourceTree = "<group>"; };
 		F240532021C578AA00FC9394 /* BacktraceLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceLogger.swift; sourceTree = "<group>"; };
-		F254690F23E6FF290063E4B9 /* Examples-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Examples-Bridging-Header.h"; sourceTree = "<group>"; };
+		F254690F23E6FF290063E4B9 /* Examples-Bridging-Header-ObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Examples-Bridging-Header-ObjC.h"; sourceTree = "<group>"; };
 		F254691123E6FF2A0063E4B9 /* Keys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Keys.h; sourceTree = "<group>"; };
 		F254691223E6FF2A0063E4B9 /* Keys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Keys.m; sourceTree = "<group>"; };
 		F259E4D52229A40C00F282C7 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
@@ -535,7 +552,6 @@
 		F2D7122321F10E78002D2A26 /* BacktraceCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCredentials.swift; sourceTree = "<group>"; };
 		F2D8BE0421BC065E007CFEFA /* Example-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Example-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F2D8BE0621BC065E007CFEFA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		F2D8BE0821BC065E007CFEFA /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		F2D8BE0B21BC065E007CFEFA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		F2D8BE0D21BC065F007CFEFA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F2D8BE1021BC065F007CFEFA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -733,6 +749,28 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		B52FE18328BE084800EF69F0 /* Common-Swift */ = {
+			isa = PBXGroup;
+			children = (
+				B52FE19428BE4F3C00EF69F0 /* Examples-Bridging-Header-Swift.h */,
+				B52FE18428BE0D8E00EF69F0 /* AppDelegateBase.swift */,
+				B52FE18128B6A1E400EF69F0 /* BacktraceSimulator.swift */,
+				F2A11BFB22553C2800354640 /* ViewController.swift */,
+				B52FE18828BE3C5700EF69F0 /* SimulatorCaseCell.swift */,
+				B52FE19528BF90C900EF69F0 /* MockView.xib */,
+				B52FE19828BF91A300EF69F0 /* MockView.swift */,
+			);
+			path = "Common-Swift";
+			sourceTree = "<group>";
+		};
+		B52FE18C28BE439000EF69F0 /* Konstantin */ = {
+			isa = PBXGroup;
+			children = (
+				B52FE18F28BE441100EF69F0 /* Konstantin.swift */,
+			);
+			path = Konstantin;
+			sourceTree = "<group>";
+		};
 		E1CB76ADFD3A1D9326B4E46D /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -771,7 +809,9 @@
 		F254690423E6FB750063E4B9 /* Examples */ = {
 			isa = PBXGroup;
 			children = (
-				F254690523E6FC450063E4B9 /* Common */,
+				B52FE18C28BE439000EF69F0 /* Konstantin */,
+				B52FE18328BE084800EF69F0 /* Common-Swift */,
+				F254690523E6FC450063E4B9 /* Common-ObjC */,
 				F2A11BF822553C2800354640 /* Example-tvOS */,
 				F2D8BE4321BDA7CF007CFEFA /* Example-macOS-ObjC */,
 				F2D8BE2021BC5F97007CFEFA /* Example-iOS-ObjC */,
@@ -780,15 +820,15 @@
 			path = Examples;
 			sourceTree = "<group>";
 		};
-		F254690523E6FC450063E4B9 /* Common */ = {
+		F254690523E6FC450063E4B9 /* Common-ObjC */ = {
 			isa = PBXGroup;
 			children = (
-				2846E200223818550035F98C /* test.txt */,
+				F254690F23E6FF290063E4B9 /* Examples-Bridging-Header-ObjC.h */,
 				F254691123E6FF2A0063E4B9 /* Keys.h */,
 				F254691223E6FF2A0063E4B9 /* Keys.m */,
-				F254690F23E6FF290063E4B9 /* Examples-Bridging-Header.h */,
+				2846E200223818550035F98C /* test.txt */,
 			);
-			path = Common;
+			path = "Common-ObjC";
 			sourceTree = "<group>";
 		};
 		F266B81321C77AC800D14417 /* Backtrace-macOS */ = {
@@ -907,7 +947,6 @@
 			isa = PBXGroup;
 			children = (
 				F2A11BF922553C2800354640 /* AppDelegate.swift */,
-				F2A11BFB22553C2800354640 /* ViewController.swift */,
 				F2A11BFD22553C2800354640 /* Main.storyboard */,
 				F2A11C0022553C2A00354640 /* Assets.xcassets */,
 				F2A11C0222553C2A00354640 /* Info.plist */,
@@ -1092,7 +1131,6 @@
 			isa = PBXGroup;
 			children = (
 				F2D8BE0621BC065E007CFEFA /* AppDelegate.swift */,
-				F2D8BE0821BC065E007CFEFA /* ViewController.swift */,
 				F2D8BE0A21BC065E007CFEFA /* Main.storyboard */,
 				F2D8BE0D21BC065F007CFEFA /* Assets.xcassets */,
 				F2D8BE0F21BC065F007CFEFA /* LaunchScreen.storyboard */,
@@ -1401,9 +1439,11 @@
 					};
 					F2D8BE1E21BC5F97007CFEFA = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1340;
 					};
 					F2D8BE4121BDA7CF007CFEFA = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1340;
 					};
 				};
 			};
@@ -1471,6 +1511,7 @@
 			files = (
 				F2A11C0122553C2A00354640 /* Assets.xcassets in Resources */,
 				F254690E23E6FCF40063E4B9 /* test.txt in Resources */,
+				B52FE19728BF90C900EF69F0 /* MockView.xib in Resources */,
 				F2A11BFF22553C2800354640 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1496,6 +1537,7 @@
 			files = (
 				F2D8BE1121BC065F007CFEFA /* LaunchScreen.storyboard in Resources */,
 				F2D8BE0E21BC065F007CFEFA /* Assets.xcassets in Resources */,
+				B52FE19628BF90C900EF69F0 /* MockView.xib in Resources */,
 				2846E201223818550035F98C /* test.txt in Resources */,
 				F2D8BE0C21BC065E007CFEFA /* Main.storyboard in Resources */,
 			);
@@ -2128,7 +2170,11 @@
 			files = (
 				F2A11BFC22553C2800354640 /* ViewController.swift in Sources */,
 				F254691623E6FF2A0063E4B9 /* Keys.m in Sources */,
+				B52FE19A28BF91A300EF69F0 /* MockView.swift in Sources */,
+				B52FE18A28BE3C5700EF69F0 /* SimulatorCaseCell.swift in Sources */,
 				F2A11BFA22553C2800354640 /* AppDelegate.swift in Sources */,
+				B52FE18628BE0D8E00EF69F0 /* AppDelegateBase.swift in Sources */,
+				B52FE18728BE1F9A00EF69F0 /* BacktraceSimulator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2239,8 +2285,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F2D8BE0921BC065E007CFEFA /* ViewController.swift in Sources */,
+				B52FE18B28BE431F00EF69F0 /* ViewController.swift in Sources */,
+				B52FE18528BE0D8E00EF69F0 /* AppDelegateBase.swift in Sources */,
+				B52FE19928BF91A300EF69F0 /* MockView.swift in Sources */,
+				B52FE18928BE3C5700EF69F0 /* SimulatorCaseCell.swift in Sources */,
 				F254691323E6FF2A0063E4B9 /* Keys.m in Sources */,
+				B52FE18228B6A1E400EF69F0 /* BacktraceSimulator.swift in Sources */,
 				F2D8BE0721BC065E007CFEFA /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3032,7 +3082,7 @@
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common/Examples-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common-ObjC/Examples-Bridging-Header-ObjC.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
@@ -3104,7 +3154,7 @@
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common/Examples-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common-ObjC/Examples-Bridging-Header-ObjC.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
@@ -3527,7 +3577,7 @@
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common/Examples-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common-ObjC/Examples-Bridging-Header-ObjC.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -3599,7 +3649,7 @@
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common/Examples-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common-ObjC/Examples-Bridging-Header-ObjC.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -3646,6 +3696,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -3677,6 +3728,8 @@
 				SDKROOT = iphoneos;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common-Swift/Examples-Bridging-Header-Swift.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -3721,6 +3774,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -3745,6 +3799,7 @@
 				SDKROOT = iphoneos;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common-Swift/Examples-Bridging-Header-Swift.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -3823,6 +3878,9 @@
 				SDKROOT = macosx;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common-Swift/Examples-Bridging-Header-Swift.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -3891,6 +3949,8 @@
 				SDKROOT = macosx;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Examples/Common-Swift/Examples-Bridging-Header-Swift.h";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

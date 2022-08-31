@@ -10,14 +10,13 @@ func throwingFunc() throws {
 }
 
 @UIApplicationMain
-final class AppDelegate: UIResponder, UIApplicationDelegate {
+final class AppDelegate: AppDelegateBase {
 
     let fileUrl = createAndWriteFile("sample.txt")
-
-    var window: UIWindow?
     
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
                                                         token: Keys.backtraceToken as String)
 
@@ -69,29 +68,5 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         let myData = formatter.string(from: Date())
         try! myData.write(to: fileUrl, atomically: true, encoding: .utf8)
         return fileUrl
-    }
-}
-
-extension AppDelegate: BacktraceClientDelegate {
-    func willSend(_ report: BacktraceReport) -> BacktraceReport {
-        print("AppDelegate: willSend")
-        return report
-    }
-    
-    func willSendRequest(_ request: URLRequest) -> URLRequest {
-        print("AppDelegate: willSendRequest")
-        return request
-    }
-    
-    func serverDidRespond(_ result: BacktraceResult) {
-        print("AppDelegate:serverDidRespond: \(result)")
-    }
-    
-    func connectionDidFail(_ error: Error) {
-        print("AppDelegate: connectionDidFail: \(error)")
-    }
-    
-    func didReachLimit(_ result: BacktraceResult) {
-        print("AppDelegate: didReachLimit: \(result)")
     }
 }

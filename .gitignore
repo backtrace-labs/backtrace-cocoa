@@ -6,6 +6,8 @@
 build/
 DerivedData/
 
+Examples/Konstantin/
+
 ## Various settings
 *.pbxuser
 !default.pbxuser

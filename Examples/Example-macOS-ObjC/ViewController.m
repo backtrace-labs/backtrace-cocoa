@@ -1,6 +1,7 @@
 #import "ViewController.h"
 @import Backtrace;
 
+
 @interface ViewController()
 @property (unsafe_unretained) IBOutlet NSTextView *textView;
 @property (weak) IBOutlet NSScrollView *scrollView;
@@ -12,6 +13,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+//    BacktraceSimulator * simulator = [[BacktraceSimulator alloc] init];
+    
     // Do any additional setup after loading the view.
 }
 - (IBAction)crashAction:(id)sender {
