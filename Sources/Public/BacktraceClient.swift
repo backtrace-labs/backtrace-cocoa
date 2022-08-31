@@ -191,7 +191,7 @@ extension BacktraceClient: BacktraceReporting {
                 guard let self = self else { return }
                 self.reporter.enableOomWatcher()
                 }, completion: {
-                    BacktraceLogger.debug("Started error reporter.")
+                    BacktraceLogger.debug("Started OOM Watcher.")
             })
         }
     }
