@@ -33,7 +33,7 @@ static NSMutableData *wastedMemory = nil;
 
 - (IBAction) crashAction: (id) sender {
     NSArray *array = @[];
-    NSObject *o = array[1];
+    array[1];
 }
 
 

@@ -11,7 +11,9 @@ func throwingFunc() throws {
 
 @UIApplicationMain
 final class AppDelegate: UIResponder, UIApplicationDelegate {
-    
+
+    let fileUrl = createAndWriteFile("sample.txt")
+
     var window: UIWindow?
     
     func application(_ application: UIApplication,
@@ -20,38 +22,29 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                         token: Keys.backtraceToken as String)
 
         let backtraceDatabaseSettings = BacktraceDatabaseSettings()
-        backtraceDatabaseSettings.maxRecordCount = 1000
-        backtraceDatabaseSettings.maxDatabaseSize = 10
-        backtraceDatabaseSettings.retryInterval = 5
-        backtraceDatabaseSettings.retryLimit = 3
-        backtraceDatabaseSettings.retryBehaviour = RetryBehaviour.interval
-        backtraceDatabaseSettings.retryOrder = RetryOrder.queue
+        backtraceDatabaseSettings.maxRecordCount = 10
         let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
                                                                   allowsAttachingDebugger: true,
                                                                   detectOOM: true)
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
-        BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
-        BacktraceClient.shared?.enableBreadcrumbs()
-        
-        let fileName = "sample.txt"
-        guard let fileUrl = try? createAndWriteFile(fileName) else {
-            print("Could not create the file attachment")
-            return false
-        }
         BacktraceClient.shared?.attachments.append(fileUrl)
 
-        BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
         do {
             try throwingFunc()
         } catch {
-            let filePath = Bundle.main.path(forResource: "test", ofType: "txt")!
-            BacktraceClient.shared?.send(attachmentPaths: [filePath]) { (result) in
+            BacktraceClient.shared?.send(attachmentPaths: []) { (result) in
                 print("AppDelegate:Result:\(result)")
             }
         }
+
+
+        BacktraceClient.shared?.delegate = self
+        BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
+
+        BacktraceClient.shared?.enableBreadcrumbs()
         let attributes = ["My Attribute":"My Attribute Value"]
         _ = BacktraceClient.shared?.addBreadcrumb("My Breadcrumb",
                                               attributes: attributes,
@@ -60,12 +53,10 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-    func createAndWriteFile(_ fileName: String) throws -> URL {
+    static func createAndWriteFile(_ fileName: String) -> URL {
         let dirName = "directory"
-        guard let libraryDirectoryUrl = try? FileManager.default.url(
-            for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true) else {
-            throw CustomError.runtimeError
-        }
+        let libraryDirectoryUrl = try! FileManager.default.url(
+            for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         let directoryUrl = libraryDirectoryUrl.appendingPathComponent(dirName)
         try? FileManager().createDirectory(
                     at: directoryUrl,
@@ -76,7 +67,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         let formatter = DateFormatter()
         formatter.timeStyle = .medium
         let myData = formatter.string(from: Date())
-        try myData.write(to: fileUrl, atomically: true, encoding: .utf8)
+        try! myData.write(to: fileUrl, atomically: true, encoding: .utf8)
         return fileUrl
     }
 }
