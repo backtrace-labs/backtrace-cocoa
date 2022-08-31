@@ -21,7 +21,7 @@ extension URLSession {
 
         if Thread.isMainThread {
             BacktraceLogger.warning("Synchronous network call on the main thread, this is not recommended!")
-            // if ran from the Main Thread, which will iOS to kill the app if blocked too long (20 seconds)
+            // if ran from the Main Thread, iOS will kill the app if blocked too long (~20 seconds)
             // https://developer.apple.com/documentation/xcode/addressing-watchdog-terminations
             _ = semaphore.wait(timeout: .now() + .seconds(1))
         } else {
