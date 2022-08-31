@@ -196,9 +196,9 @@
 		B52FE18A28BE3C5700EF69F0 /* SimulatorCaseCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE18828BE3C5700EF69F0 /* SimulatorCaseCell.swift */; };
 		B52FE18B28BE431F00EF69F0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A11BFB22553C2800354640 /* ViewController.swift */; };
 		B52FE19628BF90C900EF69F0 /* MockView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B52FE19528BF90C900EF69F0 /* MockView.xib */; };
-		B52FE19728BF90C900EF69F0 /* MockView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B52FE19528BF90C900EF69F0 /* MockView.xib */; };
 		B52FE19928BF91A300EF69F0 /* MockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE19828BF91A300EF69F0 /* MockView.swift */; };
 		B52FE19A28BF91A300EF69F0 /* MockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE19828BF91A300EF69F0 /* MockView.swift */; };
+		B52FE19C28BF9E0D00EF69F0 /* MockView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B52FE19B28BF9E0D00EF69F0 /* MockView.xib */; };
 		DAF627C0CA0FE995B581C33B /* Pods_Backtrace_tvOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD097A22120C3DCE08382BA5 /* Pods_Backtrace_tvOSTests.framework */; };
 		F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
 		F21211A6222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
@@ -478,6 +478,7 @@
 		B52FE19428BE4F3C00EF69F0 /* Examples-Bridging-Header-Swift.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Examples-Bridging-Header-Swift.h"; sourceTree = "<group>"; };
 		B52FE19528BF90C900EF69F0 /* MockView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MockView.xib; sourceTree = "<group>"; };
 		B52FE19828BF91A300EF69F0 /* MockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockView.swift; sourceTree = "<group>"; };
+		B52FE19B28BF9E0D00EF69F0 /* MockView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MockView.xib; sourceTree = "<group>"; };
 		B7B445FAC6841A65683F35E9 /* Pods-Backtrace-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		BECDC44D2F82A1F1FD5CD9D1 /* Pods_Backtrace_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFAF826CD2E1314532AD4FF6 /* Pods_Example_iOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -757,7 +758,6 @@
 				B52FE18128B6A1E400EF69F0 /* BacktraceSimulator.swift */,
 				F2A11BFB22553C2800354640 /* ViewController.swift */,
 				B52FE18828BE3C5700EF69F0 /* SimulatorCaseCell.swift */,
-				B52FE19528BF90C900EF69F0 /* MockView.xib */,
 				B52FE19828BF91A300EF69F0 /* MockView.swift */,
 			);
 			path = "Common-Swift";
@@ -950,6 +950,7 @@
 				F2A11BFD22553C2800354640 /* Main.storyboard */,
 				F2A11C0022553C2A00354640 /* Assets.xcassets */,
 				F2A11C0222553C2A00354640 /* Info.plist */,
+				B52FE19B28BF9E0D00EF69F0 /* MockView.xib */,
 			);
 			path = "Example-tvOS";
 			sourceTree = "<group>";
@@ -1132,6 +1133,7 @@
 			children = (
 				F2D8BE0621BC065E007CFEFA /* AppDelegate.swift */,
 				F2D8BE0A21BC065E007CFEFA /* Main.storyboard */,
+				B52FE19528BF90C900EF69F0 /* MockView.xib */,
 				F2D8BE0D21BC065F007CFEFA /* Assets.xcassets */,
 				F2D8BE0F21BC065F007CFEFA /* LaunchScreen.storyboard */,
 				F2D8BE1221BC065F007CFEFA /* Info.plist */,
@@ -1511,7 +1513,7 @@
 			files = (
 				F2A11C0122553C2A00354640 /* Assets.xcassets in Resources */,
 				F254690E23E6FCF40063E4B9 /* test.txt in Resources */,
-				B52FE19728BF90C900EF69F0 /* MockView.xib in Resources */,
+				B52FE19C28BF9E0D00EF69F0 /* MockView.xib in Resources */,
 				F2A11BFF22553C2800354640 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
