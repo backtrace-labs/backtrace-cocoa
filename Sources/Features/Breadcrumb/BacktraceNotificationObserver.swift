@@ -265,13 +265,11 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
     func powerSourceChanged() {
-        if let isCharging = isCharging, let batteryLevel = batteryLevel {
-            if isDirty() {
-                let message = isCharging ? "charging battery level : \(batteryLevel)%"
-                : "unplugged battery level : \(batteryLevel)%"
-                if let result = addBreadcrumb(message), result {
-                    lastCharging = isCharging
-                }
+        if let isCharging = isCharging, let batteryLevel = batteryLevel, isDirty() {
+            let message = isCharging ? "charging battery level : \(batteryLevel)%"
+            : "unplugged battery level : \(batteryLevel)%"
+            if let result = addBreadcrumb(message), result {
+                lastCharging = isCharging
             }
         }
     }

@@ -294,18 +294,18 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                                                         object: nil)
 
                         var breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "\"orientation\":\"portrait\"").count {
-                            expect { count - 1 }.to(equal(1))
-                        }
+                        var count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
+                                                                substr: "\"orientation\":\"portrait\"")
+                        expect { count }.to(equal(1))
 
                         backtraceObserver.mockOrientation = UIDeviceOrientation.portrait
                         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                                         object: nil)
 
                         breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "\"orientation\":\"portrait\"").count {
-                            expect { count - 1 }.toNot(equal(2))
-                        }
+                        count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
+                                                                substr: "\"orientation\":\"portrait\"")
+                        expect { count }.toNot(equal(2))
                     }
                 }
 
@@ -367,18 +367,18 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
                                                         object: nil)
                         var breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "Full battery level: 100.0%").count {
-                            expect { count - 1 }.to(equal(1))
-                        }
+                        var count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
+                                                                substr: "Full battery level: 100.0%")
+                        expect { count }.to(equal(1))
 
                         backtraceObserver.mockBatteryLevel = 1
                         backtraceObserver.mockBatteryState = UIDevice.BatteryState.full
                         NotificationCenter.default.post(name: UIDevice.batteryLevelDidChangeNotification,
                                                         object: nil)
                         breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "Full battery level: 100.0%").count {
-                            expect { count - 1 }.toNot(equal(2))
-                        }
+                        count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
+                                                                substr: "Full battery level: 100.0%")
+                        expect { count }.toNot(equal(2))
                     }
                 }
 
@@ -403,16 +403,16 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
                                                         object: nil)
                         var breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "Application will enter in foreground").count {
-                            expect { count - 1 }.to(equal(1))
-                        }
+                        var count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
+                                                                substr: "Application will enter in foreground")
+                        expect { count }.to(equal(1))
 
                         NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
                                                         object: nil)
                         breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "Application will enter in foreground").count {
-                            expect { count - 1 }.toNot(equal(2))
-                        }
+                        count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
+                                                                substr: "Application will enter in foreground")
+                        expect { count }.toNot(equal(2))
                     }
                 }
             }
@@ -461,16 +461,15 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         backtraceObserver.memoryPressureEventHandler()
 
                         var breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "Warning level memory pressure event").count {
-                            expect { count - 1 }.to(equal(1))
-                        }
+                        var count = countOccurrencesOfSubstring(str: breadcrumbsText,
+                                                                substr: "Warning level memory pressure event")
+                        expect { count }.to(equal(1))
 
                         backtraceObserver.mockMemoryPressureEvent = .warning
                         backtraceObserver.memoryPressureEventHandler()
                         breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "Warning level memory pressure event").count {
-                            expect { count - 1 }.toNot(equal(2))
-                        }
+                        count = countOccurrencesOfSubstring(str: breadcrumbsText, substr: "Warning level memory pressure event")
+                        expect { count }.toNot(equal(2))
                     }
                 }
 
@@ -525,21 +524,26 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                         backtraceObserver.powerSourceChanged()
 
                         var breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "charging battery level : 50%").count {
-                            expect { count - 1 }.to(equal(1))
-                        }
+                        var count = countOccurrencesOfSubstring(str: breadcrumbsText, substr: "charging battery level : 50%")
+                        expect { count }.to(equal(1))
 
                         backtraceObserver.isMockCharging = true
                         backtraceObserver.mockBatteryLevel = 50
                         backtraceObserver.powerSourceChanged()
                         breadcrumbsText = self.readBreadcrumbText()
-                        if let count = breadcrumbsText?.components(separatedBy: "charging battery level : 50%").count {
-                            expect { count - 1 }.toNot(equal(2))
-                        }
+                        count = countOccurrencesOfSubstring(str: breadcrumbsText, substr: "charging battery level : 50%")
+                        expect { count }.toNot(equal(2))
                     }
                 }
             }
 #endif
         }
+    }
+
+    func countOccurrencesOfSubstring(str: String?, substr: String) -> Int {
+        guard let str = str else {
+            return 0
+        }
+        return { $0.isEmpty ? 0 : $0.count - 1 }( str.components(separatedBy: substr))
     }
 }
