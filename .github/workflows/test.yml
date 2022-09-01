@@ -15,6 +15,7 @@ jobs:
     runs-on: macos-latest
     
     strategy:
+      fail-fast: false
       matrix:
           platform: [ios, mac, tvos]
 
