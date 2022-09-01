@@ -21,6 +21,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Run tests
 
+### sync_podspec_version_to_xcode
+
+```sh
+[bundle exec] fastlane sync_podspec_version_to_xcode
+```
+
+Sync Podspec version to Xcode MARKETING_VERSION
+
 ----
 
 
