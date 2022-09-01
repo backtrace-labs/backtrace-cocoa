@@ -109,6 +109,15 @@ final class AttributesTests: QuickSpec {
             }
         }
 
+        describe("Version Provider") {
+            it("will find the framework version correctly") {
+                let attributes = AttributesProvider()
+
+                expect { attributes.allAttributes["lang.version"] as? String }.toNot(beNil())
+                expect { attributes.allAttributes["backtrace.version"] as? String }.toNot(beNil())
+            }
+        }
+
         describe("C API") {
             it("sets vm_statistics64 information") {
                 expect { try Statistics.vmStatistics64() }.toNot(be(vm_statistics64()))
