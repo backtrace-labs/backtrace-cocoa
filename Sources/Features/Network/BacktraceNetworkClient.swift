@@ -28,16 +28,14 @@ final class BacktraceNetworkClient {
 
 extension BacktraceNetworkClient {
 
-    func sendMetrics(request: URLRequest) throws -> BacktraceMetricsHttpResponse {
-        let response = self.urlSession.sync(request)
-
-        if let responseError = response.responseError {
-            throw NetworkError.connectionError(responseError)
-        }
-        guard let urlResponse = response.urlResponse else {
-            throw HttpError.unknownError
-        }
-        // check result
-        return BacktraceMetricsHttpResponse(httpResponse: urlResponse)
+    func sendMetrics(request: URLRequest) {
+        let task = self.urlSession.dataTask(with: request,
+                            completionHandler: { (responseData, responseUrl, responseError) in
+            // TODO: T16698 - Add retry logic
+            if let responseError = responseError {
+                BacktraceLogger.error(responseError)
+            }
+        })
+        task.resume()
     }
 }
