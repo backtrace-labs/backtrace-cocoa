@@ -173,7 +173,11 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     let breadcrumbText = self.readBreadcrumbText()!
 
                     // Not very scientific, but this is apparently when the file wraps
+                    #if canImport(Cassette)
                     let wrapIndex = 742
+                    #else
+                    let wrapIndex = 733
+                    #endif
                     for readIndex in 0...wrapIndex {
                         // should have been rolled away
                         expect { breadcrumbText }.toNot(contain("\"this is Breadcrumb number \(readIndex)\""))
@@ -228,9 +232,10 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { backtraceObserverMock2.startObservingCalled }.to(beTrue())
                 }
             }
-#if os(iOS)
-            context("when iOS notifications update") {
-                it("iOS memory warning breadcrumb added") {
+
+#if os(iOS) || os(tvOS)
+            context("when iOS/tvOS notifications update") {
+                it("iOS/tvOS memory warning breadcrumb added") {
                     backtraceBreadcrumbs.enableBreadcrumbs()
 
                     // Simulate memory event:
@@ -240,7 +245,10 @@ final class BacktraceBreadcrumbTests: QuickSpec {
 
                     expect { self.readBreadcrumbText() }.toEventually(contain("Warning level memory pressure event"))
                 }
-
+            }
+#endif
+#if os(iOS)
+            context("when iOS notifications update") {
                 it("iOS orientation breadcrumb added") {
                     backtraceBreadcrumbs.enableBreadcrumbs()
 
