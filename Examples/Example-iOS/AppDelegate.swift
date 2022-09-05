@@ -31,7 +31,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
         BacktraceClient.shared?.attachments.append(fileUrl)
-
+        BacktraceClient.shared?.delegate = self
+        BacktraceClient.shared?.enableBreadcrumbs()
+        
         do {
             try throwingFunc()
         } catch {
@@ -40,11 +42,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
 
-
-        BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
-
-        BacktraceClient.shared?.enableBreadcrumbs()
         let attributes = ["My Attribute":"My Attribute Value"]
         _ = BacktraceClient.shared?.addBreadcrumb("My Breadcrumb",
                                               attributes: attributes,
