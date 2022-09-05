@@ -358,10 +358,6 @@ class BacktraceCallNotificationObserver: NSObject, BacktraceNotificationHandlerD
         return call?.hasEnded ?? false
     }
 
-    var isOnHoldCall: Bool {
-        return call?.isOnHold ?? false
-    }
-
     var breadcrumbMsg: String {
         var message = ""
         if isOutgoingCall == true && hasConnectedCall == false && hasEndedCall == false {
@@ -376,12 +372,6 @@ class BacktraceCallNotificationObserver: NSObject, BacktraceNotificationHandlerD
             message = "Outgoing call ended."
         } else if isOutgoingCall == false && hasEndedCall == true {
             message = "Incoming call ended."
-        } else if hasConnectedCall == true && hasEndedCall == false && isOnHoldCall == false {
-            message = "Call connected."
-        } else if isOutgoingCall == true && isOnHoldCall == true {
-            message = "Outgoing call is on hold."
-        } else if isOutgoingCall == false && isOnHoldCall == true {
-            message = "Incoming call is on hold."
         } else {
             message = "Unknown call state."
         }
