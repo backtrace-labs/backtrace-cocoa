@@ -78,8 +78,11 @@ final class BacktraceOomWatcher {
     }
 
     internal static func getAppVersion() -> String {
-        if let appVersion = Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? String {
-            return appVersion
+        // appVersion is also known as the marketing version, shown on the app store
+        // buildVersion is usually a build number
+        if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+           let buildVersion = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+            return appVersion + "-" + buildVersion
         } else {
             return ""
         }
