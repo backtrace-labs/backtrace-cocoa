@@ -2,24 +2,6 @@ import Foundation
 
 @objc open class BacktraceMetrics: NSObject {
 
-    @objc public var summedEventsDelegate: BacktraceMetricsDelegate? {
-        get {
-            return api.summedEventsDelegate
-        }
-        set {
-            api.summedEventsDelegate = newValue
-        }
-    }
-
-    @objc public var uniqueEventsDelegate: BacktraceMetricsDelegate? {
-        get {
-            return api.uniqueEventsDelegate
-        }
-        set {
-            api.uniqueEventsDelegate = newValue
-        }
-    }
-
     private let api: BacktraceApi
 
     private var backtraceMetricsSender: BacktraceMetricsSender?

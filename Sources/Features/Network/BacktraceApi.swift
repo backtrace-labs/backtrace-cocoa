@@ -3,9 +3,6 @@ import Foundation
 final class BacktraceApi {
     weak var delegate: BacktraceClientDelegate?
 
-    weak var summedEventsDelegate: BacktraceMetricsDelegate?
-    weak var uniqueEventsDelegate: BacktraceMetricsDelegate?
-
     private(set) var backtraceRateLimiter: BacktraceRateLimiter
     let networkClient: BacktraceNetworkClient
     let credentials: BacktraceCredentials
@@ -64,39 +61,18 @@ extension BacktraceApi: BacktraceApiProtocol {
 
 extension BacktraceApi: BacktraceMetricsApiProtocol {
 
-    func sendMetrics(_ payload: SummedEventsPayload, url: URL) throws -> BacktraceMetricsResult {
-        try sendMetrics(payload, url: url, metricsDelegate: summedEventsDelegate)
-    }
-
-    func sendMetrics(_ payload: UniqueEventsPayload, url: URL) throws -> BacktraceMetricsResult {
-        try sendMetrics(payload, url: url, metricsDelegate: uniqueEventsDelegate)
-    }
-
-    func sendMetrics<T: Payload>(_ payload: T, url: URL, metricsDelegate: BacktraceMetricsDelegate?)
-        throws -> BacktraceMetricsResult {
+    func sendMetrics<T: Payload>(_ payload: T, url: URL) {
         let payload = payload
 
         do {
             // create request
-            var urlRequest = try MetricsRequest(url: url, payload: payload).request
-
-            // modify request before sending
-            urlRequest = metricsDelegate?.willSendRequest?(urlRequest) ?? urlRequest
-            BacktraceLogger.debug("Will send URL request to metrics API: \(urlRequest)")
+            let urlRequest = try MetricsRequest(url: url, payload: payload).request
 
             // send request
-            let httpResponse = try networkClient.sendMetrics(request: urlRequest)
-
-            // get result
-            BacktraceLogger.debug("Received HTTP response from metrics API: \(httpResponse)")
-            let result = httpResponse.result()
-            metricsDelegate?.serverDidRespond?(result)
-
-            return result
+            networkClient.sendMetrics(request: urlRequest)
         } catch {
             BacktraceLogger.error("Connection for \(payload) failed with error: \(error)")
-            metricsDelegate?.connectionDidFail?(error)
-            throw error
         }
+
     }
 }

@@ -28,9 +28,8 @@ final class BacktraceMetricsSender {
     }
 
     func enable() {
-        // TODO: this timeout is set to give the crashreporter time to start up so that errors during startup will be sent
-        // remove once root cause for crashes is found
-        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + .seconds(5)) {
+        // No need to do in the running thread, can be backgrounded
+        DispatchQueue.global(qos: .background).async {
             self.sendStartupEvents()
         }
     }
@@ -53,8 +52,7 @@ final class BacktraceMetricsSender {
 
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.unique)
-            let result = try api.sendMetrics(payload, url: url)
-            handleUniqueEventsResult(result: result)
+            api.sendMetrics(payload, url: url)
         } catch {
             BacktraceLogger.error(error)
         }
@@ -62,11 +60,11 @@ final class BacktraceMetricsSender {
 
     private func sendSummedEvent() {
         let payload = metricsContainer.getSummedEventsPayload()
+        metricsContainer.clearSummedEvents()
 
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.summed)
-            let result = try api.sendMetrics(payload, url: url)
-            handleSummedEventsResult(result: result)
+            api.sendMetrics(payload, url: url)
         } catch {
             BacktraceLogger.error(error)
         }
@@ -95,14 +93,5 @@ final class BacktraceMetricsSender {
         }
 
         return url
-    }
-
-    private func handleSummedEventsResult(result: BacktraceMetricsResult) {
-        metricsContainer.clearSummedEvents()
-        // TODO: T16698 - Add retry logic
-    }
-
-    private func handleUniqueEventsResult(result: BacktraceMetricsResult) {
-        // TODO: T16698 - Add retry logic
     }
 }

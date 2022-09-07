@@ -22,24 +22,31 @@ final class BacktraceMetricsTests: QuickSpec {
                 MetricsInfo.disableMetrics()
             }
 
+            it("clears the summed event after enabling and sending") {
+                metrics.enable(settings: BacktraceMetricsSettings())
+
+                // Allow default events to be "sent" out
+                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(1), pollInterval: .milliseconds(100))
+            }
+
             it("can add and store summed event") {
                 metrics.enable(settings: BacktraceMetricsSettings())
 
-                // Account for default unique event
-                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(11), pollInterval: .seconds(1))
+                // Allow default events to be "sent" out
+                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(1), pollInterval: .milliseconds(100))
 
                 metrics.addSummedEvent(name: summedEventName)
-                expect { metrics.count }.toEventually(equal(2), timeout: .seconds(11), pollInterval: .seconds(1))
+                expect { metrics.count }.to(equal(2))
             }
 
             it("can add and store unique event") {
                 metrics.enable(settings: BacktraceMetricsSettings())
 
-                // Account for default unique event
-                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(11), pollInterval: .seconds(1))
+                // Allow default events to be "sent" out
+                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(1), pollInterval: .milliseconds(100))
 
                 metrics.addUniqueEvent(name: uniqueEventName)
-                expect { metrics.count }.toEventually(equal(2), timeout: .seconds(11), pollInterval: .seconds(1))
+                expect { metrics.count }.to(equal(2))
             }
         }
     }

@@ -6,8 +6,6 @@ protocol BacktraceApiProtocol {
 }
 
 protocol BacktraceMetricsApiProtocol {
-    func sendMetrics(_ payload: SummedEventsPayload, url: URL) throws -> BacktraceMetricsResult
-    func sendMetrics(_ payload: UniqueEventsPayload, url: URL) throws -> BacktraceMetricsResult
-    var summedEventsDelegate: BacktraceMetricsDelegate? { get set }
-    var uniqueEventsDelegate: BacktraceMetricsDelegate? { get set }
+    func sendMetrics(_ payload: SummedEventsPayload, url: URL)
+    func sendMetrics(_ payload: UniqueEventsPayload, url: URL)
 }

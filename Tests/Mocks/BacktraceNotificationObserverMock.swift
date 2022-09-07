@@ -5,6 +5,7 @@ import XCTest
 class BacktraceObserverMock: BacktraceNotificationHandlerDelegate {
 
     var delegate: BacktraceNotificationObserverDelegate?
+
     var startObservingCalled = false
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
