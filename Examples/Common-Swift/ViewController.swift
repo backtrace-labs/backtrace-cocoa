@@ -1,5 +1,9 @@
-import UIKit
+//
+//  ViewController.swift
+//  Backtrace
+//
 
+import UIKit
 
 class ViewController: UIViewController {
         
@@ -7,7 +11,6 @@ class ViewController: UIViewController {
     
     let simulator: BacktraceSimulatorProtocol = BacktraceSimulator()
 }
-
 
 extension ViewController: UITableViewDelegate {
     
@@ -42,7 +45,6 @@ extension ViewController: UITableViewDelegate {
 
 #endif
 }
-
 
 extension ViewController: UITableViewDataSource {
     

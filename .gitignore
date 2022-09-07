@@ -6,7 +6,7 @@
 build/
 DerivedData/
 
-Examples/Konstantin/
+Examples/LocalConfiguration/
 
 ## Various settings
 *.pbxuser

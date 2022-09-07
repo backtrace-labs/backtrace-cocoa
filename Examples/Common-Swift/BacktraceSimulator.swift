@@ -6,38 +6,20 @@
 import UIKit
 import Backtrace
 
-
 protocol BacktraceSimulatorProtocol {
     func numberOfCases() -> Int
     func caseTitle(atIndex index: Int) -> String?
     func executeCase(atIndex index: Int) throws
 }
 
-
 class BacktraceSimulator: BacktraceSimulatorProtocol {
-    
-    // MARK: Error cases
-    
-    // 1. Non-optional is nil and we call some method
-    // 2. Array index out of bounds
-    // 3. IBOutlet is non-optional and reference is not set
-    // 4. Calling UI object not from the main thread
-    // 5. Low memory error
-    // 6. Throw-catch exception
-    // 7. Force unwrap nil
-    // 8. Type cast forced of non compatible types
-    // 9. Divide by zero
-    // 10. Infinite loop
-    // 11. Send live report (keeping from previous examples)
-    
-    
+            
     // MARK: struct ErrorCase
     
     fileprivate struct ErrorCase {
         fileprivate let title: String
         fileprivate let function: CaseFunction
     }
-
     
     // MARK: Variables
     
@@ -45,9 +27,6 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
     
     private var availableCases: [ErrorCase] = []
     private var mockView: MockView?
-    
-//    ProcessInfo
-    
     
     // MARK: Public API
     
@@ -65,7 +44,6 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
         let function = availableCases[index].function
         function()
     }
-
     
     // MARK: Hidden implementation
     
@@ -86,26 +64,31 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
         mockView = nib.instantiate(withOwner: nil).first as? MockView
     }
 
+    // 1. Non-optional is nil and we call some method
     private func callOnNil() {
         let string: String! = nil
         print(string.count) // Using print to avoid 'unused' warning
     }
     
+    // 2. Array index out of bounds
     private func outOfBounds() {
         let array = [""]
         print(array[1]) // Using print to avoid 'unused' warning
     }
     
+    // 3. IBOutlet is non-optional and reference is not set
     private func ibOutlet() {
         mockView?.labelNotLinked.text = ""
     }
     
+    // 4. Calling UI object not from the main thread
     private func uiNonMainThread() {
         DispatchQueue.global(qos: .background).async { [weak self] in
             self?.mockView?.labelLinked.text = ""
         }
     }
     
+    // 5. Low memory error
     private func lowMemory() {
         var wastedMemory: Data = Data()
         let size = 50_000_000
@@ -115,6 +98,7 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
         }
     }
     
+    // 6. Throw-catch exception
     private func throwCatch() {
         let string: String? = nil
         do {
@@ -128,16 +112,19 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
         }
     }
     
+    // 7. Force unwrap nil
     private func forceUnwrapNil() {
         let string: String? = nil
         print(string!.count)
     }
     
+    // 8. Type cast forced of non compatible types
     private func typeCastForced() {
         let string: String? = ""
         print(string as! Int32) // Using print to avoid 'unused' warning
     }
     
+    // 9. Divide by zero
     private func divideByZero() {
         // We can't explicitly divide by zero, as it will be a compilation error.
         // To simulate it in runtime - a closure is defined
@@ -148,12 +135,14 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
         dividingFunc(0)
     }
     
+    // 10. Infinite loop
     private func infiniteLoop() {
         DispatchQueue.main.sync {
             while(true) {}
         }
     }
     
+    // 11. Send live report (keeping from previous examples)
     private func liveReport() {
         let exception = NSException(name: NSExceptionName.characterConversionException,
                                     reason: "custom reason",

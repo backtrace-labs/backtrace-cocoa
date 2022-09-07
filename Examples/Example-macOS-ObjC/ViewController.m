@@ -12,11 +12,9 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
-//    BacktraceSimulator * simulator = [[BacktraceSimulator alloc] init];
-    
     // Do any additional setup after loading the view.
 }
+
 - (IBAction)crashAction:(id)sender {
     NSArray *array = @[];
     (void)array[1];
