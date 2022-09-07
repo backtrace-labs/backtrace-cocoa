@@ -1,6 +1,9 @@
 import Foundation
 
 final class BacktraceNetworkClient {
+    
+    typealias HttpResponseHandler = (BacktraceHttpResponse?, BacktraceError?) -> Void
+    
     let urlSession: URLSession
     let reachability = NetworkReachability()
 
@@ -19,6 +22,20 @@ final class BacktraceNetworkClient {
         }
         // check result
         return BacktraceHttpResponse(httpResponse: urlResponse, responseData: response.responseData)
+    }
+    
+    func sendAsync(request: URLRequest, handler: @escaping HttpResponseHandler) {
+        urlSession.async(request) { response in
+            if let responseError = response.responseError {
+                handler(nil, NetworkError.connectionError(responseError))
+                return
+            }
+            guard let urlResponse = response.urlResponse else {
+                handler(nil, HttpError.unknownError)
+                return
+            }
+            handler(BacktraceHttpResponse(httpResponse: urlResponse, responseData: response.responseData), nil)
+        }
     }
 
     func isNetworkAvailable() -> Bool {

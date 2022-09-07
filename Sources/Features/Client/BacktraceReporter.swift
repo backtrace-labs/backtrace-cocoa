@@ -98,6 +98,10 @@ extension BacktraceReporter {
             return BacktraceResult(error.backtraceStatus)
         }
     }
+    
+    func sendAsync(resource: BacktraceReport, handler: @escaping BacktraceResultHandler) {
+        api.sendAsync(resource, handler: handler)
+    }
 
     func send(exception: NSException? = nil, attachmentPaths: [String] = [],
               faultMessage: String? = nil) throws -> BacktraceResult {
@@ -106,6 +110,15 @@ extension BacktraceReporter {
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
         return send(resource: resource)
+    }
+    
+    func sendAsync(exception: NSException? = nil, attachmentPaths: [String] = [],
+              faultMessage: String? = nil, handler: @escaping BacktraceResultHandler) throws {
+        attributesProvider.set(faultMessage: faultMessage)
+        let resource = try reporter.generateLiveReport(exception: exception,
+                                                       attributes: attributesProvider.allAttributes,
+                                                       attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
+        return sendAsync(resource: resource, handler: handler)
     }
 
     func generate(exception: NSException? = nil, attachmentPaths: [String] = [],

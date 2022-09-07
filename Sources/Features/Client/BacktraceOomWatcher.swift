@@ -118,7 +118,7 @@ final class BacktraceOomWatcher {
             return
         }
 
-        reportOom(appState: appState)
+        reportOomAsync(appState: appState)
     }
 
     private func shouldReportOom(appState: ApplicationInfo) -> Bool {
@@ -167,6 +167,29 @@ final class BacktraceOomWatcher {
             BacktraceLogger.error(error)
             try? self.repository.save(report)
         }
+    }
+    
+    private func reportOomAsync(appState: ApplicationInfo) {
+        guard let reportData = try? crashReporter.generateLiveReport(exception: nil,
+                                                                      attributes: [:],
+                                                                      attachmentPaths: []).reportData else {
+             BacktraceLogger.warning("Could not create live_report for OomReport.")
+             return
+         }
+
+        // ok - we detected oom and we should report it
+        guard let report = try? BacktraceReport(report: reportData,
+                                                attributes: BacktraceOomWatcher.reportAttributes ?? [:],
+                                                attachmentPaths: BacktraceOomWatcher.reportAttachments?.map(\.path) ?? [])
+        else {
+            return
+        }
+        backtraceApi.sendAsync(report, handler: { _, error in
+            if let error = error {
+                BacktraceLogger.error(error)
+                try? self.repository.save(report)
+            }
+        })
     }
 }
 

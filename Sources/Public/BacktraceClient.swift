@@ -163,7 +163,13 @@ extension BacktraceClient: BacktraceReporting {
 
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
-            completion(self.reporter.send(resource: resource))
+            self.reporter.sendAsync(resource: resource) { result, _ in
+                if let result = result {
+                    completion(result)
+                } else {
+                    completion(BacktraceResult(.unknownError))
+                }
+            }
         }, completion: {
             BacktraceLogger.debug("Finished sending an error report.")
         })
