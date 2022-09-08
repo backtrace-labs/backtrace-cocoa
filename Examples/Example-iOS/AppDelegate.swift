@@ -32,7 +32,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
         BacktraceClient.shared?.attachments.append(fileUrl)
         BacktraceClient.shared?.delegate = self
-        BacktraceClient.shared?.enableBreadcrumbs()
         
         do {
             try throwingFunc()
