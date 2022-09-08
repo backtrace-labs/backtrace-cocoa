@@ -405,7 +405,6 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
         NotificationCenter.default.removeObserver(self)
     }
 }
-#endif
 
 import CallKit
 // MARK: Call Observer
@@ -470,3 +469,4 @@ class BacktraceCallNotificationObserver: NSObject, BacktraceNotificationHandlerD
         callObserver = nil
     }
 }
+#endif
