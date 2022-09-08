@@ -400,18 +400,18 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     it("same breadcrumb in row not allow to add") {
                         backtraceBreadcrumbs.enableBreadcrumbs()
 
-                        NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
+                        NotificationCenter.default.post(name: Application.didEnterBackgroundNotification,
                                                         object: nil)
                         var breadcrumbsText = self.readBreadcrumbText()
                         var count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
-                                                                substr: "Application will enter in foreground")
+                                                                substr: "Application did enter in background")
                         expect { count }.to(equal(1))
 
-                        NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
+                        NotificationCenter.default.post(name: Application.didEnterBackgroundNotification,
                                                         object: nil)
                         breadcrumbsText = self.readBreadcrumbText()
                         count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
-                                                                substr: "Application will enter in foreground")
+                                                                substr: "Application did enter in background")
                         expect { count }.toNot(equal(2))
                     }
                 }
