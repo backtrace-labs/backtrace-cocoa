@@ -31,7 +31,7 @@ final class AttachmentStorageTests: QuickSpec {
                 let attachmentPaths = attachments.map(\.path)
 
                 expect(attachmentPaths).toNot(beNil())
-                expect(attachmentPaths.count).to(be(1))
+                expect(attachmentPaths.count).to(equal(1))
                 expect(attachmentPaths[0]).to(equal(fileUrl.path))
             }
             it("can work with empty attachments") {
@@ -52,7 +52,7 @@ final class AttachmentStorageTests: QuickSpec {
                 let attachmentPaths = attachments.map(\.path)
 
                 expect(attachmentPaths).toNot(beNil())
-                expect(attachmentPaths.count).to(be(0))
+                expect(attachmentPaths.count).to(equal(0))
             }
         }
     }

@@ -165,7 +165,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                      backtraceApi.delegate = delegate
                      oomWatcher?.sendPendingOomReports()
 
-                     expect { calledWillSend }.to(be(1))
+                     expect { calledWillSend }.to(equal(1))
                  }
                  it("results in oom report NOT being sent when oom requirements NOT met: no warning") {
                      // debugger attached: no report.
@@ -177,7 +177,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                      backtraceApi.delegate = delegate
                      oomWatcher?.sendPendingOomReports()
 
-                     expect { calledWillSend }.to(be(0))
+                     expect { calledWillSend }.to(equal(0))
                  }
                 it("results in oom report NOT being sent when oom requirements NOT met: no report") {
                     // no memory warning: no report.
@@ -187,7 +187,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                     backtraceApi.delegate = delegate
                     oomWatcher?.sendPendingOomReports()
 
-                    expect { calledWillSend }.to(be(0))
+                    expect { calledWillSend }.to(equal(0))
                 }
                 it("results in oom report NOT being sent when oom requirements NOT met: other app version") {
                     // app version different: no report.
@@ -199,7 +199,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                     backtraceApi.delegate = delegate
                     oomWatcher?.sendPendingOomReports()
 
-                    expect { calledWillSend }.to(be(0))
+                    expect { calledWillSend }.to(equal(0))
                 }
                 it("results in oom report NOT being sent when oom requirements NOT met: other OS version") {
                     // OS version different: no report.
@@ -211,7 +211,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                     backtraceApi.delegate = delegate
                     oomWatcher?.sendPendingOomReports()
 
-                    expect { calledWillSend }.to(be(0))
+                    expect { calledWillSend }.to(equal(0))
                 }
             }
         }
