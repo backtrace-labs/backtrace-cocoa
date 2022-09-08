@@ -120,35 +120,35 @@ final class AttributesTests: QuickSpec {
 
         describe("C API") {
             it("sets vm_statistics64 information") {
-                expect { try Statistics.vmStatistics64() }.toNot(be(vm_statistics64()))
+                expect { try Statistics.vmStatistics64() }.toNot(beNil())
             }
 
             it("sets processor_set_load_info information") {
-                expect { try Statistics.processorSetLoadInfo() }.toNot(be(processor_set_load_info()))
+                expect { try Statistics.processorSetLoadInfo() }.toNot(beNil())
             }
 
             it("sets [host_cpu_load_info] information") {
-                expect { try Statistics.hostCpuLoadInfo() }.toNot(be(host_cpu_load_info()))
+                expect { try Statistics.hostCpuLoadInfo() }.toNot(beNil())
             }
 
             it("sets mach_task_basic_info information") {
-                expect { try Statistics.machTaskBasicInfo() }.toNot(be(mach_task_basic_info()))
+                expect { try Statistics.machTaskBasicInfo() }.toNot(beNil())
             }
 
             it("sets task_vm_info information") {
-                expect { try Statistics.taskVmInfo() }.toNot(be(task_vm_info()))
+                expect { try Statistics.taskVmInfo() }.toNot(beNil())
             }
 
             it("sets task_events_info information") {
-                expect { try Statistics.taskEventsInfo() }.toNot(be(task_events_info()))
+                expect { try Statistics.taskEventsInfo() }.toNot(beNil())
             }
 
             it("sets boottime information") {
-                expect { try System.boottime() }.toNot(be(0))
+                expect { try System.boottime() }.toNot(equal(0))
             }
 
             it("sets uptime information") {
-                expect { try System.uptime() }.toNot(be(0))
+                expect { try System.uptime() }.toNot(equal(0))
             }
 
             it("sets machine name information") {
@@ -160,18 +160,18 @@ final class AttributesTests: QuickSpec {
             }
 
             it("sets process start time information") {
-                expect { try ProcessInfo.startTime() }.toNot(be(0))
+                expect { try ProcessInfo.startTime() }.toNot(equal(0))
             }
 
             it("sets process age information") {
                 expect {
                     sleep(1)
                     return try ProcessInfo.age()
-                }.toNot(be(0))
+                }.toNot(equal(0))
             }
 
             it("sets number of threads information") {
-                expect { try ProcessInfo.numberOfThreads() }.toNot(be(0))
+                expect { try ProcessInfo.numberOfThreads() }.toNot(equal(0))
             }
         }
     }
