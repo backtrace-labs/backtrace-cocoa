@@ -25,6 +25,7 @@ protocol BacktraceNotificationObserverDelegate: class {
 #if os(iOS)
         handlerDelegates.append(BacktraceOrientationNotificationObserver())
         handlerDelegates.append(BacktraceAppStateNotificationObserver())
+        handlerDelegates.append(BacktraceCallNotificationObserver())
 #endif
         self.handlerDelegates = handlerDelegates
         super.init()
@@ -402,6 +403,70 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+    }
+}
+
+import CallKit
+// MARK: Call Observer
+class BacktraceCallNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate, CXCallObserverDelegate {
+
+    var callObserver: CXCallObserver?
+    var call: CXCall?
+
+    var delegate: BacktraceNotificationObserverDelegate?
+
+    func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
+        self.delegate = delegate
+        callObserver = CXCallObserver()
+        callObserver?.setDelegate(self, queue: nil)
+    }
+
+    var isOutgoingCall: Bool {
+        return call?.isOutgoing ?? false
+    }
+
+    var hasConnectedCall: Bool {
+        return call?.hasConnected ?? false
+    }
+
+    var hasEndedCall: Bool {
+        return call?.hasEnded ?? false
+    }
+
+    var breadcrumbMsg: String {
+        var message = ""
+        if isOutgoingCall == true && hasConnectedCall == false && hasEndedCall == false {
+            message = "Detect a dialing outgoing call."
+        } else if isOutgoingCall == true && hasConnectedCall == true && hasEndedCall == false {
+            message = "Outgoing call in process."
+        } else if isOutgoingCall == false && hasConnectedCall == false && hasEndedCall == false {
+            message = "Incoming call ringing."
+        } else if isOutgoingCall == false && hasConnectedCall == true && hasEndedCall == false {
+            message = "Incoming call in process."
+        } else if isOutgoingCall == true && hasEndedCall == true {
+            message = "Outgoing call ended."
+        } else if isOutgoingCall == false && hasEndedCall == true {
+            message = "Incoming call ended."
+        } else {
+            message = "Unknown call state."
+        }
+        return message
+    }
+
+    func callObserver(_ callObserver: CXCallObserver, callChanged call: CXCall) {
+        self.call = call
+        callStateChanged()
+    }
+
+    func callStateChanged() {
+        delegate?.addBreadcrumb(breadcrumbMsg,
+                                attributes: nil,
+                                type: .system,
+                                level: .info)
+    }
+
+    deinit {
+        callObserver = nil
     }
 }
 #endif

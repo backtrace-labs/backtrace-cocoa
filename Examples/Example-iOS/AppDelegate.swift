@@ -31,7 +31,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
         BacktraceClient.shared?.attachments.append(fileUrl)
-
+        BacktraceClient.shared?.delegate = self
+        
         do {
             try throwingFunc()
         } catch {
@@ -40,7 +41,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
 
-        BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
 
         // Enable error free metrics https://docs.saucelabs.com/error-reporting/web-console/overview/#stability-metrics-widgets
