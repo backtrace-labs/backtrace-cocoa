@@ -43,6 +43,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
+
+        // Enable error free metrics https://docs.saucelabs.com/error-reporting/web-console/overview/#stability-metrics-widgets
+        BacktraceClient.shared?.metrics.enable(settings: BacktraceMetricsSettings())
+
+        // Enable breadcrumbs https://docs.saucelabs.com/error-reporting/web-console/debug/#breadcrumbs-section
+        BacktraceClient.shared?.enableBreadcrumbs()
+
+        // Add breadcrumb
         let attributes = ["My Attribute":"My Attribute Value"]
         _ = BacktraceClient.shared?.addBreadcrumb("My Breadcrumb",
                                               attributes: attributes,

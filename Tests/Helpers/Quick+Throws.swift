@@ -39,8 +39,8 @@ public typealias ThrowingBeforeSuiteClosure = ThrowingBeforeExampleClosure
  */
 public typealias ThrowingAfterSuiteClosure = ThrowingBeforeSuiteClosure
 
-public func throwingContext(_ description: String, flags: FilterFlags = [:], closure: () throws -> Void) {
-    context(description, flags: flags) {
+public func throwingContext(_ description: String, closure: () throws -> Void) {
+    context(description) {
         do {
             try closure()
         } catch {
@@ -49,9 +49,9 @@ public func throwingContext(_ description: String, flags: FilterFlags = [:], clo
     }
 }
 
-public func throwingIt(_ description: String, flags: FilterFlags = [:], file: String = #file, line: UInt = #line,
+public func throwingIt(_ description: String, file: String = #file, line: UInt = #line,
                        closure: @escaping () throws -> Void) {
-    it(description, flags: flags, file: file, line: line) {
+    it(description, file: file, line: line) {
         do {
             try closure()
         } catch {
