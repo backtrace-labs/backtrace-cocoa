@@ -22,6 +22,8 @@ static NSMutableData *wastedMemory = nil;
     for (int i = 0; i < 10000 ; i++) {
         [wastedMemory appendData:[NSMutableData dataWithLength:size]];
     }
+    // Or if all that fails, just force a memory warning manually :)
+    [[UIApplication sharedApplication] performSelector:@selector(_performMemoryWarning)];
 }
 
 - (IBAction) liveReportAction: (id) sender {

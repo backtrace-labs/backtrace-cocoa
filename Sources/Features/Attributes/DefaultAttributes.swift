@@ -200,10 +200,19 @@ struct LibInfo: AttributesSource {
     private static let applicationGuidKey = "backtrace.unique.user.identifier"
     private static let applicationLangName = "backtrace-cocoa"
 
+    var backtraceVersion: String? {
+        if let bundle = Bundle(identifier: "Backtrace.io.Backtrace"),
+           let build = bundle.infoDictionary?["CFBundleShortVersionString"] {
+            return build as? String
+        }
+        return nil
+    }
+
     var immutable: [String: Any?] {
         return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
                 "lang.name": LibInfo.applicationLangName,
-                "lang.version": BacktraceVersionNumber]
+                "lang.version": backtraceVersion,
+                "backtrace.version": backtraceVersion]
     }
 
     static private func guid(store: UserDefaultsStore.Type) -> UUID {

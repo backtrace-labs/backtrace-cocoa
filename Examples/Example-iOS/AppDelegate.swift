@@ -31,7 +31,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.attributes = ["foo": "bar", "testing": true]
         BacktraceClient.shared?.attachments.append(fileUrl)
-
+        BacktraceClient.shared?.delegate = self
+        
         do {
             try throwingFunc()
         } catch {
@@ -40,11 +41,15 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
 
-
-        BacktraceClient.shared?.delegate = self
         BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
 
+        // Enable error free metrics https://docs.saucelabs.com/error-reporting/web-console/overview/#stability-metrics-widgets
+        BacktraceClient.shared?.metrics.enable(settings: BacktraceMetricsSettings())
+
+        // Enable breadcrumbs https://docs.saucelabs.com/error-reporting/web-console/debug/#breadcrumbs-section
         BacktraceClient.shared?.enableBreadcrumbs()
+
+        // Add breadcrumb
         let attributes = ["My Attribute":"My Attribute Value"]
         _ = BacktraceClient.shared?.addBreadcrumb("My Breadcrumb",
                                               attributes: attributes,

@@ -19,12 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
                                                         token: Keys.backtraceToken as String)
         let backtraceDatabaseSettings = BacktraceDatabaseSettings()
-        backtraceDatabaseSettings.maxRecordCount = 1000
-        backtraceDatabaseSettings.maxDatabaseSize = 10
-        backtraceDatabaseSettings.retryInterval = 5
-        backtraceDatabaseSettings.retryLimit = 3
-        backtraceDatabaseSettings.retryBehaviour = RetryBehaviour.interval
-        backtraceDatabaseSettings.retryOrder = RetryOrder.queue
+        backtraceDatabaseSettings.maxRecordCount = 10
         let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
@@ -42,6 +37,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 print("AppDelegate:Result:\(result)")
             }
         }
+
+        // Enable error free metrics https://docs.saucelabs.com/error-reporting/web-console/overview/#stability-metrics-widgets
+        BacktraceClient.shared?.metrics.enable(settings: BacktraceMetricsSettings())
 
         return true
     }

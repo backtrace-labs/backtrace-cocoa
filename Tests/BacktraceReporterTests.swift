@@ -42,8 +42,8 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beTrue())
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
-                    expect { try reporter.repository.countResources() }.to(be(0))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
+                    expect { try reporter.repository.countResources() }.to(equal(0))
                 }
             }
             context("given no HTTP response") {
@@ -57,8 +57,8 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beTrue())
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
-                    expect { try reporter.repository.countResources() }.to(be(1))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
+                    expect { try reporter.repository.countResources() }.to(equal(1))
                 }
             }
 
@@ -74,8 +74,8 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beTrue())
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
-                    expect { try reporter.repository.countResources() }.to(be(1))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
+                    expect { try reporter.repository.countResources() }.to(equal(1))
                 }
             }
 
@@ -90,8 +90,8 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beTrue())
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
-                    expect { try reporter.repository.countResources() }.to(be(0))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
+                    expect { try reporter.repository.countResources() }.to(equal(0))
                 }
             }
 
@@ -114,8 +114,8 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beTrue())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(0))
-                    expect { try reporter.repository.countResources() }.to(be(0))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(0))
+                    expect { try reporter.repository.countResources() }.to(equal(0))
                 }
             }
 
@@ -135,7 +135,7 @@ final class BacktraceReporterTests: QuickSpec {
 
                         expect { result.backtraceStatus }.to(equal(.ok))
                         expect { result.report?.attachmentPaths }.to(equal(attachmentPaths.map(\.path)))
-                        expect { result.report?.attributes["a"] }.to(be("b"))
+                        expect { result.report?.attributes["a"] as? String }.to(equal("b"))
                     }
                 }
 
@@ -162,7 +162,7 @@ final class BacktraceReporterTests: QuickSpec {
 
                     expect { result.backtraceStatus }.to(equal(.ok))
                     expect { result.report?.attachmentPaths }.to(equal(attachmentPaths))
-                    expect { result.report?.attributes["a"] }.to(be("b"))
+                    expect { result.report?.attributes["a"] as? String }.to(equal("b"))
 
                     // Now result the closures and verify the attributes and attachments disappear
                     delegate.willSendClosure = { report in

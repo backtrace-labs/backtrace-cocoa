@@ -50,8 +50,15 @@
     }];
 
     BacktraceClient.shared.delegate = self;
+
+    // Enable error free metrics https://docs.saucelabs.com/error-reporting/web-console/overview/#stability-metrics-widgets
+    [BacktraceClient.shared.metrics enableWithSettings: [BacktraceMetricsSettings alloc]];
+
+    // Enable breadcrumbs https://docs.saucelabs.com/error-reporting/web-console/debug/#breadcrumbs-section
     [BacktraceClient.shared enableBreadcrumbs];
     NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
+
+    // Add breadcrumb
     [[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
                                  attributes:attributes
                                        type:BacktraceBreadcrumbTypeUser

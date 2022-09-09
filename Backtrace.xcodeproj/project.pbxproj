@@ -89,15 +89,9 @@
 		6E896E912727627C0005CDF2 /* BacktraceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */; };
 		6E896E922727627D0005CDF2 /* BacktraceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */; };
 		6E896E932727627D0005CDF2 /* BacktraceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */; };
-		6E896E94272762810005CDF2 /* BacktraceMetricsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */; };
-		6E896E95272762810005CDF2 /* BacktraceMetricsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */; };
-		6E896E96272762820005CDF2 /* BacktraceMetricsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */; };
 		6E896E98272767080005CDF2 /* Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E97272767080005CDF2 /* Payload.swift */; };
 		6E896E99272767080005CDF2 /* Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E97272767080005CDF2 /* Payload.swift */; };
 		6E896E9A272767080005CDF2 /* Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E97272767080005CDF2 /* Payload.swift */; };
-		6E896E9C272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */; };
-		6E896E9D272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */; };
-		6E896E9E272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */; };
 		6EB713EC275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */; };
 		6EB713ED275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */; };
 		6EB713EE275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */; };
@@ -110,9 +104,6 @@
 		6EB713F8276294160075D1C1 /* MetricsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713F7276294160075D1C1 /* MetricsRequest.swift */; };
 		6EB713F9276294160075D1C1 /* MetricsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713F7276294160075D1C1 /* MetricsRequest.swift */; };
 		6EB713FA276294160075D1C1 /* MetricsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713F7276294160075D1C1 /* MetricsRequest.swift */; };
-		6EB714072763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */; };
-		6EB714082763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */; };
-		6EB714092763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */; };
 		6F0BF6349057726F088D59C1 /* Pods_Example_tvOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F259CADCE03CF31669043E4 /* Pods_Example_tvOS.framework */; };
 		7300A170089CF1E455840E47 /* Pods_Backtrace_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BECDC44D2F82A1F1FD5CD9D1 /* Pods_Backtrace_macOS.framework */; };
 		87498D6984B8D95C39FE1793 /* Pods_Backtrace_macOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3ECFB169B902C0D4C33E583 /* Pods_Backtrace_macOSTests.framework */; };
@@ -419,14 +410,11 @@
 		6E87F5F6273332B400B90B07 /* SummedEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummedEvent.swift; sourceTree = "<group>"; };
 		6E87F5FA27347A6E00B90B07 /* UniqueEventsPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueEventsPayload.swift; sourceTree = "<group>"; };
 		6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetrics.swift; sourceTree = "<group>"; };
-		6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsDelegate.swift; sourceTree = "<group>"; };
 		6E896E97272767080005CDF2 /* Payload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Payload.swift; sourceTree = "<group>"; };
-		6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsResult.swift; sourceTree = "<group>"; };
 		6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummedEventsPayload.swift; sourceTree = "<group>"; };
 		6EB713EF276125760075D1C1 /* BacktraceMetricsSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsSender.swift; sourceTree = "<group>"; };
 		6EB713F327617ED00075D1C1 /* BacktraceMetricsContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsContainer.swift; sourceTree = "<group>"; };
 		6EB713F7276294160075D1C1 /* MetricsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsRequest.swift; sourceTree = "<group>"; };
-		6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceMetricsHttpResponse.swift; sourceTree = "<group>"; };
 		7A6BADA9A258E6A8C84A12EA /* Pods_Backtrace_tvOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_tvOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C6B849EED4A5BC8549A8626 /* Pods-Backtrace-macOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7DBFBE4F296B897EB758ADD5 /* Pods_Backtrace_iOSTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_iOSTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -701,7 +689,6 @@
 			children = (
 				6E896E88272749780005CDF2 /* Model */,
 				6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */,
-				6E896E8D2727626F0005CDF2 /* BacktraceMetricsDelegate.swift */,
 			);
 			path = Metrics;
 			sourceTree = "<group>";
@@ -711,7 +698,6 @@
 			children = (
 				6EB713F7276294160075D1C1 /* MetricsRequest.swift */,
 				6E896E97272767080005CDF2 /* Payload.swift */,
-				6E896E9B272767F20005CDF2 /* BacktraceMetricsResult.swift */,
 				6E87F5EA2733174C00B90B07 /* Event.swift */,
 				6E87F5F2273325A800B90B07 /* UniqueEvent.swift */,
 				6E87F5F6273332B400B90B07 /* SummedEvent.swift */,
@@ -719,7 +705,6 @@
 				6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */,
 				6EB713EF276125760075D1C1 /* BacktraceMetricsSender.swift */,
 				6EB713F327617ED00075D1C1 /* BacktraceMetricsContainer.swift */,
-				6EB714062763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -1941,7 +1926,6 @@
 				28F95BEB225260C5003936E0 /* DefaultAttributes.swift in Sources */,
 				28F95BD32252606F003936E0 /* BacktraceClientConfiguration.swift in Sources */,
 				6E87F5F5273325A800B90B07 /* UniqueEvent.swift in Sources */,
-				6E896E94272762810005CDF2 /* BacktraceMetricsDelegate.swift in Sources */,
 				28F95BD422526072003936E0 /* BacktraceCredentials.swift in Sources */,
 				28F95BE4225260A7003936E0 /* MultipartRequest.swift in Sources */,
 				AF5AB0A12626226D0003698C /* AttachmentsStorage.swift in Sources */,
@@ -1959,9 +1943,7 @@
 				28F95BDB22526088003936E0 /* SignalContext.swift in Sources */,
 				6E896E932727627D0005CDF2 /* BacktraceMetrics.swift in Sources */,
 				6EB713EE275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
-				6E896E9E272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */,
 				28F95BD122526068003936E0 /* BacktraceResult.swift in Sources */,
-				6EB714092763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */,
 				28F95BE7225260B0003936E0 /* Attachment.swift in Sources */,
 				0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				28F95BCB22526045003936E0 /* Dispatching.swift in Sources */,
@@ -2060,13 +2042,11 @@
 				2846E1FF223070CB0035F98C /* Attachment.swift in Sources */,
 				F2D7122521F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
 				F28F164721E28441008E4B96 /* BacktraceReporter.swift in Sources */,
-				6EB714082763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */,
 				F21211A6222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */,
 				F282075921CEA31F0017367F /* BacktraceReport.swift in Sources */,
 				28AC773A21F8C29800FED661 /* PersistentRepository.swift in Sources */,
 				28614F9F220B900300D35EFB /* DefaultAttributes.swift in Sources */,
 				F2A81B4E23EF1730007C63E4 /* BacktraceApiProtocol.swift in Sources */,
-				6E896E9D272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */,
 				F282075C21CEA37A0017367F /* Repository.swift in Sources */,
 				6EB713F1276125760075D1C1 /* BacktraceMetricsSender.swift in Sources */,
 				F26EBF3B23F21BC700A64218 /* BacktraceRateLimiter.swift in Sources */,
@@ -2088,7 +2068,6 @@
 				F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				F2AB636E22442B5100939BC9 /* DebuggerChecker.swift in Sources */,
 				F286353B2283685100F45412 /* Map+KeyPath.swift in Sources */,
-				6E896E95272762810005CDF2 /* BacktraceMetricsDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2152,7 +2131,6 @@
 				F259E4E22229C29A00F282C7 /* AttributesProvider.swift in Sources */,
 				F2AB63812246E16400939BC9 /* ReportingPolicy.swift in Sources */,
 				6E87F5F3273325A800B90B07 /* UniqueEvent.swift in Sources */,
-				6E896E96272762820005CDF2 /* BacktraceMetricsDelegate.swift in Sources */,
 				F25F9E9721EE84AF00236E04 /* BacktraceReportStatus.swift in Sources */,
 				F2AFB5912225E5D000AAA1D7 /* Foundation+Extensions.swift in Sources */,
 				28AC773F220A2A2900FED661 /* MultipartRequest.swift in Sources */,
@@ -2171,10 +2149,8 @@
 				F2D7122421F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
 				6E896E912727627C0005CDF2 /* BacktraceMetrics.swift in Sources */,
 				6EB713EC275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
-				6E896E9C272767F20005CDF2 /* BacktraceMetricsResult.swift in Sources */,
 				28A652F2285C6C1500306631 /* BacktraceBreadcrumbsLogManager.swift in Sources */,
 				F28F164621E28441008E4B96 /* BacktraceReporter.swift in Sources */,
-				6EB714072763FDEB0075D1C1 /* BacktraceMetricsHttpResponse.swift in Sources */,
 				F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */,
 				0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
 				F2C1514221F7D8E30014F1B3 /* PersistentRepository.swift in Sources */,
@@ -2405,6 +2381,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.7.4-beta2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2483,6 +2460,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.7.4-beta2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -2714,6 +2692,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.7.4-beta2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2795,6 +2774,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.7.4-beta2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -3205,6 +3185,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.7.4-beta2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -3288,6 +3269,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.7.4-beta2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -3341,10 +3323,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = LZGFT5UUA9;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -3374,6 +3358,8 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "Backtrace.io.Backtrace-iOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SDKROOT = iphoneos;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
@@ -3418,10 +3404,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = LZGFT5UUA9;
 				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -3444,6 +3432,8 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "Backtrace.io.Backtrace-iOSTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SDKROOT = iphoneos;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;

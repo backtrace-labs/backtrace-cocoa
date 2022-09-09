@@ -33,7 +33,7 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beTrue())
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
                 }
             }
             context("given no HTTP response") {
@@ -48,7 +48,7 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beTrue())
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
                 }
             }
 
@@ -65,7 +65,7 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beTrue())
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
                 }
             }
 
@@ -82,7 +82,7 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beTrue())
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(1))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
                 }
             }
 
@@ -100,7 +100,7 @@ final class BacktraceApiTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beTrue())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(be(0))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(0))
                 }
             }
 
