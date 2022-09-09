@@ -209,7 +209,7 @@
 		B5E58C6228C9FF51001F9650 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B579F80D28BFAF580001B21F /* AVFoundation.framework */; };
 		B5E58C6328C9FF81001F9650 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B579F80F28BFAFDD0001B21F /* AVKit.framework */; };
 		B5E58C6428CA05C7001F9650 /* 0873.MOV in Resources */ = {isa = PBXBuildFile; fileRef = B579F80928BFADB60001B21F /* 0873.MOV */; };
-		B5E58C6628CA2059001F9650 /* BreadcrumbBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6528CA2059001F9650 /* BreadcrumbBuilder.swift */; };
+		B5E58C6628CA2059001F9650 /* BacktraceBreadcrumb.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6528CA2059001F9650 /* BacktraceBreadcrumb.swift */; };
 		B5E58C6728CA3C15001F9650 /* MockView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B52FE19528BF90C900EF69F0 /* MockView.xib */; };
 		B5EDA84A28C8D75500EFCB26 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A11BFB22553C2800354640 /* ViewController.swift */; };
 		B5EDA84B28C8D75500EFCB26 /* AppDelegateBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52FE18428BE0D8E00EF69F0 /* AppDelegateBase.swift */; };
@@ -518,7 +518,7 @@
 		B5E58C5B28C9FE3C001F9650 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B5E58C5E28C9FE9A001F9650 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		B5E58C6028C9FEB6001F9650 /* ViewControllerPnP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerPnP.swift; sourceTree = "<group>"; };
-		B5E58C6528CA2059001F9650 /* BreadcrumbBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadcrumbBuilder.swift; sourceTree = "<group>"; };
+		B5E58C6528CA2059001F9650 /* BacktraceBreadcrumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceBreadcrumb.swift; sourceTree = "<group>"; };
 		B5EDA86028C8D75500EFCB26 /* Example-iOS-PnP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Example-iOS-PnP.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5EDA86128C8D75500EFCB26 /* Example-iOS copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Example-iOS copy-Info.plist"; path = "/Users/konstantin/Work/backtrace-cocoa/Example-iOS copy-Info.plist"; sourceTree = "<absolute>"; };
 		B7B445FAC6841A65683F35E9 /* Pods-Backtrace-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
@@ -816,7 +816,7 @@
 				F2A11BFB22553C2800354640 /* ViewController.swift */,
 				B52FE18828BE3C5700EF69F0 /* SimulatorCaseCell.swift */,
 				B52FE19828BF91A300EF69F0 /* MockView.swift */,
-				B5E58C6528CA2059001F9650 /* BreadcrumbBuilder.swift */,
+				B5E58C6528CA2059001F9650 /* BacktraceBreadcrumb.swift */,
 			);
 			path = "Common-Swift";
 			sourceTree = "<group>";
@@ -2216,7 +2216,7 @@
 			files = (
 				B5EDA84A28C8D75500EFCB26 /* ViewController.swift in Sources */,
 				B5EDA84B28C8D75500EFCB26 /* AppDelegateBase.swift in Sources */,
-				B5E58C6628CA2059001F9650 /* BreadcrumbBuilder.swift in Sources */,
+				B5E58C6628CA2059001F9650 /* BacktraceBreadcrumb.swift in Sources */,
 				B5EDA84C28C8D75500EFCB26 /* MockView.swift in Sources */,
 				B5E58C5C28C9FE3C001F9650 /* AppDelegate.swift in Sources */,
 				B5EDA84D28C8D75500EFCB26 /* SimulatorCaseCell.swift in Sources */,

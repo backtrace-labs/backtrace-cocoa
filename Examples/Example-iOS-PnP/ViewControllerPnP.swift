@@ -18,13 +18,13 @@ class ViewControllerPnP : UIViewController {
         
         videoURL = Bundle.main.path(forResource: "0873", ofType: "MOV")
         guard videoURL != nil else {
-            BreadcrumbBuilder.Error.addValue("Invalid", forKey: "Video URL").commit()
+            BacktraceBreadcrumb.Error.User.addValue("Invalid", forKey: "Video URL").commit()
             return
         }
         
         let url = URL(fileURLWithPath: videoURL!)
         print("Video URL: \(url)")
-        BreadcrumbBuilder.Info
+        BacktraceBreadcrumb.Info.Configuration
             .addValue(url.path, forKey: "Video URL")
             .commit()
 
@@ -36,7 +36,7 @@ class ViewControllerPnP : UIViewController {
             try AVAudioSession.sharedInstance().setCategory(.playback)
         }
         catch {
-            BreadcrumbBuilder.Error
+            BacktraceBreadcrumb.Error.System
                 .addValue("Failed to set audio session category", forKey: "Audio Session")
                 .commit()
         }
@@ -49,7 +49,7 @@ class ViewControllerPnP : UIViewController {
             "Player Status:" : String.init(format: "%d", avPlayer?.status.rawValue ?? -1),
             "Player Error" : avPlayer?.error?.localizedDescription ?? "Invalid",
         ]
-        BreadcrumbBuilder.Info
+        BacktraceBreadcrumb.Info.User
             .setValues(dict)
             .commit()
 
@@ -61,12 +61,12 @@ class ViewControllerPnP : UIViewController {
             
             switch self?.playerVC?.player?.status {
                 case .failed:
-                    BreadcrumbBuilder.Error
+                    BacktraceBreadcrumb.Error.Log
                         .addValue("Player Before Play", forKey: "Stage")
                         .addValue("Failed", forKey: "Player Status")
                         .commit()
                 case .readyToPlay:
-                    BreadcrumbBuilder.Info
+                    BacktraceBreadcrumb.Info.Navigation
                         .setValues([
                             "Stage":"Player Before Play",
                             "Player Status":"Ready To Play",
@@ -74,12 +74,12 @@ class ViewControllerPnP : UIViewController {
                         .addValue("Play", forKey: "Next Step")
                         .commit()
                 case .unknown:
-                    BreadcrumbBuilder.Warning
+                    BacktraceBreadcrumb.Warning.HTTP
                         .addValue("Player Before Play", forKey: "Stage")
                         .addValue("Unknown", forKey: "Player Status")
                         .commit()
                 case .none:
-                    BreadcrumbBuilder.Warning
+                    BacktraceBreadcrumb.Fatal.Configuration
                         .setValues([
                             "Stage":"Player Before Play",
                             "Player Status":"None",
@@ -99,7 +99,6 @@ class ViewControllerPnP : UIViewController {
                     do {
                         let simulator = BacktraceSimulator()
                         try simulator.executeCase(atIndex: 10) // Live report
-//                        try simulator.executeCase(atIndex: .random(in: 0..<simulator.numberOfCases()))
                     }
                     catch {}
                 }))
