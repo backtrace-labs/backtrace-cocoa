@@ -15,6 +15,9 @@ class ViewControllerPnP : UIViewController {
     
     @IBAction func onBtnPlay() {
         playerVC = AVPlayerViewController()
+        guard playerVC != nil else { return }
+        
+        playerVC?.delegate = self
         
         videoURL = Bundle.main.path(forResource: "0873", ofType: "MOV")
         guard videoURL != nil else {
@@ -41,8 +44,9 @@ class ViewControllerPnP : UIViewController {
                 .commit()
         }
         
+        avPlayer?.actionAtItemEnd = .pause
         playerVC?.player = avPlayer
-
+//        playerVC?.canStartPictureInPictureAutomaticallyFromInline = true
         
         let dict = [
             "Stage" : "Player Set Up",
@@ -53,10 +57,7 @@ class ViewControllerPnP : UIViewController {
             .setValues(dict)
             .commit()
 
-        
-        guard playerVC != nil else { return }
-        playerVC?.delegate = self
-        
+                
         present(playerVC!, animated: true) { [weak self] in
             
             switch self?.playerVC?.player?.status {
@@ -112,19 +113,19 @@ extension ViewControllerPnP : AVPlayerViewControllerDelegate {
 //    @available(iOS 12.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               willBeginFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator) {
-        
+        print("willBeginFullScreenPresentationWithAnimationCoordinator")
     }
     
 //    @available(iOS 12.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               willEndFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator) {
-        
+        print("willEndFullScreenPresentationWithAnimationCoordinator")
     }
 
 //    @available(iOS 15.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               restoreUserInterfaceForFullScreenExitWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
-        
+        print("restoreUserInterfaceForFullScreenExitWithCompletionHandler")
     }
 
 //    @available(iOS 15.0, *)
@@ -134,43 +135,49 @@ extension ViewControllerPnP : AVPlayerViewControllerDelegate {
 
 //    @available(iOS 8.0, *)
     func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
-        
+        print("playerViewControllerWillStartPictureInPicture")
     }
 
 //    @available(iOS 8.0, *)
     func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
-        
+        print("playerViewControllerDidStartPictureInPicture")
     }
 
 //    @available(iOS 8.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               failedToStartPictureInPictureWithError error: Error) {
-        
+        print("failedToStartPictureInPictureWithError")
     }
 
 //    @available(iOS 8.0, *)
     func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
-        
+        print("playerViewControllerWillStopPictureInPicture")
     }
 
 //    @available(iOS 8.0, *)
     func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
-        
+        print("playerViewControllerDidStopPictureInPicture")
+//        present(playerVC!, animated: true) {}
     }
 
 //    @available(iOS 8.0, *)
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool {
+        print("playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart")
         return true
     }
 
 //    @available(iOS 8.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
-        
+        print("restoreUserInterfaceForPictureInPictureStopWithCompletionHandler")
+        present(playerVC!, animated: true) {
+            completionHandler(true)
+        }
     }
 
 //    @available(iOS 8.0, *)
     func playerViewControllerRestoreUserInterfaceForPictureInPictureStop(_ playerViewController: AVPlayerViewController) -> Bool {
+        print("playerViewControllerRestoreUserInterfaceForPictureInPictureStop")
         return true
     }
 }
