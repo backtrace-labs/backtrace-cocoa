@@ -13,15 +13,15 @@ import Backtrace_PLCrashReporter
         case safe
     }
 
-    fileprivate struct StartUpEvent: Codable {
+    internal struct StartUpEvent: Codable {
         var timestamp: Double
         var isSuccessful: Bool
     }
     
     @objc private static let plistKey = "CrashLoopDB"
-    @objc private static let eventsForCrashLoopCount = 5
+    @objc internal static let eventsForCrashLoopCount = 5
 
-    fileprivate var startupEvents: [StartUpEvent] = []
+    internal var startupEvents: [StartUpEvent] = []
     
     @objc private func loadEvents() {
         
@@ -46,11 +46,13 @@ import Backtrace_PLCrashReporter
         else { return }
                 
         startupEvents.append(contentsOf: array)
+        print("Events Loaded: \(startupEvents.count)")
     }
     
-    @objc private func saveEvents() {
+    @objc internal func saveEvents() {
         let data = try? PropertyListEncoder().encode(startupEvents)
         UserDefaults.standard.set(data, forKey: BacktraceCrashLoopDetector.plistKey)
+        print("Events Saved: \(startupEvents.count)")
     }
     
     @objc private func addCurrentEvent() {
@@ -62,7 +64,15 @@ import Backtrace_PLCrashReporter
             event.isSuccessful = false
         }
 //        event.isSuccessful = false
+        print("New Event: {timestamp:\(event.timestamp)--successful:\(event.isSuccessful)}")
+
         startupEvents.append(event)
+        
+        if startupEvents.count > BacktraceCrashLoopDetector.eventsForCrashLoopCount {
+            startupEvents.remove(at: 0)
+        }
+
+        print("Event Added: \(startupEvents.count)")
     }
 
     @objc private func badEventsCount() -> Int {
@@ -71,17 +81,17 @@ import Backtrace_PLCrashReporter
         for event in startupEvents {
             badEventsCount += (event.isSuccessful ? 0 : 1)
         }
-
-        if startupEvents.count >= BacktraceCrashLoopDetector.eventsForCrashLoopCount {
-            startupEvents.remove(at: 0)
-        }
         
+        print("Bad Events Count: \(badEventsCount)")
         return badEventsCount
     }
     
     @objc func detectCrashloop() -> Bool {
 
+        print("Starting Crash Loop Detection")
+        
         loadEvents()
+
         addCurrentEvent()
         
         let count = badEventsCount()
@@ -89,6 +99,8 @@ import Backtrace_PLCrashReporter
 
         // true -> crash loop detected -> set safe mode
         // false -> crash loop NOT detected -> set normal mode
-        return count >= BacktraceCrashLoopDetector.eventsForCrashLoopCount
+        let result = count >= BacktraceCrashLoopDetector.eventsForCrashLoopCount
+        print("Finishing Crash Loop Detection: \(result)")
+        return result
     }
 }

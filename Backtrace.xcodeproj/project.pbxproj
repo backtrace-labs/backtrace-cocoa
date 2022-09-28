@@ -179,6 +179,9 @@
 		AFCCCE232625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
 		AFCCCE242625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
 		AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
+		B50C5A8028E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */; };
+		B50C5A8128E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */; };
+		B50C5A8228E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */; };
 		B5E58C6928E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
 		B5E58C6A28E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
 		B5E58C6B28E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
@@ -452,6 +455,7 @@
 		AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsStorage.swift; sourceTree = "<group>"; };
 		AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportMetadataStorageMock.swift; sourceTree = "<group>"; };
 		AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentBookmarkHandler.swift; sourceTree = "<group>"; };
+		B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCrashLoopDetectorTests.swift; sourceTree = "<group>"; };
 		B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCrashLoopDetector.swift; sourceTree = "<group>"; };
 		B7B445FAC6841A65683F35E9 /* Pods-Backtrace-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		BECDC44D2F82A1F1FD5CD9D1 /* Pods_Backtrace_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -817,6 +821,7 @@
 				A24A4B4928B595D8004F5052 /* BacktraceWatcherTests.swift */,
 				A24A4B5528B595D8004F5052 /* CrashReporterTests.swift */,
 				A24A4B5228B595D8004F5052 /* DispatcherTests.swift */,
+				B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */,
 				F21DD3AF2255E99E00404CC3 /* Resources */,
 				F2AB6370224647F000939BC9 /* Helpers */,
 				F2AB636F224647DE00939BC9 /* Mocks */,
@@ -1987,6 +1992,7 @@
 				A24A4B7728B595D9004F5052 /* DispatcherTests.swift in Sources */,
 				A24A4B6828B595D9004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
 				F21DD39F2255666F00404CC3 /* WatcherRepositoryMock.swift in Sources */,
+				B50C5A8228E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */,
 				A24A4B5C28B595D9004F5052 /* BacktraceWatcherTests.swift in Sources */,
 				A24A4B7A28B595D9004F5052 /* AttributesTests.swift in Sources */,
 				A24A4B6E28B595D9004F5052 /* AttachmentTests.swift in Sources */,
@@ -2082,6 +2088,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B50C5A8128E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */,
 				A24A4B7C28B595D9004F5052 /* AttachmentStorageTests.swift in Sources */,
 				F2AB637F22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */,
 				A24A4B7328B595D9004F5052 /* BacktraceApiTests.swift in Sources */,
@@ -2193,6 +2200,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B50C5A8028E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */,
 				A24A4B7B28B595D9004F5052 /* AttachmentStorageTests.swift in Sources */,
 				F2AB637E22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */,
 				A24A4B7228B595D9004F5052 /* BacktraceApiTests.swift in Sources */,
