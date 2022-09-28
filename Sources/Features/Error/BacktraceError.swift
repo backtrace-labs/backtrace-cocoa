@@ -35,6 +35,10 @@ enum FileError: BacktraceError {
     case invalidPropertyList
 }
 
+enum CrashLoopError: BacktraceError {
+    case crashLoopDetected
+}
+
 enum CodingError: BacktraceError {
     case encodingFailed
 }

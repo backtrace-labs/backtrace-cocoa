@@ -179,6 +179,9 @@
 		AFCCCE232625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
 		AFCCCE242625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
 		AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */; };
+		B5E58C6928E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
+		B5E58C6A28E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
+		B5E58C6B28E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
 		DAF627C0CA0FE995B581C33B /* Pods_Backtrace_tvOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD097A22120C3DCE08382BA5 /* Pods_Backtrace_tvOSTests.framework */; };
 		F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
 		F21211A6222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
@@ -449,6 +452,7 @@
 		AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsStorage.swift; sourceTree = "<group>"; };
 		AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportMetadataStorageMock.swift; sourceTree = "<group>"; };
 		AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentBookmarkHandler.swift; sourceTree = "<group>"; };
+		B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCrashLoopDetector.swift; sourceTree = "<group>"; };
 		B7B445FAC6841A65683F35E9 /* Pods-Backtrace-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		BECDC44D2F82A1F1FD5CD9D1 /* Pods_Backtrace_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFAF826CD2E1314532AD4FF6 /* Pods_Example_iOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -932,6 +936,7 @@
 		F2AFB59622274E1400AAA1D7 /* Public */ = {
 			isa = PBXGroup;
 			children = (
+				B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */,
 				6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */,
 				F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */,
 				F2AFB59922274E5400AAA1D7 /* BacktraceClientCustomizing.swift */,
@@ -1917,6 +1922,7 @@
 				AF5AB0BB262622730003698C /* AttachmentBookmarkHandler.swift in Sources */,
 				28F95BD022526064003936E0 /* BacktraceClient.swift in Sources */,
 				28F95BCD2252605A003936E0 /* BacktraceClientDelegate.swift in Sources */,
+				B5E58C6B28E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */,
 				28F95BC92252602C003936E0 /* Foundation+Extensions.swift in Sources */,
 				28F95BD622526078003936E0 /* DebuggerChecker.swift in Sources */,
 				28A65308285D1BF700306631 /* Date+Extensions.swift in Sources */,
@@ -2021,6 +2027,7 @@
 				F2AFB59E22274EDA00AAA1D7 /* Dispatching.swift in Sources */,
 				2846E1F9222F1DE60035F98C /* NetworkReachability.swift in Sources */,
 				F21211A9222348C2000B3692 /* SignalContext.swift in Sources */,
+				B5E58C6A28E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */,
 				F2AB639D22479A3600939BC9 /* Model.xcdatamodeld in Sources */,
 				F259E4E3222AD9F100F282C7 /* AttributesProvider.swift in Sources */,
 				F266B83321C77B9600D14417 /* BacktraceClient.swift in Sources */,
@@ -2150,6 +2157,7 @@
 				6E896E912727627C0005CDF2 /* BacktraceMetrics.swift in Sources */,
 				6EB713EC275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
 				28A652F2285C6C1500306631 /* BacktraceBreadcrumbsLogManager.swift in Sources */,
+				B5E58C6928E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */,
 				F28F164621E28441008E4B96 /* BacktraceReporter.swift in Sources */,
 				F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */,
 				0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */,
@@ -2381,7 +2389,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.4-beta2;
+				MARKETING_VERSION = "1.7.4-beta2";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2460,7 +2468,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.4-beta2;
+				MARKETING_VERSION = "1.7.4-beta2";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -2692,7 +2700,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.4-beta2;
+				MARKETING_VERSION = "1.7.4-beta2";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2774,7 +2782,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.4-beta2;
+				MARKETING_VERSION = "1.7.4-beta2";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -3185,7 +3193,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.4-beta2;
+				MARKETING_VERSION = "1.7.4-beta2";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -3269,7 +3277,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.4-beta2;
+				MARKETING_VERSION = "1.7.4-beta2";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -3483,6 +3491,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = LZGFT5UUA9;
 				ENABLE_BITCODE = NO;
@@ -3507,6 +3516,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -3562,6 +3572,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = LZGFT5UUA9;
 				ENABLE_BITCODE = NO;
@@ -3580,6 +3591,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = apptailors.co.backtrace.swift.ios.example;
