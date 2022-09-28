@@ -18,6 +18,16 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
+        let isSafeToLaunch = BacktraceClient.isSafeToLaunch()
+        
+        if !isSafeToLaunch {
+            // Perform custom checks if necessary and decide if Backtrace should be launched
+        }
+        else {
+            
+        }
+        
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
                                                         token: Keys.backtraceToken as String)
 

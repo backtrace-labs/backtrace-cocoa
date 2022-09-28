@@ -87,16 +87,20 @@ import Foundation
         self.metricsInstance = BacktraceMetrics(api: api)
 
         super.init()
-        
-        let crashLoopDetector = BacktraceCrashLoopDetector()
-        isSafeMode = crashLoopDetector.detectCrashloop()
-        
+                
         try startCrashReporter()
     }
 }
 
 // MARK: - BacktraceClient Safe Mode public API
 extension BacktraceClient {
+    
+    @objc public static func isSafeToLaunch() -> Bool {
+        let crashLoopDetector = BacktraceCrashLoopDetector()
+        let isInCrashLoop = crashLoopDetector.detectCrashloop()
+        return !isInCrashLoop
+    }
+    
     @objc public func enableSafeMode() {
         isSafeMode = true
         
