@@ -8,6 +8,11 @@ import Backtrace_PLCrashReporter
 
 @objc public class BacktraceCrashLoopDetector: NSObject {
         
+    enum SafetyMode {
+        case normal
+        case safe
+    }
+
     fileprivate struct StartUpEvent: Codable {
         var timestamp: Double
         var isSuccessful: Bool
@@ -16,13 +21,7 @@ import Backtrace_PLCrashReporter
     @objc private static let plistKey = "CrashLoopDB"
     @objc private static let eventsForCrashLoopCount = 5
 
-    @objc public static let shared = BacktraceCrashLoopDetector()
-
     fileprivate var startupEvents: [StartUpEvent] = []
-    
-    @objc override private init() {
-        super.init()
-    }
     
     @objc private func loadEvents() {
         
@@ -31,9 +30,9 @@ import Backtrace_PLCrashReporter
         
         /*
          - Since detector's DB is relatively small, UserDefaults are a good option here,
-         plus allows to avoid a headache with reading/writing to/from the custom file.
+         plus they allow to avoid a headache with reading/writing to/from the custom file.
 
-         - But we should consider shared computers as well:
+         - But we should consider shared computers as well - comment from UserDefaults docs:
             With the exception of managed devices in educational institutions,
             a user’s defaults are stored locally on a single device,
             and persisted for backup and restore.
