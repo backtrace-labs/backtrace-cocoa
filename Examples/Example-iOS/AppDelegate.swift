@@ -23,9 +23,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         
         if !isSafeToLaunch {
             // Perform custom checks if necessary and decide if Backtrace should be launched
-        }
-        else {
-            
+            return true
         }
         
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,

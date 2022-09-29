@@ -17,7 +17,7 @@ import Foundation
     @objc private let breadcrumbsInstance: BacktraceBreadcrumbs = BacktraceBreadcrumbs()
 #endif
 
-    private var isSafeMode = false
+    private static var isSafeMode = false
 
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
@@ -98,22 +98,23 @@ extension BacktraceClient {
     @objc public static func isSafeToLaunch() -> Bool {
         let crashLoopDetector = BacktraceCrashLoopDetector()
         let isInCrashLoop = crashLoopDetector.detectCrashloop()
+        isSafeMode = isInCrashLoop
         return !isInCrashLoop
     }
     
-    @objc public func enableSafeMode() {
+    @objc public static func enableSafeMode() {
         isSafeMode = true
         
         // Do any additional setup here - f.e. turn off reporting etc
     }
     
-    @objc public func disableSafeMode() {
+    @objc public static func disableSafeMode() {
         isSafeMode = false
         
         // Do any additional setup here - f.e. turn on reporting etc
     }
     
-    @objc public func isInSafeMode() -> Bool {
+    @objc public static func isInSafeMode() -> Bool {
         return isSafeMode
     }
 }

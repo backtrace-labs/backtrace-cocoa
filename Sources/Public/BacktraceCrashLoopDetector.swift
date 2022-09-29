@@ -4,7 +4,6 @@
 //
 
 import Foundation
-import Backtrace_PLCrashReporter
 
 @objc public class BacktraceCrashLoopDetector: NSObject {
         
@@ -20,6 +19,7 @@ import Backtrace_PLCrashReporter
     
     @objc private static let plistKey = "CrashLoopDB"
     @objc internal static let eventsForCrashLoopCount = 5
+    @objc public static var badEventsCount = 0
 
     internal var startupEvents: [StartUpEvent] = []
     
@@ -55,15 +55,28 @@ import Backtrace_PLCrashReporter
         print("Events Saved: \(startupEvents.count)")
     }
     
+    @objc private func hasCrashReport() -> Bool {
+
+        let bundleIDBT = Bundle.main.bundleIdentifier ?? ""
+        let appIDPath = bundleIDBT.replacingOccurrences(of: "/", with: "_")
+
+        let paths = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true)
+        let cacheDir = URL(fileURLWithPath: paths.count > 0 ? paths[0] : "")
+
+        let bundleIDPLCR = "com.plausiblelabs.crashreporter.data"
+        let crashReportDir = cacheDir.appendingPathComponent(bundleIDPLCR).appendingPathComponent(appIDPath)
+
+        let reportName = "live_report.plcrash"
+        let reportFullPath = crashReportDir.appendingPathComponent(reportName).absoluteString.replacingOccurrences(of: "file://", with: "")
+        print("reportFullPath: \(reportFullPath)")
+        let exists = FileManager.default.fileExists(atPath: reportFullPath)
+        return exists
+    }
+    
     @objc private func addCurrentEvent() {
+        
         var event = StartUpEvent(timestamp: Double(Date.timeIntervalSinceReferenceDate), isSuccessful: true)
-
-        let plReporter = PLCrashReporter(configuration: PLCrashReporterConfig.defaultConfiguration())
-
-        if plReporter?.hasPendingCrashReport() ?? false {
-            event.isSuccessful = false
-        }
-//        event.isSuccessful = false
+        event.isSuccessful = !hasCrashReport()
         print("New Event: {timestamp:\(event.timestamp)--successful:\(event.isSuccessful)}")
 
         startupEvents.append(event)
@@ -81,7 +94,7 @@ import Backtrace_PLCrashReporter
         for event in startupEvents {
             badEventsCount += (event.isSuccessful ? 0 : 1)
         }
-        
+        BacktraceCrashLoopDetector.badEventsCount = badEventsCount
         print("Bad Events Count: \(badEventsCount)")
         return badEventsCount
     }

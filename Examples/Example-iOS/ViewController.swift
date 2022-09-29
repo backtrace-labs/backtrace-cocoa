@@ -10,6 +10,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        textView.text = "BadEvents: " + BacktraceCrashLoopDetector.badEventsCount.description
+        + "\nIs Safe to Launch: " + (BacktraceClient.isInSafeMode() ? "FALSE" : "TRUE")
     }
     
     @IBAction func outOfMemoryReportAction(_ sender: Any) {
