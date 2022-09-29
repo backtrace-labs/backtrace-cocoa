@@ -10,7 +10,7 @@ final class BacktraceCrashLoopDetectorTests: QuickSpec {
         describe("Crash Loop Detector") {
 
             let crashLoopDetector = BacktraceCrashLoopDetector()
-            let eventsCount = BacktraceCrashLoopDetector.eventsForCrashLoopCount
+            let eventsCount = BacktraceCrashLoopDetector.consecutiveCrashesThreshold
             let timeIntervalStep = 200
             var isCrashLoop = false
             

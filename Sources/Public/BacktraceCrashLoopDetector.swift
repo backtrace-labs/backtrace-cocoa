@@ -7,21 +7,22 @@ import Foundation
 
 @objc public class BacktraceCrashLoopDetector: NSObject {
         
-    enum SafetyMode {
-        case normal
-        case safe
-    }
-
     internal struct StartUpEvent: Codable {
         var timestamp: Double
         var isSuccessful: Bool
     }
     
     @objc private static let plistKey = "CrashLoopDB"
-    @objc internal static let eventsForCrashLoopCount = 5
-    @objc public static var badEventsCount = 0
+    @objc internal static let consecutiveCrashesThreshold = 5
+    @objc internal var consecutiveCrashesCount = 0
 
+    @objc private var threshold = consecutiveCrashesThreshold
+    
     internal var startupEvents: [StartUpEvent] = []
+    
+    @objc internal func updateThreshold(_ threshold: Int) {
+        self.threshold = threshold == 0 ? BacktraceCrashLoopDetector.consecutiveCrashesThreshold : threshold
+    }
     
     @objc private func loadEvents() {
         
@@ -54,9 +55,8 @@ import Foundation
         UserDefaults.standard.set(data, forKey: BacktraceCrashLoopDetector.plistKey)
         print("Events Saved: \(startupEvents.count)")
     }
-    
-    @objc private func hasCrashReport() -> Bool {
 
+    @objc private func reportFilePath() -> String {
         let bundleIDBT = Bundle.main.bundleIdentifier ?? ""
         let appIDPath = bundleIDBT.replacingOccurrences(of: "/", with: "_")
 
@@ -69,7 +69,11 @@ import Foundation
         let reportName = "live_report.plcrash"
         let reportFullPath = crashReportDir.appendingPathComponent(reportName).absoluteString.replacingOccurrences(of: "file://", with: "")
         print("reportFullPath: \(reportFullPath)")
-        let exists = FileManager.default.fileExists(atPath: reportFullPath)
+        return reportFullPath
+    }
+    
+    @objc private func hasCrashReport() -> Bool {
+        let exists = FileManager.default.fileExists(atPath: reportFilePath())
         return exists
     }
     
@@ -81,7 +85,7 @@ import Foundation
 
         startupEvents.append(event)
         
-        if startupEvents.count > BacktraceCrashLoopDetector.eventsForCrashLoopCount {
+        if startupEvents.count > BacktraceCrashLoopDetector.consecutiveCrashesThreshold {
             startupEvents.remove(at: 0)
         }
 
@@ -94,7 +98,7 @@ import Foundation
         for event in startupEvents {
             badEventsCount += (event.isSuccessful ? 0 : 1)
         }
-        BacktraceCrashLoopDetector.badEventsCount = badEventsCount
+        self.consecutiveCrashesCount = badEventsCount
         print("Bad Events Count: \(badEventsCount)")
         return badEventsCount
     }
@@ -112,8 +116,22 @@ import Foundation
 
         // true -> crash loop detected -> set safe mode
         // false -> crash loop NOT detected -> set normal mode
-        let result = count >= BacktraceCrashLoopDetector.eventsForCrashLoopCount
+        let result = count >= BacktraceCrashLoopDetector.consecutiveCrashesThreshold
         print("Finishing Crash Loop Detection: \(result)")
         return result
     }
+    
+    @objc func deleteCrashReport() {
+        let path = reportFilePath()
+        let fileURL = URL(fileURLWithPath: path)
+        try? FileManager.default.removeItem(at: fileURL)
+        
+        startupEvents.removeAll()
+        saveEvents()
+    }
+    
+//    
+//    @objc func consecutiveCrashesCount() -> Int {
+//        return self.consecutiveCrashesCount
+//    }
 }

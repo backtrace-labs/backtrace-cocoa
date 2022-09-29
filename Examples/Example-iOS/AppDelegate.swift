@@ -19,9 +19,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        let isSafeToLaunch = BacktraceClient.isSafeToLaunch()
+        // Enable crash loop detector, it crashes count threshold is not specified - default will be used
+        BacktraceClient.enableCrashLoopDetection()
+        defer { BacktraceClient.resetCrashLoopDetection() }
+
+        let isSafeModeRequired = BacktraceClient.isSafeModeRequired()
         
-        if !isSafeToLaunch {
+        if isSafeModeRequired {
+            // Remove current crash file for not to be trapped in a loop of crash detections
             // Perform custom checks if necessary and decide if Backtrace should be launched
             return true
         }

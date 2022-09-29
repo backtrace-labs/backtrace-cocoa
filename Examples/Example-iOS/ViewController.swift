@@ -10,7 +10,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        textView.text = "BadEvents: " + BacktraceCrashLoopDetector.badEventsCount.description
+        textView.text = "BadEvents: " + BacktraceClient.consecutiveCrashesCount().description
         + "\nIs Safe to Launch: " + (BacktraceClient.isInSafeMode() ? "FALSE" : "TRUE")
     }
     

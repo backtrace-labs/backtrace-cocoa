@@ -3,6 +3,11 @@ import Foundation
 /// Provides the default implementation of `BacktraceClientProtocol` protocol.
 @objc open class BacktraceClient: NSObject {
 
+    enum WorkingMode {
+        case normal
+        case safe
+    }
+
     /// Shared instance of BacktraceClient class. Should be created before sending any reports.
     @objc public static var shared: BacktraceClientProtocol?
 
@@ -17,11 +22,13 @@ import Foundation
     @objc private let breadcrumbsInstance: BacktraceBreadcrumbs = BacktraceBreadcrumbs()
 #endif
 
-    private static var isSafeMode = false
+    private static var workingMode = WorkingMode.normal
 
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
+
+    private static var crashLoopDetector: BacktraceCrashLoopDetector?
 
     /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
     /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
@@ -95,27 +102,43 @@ import Foundation
 // MARK: - BacktraceClient Safe Mode public API
 extension BacktraceClient {
     
-    @objc public static func isSafeToLaunch() -> Bool {
-        let crashLoopDetector = BacktraceCrashLoopDetector()
-        let isInCrashLoop = crashLoopDetector.detectCrashloop()
-        isSafeMode = isInCrashLoop
-        return !isInCrashLoop
-    }
-    
     @objc public static func enableSafeMode() {
-        isSafeMode = true
+        workingMode = .safe
         
         // Do any additional setup here - f.e. turn off reporting etc
     }
     
     @objc public static func disableSafeMode() {
-        isSafeMode = false
+        workingMode = .normal
         
         // Do any additional setup here - f.e. turn on reporting etc
     }
     
     @objc public static func isInSafeMode() -> Bool {
-        return isSafeMode
+        return workingMode == .safe
+    }
+    
+    @objc public static func enableCrashLoopDetection(_ threshold: Int = 0) {
+        crashLoopDetector = BacktraceCrashLoopDetector()
+        crashLoopDetector?.updateThreshold(threshold)
+    }
+    
+    @objc public static func disableCrashLoopDetection() {
+        crashLoopDetector = nil
+    }
+    
+    @objc public static func resetCrashLoopDetection() {
+        crashLoopDetector?.deleteCrashReport()
+    }
+    
+    @objc public static func isSafeModeRequired() -> Bool {
+        let isInCrashLoop = crashLoopDetector?.detectCrashloop() ?? false
+        if isInCrashLoop { enableSafeMode() }
+        return isInCrashLoop
+    }
+    
+    @objc public static func consecutiveCrashesCount() -> Int {
+        return crashLoopDetector?.consecutiveCrashesCount ?? 0
     }
 }
 
