@@ -1,5 +1,8 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.7.4
+- No changes compared to 1.7.4-beta2
+
 ## Version 1.7.4-beta2
 - Adds Call Observer breadcrumb in #97
 - Prevents duplicate breadcrumbs in #92
