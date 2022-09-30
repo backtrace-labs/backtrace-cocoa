@@ -3,9 +3,13 @@ import Backtrace
 
 class ViewController: UIViewController {
 
+    @IBOutlet weak var textView: UITextView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+
+        textView.text = "BadEvents: " + BacktraceClient.consecutiveCrashesCount().description
+        + "\nIs Safe to Launch: " + (BacktraceClient.isInSafeMode() ? "FALSE" : "TRUE")
     }
     
     @IBAction func liveReportAction(_ sender: Any) {

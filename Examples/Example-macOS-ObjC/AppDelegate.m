@@ -10,6 +10,14 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     
+    [BacktraceClient enableCrashLoopDetection: 0];
+    if([BacktraceClient isSafeModeRequired]) {
+        // Remove current crash file for not to be trapped in a loop of crash detections
+        [BacktraceClient resetCrashLoopDetection];
+        // Perform custom checks if necessary and decide if Backtrace should be launched
+        return;
+    }
+    
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithSubmissionUrl: [NSURL URLWithString: Keys.backtraceSubmissionUrl]];
     BacktraceDatabaseSettings *backtraceDatabaseSettings = [[BacktraceDatabaseSettings alloc] init];
