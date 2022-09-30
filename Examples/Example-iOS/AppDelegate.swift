@@ -21,12 +21,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // Enable crash loop detector, it crashes count threshold is not specified - default will be used
         BacktraceClient.enableCrashLoopDetection()
-        defer { BacktraceClient.resetCrashLoopDetection() }
 
         let isSafeModeRequired = BacktraceClient.isSafeModeRequired()
         
         if isSafeModeRequired {
             // Remove current crash file for not to be trapped in a loop of crash detections
+            BacktraceClient.resetCrashLoopDetection()
             // Perform custom checks if necessary and decide if Backtrace should be launched
             return true
         }

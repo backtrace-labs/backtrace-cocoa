@@ -95,8 +95,11 @@ import Foundation
     @objc private func badEventsCount() -> Int {
         
         var badEventsCount = 0
-        for event in startupEvents {
-            badEventsCount += (event.isSuccessful ? 0 : 1)
+        for event in startupEvents.reversed() {
+            if event.isSuccessful {
+                break
+            }
+            badEventsCount += 1
         }
         self.consecutiveCrashesCount = badEventsCount
         print("Bad Events Count: \(badEventsCount)")
@@ -125,8 +128,6 @@ import Foundation
         let path = reportFilePath()
         let fileURL = URL(fileURLWithPath: path)
         try? FileManager.default.removeItem(at: fileURL)
-        
-        startupEvents.removeAll()
         saveEvents()
     }
     
