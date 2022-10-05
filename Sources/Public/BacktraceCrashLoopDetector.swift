@@ -6,15 +6,15 @@
 import Foundation
 
 @objc public class BacktraceCrashLoopDetector: NSObject {
-        
+
     internal struct StartUpEvent: Codable {
         var timestamp: Double
         var isSuccessful: Bool
     }
-    
-    @objc private static let plistKey = "CrashLoopDB"
+
+    @objc private static let plistKey = "CrashLoopDetectorData"
     @objc internal static let consecutiveCrashesThreshold = 5
-    @objc internal var consecutiveCrashesCount = 0
+    @objc private(set) var consecutiveCrashesCount = 0
 
     @objc private var threshold = consecutiveCrashesThreshold
     
@@ -23,7 +23,7 @@ import Foundation
     @objc internal func updateThreshold(_ threshold: Int) {
         self.threshold = threshold == 0 ? BacktraceCrashLoopDetector.consecutiveCrashesThreshold : threshold
     }
-    
+
     @objc private func loadEvents() {
         
         // Cleanup old events - f.e, for multiple usages of detector
@@ -47,41 +47,49 @@ import Foundation
         else { return }
                 
         startupEvents.append(contentsOf: array)
-        print("Events Loaded: \(startupEvents.count)")
+        BacktraceLogger.debug("Events Loaded: \(startupEvents.count)")
     }
-    
+
     @objc internal func saveEvents() {
         let data = try? PropertyListEncoder().encode(startupEvents)
         UserDefaults.standard.set(data, forKey: BacktraceCrashLoopDetector.plistKey)
-        print("Events Saved: \(startupEvents.count)")
+        BacktraceLogger.debug("Events Saved: \(startupEvents.count)")
     }
 
     @objc private func reportFilePath() -> String {
+        
+        // Crash Loop Detector considers all other Backtrace modules as potentially dangerous.
+        // Thats why it formats path to PLCrashReporter's report file itself,
+        // for not to use PLCrashReporter's APIs at all
+        
         let bundleIDBT = Bundle.main.bundleIdentifier ?? ""
         let appIDPath = bundleIDBT.replacingOccurrences(of: "/", with: "_")
 
         let paths = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true)
-        let cacheDir = URL(fileURLWithPath: paths.count > 0 ? paths[0] : "")
+        let cacheDir = URL(fileURLWithPath: paths.isEmpty ? "" : paths[0])
 
         let bundleIDPLCR = "com.plausiblelabs.crashreporter.data"
-        let crashReportDir = cacheDir.appendingPathComponent(bundleIDPLCR).appendingPathComponent(appIDPath)
+        let crashReportDir = cacheDir.appendingPathComponent(bundleIDPLCR)
+                                     .appendingPathComponent(appIDPath)
 
         let reportName = "live_report.plcrash"
-        let reportFullPath = crashReportDir.appendingPathComponent(reportName).absoluteString.replacingOccurrences(of: "file://", with: "")
-        print("reportFullPath: \(reportFullPath)")
+        let reportFullPath = crashReportDir.appendingPathComponent(reportName)
+                                           .absoluteString
+                                           .replacingOccurrences(of: "file://", with: "")
+        BacktraceLogger.debug("reportFullPath: \(reportFullPath)")
         return reportFullPath
     }
-    
+
     @objc private func hasCrashReport() -> Bool {
         let exists = FileManager.default.fileExists(atPath: reportFilePath())
         return exists
     }
-    
+
     @objc private func addCurrentEvent() {
         
         var event = StartUpEvent(timestamp: Double(Date.timeIntervalSinceReferenceDate), isSuccessful: true)
         event.isSuccessful = !hasCrashReport()
-        print("New Event: {timestamp:\(event.timestamp)--successful:\(event.isSuccessful)}")
+        BacktraceLogger.debug("New Event: {timestamp:\(event.timestamp)--successful:\(event.isSuccessful)}")
 
         startupEvents.append(event)
         
@@ -89,7 +97,7 @@ import Foundation
             startupEvents.remove(at: 0)
         }
 
-        print("Event Added: \(startupEvents.count)")
+        BacktraceLogger.debug("Event Added: \(startupEvents.count)")
     }
 
     @objc private func badEventsCount() -> Int {
@@ -102,13 +110,13 @@ import Foundation
             badEventsCount += 1
         }
         self.consecutiveCrashesCount = badEventsCount
-        print("Bad Events Count: \(badEventsCount)")
+        BacktraceLogger.debug("Bad Events Count: \(badEventsCount)")
         return badEventsCount
     }
-    
+
     @objc func detectCrashloop() -> Bool {
 
-        print("Starting Crash Loop Detection")
+        BacktraceLogger.debug("Starting Crash Loop Detection")
         
         loadEvents()
 
@@ -120,19 +128,14 @@ import Foundation
         // true -> crash loop detected -> set safe mode
         // false -> crash loop NOT detected -> set normal mode
         let result = count >= BacktraceCrashLoopDetector.consecutiveCrashesThreshold
-        print("Finishing Crash Loop Detection: \(result)")
+        BacktraceLogger.debug("Finishing Crash Loop Detection: \(result)")
         return result
     }
-    
+
     @objc func deleteCrashReport() {
         let path = reportFilePath()
         let fileURL = URL(fileURLWithPath: path)
         try? FileManager.default.removeItem(at: fileURL)
         saveEvents()
     }
-    
-//    
-//    @objc func consecutiveCrashesCount() -> Int {
-//        return self.consecutiveCrashesCount
-//    }
 }
