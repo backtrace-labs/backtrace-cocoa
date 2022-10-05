@@ -6,6 +6,7 @@
 import UIKit
 import AVFoundation
 import AVKit
+import Backtrace
 
 class ViewControllerPnP : UIViewController {
     
@@ -46,7 +47,6 @@ class ViewControllerPnP : UIViewController {
         
         avPlayer?.actionAtItemEnd = .pause
         playerVC?.player = avPlayer
-//        playerVC?.canStartPictureInPictureAutomaticallyFromInline = true
         
         let dict = [
             "Stage" : "Player Set Up",
@@ -99,7 +99,7 @@ class ViewControllerPnP : UIViewController {
                             execute: DispatchWorkItem.init(block: {
                     do {
                         let simulator = BacktraceSimulator()
-                        try simulator.executeCase(atIndex: 10) // Live report
+                        try simulator.executeCase(atIndex: 11) // Live report
                     }
                     catch {}
                 }))
@@ -110,63 +110,47 @@ class ViewControllerPnP : UIViewController {
 
 extension ViewControllerPnP : AVPlayerViewControllerDelegate {
     
-//    @available(iOS 12.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               willBeginFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator) {
         print("willBeginFullScreenPresentationWithAnimationCoordinator")
     }
     
-//    @available(iOS 12.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               willEndFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator) {
         print("willEndFullScreenPresentationWithAnimationCoordinator")
     }
 
-//    @available(iOS 15.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               restoreUserInterfaceForFullScreenExitWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
         print("restoreUserInterfaceForFullScreenExitWithCompletionHandler")
     }
 
-//    @available(iOS 15.0, *)
-//    func playerViewControllerRestoreUserInterfaceForFullScreenExit(_ playerViewController: AVPlayerViewController) async -> Bool {
-//
-//    }
-
-//    @available(iOS 8.0, *)
     func playerViewControllerWillStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
         print("playerViewControllerWillStartPictureInPicture")
     }
 
-//    @available(iOS 8.0, *)
     func playerViewControllerDidStartPictureInPicture(_ playerViewController: AVPlayerViewController) {
         print("playerViewControllerDidStartPictureInPicture")
     }
 
-//    @available(iOS 8.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               failedToStartPictureInPictureWithError error: Error) {
         print("failedToStartPictureInPictureWithError")
     }
 
-//    @available(iOS 8.0, *)
     func playerViewControllerWillStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
         print("playerViewControllerWillStopPictureInPicture")
     }
 
-//    @available(iOS 8.0, *)
     func playerViewControllerDidStopPictureInPicture(_ playerViewController: AVPlayerViewController) {
         print("playerViewControllerDidStopPictureInPicture")
-//        present(playerVC!, animated: true) {}
     }
 
-//    @available(iOS 8.0, *)
     func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(_ playerViewController: AVPlayerViewController) -> Bool {
         print("playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart")
         return true
     }
 
-//    @available(iOS 8.0, *)
     func playerViewController(_ playerViewController: AVPlayerViewController,
                               restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
         print("restoreUserInterfaceForPictureInPictureStopWithCompletionHandler")
@@ -175,7 +159,6 @@ extension ViewControllerPnP : AVPlayerViewControllerDelegate {
         }
     }
 
-//    @available(iOS 8.0, *)
     func playerViewControllerRestoreUserInterfaceForPictureInPictureStop(_ playerViewController: AVPlayerViewController) -> Bool {
         print("playerViewControllerRestoreUserInterfaceForPictureInPictureStop")
         return true

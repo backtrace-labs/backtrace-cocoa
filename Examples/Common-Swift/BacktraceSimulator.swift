@@ -7,12 +7,10 @@ import UIKit
 import Backtrace
 
 protocol BacktraceSimulatorProtocol {
-    func numberOfCases() -> Int
-    func caseTitle(atIndex index: Int) -> String?
-    func executeCase(atIndex index: Int) throws
+    func showPnPViewController()
 }
 
-class BacktraceSimulator: BacktraceSimulatorProtocol {
+class BacktraceSimulator {
             
     // MARK: struct ErrorCase
     
@@ -22,6 +20,8 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
     }
     
     // MARK: Variables
+    
+    var delegate: BacktraceSimulatorProtocol?
     
     fileprivate typealias CaseFunction = () -> ()
     
@@ -48,6 +48,7 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
     // MARK: Hidden implementation
     
     init() {
+        availableCases.append(ErrorCase(title: "PnP Example", function: examplePnP))
         availableCases.append(ErrorCase(title: "Call On nil", function: callOnNil))
         availableCases.append(ErrorCase(title: "Out of Bounds", function: outOfBounds))
         availableCases.append(ErrorCase(title: "IBOutlet is nil", function: ibOutlet))
@@ -153,6 +154,10 @@ class BacktraceSimulator: BacktraceSimulatorProtocol {
                                      completion: { (result: BacktraceResult) in
             print(result)
         })
+    }
+    
+    private func examplePnP() {
+        delegate?.showPnPViewController()
     }
 }
 

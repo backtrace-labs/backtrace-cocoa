@@ -6,7 +6,6 @@
 import Foundation
 import Backtrace
 
-
 class AppDelegateBase: UIResponder, UIApplicationDelegate
 {
     var window: UIWindow?

@@ -9,7 +9,12 @@ class ViewController: UIViewController {
         
     @IBOutlet weak var tableView: UITableView!
     
-    let simulator: BacktraceSimulatorProtocol = BacktraceSimulator()
+    let simulator: BacktraceSimulator = BacktraceSimulator()
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        simulator.delegate = self
+    }
 }
 
 extension ViewController: UITableViewDelegate {
@@ -60,5 +65,13 @@ extension ViewController: UITableViewDataSource {
         cell.setTitle(title)
 
         return cell
+    }
+}
+
+extension ViewController: BacktraceSimulatorProtocol {
+    func showPnPViewController() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "ViewControllerPnP")
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
