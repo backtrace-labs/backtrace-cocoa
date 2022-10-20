@@ -10,7 +10,9 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     
+    // Enable crash loop detector, pass 0 to use default threshold value '5'
     [BacktraceClient enableCrashLoopDetection: 0];
+    
     if([BacktraceClient isSafeModeRequired]) {
         // TODO: Perform any custom checks if necessary and decide if Backtrace should be launched
         return;

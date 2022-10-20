@@ -99,7 +99,7 @@ import Foundation
     }
 }
 
-// MARK: - BacktraceClient Safe Mode public API
+// MARK: - BacktraceClient Safe Mode public API (crash loop detection)
 extension BacktraceClient {
     
     @objc public static func enableSafeMode() {
@@ -143,6 +143,11 @@ extension BacktraceClient {
     
     @objc public static func consecutiveCrashesCount() -> Int {
         return crashLoopDetector?.consecutiveCrashesCount ?? 0
+    }
+    
+    // Added for testing without debugging purposes
+    @objc public static func crashLoopEventsDatabase() -> String {
+        return crashLoopDetector?.databaseDescription() ?? "Not enabled"
     }
 }
 

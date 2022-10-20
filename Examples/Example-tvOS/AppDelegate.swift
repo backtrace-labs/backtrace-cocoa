@@ -17,7 +17,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        // Enable crash loop detector, it crashes count threshold is not specified - default will be used
+        /*  Enable crash loop detector.
+            You can pass crashes count threshold (maximum amount of launching events to evaluate) here.
+            If threshold is not specified or you pass 0 - default value '5' will be used.
+         */
         BacktraceClient.enableCrashLoopDetection()
 
         let isSafeModeRequired = BacktraceClient.isSafeModeRequired()

@@ -41,23 +41,23 @@ import Foundation
         BacktraceCrashLoop.LogDebug("Starting Crash Loop Detection")
         
         loadEvents()
-        addCurrentEvent()
+        addStartupEvent()
         saveEvents()
 
-        let count = badEventsCount()
+        consecutiveCrashesCount = consecutiveEventsCount()
 
         /*
             true -> crash loop detected -> set safe mode
             false -> crash loop NOT detected -> set normal mode
          */
-        let result = count >= BacktraceCrashLoopDetector.consecutiveCrashesThreshold
+        let result = consecutiveCrashesCount >= BacktraceCrashLoopDetector.consecutiveCrashesThreshold
         BacktraceCrashLoop.LogDebug("Finishing Crash Loop Detection: \(result)")
         return result
     }
 
     @objc private func loadEvents() {
         
-        // Cleanup old events - f.e, for multiple usages of detector
+        // Cleanup old events - f.e. for multiple usages of detector
         startupEvents.removeAll()
         
         /*
@@ -87,7 +87,7 @@ import Foundation
         BacktraceCrashLoopDetector.LogDebug("Events Saved: \(startupEvents.count)")
     }
 
-    @objc internal func addCurrentEvent() {
+    @objc internal func addStartupEvent() {
         
         let crashesCount = BacktraceCrashLoopCounter.crashesCount()
         let event = StartUpEvent(uuid: UUID().uuidString,
@@ -102,28 +102,35 @@ import Foundation
             startupEvents.removeFirst()
         }
 
-        BacktraceCrashLoop.LogDebug("Event Added: \(startupEvents.count)")
+        BacktraceCrashLoop.LogDebug("Startup Event Added: \(startupEvents.count)")
     }
 
-    @objc internal func badEventsCount() -> Int {
+    @objc internal func consecutiveEventsCount() -> Int {
         
-        var badEventsCount = 0
-        for event in startupEvents.reversed() {
-            if event.crashesCount > 0 {
-                break
+        var count = 0
+        var previousValue = 0
+        for event in startupEvents {
+            if event.crashesCount > previousValue {
+                count += 1
             }
-            badEventsCount += 1
+            previousValue = event.crashesCount
         }
-        
-        self.consecutiveCrashesCount = badEventsCount
-        BacktraceCrashLoop.LogDebug("Bad Events Count: \(badEventsCount)")
-        return badEventsCount
+
+        BacktraceCrashLoop.LogDebug("Consecutive Events Count: \(count)")
+        return count
+    }
+    
+    @objc internal func databaseDescription() -> String {
+        var string = ""
+        for event in startupEvents {
+            string += event.description() + "\n"
+        }
+        return string
     }
 }
 
+// MARK: Deprecated methods
 extension BacktraceCrashLoopDetector {
-
-    // MARK: Deprecated methods
 
     @available(*, deprecated, message: "Temporarily not needed")
     @objc internal func reportFilePath() -> String {
