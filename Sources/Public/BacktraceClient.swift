@@ -119,6 +119,8 @@ extension BacktraceClient {
     }
     
     @objc public static func enableCrashLoopDetection(_ threshold: Int = 0) {
+        BacktraceCrashLoopCounter.start()
+
         crashLoopDetector = BacktraceCrashLoopDetector()
         crashLoopDetector?.updateThreshold(threshold)
     }
@@ -127,7 +129,9 @@ extension BacktraceClient {
         crashLoopDetector = nil
     }
     
-    @objc public static func resetCrashLoopDetection() {
+    @available(*, deprecated, message: "Temporarily not needed")
+    @objc private static func resetCrashLoopDetection() {
+        BacktraceCrashLoopCounter.reset()
         crashLoopDetector?.deleteCrashReport()
     }
     

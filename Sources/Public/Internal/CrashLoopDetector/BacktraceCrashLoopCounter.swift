@@ -5,18 +5,18 @@
 
 import Foundation
 
-class BacktraceCrashLoopCounter {
+@objc internal class BacktraceCrashLoopCounter: BacktraceCrashLoop {
 
     static private var counter = 0
-    
+
     static internal func start() {
         checkFileExists()
-        BacktraceLogger.debug("Cache Dir: \(cacheDir())")
-        BacktraceLogger.debug("Crash Loop Counter File Path: \(filePath())")
-        load()
+        BacktraceCrashLoop.LogDebug("Cache Dir: \(cacheDir())")
+        BacktraceCrashLoop.LogDebug("Crash Loop Counter File Path: \(filePath())")
+        loadCounter()
     }
-    
-    static internal func load() {
+
+    static internal func loadCounter() {
         guard let contents = try? String(contentsOfFile: filePath())
         else {
             counter = 0
@@ -28,35 +28,37 @@ class BacktraceCrashLoopCounter {
     static internal func crashesCount() -> Int {
         return counter
     }
-    
+
     static private func checkFileExists() {
         let path = filePath()
-        // We can use just 'createFile' to check if file exists, but, as per docs:
-        // "If a file already exists at path, this method overwrites the contents of that file
-        // if the current process has the appropriate privileges to do so."
-        // https://developer.apple.com/documentation/foundation/filemanager/1410695-createfile
+        /*
+            We can use just 'createFile' to check if file exists, but, as per docs:
+            "If a file already exists at path, this method overwrites the contents of that file
+            if the current process has the appropriate privileges to do so."
+            https://developer.apple.com/documentation/foundation/filemanager/1410695-createfile
+         */
         if !FileManager.default.fileExists(atPath: path) {
             FileManager.default.createFile(atPath: path, contents: nil)
             // Write current counter
             reset()
         }
     }
-    
+
     static internal func increment() {
         counter += 1
-        save()
+        saveCounter()
     }
-    
+
     static internal func reset() {
         counter = 0
-        save()
+        saveCounter()
     }
-    
-    static private func save() {
+
+    static private func saveCounter() {
         let contents = String(counter)
         try? contents.write(toFile: filePath(), atomically: true, encoding: .utf8)
     }
-    
+
     static private func fileURL() -> URL {
         let cacheDir = cacheDir()
         let filePath = cacheDir.appendingPathComponent("BacktraceCrashLoopCounter.txt")

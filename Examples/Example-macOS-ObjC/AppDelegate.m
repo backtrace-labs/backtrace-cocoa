@@ -12,9 +12,7 @@
     
     [BacktraceClient enableCrashLoopDetection: 0];
     if([BacktraceClient isSafeModeRequired]) {
-        // Remove current crash file for not to be trapped in a loop of crash detections
-        [BacktraceClient resetCrashLoopDetection];
-        // Perform custom checks if necessary and decide if Backtrace should be launched
+        // TODO: Perform any custom checks if necessary and decide if Backtrace should be launched
         return;
     }
     
