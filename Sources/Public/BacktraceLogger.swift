@@ -24,7 +24,7 @@ import Foundation
         case .info:
             return "💙"
         case .error:
-            return "❤️"
+            return "💔"
         }
     }
 }
