@@ -16,7 +16,7 @@ jobs:
           platform: [ios, mac, tvos]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run test
@@ -26,7 +26,7 @@ jobs:
     runs-on: macos-latest
     
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run pod lib lint
@@ -38,7 +38,7 @@ jobs:
     needs: [pod-lint, test]
     
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Deploy to Cocoapods
@@ -57,7 +57,7 @@ jobs:
 
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install cocoapods and rome
       run: gem install cocoapods cocoapods-rome
@@ -82,7 +82,7 @@ jobs:
     needs: build-dynamic-frameworks
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
         id: download
