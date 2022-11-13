@@ -20,7 +20,7 @@ jobs:
           platform: [ios, mac, tvos]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run test
@@ -30,7 +30,7 @@ jobs:
     runs-on: macos-latest
     
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run pod lib lint
