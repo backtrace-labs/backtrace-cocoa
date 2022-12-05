@@ -418,21 +418,72 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     it("same breadcrumb in row not allow to add") {
                         backtraceBreadcrumbs.enableBreadcrumbs()
 
-                        NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
+                        NotificationCenter.default.post(name: Application.didEnterBackgroundNotification,
                                                         object: nil)
                         var breadcrumbsText = self.readBreadcrumbText()
                         var count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
-                                                                substr: "Application will enter in foreground")
+                                                                substr: "Application did enter in background")
                         expect { count }.to(equal(1))
 
-                        NotificationCenter.default.post(name: Application.willEnterForegroundNotification,
+                        NotificationCenter.default.post(name: Application.didEnterBackgroundNotification,
                                                         object: nil)
                         breadcrumbsText = self.readBreadcrumbText()
                         count = self.countOccurrencesOfSubstring(str: breadcrumbsText,
-                                                                substr: "Application will enter in foreground")
+                                                                substr: "Application did enter in background")
                         expect { count }.toNot(equal(2))
                     }
                 }
+                
+                context("iOS call incoming/outgoing") {
+                    it("iOS breadcrumb added") {
+                        class OverriddenCallNotificationObserver: BacktraceCallNotificationObserver {
+                            var mockIsOutgoingCall: Bool?
+                            var mockHasConnectedCall: Bool?
+                            var mockHasEndedCall: Bool?
+
+                            override var isOutgoingCall: Bool { mockIsOutgoingCall ?? super.isOutgoingCall }
+                            override var hasConnectedCall: Bool { mockHasConnectedCall ?? super.hasConnectedCall }
+                            override var hasEndedCall: Bool { mockHasEndedCall ?? super.hasEndedCall }
+                        }
+
+                        let backtraceObserver = OverriddenCallNotificationObserver()
+
+                        backtraceBreadcrumbs.enableBreadcrumbs()
+
+                        let backtraceNotificationObserver = BacktraceNotificationObserver(breadcrumbs: backtraceBreadcrumbs,
+                                                      handlerDelegates: [backtraceObserver])
+                        backtraceNotificationObserver.enableNotificationObserver()
+
+                        backtraceObserver.mockIsOutgoingCall = false
+                        backtraceObserver.mockHasConnectedCall = false
+                        backtraceObserver.mockHasEndedCall = false
+                        backtraceObserver.callStateChanged()
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Incoming call ringing."))
+
+                        backtraceObserver.mockHasConnectedCall = true
+                        backtraceObserver.callStateChanged()
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Incoming call in process."))
+
+                        backtraceObserver.mockHasEndedCall = true
+                        backtraceObserver.callStateChanged()
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Incoming call ended."))
+
+                        backtraceObserver.mockIsOutgoingCall = true
+                        backtraceObserver.mockHasConnectedCall = false
+                        backtraceObserver.mockHasEndedCall = false
+                        backtraceObserver.callStateChanged()
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Detect a dialing outgoing call."))
+
+                        backtraceObserver.mockHasConnectedCall = true
+                        backtraceObserver.callStateChanged()
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Outgoing call in process."))
+
+                        backtraceObserver.mockHasEndedCall = true
+                        backtraceObserver.callStateChanged()
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Outgoing call ended."))
+                    }
+                }
+
             }
 #elseif os(macOS)
             describe("when macOS notifications update") {

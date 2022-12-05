@@ -20,6 +20,8 @@ class ViewController: UIViewController {
             let data = Data(repeating: 0, count: size)
             ViewController.wastedMemory.append(data)
         }
+        // Or if all that fails, just force a memory warning manually :)
+        UIControl().sendAction(Selector(("_performMemoryWarning")), to: UIApplication.shared, for: nil)
     }
 
     @IBAction func liveReportAction(_ sender: Any) {

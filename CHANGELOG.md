@@ -1,5 +1,15 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.7.4
+- No changes compared to 1.7.4-beta2
+
+## Version 1.7.4-beta2
+- Adds Call Observer breadcrumb in #97
+- Prevents duplicate breadcrumbs in #92
+- Improves OOM simulator and algorithm
+- Improves build pipeline, automatic versioning and Xcode compatability in #96
+- Fixes and prevents future usage the main thread for sync network calls
+
 ## Version 1.7.4-beta1
 - Modifies the CI job to run tests daily on schedule in #81
 - Skip file attachments that are larger than 10MB in #84

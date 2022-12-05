@@ -5,14 +5,42 @@ on:
     tags: '[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
-  build-cocoapods:
+  # test is copied pasted from test.yml - do in a clean way in the future
+  # BEGIN COPY PASTE FROM TEST.YML
+  test:
     runs-on: macos-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+          platform: [ios, mac, tvos]
+
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: sh scripts/install.sh
-      - name: Run tests
-        run: sh scripts/test.sh
+      - name: Run test
+        run: fastlane ${{ matrix.platform }} tests
+    
+  pod-lint:
+    runs-on: macos-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: sh scripts/install.sh
+      - name: Run pod lib lint
+        run: pod lib lint --verbose --allow-warnings --sources='https://cdn.cocoapods.org/' 
+  # END COPY PASTE FROM TEST.YML
+  
+  deploy-cocoapods:
+    runs-on: macos-latest
+    needs: [pod-lint, test]
+    
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: sh scripts/install.sh
       - name: Deploy to Cocoapods
         run: sh scripts/deploy.sh
         env:
@@ -20,7 +48,7 @@ jobs:
 
   build-dynamic-frameworks:
     runs-on: macos-latest
-    needs: build-cocoapods
+    needs: [pod-lint, test]
     
     strategy:
       matrix:
@@ -29,7 +57,7 @@ jobs:
 
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install cocoapods and rome
       run: gem install cocoapods cocoapods-rome
@@ -54,7 +82,7 @@ jobs:
     needs: build-dynamic-frameworks
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
         id: download
