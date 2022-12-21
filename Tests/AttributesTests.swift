@@ -58,6 +58,17 @@ final class AttributesTests: QuickSpec {
             }
         }
 
+        describe("Fault information") {
+            it("can override fault information") {
+                let oldAttributeValue = "a"
+                let newAttributeValue = "b"
+                let attributes = AttributesProvider()
+                attributes.set(faultMessage: oldAttributeValue)
+                attributes.set(faultMessage: newAttributeValue)
+                expect{ attributes.allAttributes["error.message"] as? String}.to(equal(newAttributeValue))
+            }
+        }
+
         describe("Metrics Info") {
             it("will NOT set application.version and application.session if metrics attributes are NOT enabled") {
                 let attributes = MetricsInfo()
