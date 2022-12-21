@@ -4,7 +4,7 @@ import CoreLocation
 
 final class FaultInfo: AttributesSource {
     var faultMessage: String?
-    var immutable: [String: Any?] {
+    var mutable: [String: Any?] {
         return ["error.message": faultMessage]
     }
 }
