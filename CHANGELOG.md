@@ -1,5 +1,8 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.7.5
+- Fixed error.message values persists across multiple reports
+
 ## Version 1.7.4
 - No changes compared to 1.7.4-beta2
 
