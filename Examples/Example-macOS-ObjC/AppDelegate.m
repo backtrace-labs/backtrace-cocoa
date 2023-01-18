@@ -14,6 +14,8 @@
     [BacktraceClient enableCrashLoopDetection: 0];
     
     if([BacktraceClient isSafeModeRequired]) {
+        // When crash loop is detected we need to reset crash loop counter to restart crash loop detection from scratch
+        [BacktraceClient resetCrashLoopDetection];
         // TODO: Perform any custom checks if necessary and decide if Backtrace should be launched
         return;
     }

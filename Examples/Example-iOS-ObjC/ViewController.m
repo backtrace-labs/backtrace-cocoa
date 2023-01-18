@@ -13,6 +13,11 @@ static NSMutableData *wastedMemory = nil;
 - (void)viewDidLoad {
     [super viewDidLoad];
     wastedMemory = [[NSMutableData alloc] init];
+    
+    NSString * text = [NSString stringWithFormat: @"BadEvents: %ld\nIs Safe to Launch: %s",
+                       [BacktraceClient consecutiveCrashesCount],
+                       [BacktraceClient isInSafeMode] ? "FALSE" : "TRUE" ];
+    [_textView setText: text];
 }
 
 - (IBAction) outOfMemoryReportAction: (id) sender {

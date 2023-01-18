@@ -129,10 +129,9 @@ extension BacktraceClient {
         crashLoopDetector = nil
     }
     
-    @available(*, deprecated, message: "Temporarily not needed")
-    @objc private static func resetCrashLoopDetection() {
+    @objc public static func resetCrashLoopDetection() {
         BacktraceCrashLoopCounter.reset()
-        crashLoopDetector?.deleteCrashReport()
+        crashLoopDetector?.clearStartupEvents()
     }
     
     @objc public static func isSafeModeRequired() -> Bool {

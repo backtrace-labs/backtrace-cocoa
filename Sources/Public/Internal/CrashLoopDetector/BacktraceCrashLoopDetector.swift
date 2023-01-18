@@ -76,7 +76,7 @@ import Foundation
 
         guard let array = try? PropertyListDecoder().decode([StartUpEvent].self, from: data)
         else { return }
-                
+
         startupEvents.append(contentsOf: array)
         BacktraceCrashLoopDetector.LogDebug("Events Loaded: \(startupEvents.count)")
     }
@@ -105,6 +105,12 @@ import Foundation
         BacktraceCrashLoop.LogDebug("Startup Event Added: \(startupEvents.count)")
     }
 
+    @objc internal func clearStartupEvents() {
+        startupEvents.removeAll()
+        saveEvents()
+        BacktraceCrashLoop.LogDebug("Startup Events Cleared: \(startupEvents.count)")
+    }
+    
     @objc internal func consecutiveEventsCount() -> Int {
         
         var count = 0

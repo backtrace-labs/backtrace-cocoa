@@ -10,6 +10,21 @@
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    
+    /*  Enable crash loop detector.
+        You can pass crashes count threshold (maximum amount of launching events to evaluate) here.
+        If threshold is not specified or you pass 0 - default value '5' will be used.
+     */
+    [BacktraceClient enableCrashLoopDetection: 0];
+    
+    if([BacktraceClient isSafeModeRequired]) {
+        // When crash loop is detected we need to reset crash loop counter to restart crash loop detection from scratch
+        [BacktraceClient resetCrashLoopDetection];
+        // TODO: Perform any custom checks if necessary and decide if Backtrace should be launched
+        return NO;
+    }
+
     NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
     NSString *fileName = @"myCustomFile.txt";
     NSURL *libraryUrl = [[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory
@@ -31,18 +46,6 @@
     BacktraceClient.shared = [[BacktraceClient alloc] initWithConfiguration: configuration error: nil];
     BacktraceClient.shared.attributes = @{@"foo": @"bar", @"testing": @YES};
     BacktraceClient.shared.attachments = [NSArray arrayWithObjects:fileUrl, nil];
-
-    // sending NSException
-    @try {
-        NSArray *array = @[];
-        array[1]; // will throw exception
-    } @catch (NSException *exception) {
-        [[BacktraceClient shared] sendWithAttachmentPaths: [NSArray init]  completion: ^(BacktraceResult * _Nonnull result) {
-            NSLog(@"%@", result);
-        }];
-    } @finally {
-
-    }
 
     //sending NSError
     [[BacktraceClient shared] sendWithAttachmentPaths: paths completion: ^(BacktraceResult * _Nonnull result) {
