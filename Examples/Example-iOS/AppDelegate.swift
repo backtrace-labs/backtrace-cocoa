@@ -31,6 +31,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             // TODO: Perform any custom checks if necessary and decide if Backtrace should be launched
             return true
         }
+        else {
+            BacktraceClient.disableCrashLoopDetection()
+        }
         
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
                                                         token: Keys.backtraceToken as String)

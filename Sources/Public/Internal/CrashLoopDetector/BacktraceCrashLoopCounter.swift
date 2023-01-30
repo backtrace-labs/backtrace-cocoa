@@ -11,7 +11,6 @@ import Foundation
 
     static internal func start() {
         checkFileExists()
-        BacktraceCrashLoop.LogDebug("Cache Dir: \(cacheDir())")
         BacktraceCrashLoop.LogDebug("Crash Loop Counter File Path: \(filePath())")
         loadCounter()
     }

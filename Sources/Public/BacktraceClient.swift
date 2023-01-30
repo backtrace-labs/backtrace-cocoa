@@ -120,9 +120,7 @@ extension BacktraceClient {
     
     @objc public static func enableCrashLoopDetection(_ threshold: Int = 0) {
         BacktraceCrashLoopCounter.start()
-
-        crashLoopDetector = BacktraceCrashLoopDetector()
-        crashLoopDetector?.updateThreshold(threshold)
+        crashLoopDetector = BacktraceCrashLoopDetector(threshold)
     }
     
     @objc public static func disableCrashLoopDetection() {

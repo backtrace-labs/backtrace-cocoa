@@ -27,15 +27,14 @@ import Foundation
     @objc internal static let consecutiveCrashesThreshold = 5
     @objc private(set) var consecutiveCrashesCount = 0
 
-    @objc private var threshold = consecutiveCrashesThreshold
+    @objc private var threshold = 0
     
     internal var startupEvents: [StartUpEvent] = []
 
-
-    @objc internal func updateThreshold(_ threshold: Int) {
+    init(_ threshold: Int) {
         self.threshold = threshold == 0 ? BacktraceCrashLoopDetector.consecutiveCrashesThreshold : threshold
     }
-
+    
     @objc internal func detectCrashloop() -> Bool {
 
         BacktraceCrashLoop.LogDebug("Starting Crash Loop Detection")
@@ -51,7 +50,7 @@ import Foundation
             false -> crash loop NOT detected -> set normal mode
          */
         let result = consecutiveCrashesCount >= BacktraceCrashLoopDetector.consecutiveCrashesThreshold
-        BacktraceCrashLoop.LogDebug("Finishing Crash Loop Detection: \(result)")
+        BacktraceCrashLoop.LogDebug("Finishing Crash Loop Detection: Is in the crash loop - \(result)")
         return result
     }
 

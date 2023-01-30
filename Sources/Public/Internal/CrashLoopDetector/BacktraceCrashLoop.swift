@@ -12,7 +12,7 @@ import Foundation
         /*  Routed logging here to add prefix for more convenient filtering of
             BTCLD logs in Xcode's outputs
          */
-        let prefix = "BT CL: "
+        let prefix = "BT CLD: "
 
         /*  Since Backtrace is not enabled during Crash Loop detection,
             BacktraceLogger is also not set up, so it doesn't log messages

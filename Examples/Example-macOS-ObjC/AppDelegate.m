@@ -19,7 +19,10 @@
         // TODO: Perform any custom checks if necessary and decide if Backtrace should be launched
         return;
     }
-    
+    else {
+        [BacktraceClient disableCrashLoopDetection];
+    }
+
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
                                          initWithSubmissionUrl: [NSURL URLWithString: Keys.backtraceSubmissionUrl]];
     BacktraceDatabaseSettings *backtraceDatabaseSettings = [[BacktraceDatabaseSettings alloc] init];
