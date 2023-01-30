@@ -161,8 +161,6 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
 
-        resource.attributes["error.message"] = faultMessage
-        
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             completion(self.reporter.send(resource: resource))
