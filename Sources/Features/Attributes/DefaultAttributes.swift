@@ -201,8 +201,8 @@ struct LibInfo: AttributesSource {
     private static let applicationLangName = "backtrace-cocoa"
 
     var backtraceVersion: String? {
-        if let bundle = Bundle(identifier: "Backtrace.io.Backtrace"),
-           let build = bundle.infoDictionary?["CFBundleShortVersionString"] {
+        let bundle = Bundle(for: BacktraceClient.self)
+        if let build = bundle.infoDictionary?["CFBundleShortVersionString"] {
             return build as? String
         }
         return nil
