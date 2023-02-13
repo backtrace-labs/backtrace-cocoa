@@ -97,10 +97,6 @@ import Foundation
         CLDLogDebug(event.description())
 
         startupEvents.insert(event, at: 0)
-        
-        while startupEvents.count > BacktraceCrashLoopDetector.consecutiveCrashesThreshold && !startupEvents.isEmpty {
-            startupEvents.removeFirst()
-        }
 
         CLDLogDebug("Startup Event Added, Total Events => \(startupEvents.count)")
 

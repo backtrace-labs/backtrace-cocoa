@@ -24,9 +24,6 @@
         // TODO: Perform any custom checks if necessary and decide if Backtrace should be launched
         return NO;
     }
-    else {
-        [BacktraceClient disableCrashLoopDetection];
-    }
 
     NSArray *paths = @[[[NSBundle mainBundle] pathForResource: @"test" ofType: @"txt"]];
     NSString *fileName = @"myCustomFile.txt";
