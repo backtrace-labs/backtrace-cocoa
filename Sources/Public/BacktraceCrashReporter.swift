@@ -28,7 +28,6 @@ extension BacktraceCrashReporter: CrashReporting {
             _ uContext: UnsafeMutablePointer<ucontext_t>?,
             _ context: UnsafeMutableRawPointer?) -> Void = { signalInfoPointer, _, context in
                 BacktraceOomWatcher.clean()
-                BacktraceCrashLoopCounter.increment()
 
                 guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee,
                     let signalInfo = signalInfoPointer?.pointee else {

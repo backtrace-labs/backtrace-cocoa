@@ -28,8 +28,6 @@ import Foundation
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
 
-    private static var crashLoopDetector: BacktraceCrashLoopDetector?
-
     /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
     /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
     /// and https://help.backtrace.io/troubleshooting/what-is-a-submission-token .
@@ -117,34 +115,35 @@ extension BacktraceClient {
     @objc public static func isInSafeMode() -> Bool {
         return workingMode == .safe
     }
-    
+
     @objc public static func enableCrashLoopDetection(_ threshold: Int = 0) {
-        BacktraceCrashLoopCounter.start()
-        crashLoopDetector = BacktraceCrashLoopDetector(threshold)
+        BacktraceCrashLoopDetector.instance.updateThreshold(threshold)
+
+        let isInCrashLoop = BacktraceCrashLoopDetector.instance.detectCrashloop()
+
+        if isInCrashLoop {
+            enableSafeMode()
+        }
+        else {
+            disableSafeMode()
+        }
     }
-    
-    @objc public static func disableCrashLoopDetection() {
-        crashLoopDetector = nil
-    }
-    
+
     @objc public static func resetCrashLoopDetection() {
-        BacktraceCrashLoopCounter.reset()
-        crashLoopDetector?.clearStartupEvents()
+        BacktraceCrashLoopDetector.instance.clearStartupEvents()
     }
-    
+
     @objc public static func isSafeModeRequired() -> Bool {
-        let isInCrashLoop = crashLoopDetector?.detectCrashloop() ?? false
-        if isInCrashLoop { enableSafeMode() }
-        return isInCrashLoop
+        return workingMode == .safe
     }
-    
+
     @objc public static func consecutiveCrashesCount() -> Int {
-        return crashLoopDetector?.consecutiveCrashesCount ?? 0
+        return BacktraceCrashLoopDetector.instance.consecutiveCrashesCount
     }
-    
+
     // Added for testing without debugging purposes
     @objc public static func crashLoopEventsDatabase() -> String {
-        return crashLoopDetector?.databaseDescription() ?? "Not enabled"
+        return BacktraceCrashLoopDetector.instance.databaseDescription()
     }
 }
 

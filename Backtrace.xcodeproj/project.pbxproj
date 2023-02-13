@@ -182,12 +182,6 @@
 		B50C5A8028E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */; };
 		B50C5A8128E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */; };
 		B50C5A8228E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */; };
-		B51F3E2C28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51F3E2B28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift */; };
-		B51F3E2D28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51F3E2B28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift */; };
-		B51F3E2E28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51F3E2B28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift */; };
-		B51F3E30290172430096E21A /* BacktraceCrashLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51F3E2F290172430096E21A /* BacktraceCrashLoop.swift */; };
-		B51F3E31290172430096E21A /* BacktraceCrashLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51F3E2F290172430096E21A /* BacktraceCrashLoop.swift */; };
-		B51F3E32290172430096E21A /* BacktraceCrashLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51F3E2F290172430096E21A /* BacktraceCrashLoop.swift */; };
 		B5E58C6928E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
 		B5E58C6A28E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
 		B5E58C6B28E1A843001F9650 /* BacktraceCrashLoopDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */; };
@@ -462,8 +456,6 @@
 		AFCCCE222625392300B83A28 /* ReportMetadataStorageMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportMetadataStorageMock.swift; sourceTree = "<group>"; };
 		AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentBookmarkHandler.swift; sourceTree = "<group>"; };
 		B50C5A7F28E4740A004BB1DA /* BacktraceCrashLoopDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCrashLoopDetectorTests.swift; sourceTree = "<group>"; };
-		B51F3E2B28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCrashLoopCounter.swift; sourceTree = "<group>"; };
-		B51F3E2F290172430096E21A /* BacktraceCrashLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCrashLoop.swift; sourceTree = "<group>"; };
 		B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCrashLoopDetector.swift; sourceTree = "<group>"; };
 		B7B445FAC6841A65683F35E9 /* Pods-Backtrace-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		BECDC44D2F82A1F1FD5CD9D1 /* Pods_Backtrace_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -737,9 +729,7 @@
 		B51F3E33290173650096E21A /* CrashLoopDetector */ = {
 			isa = PBXGroup;
 			children = (
-				B51F3E2F290172430096E21A /* BacktraceCrashLoop.swift */,
 				B5E58C6828E1A843001F9650 /* BacktraceCrashLoopDetector.swift */,
-				B51F3E2B28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift */,
 			);
 			path = CrashLoopDetector;
 			sourceTree = "<group>";
@@ -1967,7 +1957,6 @@
 				28F95BEE225260D5003936E0 /* NetworkReachability.swift in Sources */,
 				6EB713FA276294160075D1C1 /* MetricsRequest.swift in Sources */,
 				6EB713F627617ED00075D1C1 /* BacktraceMetricsContainer.swift in Sources */,
-				B51F3E2E28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift in Sources */,
 				28F95BC822526023003936E0 /* URLSession+Sync.swift in Sources */,
 				28F95BED225260D3003936E0 /* AttributesProvider.swift in Sources */,
 				28F95BDB22526088003936E0 /* SignalContext.swift in Sources */,
@@ -1988,7 +1977,6 @@
 				28F95BE2225260A2003936E0 /* BacktraceApi.swift in Sources */,
 				28F95BDC2252608B003936E0 /* Result.swift in Sources */,
 				F2A81B4F23EF1730007C63E4 /* BacktraceApiProtocol.swift in Sources */,
-				B51F3E32290172430096E21A /* BacktraceCrashLoop.swift in Sources */,
 				F29959AD22553B340085B5C3 /* Model.xcdatamodeld in Sources */,
 				28F95BE3225260A5003936E0 /* HttpMethod.swift in Sources */,
 				28F95BD22252606B003936E0 /* BacktraceDatabaseSettings.swift in Sources */,
@@ -2061,7 +2049,6 @@
 				F2AFB5922225E5D000AAA1D7 /* Foundation+Extensions.swift in Sources */,
 				F26EBF3D23F21BCB00A64218 /* BacktraceNetworkClient.swift in Sources */,
 				28AC7740220A2A3300FED661 /* MultipartRequest.swift in Sources */,
-				B51F3E31290172430096E21A /* BacktraceCrashLoop.swift in Sources */,
 				6E896E99272767080005CDF2 /* Payload.swift in Sources */,
 				F2AB63822246E16400939BC9 /* ReportingPolicy.swift in Sources */,
 				F25F9E9B21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
@@ -2102,7 +2089,6 @@
 				F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				F2AB636E22442B5100939BC9 /* DebuggerChecker.swift in Sources */,
 				F286353B2283685100F45412 /* Map+KeyPath.swift in Sources */,
-				B51F3E2D28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2180,11 +2166,9 @@
 				28966EFA2214BBD200E6E891 /* AttributesStorage.swift in Sources */,
 				6EB713F8276294160075D1C1 /* MetricsRequest.swift in Sources */,
 				6EB713F427617ED00075D1C1 /* BacktraceMetricsContainer.swift in Sources */,
-				B51F3E2C28F6FA8F0096E21A /* BacktraceCrashLoopCounter.swift in Sources */,
 				F259E4D62229A40C00F282C7 /* Result.swift in Sources */,
 				2846E1FE223070CB0035F98C /* Attachment.swift in Sources */,
 				F2D7122421F10E78002D2A26 /* BacktraceCredentials.swift in Sources */,
-				B51F3E30290172430096E21A /* BacktraceCrashLoop.swift in Sources */,
 				6E896E912727627C0005CDF2 /* BacktraceMetrics.swift in Sources */,
 				6EB713EC275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
 				28A652F2285C6C1500306631 /* BacktraceBreadcrumbsLogManager.swift in Sources */,

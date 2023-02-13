@@ -5,23 +5,25 @@
 
 import Foundation
 
-@objc internal class BacktraceCrashLoopDetector: BacktraceCrashLoop {
-
+@objc internal class BacktraceCrashLoopDetector: NSObject {
+    
     internal struct StartUpEvent: Codable {
         var uuid: String
-        var timestamp: Double
-        var crashesCount: Int
+        var eventTimestamp: Double
+        var reportCreationTimestamp: Double
         
         func description() -> String {
             let string = """
-                            New Crash Loop Event:\n
-                            UUID: \(uuid)\n
-                            Timestamp: \(timestamp)\n
-                            Crashes Count: \(crashesCount)
+                            New Crash Loop Event:
+                            UUID: \(uuid)
+                            Event Timestamp: \(eventTimestamp)
+                            Report Creation Timestamp: \(reportCreationTimestamp)\n
                          """
             return string
         }
     }
+
+    internal static let instance = BacktraceCrashLoopDetector()
 
     @objc private static let plistKey = "CrashLoopDetectorData"
     @objc internal static let consecutiveCrashesThreshold = 5
@@ -31,26 +33,24 @@ import Foundation
     
     internal var startupEvents: [StartUpEvent] = []
 
-    init(_ threshold: Int) {
+    override private init() {
+    }
+
+    @objc internal func updateThreshold(_ threshold: Int) {
         self.threshold = threshold == 0 ? BacktraceCrashLoopDetector.consecutiveCrashesThreshold : threshold
     }
     
     @objc internal func detectCrashloop() -> Bool {
 
-        BacktraceCrashLoop.LogDebug("Starting Crash Loop Detection")
+        CLDLogDebug("Starting Crash Loop Detection")
         
         loadEvents()
-        addStartupEvent()
-        saveEvents()
+        addEvent()
 
         consecutiveCrashesCount = consecutiveEventsCount()
 
-        /*
-            true -> crash loop detected -> set safe mode
-            false -> crash loop NOT detected -> set normal mode
-         */
         let result = consecutiveCrashesCount >= BacktraceCrashLoopDetector.consecutiveCrashesThreshold
-        BacktraceCrashLoop.LogDebug("Finishing Crash Loop Detection: Is in the crash loop - \(result)")
+        CLDLogDebug("Finishing Crash Loop Detection: Is in the crash loop - \(result)")
         return result
     }
 
@@ -77,51 +77,58 @@ import Foundation
         else { return }
 
         startupEvents.append(contentsOf: array)
-        BacktraceCrashLoopDetector.LogDebug("Events Loaded: \(startupEvents.count)")
+        CLDLogDebug("Events Loaded: \(startupEvents.count)")
     }
 
-    @objc internal func saveEvents() {
+    @objc private func saveEvents() {
         let data = try? PropertyListEncoder().encode(startupEvents)
         UserDefaults.standard.set(data, forKey: BacktraceCrashLoopDetector.plistKey)
-        BacktraceCrashLoopDetector.LogDebug("Events Saved: \(startupEvents.count)")
+        CLDLogDebug("Events Saved: \(startupEvents.count)")
     }
 
-    @objc internal func addStartupEvent() {
+    @objc private func addEvent() {
         
-        let crashesCount = BacktraceCrashLoopCounter.crashesCount()
-        let event = StartUpEvent(uuid: UUID().uuidString,
-                                 timestamp: Double(Date.timeIntervalSinceReferenceDate),
-                                 crashesCount: crashesCount)
-        
-        BacktraceCrashLoop.LogDebug(event.description())
+        let reportTime = reportFileCreationTime()
 
-        startupEvents.append(event)
+        let event = StartUpEvent(uuid: UUID().uuidString,
+                                 eventTimestamp: Double(Date.timeIntervalSinceReferenceDate),
+                                 reportCreationTimestamp: reportTime)
         
-        if startupEvents.count > BacktraceCrashLoopDetector.consecutiveCrashesThreshold {
+        CLDLogDebug(event.description())
+
+        startupEvents.insert(event, at: 0)
+        
+        while startupEvents.count > BacktraceCrashLoopDetector.consecutiveCrashesThreshold && !startupEvents.isEmpty {
             startupEvents.removeFirst()
         }
 
-        BacktraceCrashLoop.LogDebug("Startup Event Added: \(startupEvents.count)")
+        CLDLogDebug("Startup Event Added, Total Events => \(startupEvents.count)")
+
+        saveEvents()
     }
 
     @objc internal func clearStartupEvents() {
         startupEvents.removeAll()
         saveEvents()
-        BacktraceCrashLoop.LogDebug("Startup Events Cleared: \(startupEvents.count)")
+        CLDLogDebug("Startup Events Cleared: \(startupEvents.count)")
     }
     
     @objc internal func consecutiveEventsCount() -> Int {
         
         var count = 0
-        var previousValue = 0
+        var previousTime = 0.0
         for event in startupEvents {
-            if event.crashesCount > previousValue {
+            if event.reportCreationTimestamp == 0 || event.reportCreationTimestamp == previousTime {
+                break
+            }
+            
+            if previousTime == 0 || event.reportCreationTimestamp < previousTime {
                 count += 1
             }
-            previousValue = event.crashesCount
-        }
 
-        BacktraceCrashLoop.LogDebug("Consecutive Events Count: \(count)")
+            previousTime = event.reportCreationTimestamp
+        }
+        CLDLogDebug("Consecutive Events Count: \(count)")
         return count
     }
     
@@ -130,15 +137,14 @@ import Foundation
         for event in startupEvents {
             string += event.description() + "\n"
         }
-        return string
+        return string.isEmpty ? "No events" : string
     }
 }
 
 // MARK: Deprecated methods
 extension BacktraceCrashLoopDetector {
 
-    @available(*, deprecated, message: "Temporarily not needed")
-    @objc internal func reportFilePath() -> String {
+    @objc private func reportFilePath() -> String {
         
         /*  Crash Loop Detector considers all other Backtrace modules as potentially dangerous.
             Thats why it formats path to PLCrashReporter's report file itself,
@@ -159,10 +165,20 @@ extension BacktraceCrashLoopDetector {
         let reportFullPath = crashReportDir.appendingPathComponent(reportName)
                                            .absoluteString
                                            .replacingOccurrences(of: "file://", with: "")
-        BacktraceCrashLoop.LogDebug("reportFullPath: \(reportFullPath)")
+        CLDLogDebug("reportFullPath: \(reportFullPath)")
+
         return reportFullPath
     }
 
+    @objc private func reportFileCreationTime() -> Double {
+        let attributes = try? FileManager.default.attributesOfItem(atPath: reportFilePath())
+        let date = attributes?[.creationDate] as? Date
+        CLDLogDebug("Report creation date: \(String(describing: date))")
+        let timeInterval = date?.timeIntervalSinceReferenceDate ?? 0
+        CLDLogDebug("Time Interval \(timeInterval)")
+        return timeInterval
+    }
+    
     @available(*, deprecated, message: "Temporarily not needed")
     @objc internal func hasCrashReport() -> Bool {
         let exists = FileManager.default.fileExists(atPath: reportFilePath())
@@ -176,4 +192,19 @@ extension BacktraceCrashLoopDetector {
         try? FileManager.default.removeItem(at: fileURL)
         saveEvents()
     }
+}
+
+
+internal func CLDLogDebug(_ message: String = "") {
+
+    /*  Routed logging here to add prefix for more convenient filtering of
+        BTCLD logs in Xcode's outputs
+     */
+    let prefix = "BT CLD: "
+
+    /*  Since Backtrace is not enabled during Crash Loop detection,
+        BacktraceLogger is also not set up, so it doesn't log messages
+        => using native 'print' here
+     */
+    print(prefix + message)
 }
