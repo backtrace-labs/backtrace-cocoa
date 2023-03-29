@@ -5,13 +5,14 @@ source 'https://cdn.cocoapods.org/'
 # Definitions
 def shared_pods
     # Version 1.5.3 has client-side symbolication turned off by default, which we want. Please don't upgrade to 1.5.4, which enables it by default.
-    pod 'Backtrace-PLCrashReporter', '1.5.3' 
+    #pod 'Backtrace-PLCrashReporter', '1.5.3
+#pod 'PLCrashReporter'
 end
 
 def shared_test_pods
     shared_pods
-    pod 'Nimble', '~> 10.0.0'
-    pod 'Quick', '~> 5.0.1'
+    #pod 'Nimble', '~> 10.0.0'
+    #pod 'Quick', '~> 5.0.1'
 end
 
 def shared_ios_mac_pods

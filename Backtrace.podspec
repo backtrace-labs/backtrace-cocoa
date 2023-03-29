@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "1.7.5"
+  s.version      = "1.7.6"
   s.summary      = "Backtrace's integration with iOS, macOS and tvOS"
   s.description  = "Reliable crash and hang reporting for iOS, macOS and tvOS."
   s.homepage     = "https://backtrace.io/"
@@ -33,7 +33,7 @@ Pod::Spec.new do |s|
 
   s.ios.dependency "Cassette", '1.0.0-beta5'
   s.osx.dependency "Cassette", '1.0.0-beta5'
-  s.dependency "Backtrace-PLCrashReporter", '1.5.3'
+  #s.dependency "Backtrace-PLCrashReporter", '1.5.3'
   
   s.resources = 'Sources/**/*.xcdatamodeld'
 

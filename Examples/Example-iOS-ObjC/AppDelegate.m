@@ -35,7 +35,7 @@
     // sending NSException
     @try {
         NSArray *array = @[];
-        array[1]; // will throw exception
+        //array[1]; // will throw exception
     } @catch (NSException *exception) {
         [[BacktraceClient shared] sendWithAttachmentPaths: [NSArray init]  completion: ^(BacktraceResult * _Nonnull result) {
             NSLog(@"%@", result);
