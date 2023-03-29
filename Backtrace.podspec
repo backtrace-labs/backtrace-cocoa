@@ -37,5 +37,5 @@ Pod::Spec.new do |s|
   
   s.resources = 'Sources/**/*.xcdatamodeld'
 
-  s.swift_version = '4.2'
+  s.swift_version = '5.7'
 end
