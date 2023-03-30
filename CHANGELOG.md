@@ -1,5 +1,12 @@
 # Backtrace Cocoa Release Notes
 
+## Version 1.8.0-beta1
+- Migrate Backtrace-cocoa from swift 4.2 to swift 5
+- Update swift_version to ver 5.7
+- Update COCOAPODS to ver 1.12.0
+- Fix BacktraceLogger swift syntax
+
+
 ## Version 1.7.5
 - Fixed error.message values persists across multiple reports.
 - Changed error emoji.
