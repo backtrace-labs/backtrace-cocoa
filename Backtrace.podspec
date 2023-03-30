@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "1.7.5"
+  s.version      = "1.8.0-beta1"
   s.summary      = "Backtrace's integration with iOS, macOS and tvOS"
   s.description  = "Reliable crash and hang reporting for iOS, macOS and tvOS."
   s.homepage     = "https://backtrace.io/"
@@ -37,5 +37,5 @@ Pod::Spec.new do |s|
   
   s.resources = 'Sources/**/*.xcdatamodeld'
 
-  s.swift_version = '4.2'
+  s.swift_version = '5.7'
 end
