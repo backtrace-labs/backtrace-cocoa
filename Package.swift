@@ -1,34 +1,32 @@
-// swift-tools-version:4.2
+// swift-tools-version: 5.7
+// The swift-tools-version declares the minimum version of Swift required to build this package.
 import PackageDescription
 
 let package = Package(
     name: "Backtrace",
     platforms: [
-      .macOS(.v10_10), .iOS(.v10), .tvOS(.v12_1)
+        .iOS(.v11)
     ],
     products: [
         .library(name: "Backtrace", targets: ["Backtrace"]),
     ],
     dependencies: [
         .package(url: "https://github.com/microsoft/plcrashreporter.git", from: "1.11.0"),
-        	.package(url: "https://github.com/Quick/Nimble.git", from: "10.0.0"),
-        	.package(url: "https://github.com/Quick/Quick.git", from: "5.0.1")
+        .package(url: "https://github.com/Quick/Nimble.git", from: "10.0.0"),
+        .package(url: "https://github.com/Quick/Quick.git", from: "5.0.1")
     ],
     targets: [
         .target(
-            name: "Nimble",
+            name: "Backtrace",
             dependencies: [
-                .package(url: "https://github.com/microsoft/plcrashreporter.git", from: "1.11.0"),
-        	.package(url: "https://github.com/Quick/Nimble.git", from: "10.0.0"),
-        	.package(url: "https://github.com/Quick/Quick.git", from: "5.0.1")
+            .product(name: "CrashReporter", package: "plcrashreporter")
             ],
-            exclude: ["Info.plist"]
+            path: "Sources"
         ),
         .testTarget(
-            name: "NimbleTests",
-            dependencies: ["Nimble"],
-            exclude: ["objc", "Info.plist"]
+            name: "Backtrace-iOSTests",
+            dependencies: ["Backtrace", "Quick", "Nimble"],
+            path: "Tests"
         ),
-    ],
-    swiftLanguageVersions: [.v4_2]
+    ]
 )
