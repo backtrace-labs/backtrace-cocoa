@@ -1,5 +1,5 @@
 import Foundation
-import Cassette
+//import Cassette
 
 enum BacktraceBreadcrumbFileHelperError: Error {
     case invalidFormat
@@ -15,13 +15,13 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 
     private let maximumIndividualBreadcrumbSize: Int
     private let maxQueueFileSizeBytes: Int
-    private let queue: CASQueueFile
+    //private let queue: CASQueueFile
 
     /** CASQueueFile is not thread safe, so all interactions with it should be done synchronously through this DispathQueue */
     private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFileHelper@\(UUID().uuidString)")
 
     public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
-        self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath().path)
+        //self.queue = try CASQueueFile.init(path: breadcrumbSettings.getBreadcrumbLogPath().path)
 
         self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
 
@@ -57,10 +57,10 @@ enum BacktraceBreadcrumbFileHelperError: Error {
             try dispatchQueue.sync {
                 // Keep removing until there's enough space to add the new breadcrumb (leaving 512 bytes room)
                 while (queueByteSize() + textBytes.count) > (maxQueueFileSizeBytes - 512) {
-                    try queue.pop(1, error: ())
+                    //try queue.pop(1, error: ())
                 }
 
-                try queue.add(textBytes, error: ())
+                //try queue.add(textBytes, error: ())
             }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen adding breadcrumb to file")
@@ -73,7 +73,7 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     func clear() -> Bool {
         do {
             try dispatchQueue.sync {
-                try queue.clearAndReturnError()
+                //try queue.clearAndReturnError()
             }
         } catch {
             BacktraceLogger.warning("\(error.localizedDescription) \nWhen clearing breadcrumb file")
@@ -95,7 +95,7 @@ extension BacktraceBreadcrumbFileHelper {
 
     func queueByteSize() -> Int {
         // This is the current fileLength of the QueueFile
-        guard let fileLength = queue.value(forKey: "fileLength") as? Int else {
+        /*guard let fileLength = queue.value(forKey: "fileLength") as? Int else {
             BacktraceLogger.error("fileLength is not an Int, this is unexpected!")
             return maxQueueFileSizeBytes
         }
@@ -109,5 +109,9 @@ extension BacktraceBreadcrumbFileHelper {
         }
 
         return fileLength - remainingBytes
+        
+        */
+        
+        return 0
     }
 }
