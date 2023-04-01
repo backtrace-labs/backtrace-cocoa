@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 #if os(OSX)
 import IOKit.ps
 #endif

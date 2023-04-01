@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 final class BacktraceReporter {
 
@@ -120,6 +121,7 @@ extension BacktraceReporter {
 }
 
 #if os(iOS) || os(tvOS)
+import UIKit
 typealias Application = UIApplication
 #elseif os(macOS)
 typealias Application = NSApplication

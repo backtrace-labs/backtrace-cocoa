@@ -1,6 +1,7 @@
 // swiftlint:disable type_name
 import Foundation
 import CoreLocation
+import UIKit
 
 final class FaultInfo: AttributesSource {
     var faultMessage: String?
