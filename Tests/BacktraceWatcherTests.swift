@@ -211,6 +211,6 @@ final class BacktraceWatcherTests: QuickSpec {
 
     private static func backtraceReport(for attributes: Attributes) throws -> BacktraceReport {
         let crashReporter = BacktraceCrashReporter()
-        return try crashReporter.generateLiveReport(attributes: attributes)
+        return try crashReporter.generateLiveReport(attributes: attributes)!
     }
 }

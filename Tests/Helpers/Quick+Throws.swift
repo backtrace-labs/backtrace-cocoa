@@ -49,7 +49,7 @@ public func throwingContext(_ description: String, closure: () throws -> Void) {
     }
 }
 
-public func throwingIt(_ description: String, file: String = #file, line: UInt = #line,
+public func throwingIt(_ description: String, file: FileString = #file, line: UInt = #line,
                        closure: @escaping () throws -> Void) {
     it(description, file: file, line: line) {
         do {

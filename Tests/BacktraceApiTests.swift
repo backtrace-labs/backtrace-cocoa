@@ -141,7 +141,7 @@ final class BacktraceApiTests: QuickSpec {
                         return request
                     }
 
-                    let result = try backtraceApi.send(backtraceReport)
+                    let result = try backtraceApi.send(backtraceReport!)
 
                     expect { result.backtraceStatus }.to(equal(.ok))
                     expect { result.report?.attachmentPaths }.to(equal(attachmentPaths))
