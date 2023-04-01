@@ -1,24 +1,16 @@
 PODS:
-  - Backtrace (1.7.6):
-    - Cassette (= 1.0.0-beta5)
-  - Cassette (1.0.0-beta5)
+  - Backtrace (1.7.6)
 
 DEPENDENCIES:
   - Backtrace (from `./Backtrace.podspec`)
-  - Cassette (= 1.0.0-beta5)
-
-SPEC REPOS:
-  trunk:
-    - Cassette
 
 EXTERNAL SOURCES:
   Backtrace:
     :path: "./Backtrace.podspec"
 
 SPEC CHECKSUMS:
-  Backtrace: 616cec71a2baa447380cda9f53db120ebbfea273
-  Cassette: 074c6991391733888990dba728b7ffe00299a0a6
+  Backtrace: a40f02a243d27995f97c4dac398aa306b794cc15
 
-PODFILE CHECKSUM: 2f4b12e347c6c870f19771c9b4a83f2be668e0fa
+PODFILE CHECKSUM: 55b2bcbf8be807bcc0172782ee098188f99739aa
 
 COCOAPODS: 1.12.0

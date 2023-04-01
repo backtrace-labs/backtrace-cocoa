@@ -17,7 +17,7 @@ end
 
 def shared_ios_mac_pods
     shared_pods
-    pod 'Cassette', '1.0.0-beta5'
+    #pod 'Cassette', '1.0.0-beta5'
 end
 
 def shared_test_ios_mac_pods
