@@ -13,9 +13,16 @@ final class AttachmentTests: QuickSpec {
             }
 
             it("can be created from existing file") {
-                let bundle = Bundle(for: type(of: self))
-                let path = bundle.path(forResource: "test", ofType: "txt")
-                if let path = path {
+                //let bundle = Bundle.module.url(for: type(of: self))
+                
+//                guard let path = Bundle.module.url(forResource: "test", withExtension: "txt") else {
+//                    throw RepositoryError
+//                        .persistentRepositoryInitError(details: "Couldn't find model url for name: \(momdName)")
+//                }
+//
+                
+                //let path = bundle.path(forResource: "test", ofType: "txt")
+                if let path = Bundle.module.path(forResource: "test", ofType: "txt") {
                     expect(Attachment(filePath: path)).toNot(beNil())
                 } else {
                     fail()

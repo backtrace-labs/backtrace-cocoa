@@ -27,9 +27,14 @@ final class BacktraceFileManagerTests: QuickSpec {
                     }
                     throwingContext("given existing file") {
                         it("excludes file from backup") {
-                            let bundle = Bundle(for: type(of: self))
-                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
-                            let url = URL(fileURLWithPath: path)
+                            //let bundle = Bundle(for: type(of: self))
+                            //guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
+                            
+                            guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else { fail(); return }
+                            
+                            
+                            //let url = URL(fileURLWithPath: path)
+                            
                             expect {
                                 try BacktraceFileManager.excludeFromBackup(url)
                             }.toNot(throwError())
@@ -56,8 +61,11 @@ final class BacktraceFileManagerTests: QuickSpec {
                     throwingContext("given existing file") {
                         it("gets the size of a file") {
                             let bundle = Bundle(for: type(of: self))
-                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
-                            let url = URL(fileURLWithPath: path)
+//                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
+//                            let url = URL(fileURLWithPath: path)
+                            
+                            guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else { fail(); return }
+
                             expect {
                                 try BacktraceFileManager.sizeOfFile(at: url)
                             }.toNot(throwError())

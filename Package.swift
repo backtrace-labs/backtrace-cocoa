@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version:5.3
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 import PackageDescription
 
@@ -21,12 +21,18 @@ let package = Package(
             dependencies: [
             .product(name: "CrashReporter", package: "plcrashreporter")
             ],
-            path: "Sources"
+            path: "Sources",
+            resources: [
+                    .process("Resources")
+                ]
         ),
         .testTarget(
             name: "Backtrace-iOSTests",
             dependencies: ["Backtrace", "Quick", "Nimble"],
-            path: "Tests"
+            path: "Tests",
+            resources: [
+                    .process("Resources")
+                ]
         ),
     ]
 )

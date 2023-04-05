@@ -14,6 +14,7 @@
     return [NSString stringWithFormat: @"https://%@.sp.backtrace.io:6098", [Keys universeName]];
     
     //"https://melektest.sp.backtrace.io:6098/post?format=json&token=66ca29ff4a9ebd9c9dd9a9accb725b0f023d790f27e2460a5f7572390dfef7d0"
+    //"https://melektest.sp.backtrace.io:6098"
 
 }
 

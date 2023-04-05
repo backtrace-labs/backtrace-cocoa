@@ -1,7 +1,7 @@
 import Foundation
 
 /// Events produced by `BacktraceClient` class.
-@objc public protocol BacktraceClientDelegate: class {
+@objc public protocol BacktraceClientDelegate: AnyObject {
 
     /// Event executed before sending report data to Backtrace services.
     /// Allows the delegate object to modify report right before sending.
