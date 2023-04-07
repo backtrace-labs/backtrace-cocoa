@@ -62,6 +62,20 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "Backtrace_Backtrace-Tests"
+               BuildableName = "Backtrace_Backtrace-Tests"
+               BlueprintName = "Backtrace_Backtrace-Tests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -77,6 +91,27 @@
                BlueprintIdentifier = "Backtrace-iOSTests"
                BuildableName = "Backtrace-iOSTests"
                BlueprintName = "Backtrace-iOSTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "BacktraceBreadcrumbTests">
+               </Test>
+               <Test
+                  Identifier = "SummedEventsTests">
+               </Test>
+               <Test
+                  Identifier = "UniqueEventsTests">
+               </Test>
+            </SkippedTests>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "Backtrace-Tests"
+               BuildableName = "Backtrace-Tests"
+               BlueprintName = "Backtrace-Tests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

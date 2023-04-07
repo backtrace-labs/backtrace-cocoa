@@ -5,7 +5,9 @@ import PackageDescription
 let package = Package(
     name: "Backtrace",
     platforms: [
-        .iOS(.v11)
+        .iOS(.v10),
+        .macOS(.v10_11),
+        .tvOS(.v11)
     ],
     products: [
         .library(name: "Backtrace", targets: ["Backtrace"]),
@@ -21,13 +23,10 @@ let package = Package(
             dependencies: [
             .product(name: "CrashReporter", package: "plcrashreporter")
             ],
-            path: "Sources",
-            resources: [
-                    .process("Resources")
-                ]
+            path: "Sources"
         ),
         .testTarget(
-            name: "Backtrace-iOSTests",
+            name: "Backtrace-Tests",
             dependencies: ["Backtrace", "Quick", "Nimble"],
             path: "Tests",
             resources: [
