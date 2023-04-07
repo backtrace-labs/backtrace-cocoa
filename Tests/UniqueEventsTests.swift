@@ -6,13 +6,15 @@ import Quick
 
 final class UniqueEventsTests: QuickSpec {
 
-    override func spec() {
+//    override func spec() {
 //        describe("Backtrace metrics unique events") {
 //            let urlSession = URLSessionMock()
 //            let credentials =
 //                BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
 //            var backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
-//            let delegate = BacktraceMetricsDelegateSpy()
+//            //let delegate = BacktraceMetricsDelegateSpy()
+//
+//            let delegate = BacktraceClientDelegateSpy()
 //
 //            var metrics = BacktraceMetrics(api: backtraceApi)
 //
@@ -21,7 +23,7 @@ final class UniqueEventsTests: QuickSpec {
 //                backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
 //                metrics = BacktraceMetrics(api: backtraceApi)
 //
-//                metrics.uniqueEventsDelegate = delegate
+//                //metrics.uniqueEventsDelegate = delegate
 //            }
 //
 //            afterEach {
@@ -43,5 +45,5 @@ final class UniqueEventsTests: QuickSpec {
 //                                                                         pollInterval: .seconds(1))
 //            }
 //        }
-    }
+//    }
 }

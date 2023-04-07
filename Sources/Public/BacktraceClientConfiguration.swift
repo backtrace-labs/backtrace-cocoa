@@ -16,7 +16,7 @@ import Foundation
 
 #if os(iOS)
     /// Breadcrumbs settings.
-    @objc public var breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
+    //@objc public var breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
 #endif
 
     /// Number of records sent in 1 minute. Default `30`.
