@@ -60,7 +60,7 @@ final class BacktraceFileManagerTests: QuickSpec {
                     }
                     throwingContext("given existing file") {
                         it("gets the size of a file") {
-                            let bundle = Bundle(for: type(of: self))
+//                            let bundle = Bundle(for: type(of: self))
 //                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
 //                            let url = URL(fileURLWithPath: path)
                             

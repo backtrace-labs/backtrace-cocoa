@@ -1,6 +1,8 @@
 import Nimble
 import Quick
+#if SWIFT_PACKAGE
 import Foundation
+#endif
 @testable import Backtrace
 
 final class BacktraceRateLimiterTests: QuickSpec {

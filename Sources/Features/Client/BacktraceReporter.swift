@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 final class BacktraceReporter {
 
@@ -124,6 +123,7 @@ extension BacktraceReporter {
 import UIKit
 typealias Application = UIApplication
 #elseif os(macOS)
+import AppKit
 typealias Application = NSApplication
 #else
 #error("Unsupported platform")

@@ -1,7 +1,11 @@
 // swiftlint:disable type_name
 import Foundation
 import CoreLocation
+#if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 final class FaultInfo: AttributesSource {
     var faultMessage: String?
@@ -202,10 +206,14 @@ struct LibInfo: AttributesSource {
     private static let applicationLangName = "backtrace-cocoa"
 
     var backtraceVersion: String? {
-        if let bundle = Bundle(identifier: "Backtrace.io.Backtrace"),
-           let build = bundle.infoDictionary?["CFBundleShortVersionString"] {
+        if let build = Bundle.main.infoDictionary?["CFBundleShortVersionString"] {
             return build as? String
         }
+        
+//        if let bundle = Bundle(identifier: "Backtrace.io.Backtrace"),
+//           let build = bundle.infoDictionary?["CFBundleShortVersionString"] {
+//            return build as? String
+//        }
         return nil
     }
 
@@ -278,6 +286,8 @@ private extension CLAuthorizationStatus {
         case .denied: return "Denied"
         case .notDetermined: return "notDetermined"
         case .restricted: return "restricted"
+        @unknown default:
+            return "Unknown"
         }
     }
 }
@@ -294,6 +304,8 @@ private extension UIDeviceOrientation {
         case .portrait: return "Portrait"
         case .portraitUpsideDown: return "PortraitUpsideDown"
         case .unknown: return "Unknown"
+        @unknown default:
+            return "Unknown"
         }
     }
 }
@@ -308,6 +320,8 @@ private extension UIDevice.BatteryState {
         case .full: return "Full"
         case .unknown: return "Unknown"
         case .unplugged: return "Unplugged"
+        @unknown default:
+            return "Unknown"
         }
     }
 }
@@ -321,6 +335,8 @@ private extension UIApplication.State {
         case .active: return "Active"
         case .background: return "Background"
         case .inactive: return "Inactive"
+        @unknown default:
+            return "Unknown"
         }
     }
 }
