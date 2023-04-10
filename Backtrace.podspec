@@ -33,9 +33,9 @@ Pod::Spec.new do |s|
 
   #s.ios.dependency "Cassette", '1.0.0-beta5'
   #s.osx.dependency "Cassette", '1.0.0-beta5'
-  #s.dependency "Backtrace-PLCrashReporter", '1.5.3'
-  
+  s.dependency "PLCrashReporter"
+  s.static_framework = true
   s.resources = 'Sources/**/*.xcdatamodeld'
 
-  s.swift_version = '4.2'
+  s.swift_version = '5'
 end
