@@ -30,11 +30,13 @@ final class BacktraceFileManagerTests: QuickSpec {
                             //let bundle = Bundle(for: type(of: self))
                             //guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
                             
+#if SWIFT_PACKAGE
                             guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else { fail(); return }
-                            
-                            
-                            //let url = URL(fileURLWithPath: path)
-                            
+#else
+                            let bundle = Bundle(for: type(of: self))
+                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
+                            let url = URL(fileURLWithPath: path)
+#endif
                             expect {
                                 try BacktraceFileManager.excludeFromBackup(url)
                             }.toNot(throwError())
@@ -60,11 +62,18 @@ final class BacktraceFileManagerTests: QuickSpec {
                     }
                     throwingContext("given existing file") {
                         it("gets the size of a file") {
-//                            let bundle = Bundle(for: type(of: self))
-//                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
-//                            let url = URL(fileURLWithPath: path)
+
                             
+                            
+#if SWIFT_PACKAGE
                             guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else { fail(); return }
+#else
+                            let bundle = Bundle(for: type(of: self))
+                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
+                            let url = URL(fileURLWithPath: path)
+#endif
+                            
+                            
 
                             expect {
                                 try BacktraceFileManager.sizeOfFile(at: url)

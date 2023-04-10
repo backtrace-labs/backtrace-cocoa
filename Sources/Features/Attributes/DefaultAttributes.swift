@@ -5,6 +5,8 @@ import CoreLocation
 import UIKit
 #elseif os(macOS)
 import AppKit
+#elseif os(tvOS)
+import UIKit
 #endif
 
 final class FaultInfo: AttributesSource {
