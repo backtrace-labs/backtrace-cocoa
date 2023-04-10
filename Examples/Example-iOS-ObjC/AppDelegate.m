@@ -55,14 +55,14 @@
     [BacktraceClient.shared.metrics enableWithSettings: [BacktraceMetricsSettings alloc]];
 
     // Enable breadcrumbs https://docs.saucelabs.com/error-reporting/web-console/debug/#breadcrumbs-section
-    [BacktraceClient.shared enableBreadcrumbs];
+    //[BacktraceClient.shared enableBreadcrumbs];
     NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
 
     // Add breadcrumb
-    [[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
-                                 attributes:attributes
-                                       type:BacktraceBreadcrumbTypeUser
-                                      level:BacktraceBreadcrumbLevelError];
+//    [[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
+//                                 attributes:attributes
+//                                       type:BacktraceBreadcrumbTypeUser
+//                                      level:BacktraceBreadcrumbLevelError];
     return YES;
 }
 
