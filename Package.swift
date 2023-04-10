@@ -10,7 +10,7 @@ let package = Package(
         .tvOS(.v11)
     ],
     products: [
-        .library(name: "Backtrace", targets: ["Backtrace"]),
+        .library(name: "Backtrace", targets: ["Backtrace"])
     ],
     dependencies: [
         .package(url: "https://github.com/microsoft/plcrashreporter.git", from: "1.11.0"),
@@ -23,15 +23,16 @@ let package = Package(
             dependencies: [
             .product(name: "CrashReporter", package: "plcrashreporter")
             ],
-            path: "Sources"
+            path: "Sources",
+            resources: [.process("Features/Resources/Model.xcdatamodeld")
+            ]
         ),
         .testTarget(
             name: "Backtrace-Tests",
             dependencies: ["Backtrace", "Quick", "Nimble"],
             path: "Tests",
-            resources: [
-                    .process("Resources")
-                ]
+            resources: [.process("Resources")]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
