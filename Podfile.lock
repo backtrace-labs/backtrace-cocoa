@@ -1,5 +1,5 @@
 PODS:
-  - Backtrace (1.7.6):
+  - Backtrace (2.0.0):
     - PLCrashReporter
   - PLCrashReporter (1.10.2)
 
@@ -15,9 +15,9 @@ EXTERNAL SOURCES:
     :path: "./Backtrace.podspec"
 
 SPEC CHECKSUMS:
-  Backtrace: 1c843a5eaf889cc2dae1f179ca5a3b769773002b
+  Backtrace: a96d58f20d00a908568a54ee91ec23ab2a7a62fb
   PLCrashReporter: 2a08001f8e6a30abe405ee8f13d2753cfb5d682a
 
-PODFILE CHECKSUM: 55b2bcbf8be807bcc0172782ee098188f99739aa
+PODFILE CHECKSUM: 11c67eacb1e55e8b1f157d74c4bf420a2a068681
 
 COCOAPODS: 1.12.0
