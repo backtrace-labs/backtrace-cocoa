@@ -12,8 +12,23 @@
 
 ## Installation 
 
-To use [CocoaPods](https://cocoapods.org), add the Backtrace pod to your `Podfile`:
+You can use this SDK through either Swift Package Manager or CocoaPods. The SPM package can be integrated directly within Xcode or by editing your package's Package.swift file.<br>
+Choose one of the following integration methods.
 
+### Via Xcode
+1. In Xcode File > Add Packages, search for `https://github.com/backtrace-labs/backtrace-cocoa.git`
+1. In the Dependency Rule list specify the Branch as `SwiftPM`, then click Add Package.
+1. Verify your project Package Dependencies list backtrace-cocoa.
+1. Be sure to add Backtrace to your target’s Frameworks, Libraries, and Embedded Content.
+
+### Via Package.swift
+Add this dependency to your `Package.swift` file:
+```
+.package(url: "https://github.com/backtrace-labs/backtrace-cocoa.git, branch: "SwiftPM")
+```
+
+### Via CocoaPods
+Add the Backtrace pod to your `Podfile`:
 ```
 pod 'Backtrace'
 ```
