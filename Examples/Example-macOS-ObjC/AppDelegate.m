@@ -43,7 +43,7 @@
     } @finally {
         
     }
-    NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
+//    NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
 //    [BacktraceClient.shared addBreadcrumb:@"My Breadcrumb"
 //                               attributes:attributes
 //                                     type:BacktraceBreadcrumbTypeUser
