@@ -14,7 +14,7 @@ import Foundation
 
 #if os(iOS) || os(OSX)
     /// Breadcrumbs class instance
-    //@objc private let breadcrumbsInstance: BacktraceBreadcrumbs = BacktraceBreadcrumbs()
+    @objc private let breadcrumbsInstance: BacktraceBreadcrumbs = BacktraceBreadcrumbs()
 #endif
 
     private let reporter: BacktraceReporter
@@ -220,49 +220,49 @@ extension BacktraceClient: BacktraceMetricsProtocol {
 }
 
 // MARK: - BacktraceBreadcrumbProtocol
-//#if os(iOS) || os(OSX)
-//extension BacktraceClient: BacktraceBreadcrumbProtocol {
-//    @objc public var breadcrumbs: BacktraceBreadcrumbs {
-//        return self.breadcrumbsInstance
-//    }
-//
-//    @objc public func enableBreadcrumbs() {
-//        breadcrumbsInstance.enableBreadcrumbs()
-//    }
-//
-//    @objc public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings) {
-//        breadcrumbsInstance.enableBreadcrumbs(breadcrumbSettings)
-//    }
-//
-//    @objc public func addBreadcrumb(_ message: String,
-//                                    attributes: [String: String],
-//                                    type: BacktraceBreadcrumbType,
-//                                    level: BacktraceBreadcrumbLevel) -> Bool {
-//        return breadcrumbsInstance.addBreadcrumb(message, attributes: attributes, type: type, level: level)
-//    }
-//
-//    @objc public func addBreadcrumb(_ message: String) -> Bool {
-//        return breadcrumbsInstance.addBreadcrumb(message)
-//    }
-//
-//    @objc public func addBreadcrumb(_ message: String, attributes: [String: String]) -> Bool {
-//        return breadcrumbsInstance.addBreadcrumb(message, attributes: attributes)
-//    }
-//
-//    @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) -> Bool {
-//        return breadcrumbsInstance.addBreadcrumb(message, type: type, level: level)
-//    }
-//
-//    @objc public func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) -> Bool {
-//        return breadcrumbsInstance.addBreadcrumb(message, level: level)
-//    }
-//
-//    @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType) -> Bool {
-//        return breadcrumbsInstance.addBreadcrumb(message, type: type)
-//    }
-//
-//    @objc public func clearBreadcrumbs() -> Bool {
-//        return breadcrumbsInstance.clear()
-//    }
-//}
-//#endif
+#if os(iOS) || os(OSX)
+extension BacktraceClient: BacktraceBreadcrumbProtocol {
+    @objc public var breadcrumbs: BacktraceBreadcrumbs {
+        return self.breadcrumbsInstance
+    }
+
+    @objc public func enableBreadcrumbs() {
+        breadcrumbsInstance.enableBreadcrumbs()
+    }
+
+    @objc public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings) {
+        breadcrumbsInstance.enableBreadcrumbs(breadcrumbSettings)
+    }
+
+    @objc public func addBreadcrumb(_ message: String,
+                                    attributes: [String: String],
+                                    type: BacktraceBreadcrumbType,
+                                    level: BacktraceBreadcrumbLevel) -> Bool {
+        return breadcrumbsInstance.addBreadcrumb(message, attributes: attributes, type: type, level: level)
+    }
+
+    @objc public func addBreadcrumb(_ message: String) -> Bool {
+        return breadcrumbsInstance.addBreadcrumb(message)
+    }
+
+    @objc public func addBreadcrumb(_ message: String, attributes: [String: String]) -> Bool {
+        return breadcrumbsInstance.addBreadcrumb(message, attributes: attributes)
+    }
+
+    @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) -> Bool {
+        return breadcrumbsInstance.addBreadcrumb(message, type: type, level: level)
+    }
+
+    @objc public func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) -> Bool {
+        return breadcrumbsInstance.addBreadcrumb(message, level: level)
+    }
+
+    @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType) -> Bool {
+        return breadcrumbsInstance.addBreadcrumb(message, type: type)
+    }
+
+    @objc public func clearBreadcrumbs() -> Bool {
+        return breadcrumbsInstance.clear()
+    }
+}
+#endif

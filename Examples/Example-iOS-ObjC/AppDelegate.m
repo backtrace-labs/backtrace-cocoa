@@ -59,10 +59,10 @@
     NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
 
     // Add breadcrumb
-//    [[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
-//                                 attributes:attributes
-//                                       type:BacktraceBreadcrumbTypeUser
-//                                      level:BacktraceBreadcrumbLevelError];
+    [[BacktraceClient shared] addBreadcrumb:@"My Native Breadcrumb"
+                                 attributes:attributes
+                                       type:BacktraceBreadcrumbTypeUser
+                                      level:BacktraceBreadcrumbLevelError];
     return YES;
 }
 

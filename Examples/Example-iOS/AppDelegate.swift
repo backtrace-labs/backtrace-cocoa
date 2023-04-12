@@ -51,10 +51,10 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // Add breadcrumb
         let attributes = ["My Attribute":"My Attribute Value"]
-//        _ = BacktraceClient.shared?.addBreadcrumb("My Breadcrumb",
-//                                              attributes: attributes,
-//                                              type: .user,
-//                                              level: .error)
+        _ = BacktraceClient.shared?.addBreadcrumb("My Breadcrumb",
+                                              attributes: attributes,
+                                              type: .user,
+                                              level: .error)
         return true
     }
     

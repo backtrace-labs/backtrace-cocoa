@@ -3,8 +3,7 @@ import Foundation
 /// Type-alias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
 #if os(iOS) || os(OSX)
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
-    BacktraceLogging & BacktraceMetricsProtocol
-//& BacktraceBreadcrumbProtocol
+    BacktraceLogging & BacktraceMetricsProtocol & BacktraceBreadcrumbProtocol
 #else
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
     BacktraceLogging & BacktraceMetricsProtocol
@@ -105,75 +104,75 @@ enum BacktraceUrlParsingError: Error {
     case invalidInput(String)
 }
 
-//#if os(iOS) || os(OSX)
-///// Provides Breadcrumb adding functionality to `BacktraceClient`.
-//@objc public protocol BacktraceBreadcrumbProtocol {
-//    @objc var breadcrumbs: BacktraceBreadcrumbs { get }
-//
-//    /// Enable breadcrumbs with default BradcrumbsSettings
-//    ///
-//    @objc func enableBreadcrumbs()
-//
-//    /// Enable breadcrumbs
-//    ///
-//    /// - Parameters:
-//    ///   - breadcrumbSettings: bradcrumb settings.
-//    @objc func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings)
-//
-//    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
-//    ///
-//    /// - Parameters:
-//    ///   - message: The message to add.
-//    ///   - attributes: The attributes to attach to the the breadcrumb
-//    ///   - type: The Breadcrumb type to add
-//    ///   - level: The breadcrumb severity level to add
-//    @objc func addBreadcrumb(_ message: String,
-//                             attributes: [String: String],
-//                             type: BacktraceBreadcrumbType,
-//                             level: BacktraceBreadcrumbLevel) -> Bool
-//
-//    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
-//    ///
-//    /// - Parameters:
-//    ///   - message: The message to add.
-//    @objc func addBreadcrumb(_ message: String) -> Bool
-//
-//    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
-//    ///
-//    /// - Parameters:
-//    ///   - message: The message to add.
-//    ///   - attributes: The attributes to attach to the the breadcrumb
-//    @objc func addBreadcrumb(_ message: String,
-//                             attributes: [String: String]) -> Bool
-//
-//    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
-//    ///
-//    /// - Parameters:
-//    ///   - message: The message to add.
-//    ///   - type: The Breadcrumb type to add
-//    ///   - level: The breadcrumb severity level to add
-//    @objc func addBreadcrumb(_ message: String,
-//                             type: BacktraceBreadcrumbType,
-//                             level: BacktraceBreadcrumbLevel) -> Bool
-//
-//    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
-//    ///
-//    /// - Parameters:
-//    ///   - message: The message to add.
-//    ///   - level: The breadcrumb severity level to add
-//    @objc func addBreadcrumb(_ message: String,
-//                             level: BacktraceBreadcrumbLevel) -> Bool
-//
-//    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
-//    ///
-//    /// - Parameters:
-//    ///   - message: The message to add.
-//    ///   - level: The breadcrumb severity level to add
-//    @objc func addBreadcrumb(_ message: String,
-//                             type: BacktraceBreadcrumbType) -> Bool
-//
-//    /// Clear breadcrumbs
-//    ///
-//    @objc func clearBreadcrumbs() -> Bool
-//}
-//#endif
+#if os(iOS) || os(OSX)
+/// Provides Breadcrumb adding functionality to `BacktraceClient`.
+@objc public protocol BacktraceBreadcrumbProtocol {
+    @objc var breadcrumbs: BacktraceBreadcrumbs { get }
+
+    /// Enable breadcrumbs with default BradcrumbsSettings
+    ///
+    @objc func enableBreadcrumbs()
+
+    /// Enable breadcrumbs
+    ///
+    /// - Parameters:
+    ///   - breadcrumbSettings: bradcrumb settings.
+    @objc func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings)
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - attributes: The attributes to attach to the the breadcrumb
+    ///   - type: The Breadcrumb type to add
+    ///   - level: The breadcrumb severity level to add
+    @objc func addBreadcrumb(_ message: String,
+                             attributes: [String: String],
+                             type: BacktraceBreadcrumbType,
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    @objc func addBreadcrumb(_ message: String) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - attributes: The attributes to attach to the the breadcrumb
+    @objc func addBreadcrumb(_ message: String,
+                             attributes: [String: String]) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - type: The Breadcrumb type to add
+    ///   - level: The breadcrumb severity level to add
+    @objc func addBreadcrumb(_ message: String,
+                             type: BacktraceBreadcrumbType,
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - level: The breadcrumb severity level to add
+    @objc func addBreadcrumb(_ message: String,
+                             level: BacktraceBreadcrumbLevel) -> Bool
+
+    /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
+    ///
+    /// - Parameters:
+    ///   - message: The message to add.
+    ///   - level: The breadcrumb severity level to add
+    @objc func addBreadcrumb(_ message: String,
+                             type: BacktraceBreadcrumbType) -> Bool
+
+    /// Clear breadcrumbs
+    ///
+    @objc func clearBreadcrumbs() -> Bool
+}
+#endif

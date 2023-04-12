@@ -43,11 +43,11 @@
     } @finally {
         
     }
-//    NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
-//    [BacktraceClient.shared addBreadcrumb:@"My Breadcrumb"
-//                               attributes:attributes
-//                                     type:BacktraceBreadcrumbTypeUser
-//                                    level:BacktraceBreadcrumbLevelError];
+    NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
+    [BacktraceClient.shared addBreadcrumb:@"My Breadcrumb"
+                               attributes:attributes
+                                     type:BacktraceBreadcrumbTypeUser
+                                    level:BacktraceBreadcrumbLevelError];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
