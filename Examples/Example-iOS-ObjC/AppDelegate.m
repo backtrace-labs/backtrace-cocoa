@@ -55,7 +55,7 @@
     [BacktraceClient.shared.metrics enableWithSettings: [BacktraceMetricsSettings alloc]];
 
     // Enable breadcrumbs https://docs.saucelabs.com/error-reporting/web-console/debug/#breadcrumbs-section
-    //[BacktraceClient.shared enableBreadcrumbs];
+    [BacktraceClient.shared enableBreadcrumbs];
     NSDictionary *attributes = @{@"My Attribute":@"My Attribute Value"};
 
     // Add breadcrumb

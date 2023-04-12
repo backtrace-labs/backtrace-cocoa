@@ -30,7 +30,7 @@
     
     [BacktraceClient.shared setAttributes: @{@"foo": @"bar"}];
     BacktraceClient.shared.delegate = self;
-    //[BacktraceClient.shared enableBreadcrumbs];
+    [BacktraceClient.shared enableBreadcrumbs];
     
     @try {
         NSArray *array = @[];
