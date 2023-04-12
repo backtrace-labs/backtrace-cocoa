@@ -1,7 +1,7 @@
 # Backtrace Integration with iOS
 
 <p align="center">
-    <img src="https://img.shields.io/badge/platform-iOS%2010%2B%20%7C%20tvOS%2010%2B%20%7C%20macOS%2010.10%2B-blue.svg" alt="Supported platforms"/>
+    <img src="https://img.shields.io/badge/platform-iOS%2011%2B%20%7C%20tvOS%2011%2B%20%7C%20macOS%2010.13%2B-blue.svg" alt="Supported platforms"/>
     <a href="https://masterer.apple.com/swift"><img src="https://img.shields.io/badge/language-swift%204%20%7C%20objective--c-brigthgreen.svg" alt="Supported languages" /></a>
     <a href="https://cocoapods.org/pods/Backtrace"><img src="https://img.shields.io/cocoapods/v/Backtrace.svg?style=flat" alt="CocoaPods compatible" /></a>
     <img src="http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat" alt="License: MIT" />
