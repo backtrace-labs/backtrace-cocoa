@@ -19,7 +19,6 @@ final class AttachmentTests: QuickSpec {
                 let bundle = Bundle(for: type(of: self))
                 let path = bundle.path(forResource: "test", ofType: "txt")
 #endif
-                
                 if let path {
                     expect(Attachment(filePath: path)).toNot(beNil())
                 } else {

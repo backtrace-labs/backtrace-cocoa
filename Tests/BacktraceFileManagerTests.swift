@@ -27,9 +27,6 @@ final class BacktraceFileManagerTests: QuickSpec {
                     }
                     throwingContext("given existing file") {
                         it("excludes file from backup") {
-                            //let bundle = Bundle(for: type(of: self))
-                            //guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
-                            
 #if SWIFT_PACKAGE
                             guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else { fail(); return }
 #else
