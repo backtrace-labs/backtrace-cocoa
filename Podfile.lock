@@ -26,7 +26,7 @@ EXTERNAL SOURCES:
     :path: "./Backtrace.podspec"
 
 SPEC CHECKSUMS:
-  Backtrace: c0124ca7e1a84bc7a3b3407671fb99a90be474e9
+  Backtrace: 944489289bed0c8f1d05ecac0142424759c67605
   Backtrace-PLCrashReporter: 71ddeba11834d2bcc3c19f357aaec7bf87131f89
   Cassette: 074c6991391733888990dba728b7ffe00299a0a6
   Nimble: 5316ef81a170ce87baf72dd961f22f89a602ff84

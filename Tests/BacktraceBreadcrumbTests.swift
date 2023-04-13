@@ -175,7 +175,11 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     let breadcrumbText = self.readBreadcrumbText()!
 
                     // Not very scientific, but this is apparently when the file wraps
+                    #if canImport(Cassette)
                     let wrapIndex = 742
+                    #else
+                    let wrapIndex = 733
+                    #endif
                     for readIndex in 0...wrapIndex {
                         // should have been rolled away
                         expect { breadcrumbText }.toNot(contain("\"this is Breadcrumb number \(readIndex)\""))
@@ -230,12 +234,26 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { backtraceObserverMock2.startObservingCalled }.to(beTrue())
                 }
             }
-#if os(iOS)
+
+#if os(tvOS)
+            describe("when tvOS notifications update") {
+                context("for memory warning notification") {
+                    it("tvOS breadcrumb added") {
+                        backtraceBreadcrumbs.enableBreadcrumbs()
+                        // Simulate memory event:
+                        // https://stackoverflow.com/questions/4717138/ios-development-how-can-i-induce-low-memory-warnings-on-device
+                        // Can't seem to control much of the levels (warning vs fatal, etc), so we just test the warning level
+                        UIControl().sendAction(Selector(("_performMemoryWarning")), to: UIApplication.shared, for: nil)
+
+                        expect { self.readBreadcrumbText() }.toEventually(contain("Warning level memory pressure event"))
+                    }
+                }
+            }
+#elseif os(iOS)
             describe("when iOS notifications update") {
                 context("for memory warning notification") {
                     it("iOS breadcrumb added") {
                         backtraceBreadcrumbs.enableBreadcrumbs()
-
                         // Simulate memory event:
                         // https://stackoverflow.com/questions/4717138/ios-development-how-can-i-induce-low-memory-warnings-on-device
                         // Can't seem to control much of the levels (warning vs fatal, etc), so we just test the warning level

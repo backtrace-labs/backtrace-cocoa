@@ -20,12 +20,13 @@ protocol BacktraceNotificationObserverDelegate: class {
     init(breadcrumbs: BacktraceBreadcrumbs) {
         self.breadcrumbs = breadcrumbs
         var handlerDelegates: [BacktraceNotificationHandlerDelegate] = [
-            BacktraceMemoryNotificationObserver(),
-            BacktraceBatteryNotificationObserver()]
+            BacktraceMemoryNotificationObserver()]
 #if os(iOS)
         handlerDelegates.append(BacktraceOrientationNotificationObserver())
         handlerDelegates.append(BacktraceAppStateNotificationObserver())
         handlerDelegates.append(BacktraceCallNotificationObserver())
+#elseif os(OSX)
+        handlerDelegates.append(BacktraceBatteryNotificationObserver())
 #endif
         self.handlerDelegates = handlerDelegates
         super.init()
@@ -212,6 +213,7 @@ func powerSourceObserver(context: UnsafeMutableRawPointer?) {
 }
 #endif
 
+#if os(iOS) || os(OSX)
 class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
     weak var delegate: BacktraceNotificationObserverDelegate?
@@ -336,6 +338,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 #endif
 }
+#endif
 
 #if os(iOS)
 // MARK: - Application State Observer
