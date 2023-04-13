@@ -24,7 +24,7 @@ Choose one of the following integration methods.
 ### Via Package.swift
 Add this dependency to your `Package.swift` file:
 ```
-.package(url: "https://github.com/backtrace-labs/backtrace-cocoa.git, branch: "SwiftPM")
+.package(url: "https://github.com/backtrace-labs/backtrace-cocoa.git, branch: "feature/SwiftPM")
 ```
 
 ### Via CocoaPods
