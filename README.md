@@ -1,4 +1,9 @@
-# Backtrace
+# This branch is discontinued
+SPM support is being developed in [feature/SwiftPM](https://github.com/backtrace-labs/backtrace-cocoa/tree/feature/SwiftPM)
+We'll keep this branch open for a minute longer because the discussion is interesting...
+
+
+*# Backtrace
 
 [Backtrace](http://backtrace.io/)'s integration with iOS, macOS and tvOS applications allows customers to capture and report handled and unhandled exceptions to their Backtrace instance, instantly offering the ability to prioritise and debug software errors.
 
