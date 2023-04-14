@@ -29,8 +29,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: sh scripts/install.sh
-      #- name: Run pod lib lint
-      #  run: pod lib lint --verbose --allow-warnings --sources='https://cdn.cocoapods.org/' 
+      - name: Run pod lib lint
+        run: pod lib lint --verbose --allow-warnings --sources='https://cdn.cocoapods.org/' 
   # END COPY PASTE FROM TEST.YML
   
   deploy-cocoapods:
