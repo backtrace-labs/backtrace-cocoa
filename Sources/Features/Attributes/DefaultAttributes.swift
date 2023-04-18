@@ -277,6 +277,8 @@ private extension CLAuthorizationStatus {
         case .denied: return "Denied"
         case .notDetermined: return "notDetermined"
         case .restricted: return "restricted"
+        @unknown default:
+            return "notDetermined"
         }
     }
 }
@@ -293,6 +295,8 @@ private extension UIDeviceOrientation {
         case .portrait: return "Portrait"
         case .portraitUpsideDown: return "PortraitUpsideDown"
         case .unknown: return "Unknown"
+        @unknown default:
+            return "Unknown"
         }
     }
 }
@@ -307,6 +311,8 @@ private extension UIDevice.BatteryState {
         case .full: return "Full"
         case .unknown: return "Unknown"
         case .unplugged: return "Unplugged"
+        @unknown default:
+            return "Unknown"
         }
     }
 }
@@ -320,6 +326,8 @@ private extension UIApplication.State {
         case .active: return "Active"
         case .background: return "Background"
         case .inactive: return "Inactive"
+        @unknown default:
+            return "Unknown"
         }
     }
 }

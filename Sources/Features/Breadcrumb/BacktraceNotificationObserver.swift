@@ -3,7 +3,7 @@ import Foundation
 import IOKit.ps
 #endif
 
-protocol BacktraceNotificationObserverDelegate: class {
+protocol BacktraceNotificationObserverDelegate: AnyObject {
 
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]?,
@@ -53,7 +53,7 @@ protocol BacktraceNotificationObserverDelegate: class {
     }
 }
 
-protocol BacktraceNotificationHandlerDelegate: class {
+protocol BacktraceNotificationHandlerDelegate: AnyObject {
 
     var delegate: BacktraceNotificationObserverDelegate? { get set }
 
@@ -320,6 +320,8 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
             return "Charging battery level: \(batteryLevel * 100)%"
         case .full:
             return "Full battery level: \(batteryLevel * 100)%"
+        @unknown default:
+            return "Unknown battery level"
         }
     }
 
@@ -459,7 +461,7 @@ class BacktraceCallNotificationObserver: NSObject, BacktraceNotificationHandlerD
     }
 
     func callStateChanged() {
-        delegate?.addBreadcrumb(breadcrumbMsg,
+       _ = delegate?.addBreadcrumb(breadcrumbMsg,
                                 attributes: nil,
                                 type: .system,
                                 level: .info)
