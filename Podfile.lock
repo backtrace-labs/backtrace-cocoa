@@ -10,7 +10,6 @@ PODS:
 DEPENDENCIES:
   - Backtrace (from `./Backtrace.podspec`)
   - Backtrace-PLCrashReporter (= 1.5.3)
-  - Cassette (= 1.0.0-beta5)
   - Nimble (~> 10.0.0)
   - Quick (~> 5.0.1)
 
@@ -32,6 +31,6 @@ SPEC CHECKSUMS:
   Nimble: 5316ef81a170ce87baf72dd961f22f89a602ff84
   Quick: 749aa754fd1e7d984f2000fe051e18a3a9809179
 
-PODFILE CHECKSUM: c82635a27ff82aa9b5041b846d86d79f75e3846d
+PODFILE CHECKSUM: f87c6730c2f7a9e8c76336b07e456222fd378723
 
 COCOAPODS: 1.12.0
