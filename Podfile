@@ -11,7 +11,6 @@ end
 def shared_test_pods
     shared_pods
     # Define shared Testing CocoaPods here
-
 end
 
 def shared_ios_mac_pods
@@ -91,6 +90,8 @@ post_install do |installer|
         target.build_configurations.each do |config|
             config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
             config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+            config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
+            config.build_settings['TVOS_DEPLOYMENT_TARGET'] = '11.0'
         end
     end
   end
