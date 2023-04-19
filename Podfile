@@ -80,6 +80,7 @@ end
 
 target 'Example-macOS-ObjC' do
     platform :osx, '10.13'
+    use_frameworks!
     local_backtrace
 end
 
