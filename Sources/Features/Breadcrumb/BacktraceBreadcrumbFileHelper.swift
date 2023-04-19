@@ -1,5 +1,4 @@
 import Foundation
-//import Cassette
 
 enum BacktraceBreadcrumbFileHelperError: Error {
     case invalidFormat
@@ -15,7 +14,6 @@ enum BacktraceBreadcrumbFileHelperError: Error {
 
     private let maximumIndividualBreadcrumbSize: Int
     private let maxQueueFileSizeBytes: Int
-    //private let queue: CASQueueFile
 
     /** CASQueueFile is not thread safe, so all interactions with it should be done synchronously through this DispathQueue */
     private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFileHelper@\(UUID().uuidString)")

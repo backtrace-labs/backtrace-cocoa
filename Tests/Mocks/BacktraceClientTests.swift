@@ -2,7 +2,11 @@ import XCTest
 
 import Nimble
 import Quick
+#if SWIFT_PACKAGE
 import CrashReporter
+#else
+import Backtrace_PLCrashReporter
+#endif
 @testable import Backtrace
 
 final class BacktraceClientTests: QuickSpec {
