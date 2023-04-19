@@ -1,5 +1,9 @@
 import Foundation
+#if SWIFT_PACKAGE
 import CrashReporter
+#else
+import Backtrace_PLCrashReporter
+#endif
 
 /// Model represents single crash report which can be send to Backtrace services.
 @objc final public class BacktraceReport: NSObject {
