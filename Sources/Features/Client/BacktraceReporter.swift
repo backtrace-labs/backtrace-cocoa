@@ -105,7 +105,7 @@ extension BacktraceReporter {
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
-        return send(resource: resource!)
+        return send(resource: resource)
     }
 
     func generate(exception: NSException? = nil, attachmentPaths: [String] = [],
@@ -115,7 +115,7 @@ extension BacktraceReporter {
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
-        return resource!
+        return resource
     }
 }
 

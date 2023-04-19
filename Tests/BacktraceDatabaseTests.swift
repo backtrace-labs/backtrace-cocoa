@@ -19,19 +19,19 @@ final class BacktraceDatabaseTests: QuickSpec {
 
                 throwingIt("can save reports which matches to the latest saved one") {
                     let report = try crashReporter.generateLiveReport(attributes: [:])
-                    try repository.save(report!)
+                    try repository.save(report)
                     if let fetchedReport = try repository.getLatest().first {
-                        expect(fetchedReport.reportData).to(equal(report?.reportData))
+                        expect(fetchedReport.reportData).to(equal(report.reportData))
                     }
                 }
 
                 throwingIt("can add new report and remove it") {
                     try repository.clear()
                     let report = try crashReporter.generateLiveReport(attributes: [:])
-                    try repository.save(report!)
+                    try repository.save(report)
                     expect { try repository.countResources() }.to(equal(1))
                     if let fetchedReport = try repository.getLatest().first {
-                        expect(fetchedReport.reportData).to(equal(report?.reportData))
+                        expect(fetchedReport.reportData).to(equal(report.reportData))
                         try repository.delete(fetchedReport)
                         expect { try repository.countResources() }.to(equal(0))
                     } else {

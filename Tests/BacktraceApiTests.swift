@@ -25,7 +25,7 @@ final class BacktraceApiTests: QuickSpec {
                 it("sends report and calls delegate methods") {
                     urlSession.response = MockOkResponse()
                     expect { try backtraceApi
-                            .send(try crashReporter.generateLiveReport(attributes: [:])!).backtraceStatus
+                            .send(try crashReporter.generateLiveReport(attributes: [:])).backtraceStatus
                     }.to(equal(BacktraceReportStatus.ok))
 
                     expect { delegate.calledWillSend }.to(beTrue())
@@ -40,7 +40,7 @@ final class BacktraceApiTests: QuickSpec {
                 it("sends report and calls delegate methods") {
                     urlSession.response = MockNoResponse()
                     expect { try backtraceApi
-                        .send(try crashReporter.generateLiveReport(attributes: [:])!)}
+                        .send(try crashReporter.generateLiveReport(attributes: [:]))}
                         .to(throwError())
 
                     expect { delegate.calledWillSend }.to(beTrue())
@@ -57,7 +57,7 @@ final class BacktraceApiTests: QuickSpec {
                     urlSession.response =
                         MockConnectionErrorResponse()
                     expect { try backtraceApi
-                        .send(try crashReporter.generateLiveReport(attributes: [:])!)}
+                        .send(try crashReporter.generateLiveReport(attributes: [:]))}
                         .to(throwError())
 
                     expect { delegate.calledWillSend }.to(beTrue())
@@ -74,7 +74,7 @@ final class BacktraceApiTests: QuickSpec {
                     urlSession.response = Mock403Response()
                     expect {
                         let report = try crashReporter.generateLiveReport(attributes: [:])
-                        return try backtraceApi.send(report!).backtraceStatus
+                        return try backtraceApi.send(report).backtraceStatus
                     }.to(equal(BacktraceReportStatus.serverError))
 
                     expect { delegate.calledWillSend }.to(beTrue())
@@ -92,7 +92,7 @@ final class BacktraceApiTests: QuickSpec {
                     backtraceApi.delegate = delegate
                     urlSession.response = MockOkResponse()
                     expect { try backtraceApi
-                            .send(try crashReporter.generateLiveReport(attributes: [:])!).backtraceStatus
+                            .send(try crashReporter.generateLiveReport(attributes: [:])).backtraceStatus
                     }.to(equal(.limitReached))
 
                     expect { delegate.calledWillSend }.to(beFalse())
@@ -141,7 +141,7 @@ final class BacktraceApiTests: QuickSpec {
                         return request
                     }
 
-                    let result = try backtraceApi.send(backtraceReport!)
+                    let result = try backtraceApi.send(backtraceReport)
 
                     expect { result.backtraceStatus }.to(equal(.ok))
                     expect { result.report?.attachmentPaths }.to(equal(attachmentPaths))

@@ -152,7 +152,7 @@ final class BacktraceOomWatcher {
     private func reportOom(appState: ApplicationInfo) {
         guard let reportData = try? crashReporter.generateLiveReport(exception: nil,
                                                                       attributes: [:],
-                                                                      attachmentPaths: [])!.reportData else {
+                                                                      attachmentPaths: []).reportData else {
              BacktraceLogger.warning("Could not create live_report for OomReport.")
              return
          }
