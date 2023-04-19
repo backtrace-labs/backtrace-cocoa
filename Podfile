@@ -5,7 +5,7 @@ source 'https://cdn.cocoapods.org/'
 # Definitions
 def shared_pods
     # Version 1.5.3 has client-side symbolication turned off by default, which we want. Please don't upgrade to 1.5.4, which enables it by default.
-    pod 'Backtrace-PLCrashReporter', '1.5.3' 
+    pod 'PLCrashReporter', '1.11.0' 
 end
 
 def shared_test_pods
@@ -80,7 +80,6 @@ end
 
 target 'Example-macOS-ObjC' do
     platform :osx, '10.13'
-    use_frameworks!
     local_backtrace
 end
 
