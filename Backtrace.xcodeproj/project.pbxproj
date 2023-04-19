@@ -1444,9 +1444,9 @@
 			);
 			mainGroup = F2C2FA4421BBD23B00934744;
 			packageReferences = (
-				4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */,
-				4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */,
-				4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */,
+				4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */,
+				4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */,
+				4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */,
 			);
 			productRefGroup = F2C2FA5121BBD26300934744 /* Products */;
 			projectDirPath = "";
@@ -3002,7 +3002,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = B802FABFABF710ECC10C7FF4 /* Pods-Example-tvOS.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -3084,7 +3083,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E04177DF7468724C93AE39E8 /* Pods-Example-tvOS.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -3526,7 +3524,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 76539ACDE28F9A2D5E09E931 /* Pods-Example-iOS.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -3609,7 +3606,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8A6A731DD138C5975B9307E8 /* Pods-Example-iOS.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -3686,7 +3682,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 60E52F16AB91B83F81DD8167 /* Pods-Example-iOS-ObjC.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -3766,7 +3761,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 179470938ADF21DA7256F553 /* Pods-Example-iOS-ObjC.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -3840,7 +3834,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D961D89DBA847806EDBC210A /* Pods-Example-macOS-ObjC.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -3919,7 +3912,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 77BCB75657AFDF966E9C9E22 /* Pods-Example-macOS-ObjC.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -4092,7 +4084,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */ = {
+		4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/microsoft/plcrashreporter.git";
 			requirement = {
@@ -4100,7 +4092,7 @@
 				minimumVersion = 1.0.0;
 			};
 		};
-		4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */ = {
+		4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Quick/Nimble.git";
 			requirement = {
@@ -4108,7 +4100,7 @@
 				version = 10.0.0;
 			};
 		};
-		4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */ = {
+		4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Quick/Quick.git";
 			requirement = {
@@ -4121,62 +4113,62 @@
 /* Begin XCSwiftPackageProductDependency section */
 		4B761EE629CE0AE900EE8937 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4B761EEE29D1262100EE8937 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4B761EF029D1262C00EE8937 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4BC41EED29D360160037B0BA /* Nimble */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */;
+			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */;
 			productName = Nimble;
 		};
 		4BC41EF029D3602D0037B0BA /* Quick */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */;
+			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */;
 			productName = Quick;
 		};
 		4BC41EF229D360420037B0BA /* Nimble */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */;
+			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */;
 			productName = Nimble;
 		};
 		4BC41EF429D360420037B0BA /* Quick */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */;
+			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */;
 			productName = Quick;
 		};
 		4BC41EF629D3604C0037B0BA /* Nimble */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */;
+			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */;
 			productName = Nimble;
 		};
 		4BC41EF829D3604C0037B0BA /* Quick */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */;
+			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */;
 			productName = Quick;
 		};
 		4BD265E129E519E60015F265 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4BD265E329E51B230015F265 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4BD265E529E51B440015F265 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 /* End XCSwiftPackageProductDependency section */

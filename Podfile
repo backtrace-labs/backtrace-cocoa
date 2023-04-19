@@ -26,6 +26,7 @@ inhibit_all_warnings!
 
 ## Framework iOS
 target 'Backtrace-iOS' do
+    platform :ios, '11.0'
     use_frameworks!
     shared_ios_mac_pods
     target 'Backtrace-iOSTests' do
@@ -47,6 +48,7 @@ end
 
 ## Framework tvOS
 target 'Backtrace-tvOS' do
+    platform :tvos, '11.0'
     use_frameworks!
     shared_pods
     target 'Backtrace-tvOSTests' do
@@ -64,11 +66,13 @@ end
 
 ## Example targets
 target 'Example-iOS' do
+    platform :ios, '11.0'
     use_frameworks!
     local_backtrace
 end
 
 target 'Example-iOS-ObjC' do
+    platform :ios, '11.0'
     use_frameworks!
     local_backtrace
 end
@@ -80,6 +84,7 @@ target 'Example-macOS-ObjC' do
 end
 
 target 'Example-tvOS' do
+    platform :tvos, '11.0'
     use_frameworks!
     local_backtrace
 end
