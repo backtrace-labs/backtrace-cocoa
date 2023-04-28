@@ -32,6 +32,7 @@ Add the Backtrace pod to your `Podfile`:
 ```
 pod 'Backtrace'
 ```
+>**NOTE :**  Make sure to specify `use_frameworks!` in your Podfile..
 
 ## Usage
 ### Swift
