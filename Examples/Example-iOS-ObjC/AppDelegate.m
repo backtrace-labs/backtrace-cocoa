@@ -17,8 +17,7 @@
     NSURL *fileUrl = [libraryUrl URLByAppendingPathComponent:fileName];
 
     BacktraceCredentials *credentials = [[BacktraceCredentials alloc]
-                                         initWithEndpoint: [NSURL URLWithString: Keys.backtraceUrl]
-                                         token: [Keys backtraceToken]];
+                                         initWithSubmissionUrl: [NSURL URLWithString: Keys.backtraceSubmissionUrl]];
     BacktraceDatabaseSettings *backtraceDatabaseSettings = [[BacktraceDatabaseSettings alloc] init];
     backtraceDatabaseSettings.maxRecordCount = 10;
 

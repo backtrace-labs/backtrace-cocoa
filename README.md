@@ -28,11 +28,10 @@ Add this dependency to your `Package.swift` file:
 ```
 
 ### Via CocoaPods
-Add the Backtrace pod to your `Podfile`:
+Specify `use_frameworks!` in your `Podfile` and add the Backtrace pod:
 ```
 pod 'Backtrace'
 ```
->**NOTE :**  Make sure to specify `use_frameworks!` in your Podfile..
 
 ## Usage
 ### Swift
