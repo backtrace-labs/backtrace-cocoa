@@ -1,10 +1,10 @@
 import Foundation
 
-enum BacktraceBreadcrumbFileHelperError: Error {
+enum BacktraceBreadcrumbFileError: Error {
     case invalidFormat
 }
 
-@objc class BacktraceBreadcrumbFileHelper: NSObject {
+@objc class BacktraceBreadcrumbFile: NSObject {
 
     private static let minimumQueueFileSizeBytes = 4096
 
@@ -14,25 +14,25 @@ enum BacktraceBreadcrumbFileHelperError: Error {
     private let queue: Queue<Any>
     private let breadcrumbLogURL: URL
 
-    private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFileHelper@\(UUID().uuidString)")
+    private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFile@\(UUID().uuidString)")
 
     public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
         
         self.breadcrumbLogURL = try breadcrumbSettings.getBreadcrumbLogPath()
         self.queue = Queue<Any>()
         self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
-        if breadcrumbSettings.maxQueueFileSizeBytes < BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes {
+        if breadcrumbSettings.maxQueueFileSizeBytes < BacktraceBreadcrumbFile.minimumQueueFileSizeBytes {
             BacktraceLogger.warning("\(breadcrumbSettings.maxQueueFileSizeBytes) is smaller than the minimum of " +
-                                    "\(BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes)" +
+                                    "\(BacktraceBreadcrumbFile.minimumQueueFileSizeBytes)" +
                                     ", ignoring value and overriding with minimum.")
-            self.maxQueueFileSizeBytes = BacktraceBreadcrumbFileHelper.minimumQueueFileSizeBytes
+            self.maxQueueFileSizeBytes = BacktraceBreadcrumbFile.minimumQueueFileSizeBytes
         } else {
             self.maxQueueFileSizeBytes = breadcrumbSettings.maxQueueFileSizeBytes
         }
 
         super.init()
     }
-    
+
     func addBreadcrumb(_ breadcrumb: [String: Any]) -> Bool {
         do {
             // Serialize breadcrumb: [String: Any] into Data
@@ -55,10 +55,11 @@ enum BacktraceBreadcrumbFileHelperError: Error {
             // Queue breacrumb
             queue.enqueue(queueBreadcrumb)
             // Iterate over the queue from newest to oldest breadcrumb and build an array of encoded strings
+            let queuedBreadcrumbs = queue.allElements()
             var breadcrumbsArray = [String]()
             var size = 0
             for index in (0..<queue.count).reversed() {
-                guard let queueBreadcrumb = queue.allElements()[index] as? [String: Any] else {
+                guard let queueBreadcrumb = queuedBreadcrumbs[index] as? [String: Any] else {
                     BacktraceLogger.warning("Error weh fetching breacrumbs from queue")
                     return false
                 }
@@ -66,7 +67,7 @@ enum BacktraceBreadcrumbFileHelperError: Error {
                     BacktraceLogger.warning("Error when adding breadcrumbSize to array")
                     return false
                 }
-                // Pop last element if size id greater than maxQueueFileSizeBytes
+                // Pop last element if size is greater than maxQueueFileSizeBytes
                 if size + breadcrumbSize > maxQueueFileSizeBytes && !queue.isEmpty {
                     queue.pop()
                 } else {
@@ -87,7 +88,7 @@ enum BacktraceBreadcrumbFileHelperError: Error {
             return false
         }
     }
-    
+
     func clear() -> Bool {
         dispatchQueue.sync {
             queue.clear()
