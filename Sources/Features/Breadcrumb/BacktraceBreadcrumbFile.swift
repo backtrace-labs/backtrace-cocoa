@@ -7,17 +7,13 @@ enum BacktraceBreadcrumbFileError: Error {
 @objc class BacktraceBreadcrumbFile: NSObject {
 
     private static let minimumQueueFileSizeBytes = 4096
-
     private let maximumIndividualBreadcrumbSize: Int
     private let maxQueueFileSizeBytes: Int
-    
     private let queue: Queue<Any>
     private let breadcrumbLogURL: URL
-
     private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFile@\(UUID().uuidString)")
 
     public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
-        
         self.breadcrumbLogURL = try breadcrumbSettings.getBreadcrumbLogPath()
         self.queue = Queue<Any>()
         self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
@@ -39,7 +35,7 @@ enum BacktraceBreadcrumbFileError: Error {
             let breadcrumbJsonData = try JSONSerialization.data(withJSONObject: breadcrumb)
             // Serialize Data into a JSON string
             guard let breadcrumbJsonString = String(data: breadcrumbJsonData, encoding: .utf8) else {
-                BacktraceLogger.warning("Error when adding breadcrumb to file")
+                BacktraceLogger.warning("Error when converting breadcrumb to string")
                 return false
             }
             // Calculate the size of the breadcrumb and add it to queue
@@ -55,38 +51,43 @@ enum BacktraceBreadcrumbFileError: Error {
             // Queue breacrumb
             queue.enqueue(queueBreadcrumb)
             // Iterate over the queue from newest to oldest breadcrumb and build an array of encoded strings
-            let queuedBreadcrumbs = queue.allElements()
-            var breadcrumbsArray = [String]()
-            var size = 0
-            for index in (0..<queue.count).reversed() {
-                guard let queueBreadcrumb = queuedBreadcrumbs[index] as? [String: Any] else {
-                    BacktraceLogger.warning("Error weh fetching breacrumbs from queue")
-                    return false
-                }
-                guard let breadcrumbSize = queueBreadcrumb["size"] as? Int else {
-                    BacktraceLogger.warning("Error when adding breadcrumbSize to array")
-                    return false
-                }
-                // Pop last element if size is greater than maxQueueFileSizeBytes
-                if size + breadcrumbSize > maxQueueFileSizeBytes && !queue.isEmpty {
-                    queue.pop()
-                } else {
-                    guard let breadcrumbJsonData = queueBreadcrumb["breadcrumbJson"] as? String else {
-                        BacktraceLogger.warning("Error when adding breadcrumbJson to array")
+            _ = dispatchQueue.sync {
+                let queuedBreadcrumbs = queue.allElements()
+                var breadcrumbsArray = [String]()
+                var size = 0
+                for index in (0..<queue.count).reversed() {
+                    guard let queueBreadcrumb = queuedBreadcrumbs[index] as? [String: Any] else {
+                        BacktraceLogger.warning("Error when fetching breacrumbs from queue")
                         return false
                     }
-                    breadcrumbsArray.append(breadcrumbJsonData)
-                    size += breadcrumbSize
+                    guard let breadcrumbSize = queueBreadcrumb["size"] as? Int else {
+                        BacktraceLogger.warning("Error when adding breadcrumbSize to array")
+                        return false
+                    }
+                    // Pop last element if size is greater than maxQueueFileSizeBytes
+                    if size + breadcrumbSize > maxQueueFileSizeBytes && !queue.isEmpty {
+                        while (index != 0) {
+                            _ = queue.pop(at: index)
+                        }
+                    } else {
+                        guard let breadcrumbJsonData = queueBreadcrumb["breadcrumbJson"] as? String else {
+                            BacktraceLogger.warning("Error when adding breadcrumbJson to array")
+                            return false
+                        }
+                        breadcrumbsArray.append(breadcrumbJsonData)
+                        size += breadcrumbSize
+                    }
                 }
+                // Write breadcrumbs to file
+                let breadcrumbString = "[\(breadcrumbsArray.joined(separator: ","))]"
+                writeBreadcrumbToLogFile(breadcrumb: breadcrumbString, at: self.breadcrumbLogURL)
+                return true
             }
-            // Write breadcrumbs to file
-            let breadcrumbString = "[\(breadcrumbsArray.joined(separator: ","))]"
-            try breadcrumbString.write(to: self.breadcrumbLogURL, atomically: true, encoding: .utf8)
-            return true
         } catch {
             BacktraceLogger.warning("Error when adding breadcrumb to file: \(error)")
             return false
         }
+        return true
     }
 
     func clear() -> Bool {
@@ -96,7 +97,18 @@ enum BacktraceBreadcrumbFileError: Error {
         }
         return true
     }
+}
+
+extension BacktraceBreadcrumbFile {
     
+    func writeBreadcrumbToLogFile(breadcrumb: String, at breadcrumbLogURL: URL) {
+        do {
+            try breadcrumb.write(to: breadcrumbLogURL, atomically: true, encoding: .utf8)
+        } catch {
+            BacktraceLogger.warning("Error writing breadcrumb to log file at: \(breadcrumbLogURL) - \(error.localizedDescription)")
+        }
+    }
+
     func clearBreadcrumbLogFile(at breadcrumbLogURL: URL) {
         do {
             try "".write(to: breadcrumbLogURL, atomically: false, encoding: .utf8)

@@ -19,6 +19,20 @@ public class Queue<T>: NSObject {
     func peek() -> T? {
         return elements.first
     }
+    
+    func remove(at index: Int) -> T? {
+        guard index < elements.count else {
+            return nil
+        }
+        return elements.remove(at: index)
+    }
+
+    func pop(at index: Int) -> T? {
+        guard !elements.isEmpty else {
+            return nil
+        }
+        return remove(at: index)
+    }
 
     func pop() -> T? {
         guard !elements.isEmpty else {
