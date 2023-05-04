@@ -30,48 +30,45 @@ enum BacktraceBreadcrumbFileError: Error {
     }
 
     func addBreadcrumb(_ breadcrumb: [String: Any]) -> Bool {
-        do {
-            let breadcrumbJsonData = try JSONSerialization.data(withJSONObject: breadcrumb)
-            guard let breadcrumbJsonString = String(data: breadcrumbJsonData, encoding: .utf8) else {
-                BacktraceLogger.warning("Error when converting breadcrumb to string")
-                return false
-            }
-            let breadcrumbSize = breadcrumbJsonData.count
-            // Check if breadcrumb size is larger than the maximum specified
-            if breadcrumbSize > maximumIndividualBreadcrumbSize {
-                BacktraceLogger.warning(
-                    "Discarding breadcrumb that was larger than the maximum specified (\(maximumIndividualBreadcrumbSize).")
-                return false
-            }
-            let queueBreadcrumb = BreadcrumbRecord(size: breadcrumbSize, json: breadcrumbJsonString)
-            queue.enqueue(queueBreadcrumb)
-            _ = dispatchQueue.sync {
-                let queuedBreadcrumbs = queue.allElements()
-                var breadcrumbsArray = [String]()
-                var size = 0
-                for index in (0..<queue.count).reversed() {
-                    let queueBreadcrumb = queuedBreadcrumbs[index]
-                    let breadcrumbSize = queueBreadcrumb.size
-                    // Pop last element if size is greater than maxQueueFileSizeBytes
-                    if size + breadcrumbSize > maxQueueFileSizeBytes && !queue.isEmpty {
-                        while (index != 0) {
-                            _ = queue.pop(at: index)
-                        }
-                        break
-                    } else {
-                        let breadcrumbJsonData = queueBreadcrumb.json
-                        breadcrumbsArray.append(breadcrumbJsonData)
-                        size += breadcrumbSize
-                    }
-                }
-                let breadcrumbString = "[\(breadcrumbsArray.joined(separator: ","))]"
-                writeBreadcrumbToLogFile(breadcrumb: breadcrumbString, at: self.breadcrumbLogURL)
-                return true
-            }
-        } catch {
-            BacktraceLogger.warning("Error when adding breadcrumb to file: \(error)")
+        guard let breadcrumbJsonData = try? JSONSerialization.data(withJSONObject: breadcrumb) else {
+            BacktraceLogger.warning("Error when converting breadcrumb to data")
             return false
         }
+        guard let breadcrumbJsonString = String(data: breadcrumbJsonData, encoding: .utf8) else {
+            BacktraceLogger.warning("Error when converting breadcrumb to string")
+            return false
+        }
+        let breadcrumbSize = breadcrumbJsonData.count
+        // Check if breadcrumb size is larger than the maximum specified
+        if breadcrumbSize > maximumIndividualBreadcrumbSize {
+            BacktraceLogger.warning(
+                "Discarding breadcrumb that was larger than the maximum specified (\(maximumIndividualBreadcrumbSize).")
+            return false
+        }
+        dispatchQueue.sync {
+            let queueBreadcrumb = BreadcrumbRecord(size: breadcrumbSize, json: breadcrumbJsonString)
+            queue.enqueue(queueBreadcrumb)
+            let queuedBreadcrumbs = queue.allElements()
+            var breadcrumbsArray = [String]()
+            var size = 0
+            for index in (0..<queue.count).reversed() {
+                let queueBreadcrumb = queuedBreadcrumbs[index]
+                let breadcrumbSize = queueBreadcrumb.size
+                // Pop last element if size is greater than maxQueueFileSizeBytes
+                if size + breadcrumbSize > maxQueueFileSizeBytes && !queue.isEmpty {
+                    while (index != 0) {
+                        _ = queue.pop(at: index)
+                    }
+                    break
+                }
+                let breadcrumbJsonData = queueBreadcrumb.json
+                breadcrumbsArray.append(breadcrumbJsonData)
+                size += breadcrumbSize
+            }
+            let breadcrumbString = "[\(breadcrumbsArray.joined(separator: ","))]"
+            writeBreadcrumbToLogFile(breadcrumb: breadcrumbString, at: self.breadcrumbLogURL)
+        }
+
         return true
     }
 
