@@ -43,19 +43,19 @@ import Foundation
     }
     // swiftlint:disable line_length
     class func debug(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
-        log(level: .debug, msg: msg, file: file, function: function, line: line)
+        log(level: .debug, msg: msg(), file: file, function: function, line: line)
     }
 
     class func warning(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
-        log(level: .warning, msg: msg, file: file, function: function, line: line)
+        log(level: .warning, msg: msg(), file: file, function: function, line: line)
     }
 
     class func info(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
-        log(level: .info, msg: msg, file: file, function: function, line: line)
+        log(level: .info, msg: msg(), file: file, function: function, line: line)
     }
 
     class func error(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
-        log(level: .error, msg: msg, file: file, function: function, line: line)
+        log(level: .error, msg: msg(), file: file, function: function, line: line)
     }
 
     private class func log(level: BacktraceLogLevel, msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {

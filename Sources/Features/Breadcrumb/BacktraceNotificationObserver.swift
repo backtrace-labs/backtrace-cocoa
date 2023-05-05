@@ -1,9 +1,11 @@
 import Foundation
 #if os(OSX)
 import IOKit.ps
+#elseif os(iOS)
+import UIKit
 #endif
 
-protocol BacktraceNotificationObserverDelegate: class {
+protocol BacktraceNotificationObserverDelegate: AnyObject {
 
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]?,
@@ -53,7 +55,7 @@ protocol BacktraceNotificationObserverDelegate: class {
     }
 }
 
-protocol BacktraceNotificationHandlerDelegate: class {
+protocol BacktraceNotificationHandlerDelegate: AnyObject {
 
     var delegate: BacktraceNotificationObserverDelegate? { get set }
 
@@ -222,7 +224,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                                        type: .system,
                                        level: .info)
     }
-
+    
 #if os(OSX)
     var loop: CFRunLoopSource?
 
@@ -320,6 +322,8 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
             return "Charging battery level: \(batteryLevel * 100)%"
         case .full:
             return "Full battery level: \(batteryLevel * 100)%"
+        @unknown default:
+            return "Unknown battery level"
         }
     }
 
@@ -334,6 +338,8 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
+#elseif os(tvOS)
+    func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {}
 #endif
 }
 
@@ -459,7 +465,7 @@ class BacktraceCallNotificationObserver: NSObject, BacktraceNotificationHandlerD
     }
 
     func callStateChanged() {
-        delegate?.addBreadcrumb(breadcrumbMsg,
+        _ = delegate?.addBreadcrumb(breadcrumbMsg,
                                 attributes: nil,
                                 type: .system,
                                 level: .info)

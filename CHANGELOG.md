@@ -1,5 +1,9 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.0.0
+- Adds Swift Package Manager support
+- Improves Breadcrumbs Swift implementation
+
 ## Version 1.7.5
 - Fixed error.message values persists across multiple reports.
 - Changed error emoji.

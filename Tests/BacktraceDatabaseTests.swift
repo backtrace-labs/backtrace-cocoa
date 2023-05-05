@@ -1,6 +1,10 @@
 import Nimble
 import Quick
 @testable import Backtrace
+#if SWIFT_PACKAGE
+import Foundation
+#endif
+
 final class BacktraceDatabaseTests: QuickSpec {
 
     override func spec() {

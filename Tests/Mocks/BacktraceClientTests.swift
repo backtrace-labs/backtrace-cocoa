@@ -2,7 +2,11 @@ import XCTest
 
 import Nimble
 import Quick
+#if SWIFT_PACKAGE
+import CrashReporter
+#else
 import Backtrace_PLCrashReporter
+#endif
 @testable import Backtrace
 
 final class BacktraceClientTests: QuickSpec {
@@ -18,13 +22,13 @@ final class BacktraceClientTests: QuickSpec {
 
                 it("has default database settings") {
                     let defaultDbSettings = BacktraceDatabaseSettings()
-                    expect(defaultDbSettings.maxDatabaseSize).to(be(0))
-                    expect(defaultDbSettings.maxRecordCount).to(be(0))
-                    expect(defaultDbSettings.retryInterval).to(be(5))
-                    expect(defaultDbSettings.retryLimit).to(be(3))
-                    expect(defaultDbSettings.retryBehaviour.rawValue).to(be(RetryBehaviour.interval.rawValue))
-                    expect(defaultDbSettings.retryOrder.rawValue).to(be(RetryOrder.queue.rawValue))
-                    expect(defaultDbSettings.maxDatabaseSizeInBytes).to(be(0))
+                    expect(defaultDbSettings.maxDatabaseSize).to(equal(0))
+                    expect(defaultDbSettings.maxRecordCount).to(equal(0))
+                    expect(defaultDbSettings.retryInterval).to(equal(5))
+                    expect(defaultDbSettings.retryLimit).to(equal(3))
+                    expect(defaultDbSettings.retryBehaviour.rawValue).to(equal(RetryBehaviour.interval.rawValue))
+                    expect(defaultDbSettings.retryOrder.rawValue).to(equal(RetryOrder.queue.rawValue))
+                    expect(defaultDbSettings.maxDatabaseSizeInBytes).to(equal(0))
                 }
 
                 it("has default configuration") {
@@ -33,7 +37,7 @@ final class BacktraceClientTests: QuickSpec {
                     let configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings,
                                                                      reportsPerMin: reportsPerMin)
                     expect(configuration.credentials).to(be(credentials))
-                    expect(configuration.reportsPerMin).to(be(reportsPerMin))
+                    expect(configuration.reportsPerMin).to(equal(reportsPerMin))
                     expect(configuration.dbSettings).to(be(dbSettings))
                 }
 
@@ -57,13 +61,13 @@ final class BacktraceClientTests: QuickSpec {
                     customDbSettings.retryOrder = retryOrder
                     customDbSettings.retryLimit = retryLimit
 
-                    expect(customDbSettings.maxDatabaseSize).to(be(maxDatabaseSize))
-                    expect(customDbSettings.maxRecordCount).to(be(maxRecordCount))
-                    expect(customDbSettings.retryInterval).to(be(retryInterval))
-                    expect(customDbSettings.retryLimit).to(be(retryLimit))
-                    expect(customDbSettings.retryBehaviour.rawValue).to(be(retryBehaviour.rawValue))
-                    expect(customDbSettings.retryOrder.rawValue).to(be(retryOrder.rawValue))
-                    expect(customDbSettings.maxDatabaseSizeInBytes).to(be(1024 * 1024 * maxDatabaseSize))
+                    expect(customDbSettings.maxDatabaseSize).to(equal(maxDatabaseSize))
+                    expect(customDbSettings.maxRecordCount).to(equal(maxRecordCount))
+                    expect(customDbSettings.retryInterval).to(equal(retryInterval))
+                    expect(customDbSettings.retryLimit).to(equal(retryLimit))
+                    expect(customDbSettings.retryBehaviour.rawValue).to(equal(retryBehaviour.rawValue))
+                    expect(customDbSettings.retryOrder.rawValue).to(equal(retryOrder.rawValue))
+                    expect(customDbSettings.maxDatabaseSizeInBytes).to(equal(1024 * 1024 * maxDatabaseSize))
                 }
             }
         }

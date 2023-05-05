@@ -120,8 +120,10 @@ extension BacktraceReporter {
 }
 
 #if os(iOS) || os(tvOS)
+import UIKit
 typealias Application = UIApplication
 #elseif os(macOS)
+import AppKit
 typealias Application = NSApplication
 #else
 #error("Unsupported platform")

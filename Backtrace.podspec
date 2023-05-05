@@ -9,7 +9,8 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "1.7.5"
+  s.version      = "2.0.0"
+  s.swift_version = '5'
   s.summary      = "Backtrace's integration with iOS, macOS and tvOS"
   s.description  = "Reliable crash and hang reporting for iOS, macOS and tvOS."
   s.homepage     = "https://backtrace.io/"
@@ -17,9 +18,9 @@ Pod::Spec.new do |s|
   s.author       = { "Backtrace I/O" => "info@backtrace.io" }
   s.source       = { :git => "https://github.com/backtrace-labs/backtrace-cocoa.git", :tag => "#{s.version}" }
 
-  s.ios.deployment_target = "10.0"
-  s.osx.deployment_target = "10.11"
-  s.tvos.deployment_target = "10.0"
+  s.ios.deployment_target = "11.0"
+  s.osx.deployment_target = "10.13"
+  s.tvos.deployment_target = "11.0"
 
   s.ios.source_files = ["Sources/**/*.{swift}", "Backtrace-iOS/**/*.{h*,swift}"]
   s.osx.source_files = ["Sources/**/*.{swift}", "Backtrace-macOS/**/*.{h*,swift}"]
@@ -31,11 +32,7 @@ Pod::Spec.new do |s|
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
   s.tvos.public_header_files = ["Backtrace-tvOS/**/*.h*"]
 
-  s.ios.dependency "Cassette", '1.0.0-beta5'
-  s.osx.dependency "Cassette", '1.0.0-beta5'
   s.dependency "Backtrace-PLCrashReporter", '1.5.3'
-  
   s.resources = 'Sources/**/*.xcdatamodeld'
 
-  s.swift_version = '4.2'
 end

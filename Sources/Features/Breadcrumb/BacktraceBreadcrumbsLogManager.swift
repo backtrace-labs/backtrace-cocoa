@@ -3,10 +3,10 @@ import Foundation
 @objc class BacktraceBreadcrumbsLogManager: NSObject {
 
     private var breadcrumbId: Int
-    private let backtraceBreadcrumbFileHelper: BacktraceBreadcrumbFileHelper
+    private let backtraceBreadcrumbFile: BacktraceBreadcrumbFile
 
     init(breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
-        self.backtraceBreadcrumbFileHelper = try BacktraceBreadcrumbFileHelper(breadcrumbSettings)
+        self.backtraceBreadcrumbFile = try BacktraceBreadcrumbFile(breadcrumbSettings)
 
         self.breadcrumbId = Date().millisecondsSince1970
         BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
@@ -29,11 +29,11 @@ import Foundation
                                          "message": message]
         breadcrumb["attributes"] = attributes
 
-        return backtraceBreadcrumbFileHelper.addBreadcrumb(breadcrumb)
+        return backtraceBreadcrumbFile.addBreadcrumb(breadcrumb)
     }
 
     func clear() -> Bool {
-        let result = backtraceBreadcrumbFileHelper.clear()
+        let result = backtraceBreadcrumbFile.clear()
         if result {
             breadcrumbId = Date().millisecondsSince1970
             BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
