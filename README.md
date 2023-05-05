@@ -8,7 +8,7 @@
     <img src="https://github.com/backtrace-labs/backtrace-cocoa/actions/workflows/test.yml/badge.svg" alt="Build Status" />
 </p>
 
-[Backtrace](http://backtrace.io/)'s integration with iOS, macOS, and tvOS applications allows you to capture and report handled and unhandled exceptions so you can prioritize and debug software errors.
+Backtrace's integration with iOS, macOS, and tvOS applications allows you to capture and report handled and unhandled exceptions so you can prioritize and debug software errors.
 
 ## Installation 
 
@@ -16,23 +16,23 @@ You can use this SDK through either Swift Package Manager or CocoaPods. The SPM 
 Choose one of the following integration methods.
 
 ### Via Xcode
-1. In Xcode File > Add Packages, search for `https://github.com/backtrace-labs/backtrace-cocoa.git`
-1. In the Dependency Rule list specify the Branch as `SwiftPM`, then click Add Package.
-1. Verify your project Package Dependencies list backtrace-cocoa.
-1. Be sure to add Backtrace to your target’s Frameworks, Libraries, and Embedded Content.
+1. In **File > Add Packages**, search for and add `https://github.com/backtrace-labs/backtrace-cocoa.git`
+1. Verify your project **Package Dependencies** list backtrace-cocoa.
+1. Add Backtrace to your target’s **Frameworks, Libraries, and Embedded Content**.
 
 ### Via Package.swift
 Add this dependency to your `Package.swift` file:
 ```
-.package(url: "https://github.com/backtrace-labs/backtrace-cocoa.git, branch: "feature/SwiftPM")
+.package(url: "https://github.com/backtrace-labs/backtrace-cocoa.git)
 ```
 
 ### Via CocoaPods
-Add the Backtrace pod to your `Podfile`:
-```
-pod 'Backtrace'
-```
->**NOTE :**  Make sure to specify `use_frameworks!` in your Podfile..
+Add the following to your `Podfile`:
+- Specify `use_frameworks!`.
+- Add the `Backtrace` pod:
+    ```
+    pod 'Backtrace'
+    ```
 
 ## Usage
 ### Swift
