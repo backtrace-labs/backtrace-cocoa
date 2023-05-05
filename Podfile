@@ -10,7 +10,8 @@ end
 
 def shared_test_pods
     shared_pods
-    # Define shared Testing CocoaPods here
+    pod 'Nimble', '~> 10.0.0'
+    pod 'Quick', '~> 5.0.1'
 end
 
 def shared_ios_mac_pods

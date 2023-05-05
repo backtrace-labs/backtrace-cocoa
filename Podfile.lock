@@ -2,14 +2,20 @@ PODS:
   - Backtrace (2.0.0):
     - Backtrace-PLCrashReporter (= 1.5.3)
   - Backtrace-PLCrashReporter (1.5.3)
+  - Nimble (10.0.0)
+  - Quick (5.0.1)
 
 DEPENDENCIES:
   - Backtrace (from `./Backtrace.podspec`)
   - Backtrace-PLCrashReporter (= 1.5.3)
+  - Nimble (~> 10.0.0)
+  - Quick (~> 5.0.1)
 
 SPEC REPOS:
   trunk:
     - Backtrace-PLCrashReporter
+    - Nimble
+    - Quick
 
 EXTERNAL SOURCES:
   Backtrace:
@@ -18,7 +24,9 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Backtrace: 03fbe89e1b5ad4591c6397f9d2836b7fa1f340c8
   Backtrace-PLCrashReporter: 71ddeba11834d2bcc3c19f357aaec7bf87131f89
+  Nimble: 5316ef81a170ce87baf72dd961f22f89a602ff84
+  Quick: 749aa754fd1e7d984f2000fe051e18a3a9809179
 
-PODFILE CHECKSUM: 08193aae5fc18c4509dc3378236655a50a762119
+PODFILE CHECKSUM: 38125db93d4963a0e3d3243634d605f11b17d404
 
 COCOAPODS: 1.12.1
