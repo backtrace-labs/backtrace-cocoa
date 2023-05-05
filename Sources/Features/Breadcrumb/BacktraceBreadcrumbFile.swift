@@ -49,9 +49,13 @@ enum BacktraceBreadcrumbFileError: Error {
             let queueBreadcrumb = BreadcrumbRecord(size: breadcrumbSize, json: breadcrumbJsonString)
             queue.enqueue(queueBreadcrumb)
             let queuedBreadcrumbs = queue.allElements()
+            let queueSize = queue.count
             var breadcrumbsArray = [String]()
             var size = 0
-            for index in (0..<queue.count).reversed() {
+            for index in (0..<queueSize).reversed() {
+                guard index < queuedBreadcrumbs.count else {
+                    continue
+                }
                 let queueBreadcrumb = queuedBreadcrumbs[index]
                 let breadcrumbSize = queueBreadcrumb.size
                 // Pop last element if size is greater than maxQueueFileSizeBytes

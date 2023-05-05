@@ -1,15 +1,5 @@
 import Foundation
 
-struct BreadcrumbRecord {
-    let size: Int
-    let json: String
-    
-    init(size: Int, json: String) {
-        self.size = size
-        self.json = json
-    }
-}
-
 @objcMembers
 public class Queue<T>: NSObject {
     private var elements: [T] = []
@@ -42,6 +32,13 @@ public class Queue<T>: NSObject {
             return nil
         }
         return remove(at: index)
+    }
+    
+    func element(at index: Int) -> T? {
+        guard index >= 0 && index < elements.count else {
+            return nil
+        }
+        return elements[index]
     }
 
     func pop() -> T? {
