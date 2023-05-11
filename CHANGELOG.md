@@ -3,6 +3,7 @@
 ## Version 2.0.0
 - Adds Swift Package Manager support
 - Improves Breadcrumbs Swift implementation
+- Remove static framework builds
 
 ## Version 1.7.5
 - Fixed error.message values persists across multiple reports.
