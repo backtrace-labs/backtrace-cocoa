@@ -70,13 +70,13 @@ final class AttributesTests: QuickSpec {
         }
 
         describe("Metrics Info") {
-            it("will NOT set application.version and application.session if metrics attributes are NOT enabled") {
+            it("will always set application.version and application.session even if metrics system is disabled") {
                 let attributes = MetricsInfo()
-                expect { attributes.immutable["application.version"]}.to(beNil())
-                expect { attributes.immutable["application.session"]}.to(beNil())
+                expect { attributes.immutable["application.version"]}.notTo(beNil())
+                expect { attributes.immutable["application.session"]}.notTo(beNil())
             }
 
-            it("will set application.version and application.session if metrics attributes are enabled") {
+            it("will always set application.version and application.session ") {
                 let attributes = MetricsInfo()
                 MetricsInfo.enableMetrics()
                 expect { attributes.immutable["application.version"]}.toNot(beNil())
@@ -105,17 +105,17 @@ final class AttributesTests: QuickSpec {
         }
 
         describe("Attributes Provider") {
-            it("will NOT set application.version and application.session if metrics attributes are NOT enabled") {
+            it("will set application.version and application.session even if metrics attributes are NOT enabled") {
                 let attributes = AttributesProvider()
-                expect { attributes.allAttributes["application.version"]}.to(beNil())
-                expect { attributes.allAttributes["application.session"]}.to(beNil())
+                expect { attributes.allAttributes["application.version"]}.notTo(beNil())
+                expect { attributes.allAttributes["application.session"]}.notTo(beNil())
             }
 
-            it("will set application.version and application.session if metrics attributes are enabled") {
+            it("will always set application.version and application.session ") {
                 MetricsInfo.enableMetrics()
                 let attributes = AttributesProvider()
-                expect { attributes.allAttributes["application.version"]}.toNot(beNil())
-                expect { attributes.allAttributes["application.session"]}.toNot(beNil())
+                expect { attributes.allAttributes["application.version"]}.notTo(beNil())
+                expect { attributes.allAttributes["application.session"]}.notTo(beNil())
                 MetricsInfo.disableMetrics()
             }
         }

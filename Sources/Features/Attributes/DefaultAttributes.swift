@@ -254,10 +254,8 @@ struct MetricsInfo: AttributesSource {
     }
 
     var immutable: [String: Any?] {
-        return MetricsInfo.isMetricsEnabled ?
-            ["application.version": Backtrace.applicationVersion,
-             "application.session": MetricsInfo.session] :
-            [:]
+        return ["application.version": Backtrace.applicationVersion,
+             "application.session": MetricsInfo.session];
     }
 }
 
