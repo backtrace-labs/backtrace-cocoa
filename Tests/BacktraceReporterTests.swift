@@ -179,23 +179,23 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result2.report?.attributes["a"] }.to(beNil())
                 }
 
-                it("report should NOT have metrics attributes if metrics is NOT enabled") {
+                it("report should have application version and session attributes") {
                     let delegate = BacktraceClientDelegateMock()
                     let backtraceReport = try reporter.generate()
                     urlSession.response = MockOkResponse()
                     backtraceApi.delegate = delegate
 
                     delegate.willSendClosure = { report in
-                        expect { report.attributes["application.session"] }.to(beNil())
-                        expect { report.attributes["application.version"] }.to(beNil())
+                        expect { report.attributes["application.session"] }.notTo(beNil())
+                        expect { report.attributes["application.version"] }.notTo(beNil())
                         return report
                     }
 
                     let result = reporter.send(resource: backtraceReport)
 
                     expect { result.backtraceStatus }.to(equal(.ok))
-                    expect { result.report?.attributes["application.session"] }.to(beNil())
-                    expect { result.report?.attributes["application.version"] }.to(beNil())
+                    expect { result.report?.attributes["application.session"] }.notTo(beNil())
+                    expect { result.report?.attributes["application.version"] }.notTo(beNil())
                 }
 
                 it("report should have metrics attributes if metrics is enabled") {
