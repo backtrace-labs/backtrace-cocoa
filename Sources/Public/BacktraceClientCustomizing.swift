@@ -98,6 +98,8 @@ public let applicationName = Bundle.main.displayName
 
 public let applicationVersion = Bundle.main.releaseVersionNumber
 
+public let buildVersion = Bundle.main.buildVersionNumber
+
 public let defaultMetricsBaseUrlString = "https://events.backtrace.io/api/"
 
 enum BacktraceUrlParsingError: Error {
