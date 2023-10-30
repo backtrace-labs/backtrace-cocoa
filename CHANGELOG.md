@@ -1,5 +1,9 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.0.1
+- Added application.session and application.version attribute as defaults - no matter if the metrics integration is enabled or not.
+- Added application.build attribute that represents an app build version.
+
 ## Version 2.0.0
 - Adds Swift Package Manager support
 - Improves Breadcrumbs Swift implementation
