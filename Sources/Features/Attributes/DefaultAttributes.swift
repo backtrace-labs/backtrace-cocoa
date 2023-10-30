@@ -255,6 +255,7 @@ struct MetricsInfo: AttributesSource {
 
     var immutable: [String: Any?] {
         return ["application.version": Backtrace.applicationVersion,
+             "application.build": Backtrace.buildVersion,
              "application.session": MetricsInfo.session];
     }
 }
