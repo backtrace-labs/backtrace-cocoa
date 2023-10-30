@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Backtrace"
-  s.version      = "2.0.0"
+  s.version      = "2.0.1"
   s.swift_version = '5'
   s.summary      = "Backtrace's integration with iOS, macOS and tvOS"
   s.description  = "Reliable crash and hang reporting for iOS, macOS and tvOS."
