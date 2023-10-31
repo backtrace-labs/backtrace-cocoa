@@ -3,6 +3,7 @@
 ## Version 2.0.1
 - Added application.session and application.version attribute as defaults - no matter if the metrics integration is enabled or not.
 - Added application.build attribute that represents an app build version.
+- Added backtrace.agent attribute that represents current agent name.
 
 ## Version 2.0.0
 - Adds Swift Package Manager support
