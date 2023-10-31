@@ -226,7 +226,8 @@ struct LibInfo: AttributesSource {
         return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
                 "lang.name": LibInfo.applicationLangName,
                 "lang.version": backtraceVersion,
-                "backtrace.version": backtraceVersion]
+                "backtrace.version": backtraceVersion,
+                "backtrace.agent": "backtrace-cocoa"]
     }
 
     static private func guid(store: UserDefaultsStore.Type) -> UUID {
