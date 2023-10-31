@@ -207,21 +207,8 @@ struct LibInfo: AttributesSource {
     private static let applicationGuidKey = "backtrace.unique.user.identifier"
     private static let applicationLangName = "backtrace-cocoa"
 
-    var backtraceVersion: String? {
-        
-#if SWIFT_PACKAGE
-        if let build = Bundle.main.infoDictionary?["CFBundleShortVersionString"] {
-            return build as? String
-        }
-#else
-        if let bundle = Bundle(identifier: "Backtrace.io.Backtrace"),
-           let build = bundle.infoDictionary?["CFBundleShortVersionString"] {
-            return build as? String
-        }
-#endif
-        return nil
-    }
-
+    var backtraceVersion = "2.0.1"
+    
     var immutable: [String: Any?] {
         return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
                 "lang.name": LibInfo.applicationLangName,
