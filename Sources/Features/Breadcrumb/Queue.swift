@@ -24,6 +24,11 @@ public class Queue<T>: NSObject {
         guard index < elements.count else {
             return nil
         }
+        
+        if (index < 0) {
+            return nil
+        }
+        
         return elements.remove(at: index)
     }
 
