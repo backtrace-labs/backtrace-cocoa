@@ -101,7 +101,7 @@ struct Device: AttributesSource {
     var immutable: [String: Any?] {
         return [
             "device.machine": try? System.machine(),
-            "device.model": try? System.model(),
+            "device.model": try? System.machine(),
             "uname.sysname": getSysname()
         ]
     }
@@ -207,7 +207,7 @@ struct LibInfo: AttributesSource {
     private static let applicationGuidKey = "backtrace.unique.user.identifier"
     private static let applicationLangName = "backtrace-cocoa"
 
-    var backtraceVersion = "2.0.1"
+    var backtraceVersion = "2.0.2"
     
     var immutable: [String: Any?] {
         return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
