@@ -53,10 +53,7 @@ enum BacktraceBreadcrumbFileError: Error {
                 let breadcrumbSize = queueBreadcrumb.size
                 // Pop last element if size is greater than maxQueueFileSizeBytes
                 if size + breadcrumbSize > maxQueueFileSizeBytes && !queue.isEmpty {
-                    for breadcrumbsToRemove in (0...index).reversed() {
-                       _ = queue.pop(at: breadcrumbsToRemove)
-                    }
-                   
+                    queue.removeSubrange(range: (0...index))
                     break
                 }
                 let breadcrumbJsonData = queueBreadcrumb.json

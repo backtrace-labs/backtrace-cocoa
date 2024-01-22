@@ -20,6 +20,10 @@ public class Queue<T>: NSObject {
         return elements.first
     }
     
+    func removeSubrange(range: ClosedRange<Int>) {
+        elements.removeSubrange(range);
+    }
+    
     func remove(at index: Int) -> T? {
         guard index < elements.count else {
             return nil
@@ -28,7 +32,6 @@ public class Queue<T>: NSObject {
         if (index < 0) {
             return nil
         }
-        
         return elements.remove(at: index)
     }
 
