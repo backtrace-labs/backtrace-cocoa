@@ -17,14 +17,7 @@ enum BacktraceBreadcrumbFileError: Error {
         self.breadcrumbLogURL = try breadcrumbSettings.getBreadcrumbLogPath()
         self.queue = Queue<BreadcrumbRecord>()
         self.maximumIndividualBreadcrumbSize = breadcrumbSettings.maxIndividualBreadcrumbSizeBytes
-        if breadcrumbSettings.maxQueueFileSizeBytes < BacktraceBreadcrumbFile.minimumQueueFileSizeBytes {
-            BacktraceLogger.warning("\(breadcrumbSettings.maxQueueFileSizeBytes) is smaller than the minimum of " +
-                                    "\(BacktraceBreadcrumbFile.minimumQueueFileSizeBytes)" +
-                                    ", ignoring value and overriding with minimum.")
-            self.maxQueueFileSizeBytes = BacktraceBreadcrumbFile.minimumQueueFileSizeBytes
-        } else {
-            self.maxQueueFileSizeBytes = breadcrumbSettings.maxQueueFileSizeBytes
-        }
+        self.maxQueueFileSizeBytes = breadcrumbSettings.maxQueueFileSizeBytes
 
         super.init()
     }
@@ -60,9 +53,7 @@ enum BacktraceBreadcrumbFileError: Error {
                 let breadcrumbSize = queueBreadcrumb.size
                 // Pop last element if size is greater than maxQueueFileSizeBytes
                 if size + breadcrumbSize > maxQueueFileSizeBytes && !queue.isEmpty {
-                    while (index != 0) {
-                        _ = queue.pop(at: index)
-                    }
+                    queue.removeSubrange(range: (0...index))
                     break
                 }
                 let breadcrumbJsonData = queueBreadcrumb.json

@@ -45,7 +45,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 }
             }
             context("when constructed") {
-                it("Clear clears the file") {
+                it("Clears the file") {
                     expect { manager?.addBreadcrumb("this is a Breadcrumb",
                                                     attributes: nil,
                                                     type: BacktraceBreadcrumbType.system,
@@ -151,6 +151,37 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                 }
             }
             context("rollover and async tests") {
+                it("should remove old breadcrumb and add a new one") {
+                    let settings = BacktraceBreadcrumbSettings()
+                    let maximumNumberOfBreadcrumbs = 4
+                    let breadcrumbMessage = "this is test"
+                    let breadcrumbLevel = BacktraceBreadcrumbLevel.debug
+                    let breadcrumbType =  BacktraceBreadcrumbType.log
+                    let breadcrumb: [String: Any] = ["timestamp":  Date().millisecondsSince1970,
+                                                     "id": 1,
+                                                     "level": breadcrumbLevel.description,
+                                                     "type": breadcrumbType.description,
+                                                     "message": breadcrumbMessage]
+                    
+                    let breadcrumbJsonData = try JSONSerialization.data(withJSONObject: breadcrumb)
+                    let breadcrumbJsonString = String(data: breadcrumbJsonData, encoding: .utf8)
+                    let breadcrumbSize = breadcrumbJsonString!.count
+                    
+                    
+                    settings.maxQueueFileSizeBytes = breadcrumbSize * maximumNumberOfBreadcrumbs + maximumNumberOfBreadcrumbs
+                    breadcrumbs.enableBreadcrumbs(settings)
+                    
+                    for index in (0...maximumNumberOfBreadcrumbs) {
+                        _ = breadcrumbs.addBreadcrumb("\(breadcrumbMessage)\(index)", type: breadcrumbType, level: breadcrumbLevel)
+                    }
+                    
+                    // expect to clean up the file
+                    _ = breadcrumbs.addBreadcrumb("\(breadcrumbMessage)cleanup", type: breadcrumbType, level: breadcrumbLevel)
+                    let breadcrumbText = self.readBreadcrumbText()
+                    expect { breadcrumbText }.notTo(contain("\(breadcrumbMessage)0"))
+                    expect { breadcrumbText }.to(contain("\(breadcrumbMessage)cleanup"))
+                }
+                
                 it("rolls over after enough breadcrumbs are added to get to the maximum file size") {
                     let settings = BacktraceBreadcrumbSettings()
                     settings.maxQueueFileSizeBytes = 32 * 1024

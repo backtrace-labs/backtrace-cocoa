@@ -10,7 +10,7 @@ import Foundation
     case user = 6
     case configuration = 7
 
-    var description: String {
+    public var description: String {
         switch self {
         case .manual:
             return "manual"
@@ -42,7 +42,7 @@ import Foundation
     case error = 4
     case fatal = 5
 
-    var description: String {
+    public var description: String {
         switch self {
         case .debug:
             return "debug"
@@ -101,7 +101,7 @@ import Foundation
         BreadcrumbsInfo.currentBreadcrumbsId = nil
     }
 
-    func addBreadcrumb(_ message: String,
+    public func addBreadcrumb(_ message: String,
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                        level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
@@ -123,7 +123,7 @@ import Foundation
         return breadcrumbsLogManager?.clear() ?? false
     }
 
-    var getCurrentBreadcrumbId: Int? {
+    public var getCurrentBreadcrumbId: Int? {
         return breadcrumbsLogManager?.getCurrentBreadcrumbId
     }
 }
