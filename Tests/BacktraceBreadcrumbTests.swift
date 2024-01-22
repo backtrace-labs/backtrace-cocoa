@@ -157,15 +157,15 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     let breadcrumbMessage = "this is test"
                     let breadcrumbLevel = BacktraceBreadcrumbLevel.debug
                     let breadcrumbType =  BacktraceBreadcrumbType.log
-                    var breadcrumb: [String: Any] = ["timestamp":  Date().millisecondsSince1970,
+                    let breadcrumb: [String: Any] = ["timestamp":  Date().millisecondsSince1970,
                                                      "id": 1,
-                                                     "level": breadcrumbLevel,
-                                                     "type": breadcrumbType,
+                                                     "level": breadcrumbLevel.description,
+                                                     "type": breadcrumbType.description,
                                                      "message": breadcrumbMessage]
                     
                     let breadcrumbJsonData = try JSONSerialization.data(withJSONObject: breadcrumb)
                     let breadcrumbJsonString = String(data: breadcrumbJsonData, encoding: .utf8)
-                    let breadcrumbSize = breadcrumbJsonData.count
+                    let breadcrumbSize = breadcrumbJsonString!.count
                     
                     
                     settings.maxQueueFileSizeBytes = breadcrumbSize * maximumNumberOfBreadcrumbs + maximumNumberOfBreadcrumbs
