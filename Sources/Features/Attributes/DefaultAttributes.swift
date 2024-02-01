@@ -207,7 +207,7 @@ struct LibInfo: AttributesSource {
     private static let applicationGuidKey = "backtrace.unique.user.identifier"
     private static let applicationLangName = "backtrace-cocoa"
 
-    var backtraceVersion = "2.0.2"
+    var backtraceVersion = "2.0.3"
     
     var immutable: [String: Any?] {
         return ["guid": LibInfo.guid(store: UserDefaultsStore.self).uuidString,
