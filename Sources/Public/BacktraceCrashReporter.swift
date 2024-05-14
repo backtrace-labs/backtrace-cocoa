@@ -1,9 +1,6 @@
 import Foundation
-#if SWIFT_PACKAGE
 import CrashReporter
-#else
-import Backtrace_PLCrashReporter
-#endif
+
 
 /// A wrapper around `PLCrashReporter`.
 @objc public class BacktraceCrashReporter: NSObject {

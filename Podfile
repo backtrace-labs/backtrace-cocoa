@@ -5,7 +5,7 @@ source 'https://cdn.cocoapods.org/'
 # Definitions
 def shared_pods
     # Define shared CocoaPods here
-    pod 'Backtrace-PLCrashReporter', '1.5.3' 
+    pod 'PLCrashReporter', '1.11' 
 end
 
 def shared_test_pods

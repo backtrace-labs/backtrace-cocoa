@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -1279,7 +1279,7 @@
 				F2A11BF422553C2800354640 /* Frameworks */,
 				F2A11BF522553C2800354640 /* Resources */,
 				28C74A2F226FBD7700CE713A /* Embed Frameworks */,
-				37C9DA06D0B5B81DE22C94DE /* [CP] Embed Pods Frameworks */,
+				C3C5249C00370859E59C1076 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1347,7 +1347,7 @@
 				F2D8BE0121BC065E007CFEFA /* Frameworks */,
 				F2D8BE0221BC065E007CFEFA /* Resources */,
 				F2D7122821F11303002D2A26 /* Embed Frameworks */,
-				7D46AB059B36F5585CE1831A /* [CP] Embed Pods Frameworks */,
+				7FBB1892F08BFBF1BC685D43 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1367,7 +1367,7 @@
 				F2D8BE1C21BC5F97007CFEFA /* Frameworks */,
 				F2D8BE1D21BC5F97007CFEFA /* Resources */,
 				F2D7122B21F115CD002D2A26 /* Embed Frameworks */,
-				CA4FD312409A00B7BB7D6A83 /* [CP] Embed Pods Frameworks */,
+				D86189A6C4EDF8ABE9030CBD /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1387,7 +1387,7 @@
 				F2D8BE3F21BDA7CF007CFEFA /* Frameworks */,
 				F2D8BE4021BDA7CF007CFEFA /* Resources */,
 				F289085621C532D9002B813E /* Embed Frameworks */,
-				A2A227E1C0FE2090C8EAC7A6 /* [CP] Embed Pods Frameworks */,
+				32A61F14396F0D3D4C1463DA /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1452,9 +1452,9 @@
 			);
 			mainGroup = F2C2FA4421BBD23B00934744;
 			packageReferences = (
-				4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */,
-				4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */,
-				4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */,
+				4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */,
+				4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */,
+				4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */,
 			);
 			productRefGroup = F2C2FA5121BBD26300934744 /* Products */;
 			projectDirPath = "";
@@ -1587,6 +1587,23 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		32A61F14396F0D3D4C1463DA /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		32BBC8C315901C60508B1B5F /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1629,23 +1646,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		37C9DA06D0B5B81DE22C94DE /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		41E769F277326D22A6A8CEB8 /* [CP] Check Pods Manifest.lock */ = {
@@ -1714,21 +1714,21 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		7D46AB059B36F5585CE1831A /* [CP] Embed Pods Frameworks */ = {
+		7FBB1892F08BFBF1BC685D43 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example-iOS/Pods-Example-iOS-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Example-iOS/Pods-Example-iOS-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			name = "[CP] Embed Pods Frameworks";
+			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example-iOS/Pods-Example-iOS-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Example-iOS/Pods-Example-iOS-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-iOS/Pods-Example-iOS-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-iOS/Pods-Example-iOS-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		8FDEC133630002DC771E4B75 /* [CP] Embed Pods Frameworks */ = {
@@ -1746,23 +1746,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		A2A227E1C0FE2090C8EAC7A6 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		AC8CECAE409C1E0CFB20C2CE /* [CP] Embed Pods Frameworks */ = {
@@ -1799,21 +1782,38 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		CA4FD312409A00B7BB7D6A83 /* [CP] Embed Pods Frameworks */ = {
+		C3C5249C00370859E59C1076 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			name = "[CP] Embed Pods Frameworks";
+			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D86189A6C4EDF8ABE9030CBD /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E1925126FD94388894257678 /* [CP] Check Pods Manifest.lock */ = {
@@ -3233,7 +3233,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = JWKXD469L2;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -3326,7 +3326,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = JWKXD469L2;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -3571,7 +3571,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = JWKXD469L2;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -3653,7 +3653,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = JWKXD469L2;
 				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -4096,7 +4096,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */ = {
+		4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/microsoft/plcrashreporter.git";
 			requirement = {
@@ -4104,7 +4104,7 @@
 				minimumVersion = 1.0.0;
 			};
 		};
-		4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */ = {
+		4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Quick/Nimble.git";
 			requirement = {
@@ -4112,7 +4112,7 @@
 				version = 10.0.0;
 			};
 		};
-		4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */ = {
+		4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Quick/Quick.git";
 			requirement = {
@@ -4125,62 +4125,62 @@
 /* Begin XCSwiftPackageProductDependency section */
 		4B761EE629CE0AE900EE8937 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4B761EEE29D1262100EE8937 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4B761EF029D1262C00EE8937 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4BC41EED29D360160037B0BA /* Nimble */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */;
+			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */;
 			productName = Nimble;
 		};
 		4BC41EF029D3602D0037B0BA /* Quick */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */;
+			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */;
 			productName = Quick;
 		};
 		4BC41EF229D360420037B0BA /* Nimble */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */;
+			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */;
 			productName = Nimble;
 		};
 		4BC41EF429D360420037B0BA /* Quick */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */;
+			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */;
 			productName = Quick;
 		};
 		4BC41EF629D3604C0037B0BA /* Nimble */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble.git" */;
+			package = 4BC41EEC29D360160037B0BA /* XCRemoteSwiftPackageReference "Nimble" */;
 			productName = Nimble;
 		};
 		4BC41EF829D3604C0037B0BA /* Quick */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick.git" */;
+			package = 4BC41EEF29D3602D0037B0BA /* XCRemoteSwiftPackageReference "Quick" */;
 			productName = Quick;
 		};
 		4BD265E129E519E60015F265 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4BD265E329E51B230015F265 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 		4BD265E529E51B440015F265 /* CrashReporter */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter.git" */;
+			package = 4B761EE529CE0AE900EE8937 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
 			productName = CrashReporter;
 		};
 /* End XCSwiftPackageProductDependency section */
