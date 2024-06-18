@@ -1,23 +1,19 @@
 name: Run tests
 
-on: 
+on:
   workflow_dispatch:
+  push:
+    branches: [master, release]
   pull_request:
-    branches: 
-      - release
-      - master
-  schedule:
-    - cron:  '0 0 * * *'
 
 jobs:
-
   test:
     runs-on: macos-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
-          platform: [ios, mac, tvos]
+        platform: [ios, mac, tvos]
 
     steps:
       - uses: actions/checkout@v3
@@ -25,12 +21,11 @@ jobs:
         run: sh scripts/install.sh
       - name: Run test
         run: fastlane ${{ matrix.platform }} tests
-    
+
   pod-lint:
     runs-on: macos-latest
-    
+
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: sh scripts/install.sh
-  
