@@ -8,4 +8,5 @@ protocol CrashReporting {
     func hasPendingCrashes() -> Bool
     func enableCrashReporting() throws
     func signalContext(_ mutableContext: inout SignalContext)
+    func setCustomData(data: Data) -> Void
 }

@@ -23,8 +23,10 @@ import CrashReporter
         self.attachmentPaths = attachmentPaths
         self.attributes = attributes
         super.init()
+        
+        self.extendCrashAttributes()
     }
-
+    
     init(managedObject: Crash) throws {
         guard let reportData = managedObject.reportData,
             let identifierString = managedObject.hashProperty,
@@ -37,7 +39,10 @@ import CrashReporter
         self.identifier = identifier
         self.attachmentPaths = attachmentPaths
         self.attributes = (try? AttributesStorage.retrieve(fileName: identifier.uuidString)) ?? [:]
+        
         super.init()
+        
+        self.extendCrashAttributes()
     }
 }
 
@@ -46,4 +51,18 @@ extension BacktraceReport: PersistentStorable {
     typealias ManagedObjectType = Crash
 
     static var entityName: String { return "Crash" }
+    
+    private func extendCrashAttributes() {
+        guard let customData = self.plCrashReport.customData else {
+            return
+           }
+        
+          if let attributes = try? JSONSerialization.jsonObject(with: customData, options: []) as? [String: Any] {
+              self.attributes += attributes
+          } else {
+              return
+          }
+    }
+
+    
 }

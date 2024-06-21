@@ -33,10 +33,10 @@ extension BacktraceCrashReporter: CrashReporting {
                     let signalInfo = signalInfoPointer?.pointee else {
                     return
                 }
-                attributesProvider.set(errorType: "Crash")
+            
                 attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
 
-                try? AttributesStorage.store(attributesProvider.allAttributes, fileName: BacktraceCrashReporter.crashName)
+                try? AttributesStorage.store(attributesProvider.dynamicAttributes, fileName: BacktraceCrashReporter.crashName)
                 try? AttachmentsStorage.store(attributesProvider.allAttachments, fileName: BacktraceCrashReporter.crashName)
         }
 
@@ -60,9 +60,14 @@ extension BacktraceCrashReporter: CrashReporting {
     // This function retrieves, constructs, and sends the pending crash report
     func pendingCrashReport() throws -> BacktraceReport {
         let reportData = try reporter.loadPendingCrashReportDataAndReturnError()
+        
         let attributes = (try? AttributesStorage.retrieve(fileName: BacktraceCrashReporter.crashName)) ?? [:]
         let attachmentPaths = copiedFileAttachments.map(\.path)
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
+    }
+    
+    func setCustomData(data: Data) {
+        self.reporter.customData = data
     }
 
     // This function is called to copy stored file attachments

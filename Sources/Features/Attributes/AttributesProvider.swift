@@ -44,10 +44,6 @@ extension AttributesProvider: SignalContext {
         self.faultInfo.faultMessage = faultMessage
     }
 
-    func set(errorType: String?) {
-        self.attributes["error.type"] = errorType
-    }
-
     var attachmentPaths: [String] {
         return allAttachments.map(\.path)
     }
@@ -55,13 +51,20 @@ extension AttributesProvider: SignalContext {
     var allAttachments: Attachments {
         attachments + attributesSources.map(\.attachments).reduce([], +)
     }
+    
+    var scopedAttributes: Attributes {
+        return immutable + attributes;
+    }
+    var dynamicAttributes: Attributes {
+        return attributesSources.map(\.mutable).merging()
+    }
 
     var allAttributes: Attributes {
         return attributes + defaultAttributes
     }
 
     var defaultAttributes: Attributes {
-        return immutable + attributesSources.map(\.mutable).merging()
+        return immutable + dynamicAttributes
     }
 }
 

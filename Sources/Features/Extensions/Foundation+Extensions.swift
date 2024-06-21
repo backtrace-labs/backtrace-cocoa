@@ -5,6 +5,12 @@ extension Dictionary {
     static func + (lhs: Dictionary, rhs: Dictionary) -> Dictionary {
         return lhs.merging(rhs, uniquingKeysWith: {_, new in new})
     }
+    
+    static func += (left: inout Dictionary, right: Dictionary) {
+        for (key, value) in right {
+            left[key] = value
+        }
+    }
 }
 
 // From: https://stackoverflow.com/a/57886995
