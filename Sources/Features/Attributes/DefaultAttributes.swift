@@ -11,6 +11,10 @@ import UIKit
 
 final class FaultInfo: AttributesSource {
     var faultMessage: String?
+    
+    var immutable: [String : Any?] {
+        return ["error.type": "Crash"]
+    }
     var mutable: [String: Any?] {
         return ["error.message": faultMessage]
     }

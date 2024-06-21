@@ -76,6 +76,12 @@ extension BacktraceReporter: BacktraceClientCustomizing {
             return attributesProvider.attributes
         } set {
             attributesProvider.attributes = newValue
+            
+            guard let attributeData = try? JSONSerialization.data(withJSONObject: attributesProvider.scopedAttributes) else {
+                return
+            }
+            self.reporter.setCustomData(data: attributeData)
+        
         }
     }
 
@@ -111,10 +117,11 @@ extension BacktraceReporter {
     func generate(exception: NSException? = nil, attachmentPaths: [String] = [],
                   faultMessage: String? = nil) throws -> BacktraceReport {
         attributesProvider.set(faultMessage: faultMessage)
-        attributesProvider.set(errorType: "Exception")
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
+        
+        resource.attributes["error.type"] = "Exception"
         return resource
     }
 }
