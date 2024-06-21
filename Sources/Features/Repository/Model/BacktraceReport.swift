@@ -24,7 +24,7 @@ import CrashReporter
         self.attributes = attributes
         super.init()
         
-        self.attributes = self.attributes + self.getCrashAttributes(report: self.plCrashReport)
+        self.extendCrashAttributes()
     }
     
     init(managedObject: Crash) throws {
@@ -42,7 +42,7 @@ import CrashReporter
         
         super.init()
         
-        self.attributes = self.attributes + self.getCrashAttributes(report: self.plCrashReport)
+        self.extendCrashAttributes()
     }
 }
 
@@ -52,15 +52,15 @@ extension BacktraceReport: PersistentStorable {
 
     static var entityName: String { return "Crash" }
     
-    private func getCrashAttributes(report: PLCrashReport) -> Attributes {
-        guard let customData = report.customData else {
-            return [:]
+    private func extendCrashAttributes() {
+        guard let customData = self.plCrashReport.customData else {
+            return
            }
         
           if let attributes = try? JSONSerialization.jsonObject(with: customData, options: []) as? [String: Any] {
-              return attributes
+              self.attributes += attributes
           } else {
-              return [:]
+              return
           }
     }
 
