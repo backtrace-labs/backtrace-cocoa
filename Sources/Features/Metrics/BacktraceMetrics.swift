@@ -22,7 +22,6 @@ import Foundation
     }
 
     @objc public func enable(settings: BacktraceMetricsSettings) {
-        MetricsInfo.enableMetrics()
         backtraceMetricsContainer = BacktraceMetricsContainer(settings: settings)
         guard let containerUnwrapped = backtraceMetricsContainer else {
             BacktraceLogger.error("Could not initialize Backtrace metrics sender")

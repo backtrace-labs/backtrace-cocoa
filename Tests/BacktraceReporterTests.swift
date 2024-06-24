@@ -198,10 +198,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.report?.attributes["application.version"] }.notTo(beNil())
                 }
 
-                it("report should have metrics attributes if metrics is enabled") {
-                    let metrics = BacktraceMetrics(api: backtraceApi)
-                    metrics.enable(settings: BacktraceMetricsSettings())
-
+                it("report should have metrics attributes") {
                     let delegate = BacktraceClientDelegateMock()
                     let backtraceReport = try reporter.generate()
                     urlSession.response = MockOkResponse()
@@ -218,8 +215,6 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.backtraceStatus }.to(equal(.ok))
                     expect { result.report?.attributes["application.session"] }.toNot(beNil())
                     expect { result.report?.attributes["application.version"] }.toNot(beNil())
-
-                    MetricsInfo.disableMetrics()
                 }
 #if os(iOS)
                 it("report should have breadcrumbs attributes if breadcrumbs is enabled") {
