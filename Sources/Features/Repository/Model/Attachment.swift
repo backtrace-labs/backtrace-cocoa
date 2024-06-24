@@ -7,7 +7,9 @@ import CoreServices
 
 struct Attachment {
     let data: Data
-    let name: String
+    // file name with extension that represents real file name
+    let filename: String
+    
     let mimeType: String
 
     // Make sure attachments are not bigger than 10 MB.
@@ -32,7 +34,7 @@ struct Attachment {
         }
 
         mimeType = Attachment.mimeTypeForPath(fileUrl: fileURL)
-        name = "attachment_" + (fileURL.lastPathComponent as NSString).deletingPathExtension + "_\(arc4random())"
+        filename = "attachment_" + fileURL.lastPathComponent
     }
 
     static private func mimeTypeForPath(fileUrl: URL) -> String {

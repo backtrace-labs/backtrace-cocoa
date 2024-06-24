@@ -65,9 +65,9 @@ extension MultipartRequest {
         body.appendString("\r\n")
 
         // attachments
-        for attachment in report.attachmentPaths.compactMap(Attachment.init(filePath:)) {
+        for attachment in Set(report.attachmentPaths).compactMap(Attachment.init(filePath:)) {
             body.appendString(boundaryPrefix)
-            body.appendString("Content-Disposition: form-data; name=\"\(attachment.name)\"; filename=\"\(attachment.name)\"\r\n")
+            body.appendString("Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n")
             body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
             body.append(attachment.data)
             body.appendString("\r\n")

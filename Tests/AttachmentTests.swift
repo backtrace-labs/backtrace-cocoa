@@ -33,7 +33,7 @@ final class AttachmentTests: QuickSpec {
                     it("has mime type: text/plain") {
                         expect(attachment.mimeType).to(equal("text/plain"))
                         expect(attachment.data).toNot(beNil())
-                        expect(attachment.name).to(contain(["attachment_test_"]))
+                        expect(attachment.filename).to(contain(["attachment_test"]))
                     }
                 } else {
                     fail()
