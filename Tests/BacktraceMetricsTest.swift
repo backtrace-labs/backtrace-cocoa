@@ -13,16 +13,12 @@ final class BacktraceMetricsTests: QuickSpec {
             let credentials =
                 BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
             let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
-            let metrics = BacktraceMetrics(api: backtraceApi)
 
             let summedEventName = "view-changed"
             let uniqueEventName = "guid"
 
-            afterEach {
-                MetricsInfo.disableMetrics()
-            }
-
             it("clears the summed event after enabling and sending") {
+                let metrics = BacktraceMetrics(api: backtraceApi)
                 metrics.enable(settings: BacktraceMetricsSettings())
 
                 // Allow default events to be "sent" out
@@ -30,6 +26,7 @@ final class BacktraceMetricsTests: QuickSpec {
             }
 
             it("can add and store summed event") {
+                let metrics = BacktraceMetrics(api: backtraceApi)
                 metrics.enable(settings: BacktraceMetricsSettings())
 
                 // Allow default events to be "sent" out
@@ -40,6 +37,7 @@ final class BacktraceMetricsTests: QuickSpec {
             }
 
             it("can add and store unique event") {
+                let metrics = BacktraceMetrics(api: backtraceApi)
                 metrics.enable(settings: BacktraceMetricsSettings())
 
                 // Allow default events to be "sent" out

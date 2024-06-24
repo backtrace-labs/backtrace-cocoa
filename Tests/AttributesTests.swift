@@ -70,18 +70,10 @@ final class AttributesTests: QuickSpec {
         }
 
         describe("Metrics Info") {
-            it("will always set application.version and application.session even if metrics system is disabled") {
-                let attributes = MetricsInfo()
-                expect { attributes.immutable["application.version"]}.notTo(beNil())
-                expect { attributes.immutable["application.session"]}.notTo(beNil())
-            }
-
             it("will always set application.version and application.session ") {
-                let attributes = MetricsInfo()
-                MetricsInfo.enableMetrics()
+                let attributes = ApplicationInfo()
                 expect { attributes.immutable["application.version"]}.toNot(beNil())
                 expect { attributes.immutable["application.session"]}.toNot(beNil())
-                MetricsInfo.disableMetrics()
             }
         }
 
@@ -109,14 +101,6 @@ final class AttributesTests: QuickSpec {
                 let attributes = AttributesProvider()
                 expect { attributes.allAttributes["application.version"]}.notTo(beNil())
                 expect { attributes.allAttributes["application.session"]}.notTo(beNil())
-            }
-
-            it("will always set application.version and application.session ") {
-                MetricsInfo.enableMetrics()
-                let attributes = AttributesProvider()
-                expect { attributes.allAttributes["application.version"]}.notTo(beNil())
-                expect { attributes.allAttributes["application.session"]}.notTo(beNil())
-                MetricsInfo.disableMetrics()
             }
         }
 
