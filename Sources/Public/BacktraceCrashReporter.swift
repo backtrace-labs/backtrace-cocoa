@@ -1,5 +1,6 @@
 import Foundation
 import CrashReporter
+import Darwin
 
 
 /// A wrapper around `PLCrashReporter`.
@@ -34,7 +35,7 @@ extension BacktraceCrashReporter: CrashReporting {
                     return
                 }
             
-                attributesProvider.set(faultMessage: "siginfo_t.si_signo: \(signalInfo.si_signo)")
+                attributesProvider.set(faultMessage: "\(String(cString: strsignal(signalInfo.si_signo)))")
 
                 try? AttributesStorage.store(attributesProvider.dynamicAttributes, fileName: BacktraceCrashReporter.crashName)
                 try? AttachmentsStorage.store(attributesProvider.allAttachments, fileName: BacktraceCrashReporter.crashName)
