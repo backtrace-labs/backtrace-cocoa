@@ -40,7 +40,7 @@ struct ProcessorInfo: AttributesSource {
             "cpu.idle": processor?.cpuTicks.idle,
             "cpu.nice": processor?.cpuTicks.nice,
             "cpu.user": processor?.cpuTicks.user,
-            "cpu.system": processor?.cpuTicks.system,
+            "cpu.sys": processor?.cpuTicks.system,
             "cpu.process.count": processor?.processorSetLoadInfo.task_count,
             "cpu.thread.count": processor?.processorSetLoadInfo.thread_count,
             "cpu.uptime": try? System.uptime(),
@@ -63,9 +63,9 @@ struct ProcessorInfo: AttributesSource {
             "system.memory.swap.used": systemSwapMemory?.used,
             "system.memory.swap.free": systemSwapMemory?.free,
             // vm
-            "process.vm.rss.size": processVmMemory?.resident,
-            "process.vm.rss.peak": processVmMemory?.residentPeak,
-            "process.vm.vma.size": processVmMemory?.virtual
+            "vm.rss.size": processVmMemory?.resident,
+            "vm.rss.peak": processVmMemory?.residentPeak,
+            "vm.vma.size": processVmMemory?.virtual
         ]
     }
 
