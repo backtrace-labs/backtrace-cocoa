@@ -1,5 +1,14 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.0.4
+- Upgrades PLCrashReporter
+- Adds scoped attributes to PLCrashreport
+- Renames attributes and adds them as default
+- Adds extension to uploaded attachment
+- Standardizes system attributes 
+- Updates FaultMessage Attribute to return Termination Signal name
+- Upgrades COCOAPODS to ver 1.15.2
+
 ## Version 2.0.3
 - Added PrivacyInfo.xcprivacy
 
