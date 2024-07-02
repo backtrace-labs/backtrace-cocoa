@@ -199,10 +199,14 @@ struct NetworkInfo: AttributesSource {
 struct LocationInfo: AttributesSource {
 
     var mutable: [String: Any?] {
-        return [
-            "location.enabled": CLLocationManager.locationServicesEnabled(),
-            "location.authorization.status": CLLocationManager.authorizationStatus().name
-        ]
+        var mutableDict = [String: Any?]()
+        
+        DispatchQueue.main.async {
+            mutableDict["location.enabled"] = CLLocationManager.locationServicesEnabled()
+            mutableDict["location.authorization.status"] = CLLocationManager.authorizationStatus().name
+        }
+        
+        return mutableDict
     }
 }
 
