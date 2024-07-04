@@ -22,7 +22,7 @@ final class BacktraceMetricsTests: QuickSpec {
                 metrics.enable(settings: BacktraceMetricsSettings())
 
                 // Allow default events to be "sent" out
-                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(6), pollInterval: .milliseconds(100))
+                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(6), pollInterval: .milliseconds(500))
             }
 
             it("can add and store summed event") {
@@ -30,7 +30,7 @@ final class BacktraceMetricsTests: QuickSpec {
                 metrics.enable(settings: BacktraceMetricsSettings())
 
                 // Allow default events to be "sent" out
-                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(6), pollInterval: .milliseconds(100))
+                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(6), pollInterval: .milliseconds(500))
 
                 metrics.addSummedEvent(name: summedEventName)
                 expect { metrics.count }.to(equal(2))
@@ -41,7 +41,7 @@ final class BacktraceMetricsTests: QuickSpec {
                 metrics.enable(settings: BacktraceMetricsSettings())
 
                 // Allow default events to be "sent" out
-                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(6), pollInterval: .milliseconds(100))
+                expect { metrics.count }.toEventually(equal(1), timeout: .seconds(6), pollInterval: .milliseconds(500))
 
                 metrics.addUniqueEvent(name: uniqueEventName)
                 expect { metrics.count }.to(equal(2))
