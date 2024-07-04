@@ -2491,7 +2491,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A47DBF3E1CCCFAB0BF303D60 /* Pods-Backtrace-tvOSTests.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2566,7 +2565,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A1D05FC2301097A7A62A1A64 /* Pods-Backtrace-tvOSTests.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2808,7 +2806,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = DD073D2606773C4450BDEEC1 /* Pods-Backtrace-macOSTests.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2888,7 +2885,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4E74B5FBBB08BE978823BE6E /* Pods-Backtrace-macOSTests.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3323,7 +3319,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CE57027155B630B7790FB440 /* Pods-Backtrace-iOSTests.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3406,7 +3401,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 95063D2398B5234B40BD8AFF /* Pods-Backtrace-iOSTests.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
