@@ -201,9 +201,14 @@ struct LocationInfo: AttributesSource {
     var mutable: [String: Any?] {
         var mutableDict = [String: Any?]()
         
-        DispatchQueue.main.async {
-            mutableDict["location.enabled"] = CLLocationManager.locationServicesEnabled()
-            mutableDict["location.authorization.status"] = CLLocationManager.authorizationStatus().name
+        DispatchQueue.global().async {
+            let locationEnabled = CLLocationManager.locationServicesEnabled()
+            let authorizationStatus = CLLocationManager.authorizationStatus().name
+            
+            DispatchQueue.main.async {
+                mutableDict["location.enabled"] = locationEnabled
+                mutableDict["location.authorization.status"] = authorizationStatus
+            }
         }
         
         return mutableDict
