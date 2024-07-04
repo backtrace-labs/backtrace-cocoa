@@ -50,4 +50,12 @@ import Foundation
         }
         containerUnwrapped.add(event: SummedEvent(name: name))
     }
+    
+    @objc public func clearSummedEvents() {
+        guard let containerUnwrapped = backtraceMetricsContainer else {
+            BacktraceLogger.error("Could not clear metrics event, metrics is not initialized")
+            return
+        }
+        containerUnwrapped.clearSummedEvents()
+    }
 }

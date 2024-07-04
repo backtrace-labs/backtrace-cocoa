@@ -23,6 +23,7 @@ final class BacktraceMetricsTests: QuickSpec {
                 
                 beforeEach {
                     metrics = BacktraceMetrics(api: backtraceApi)
+                    metrics?.clearSummedEvents()
                     metrics?.enable(settings: BacktraceMetricsSettings())
                 }
                 
