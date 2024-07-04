@@ -45,7 +45,7 @@ lane :common_tests do |options|
   scan(
     workspace: "Backtrace.xcworkspace",
     scheme: options[:scheme],
-    clean: true,
+    clean: false,
     code_coverage: true,
     open_report: true,
     disable_slide_to_type: options[:disable_slide_to_type],
