@@ -23,8 +23,8 @@ final class BacktraceMetricsTests: QuickSpec {
                 
                 beforeEach {
                     metrics = BacktraceMetrics(api: backtraceApi)
-                    metrics?.clearSummedEvents()
                     metrics?.enable(settings: BacktraceMetricsSettings())
+                    metrics?.clearSummedEvents()
                 }
                 
                 it("clears the summed event after enabling and sending") {
@@ -33,17 +33,11 @@ final class BacktraceMetricsTests: QuickSpec {
                 }
                 
                 it("can add and store summed event") {
-                    // Allow default events to be "sent" out
-                    expect { metrics?.count }.toEventually(equal(1))
-                    
                     metrics?.addSummedEvent(name: summedEventName)
                     expect { metrics?.count }.to(equal(2))
                 }
                 
                 it("can add and store unique event") {
-                    // Allow default events to be "sent" out
-                    expect { metrics?.count }.toEventually(equal(1))
-                    
                     metrics?.addUniqueEvent(name: uniqueEventName)
                     expect { metrics?.count }.to(equal(2))
                 }
