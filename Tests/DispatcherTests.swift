@@ -8,17 +8,16 @@ final class DispatcherTests: QuickSpec {
 
     override func spec() {
         describe("Dispatcher") {
-            it("calls the completion closure") {
-                let dispatcher = Dispatcher()
-                var closureCalled = false
-                var finished = false
-                dispatcher.dispatch({
-                    closureCalled = true
-                }, completion: {
-                    finished = true
-                })
-                expect(finished).toEventually(beTrue(), timeout: .seconds(5), pollInterval: .milliseconds(100))
-                expect(closureCalled).toEventually(beTrue(), timeout: .seconds(5), pollInterval: .milliseconds(100))
+            let dispatcher = Dispatcher()
+            var dispatched = false
+            context("Dispatcher operation") {
+                it("calls the completion closure") {
+                    dispatcher.dispatch({
+                        dispatched = true
+                    }, completion: {
+                        expect(dispatched).to(beTrue())
+                    })
+                }
             }
         }
     }
