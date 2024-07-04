@@ -20,6 +20,7 @@ platform :ios do
   lane :tests do
     sync_podspec_version_to_xcode()
     common_tests(scheme: "Backtrace-iOS-lib", disable_slide_to_type: true)
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "120"
   end
 end
 
