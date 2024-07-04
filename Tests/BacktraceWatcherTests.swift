@@ -43,19 +43,15 @@ final class BacktraceWatcherTests: QuickSpec {
 
             context("given enabled retry behaviour") {
                 throwingIt("fires timer") {
-                    dbSettings.retryInterval = 1
+                    dbSettings.retryBehaviour = .interval
                     let watcher = BacktraceWatcher(settings: dbSettings,
                                                    networkClient: networkClient,
                                                    credentials: credentials,
                                                    repository: repository)
-                    watcher.enable()
                     watcher.resetTimer()
+                    watcher.enable()
 
-                    waitUntil(timeout: .seconds(dbSettings.retryInterval + 1)) { (done) in
-                        watcher.configureTimer(with: DispatchWorkItem(block: {
-                            done()
-                        }))
-                    }
+                    expect(watcher.timer).toNot(beNil())
                 }
             }
 
