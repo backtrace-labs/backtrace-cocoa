@@ -50,7 +50,7 @@ final class BacktraceWatcherTests: QuickSpec {
                                                    repository: repository)
                     watcher.resetTimer()
                     watcher.enable()
-                    // spec will be updated after upgrading Quick & Nimble to reolve Fastlane hangs
+                    // spec will be updated after upgrading Quick & Nimble to resolve Fastlane hangs
                     expect(watcher.timer).toNot(beNil())
                 }
             }

@@ -15,7 +15,7 @@ final class DispatcherTests: QuickSpec {
                     dispatcher.dispatch({
                         dispatched = true
                     }, completion: {
-                        // spec will be updated after upgrading Quick & Nimble to reolve Fastlane hangs
+                        // spec will be updated after upgrading Quick & Nimble to resolve Fastlane hangs
                         expect(dispatched).to(beTrue())
                     })
                 }
