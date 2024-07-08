@@ -5,20 +5,20 @@ import Quick
 @testable import Backtrace
 
 final class DispatcherTests: QuickSpec {
-
+    
     override func spec() {
         describe("Dispatcher") {
-            let dispatcher = Dispatcher()
-            var dispatched = false
-            context("Dispatcher operation") {
-                it("calls the completion closure") {
-                    dispatcher.dispatch({
-                        dispatched = true
-                    }, completion: {
-                        // spec will be updated after upgrading Quick & Nimble to reolve Fastlane hangs
-                        expect(dispatched).to(beTrue())
-                    })
-                }
+            it("calls the completion closure") {
+                let dispatcher = Dispatcher()
+                var closureCalled = false
+                var finished = false
+                dispatcher.dispatch({
+                    closureCalled = true
+                }, completion: {
+                    finished = true
+                })
+                expect(finished).toEventually(beTrue(), timeout: .seconds(5), pollInterval: .milliseconds(100))
+                expect(closureCalled).toEventually(beTrue(), timeout: .seconds(5), pollInterval: .milliseconds(100))
             }
         }
     }

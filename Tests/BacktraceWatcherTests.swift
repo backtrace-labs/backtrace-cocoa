@@ -48,10 +48,16 @@ final class BacktraceWatcherTests: QuickSpec {
                                                    networkClient: networkClient,
                                                    credentials: credentials,
                                                    repository: repository)
-                    watcher.resetTimer()
                     watcher.enable()
+                    watcher.resetTimer()
                     // spec will be updated after upgrading Quick & Nimble to reolve Fastlane hangs
                     expect(watcher.timer).toNot(beNil())
+                    
+                    waitUntil(timeout: .seconds(dbSettings.retryInterval + 1)) { (done) in
+                         watcher.configureTimer(with: DispatchWorkItem(block: {
+                             done()
+                         }))
+                     }
                 }
             }
 
