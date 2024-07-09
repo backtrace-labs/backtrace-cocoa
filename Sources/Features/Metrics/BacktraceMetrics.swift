@@ -59,25 +59,6 @@ import Foundation
         containerUnwrapped.clearSummedEvents()
     }
     
-    @objc public func getSummedEventsPayload() -> NSDictionary {
-        guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.error("Could not get Summed events, metrics is not initialized")
-            return [:]
-        }
-        
-        let payload = containerUnwrapped.getSummedEventsPayload()
-        
-        // Convert SummedEventsPayload to Objective-C compatible type
-           let payloadDict = [
-               "applicationName": payload.applicationName,
-               "applicationVersion": payload.applicationVersion,
-               "metadata": payload.metadata,
-               "events": payload.events.map { $0 }
-           ] as [String: Any]
-        
-        return payloadDict as NSDictionary
-    }
-    
     @objc public func getSummedEvents() -> [Any] {
         guard let containerUnwrapped = backtraceMetricsContainer else {
             BacktraceLogger.error("Could not get Summed events, metrics is not initialized")
@@ -88,29 +69,10 @@ import Foundation
         return payload.events as [SummedEvent]
     }
     
-    @objc public func getUniqueEventsPayload() -> NSDictionary {
+    @objc public func getUniqueEvents() -> [Any] {
         guard let containerUnwrapped = backtraceMetricsContainer else {
             BacktraceLogger.error("Could not get Unique events, metrics is not initialized")
-            return [:]
-        }
-        
-        let payload = containerUnwrapped.getUniqueEventsPayload()
-        
-        // Convert UniqueEventsPayload to Objective-C compatible type
-           let payloadDict = [
-               "applicationName": payload.applicationName,
-               "applicationVersion": payload.applicationVersion,
-               "metadata": payload.metadata,
-               "events": payload.events.map { $0 }
-           ] as [String: Any]
-        
-        return payloadDict as NSDictionary
-    }
-    
-    @objc public func getUniqueEvents() -> Any {
-        guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.error("Could not get Unique events, metrics is not initialized")
-            return [:]
+            return []
         }
         
         let payload = containerUnwrapped.getUniqueEventsPayload()
