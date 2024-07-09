@@ -50,4 +50,33 @@ import Foundation
         }
         containerUnwrapped.add(event: SummedEvent(name: name))
     }
+    
+    @objc public func clearSummedEvents() {
+        guard let containerUnwrapped = backtraceMetricsContainer else {
+            BacktraceLogger.error("Could not clear metrics event, metrics is not initialized")
+            return
+        }
+        containerUnwrapped.clearSummedEvents()
+    }
+    
+    @objc public func getSummedEvents() -> [Any] {
+        guard let containerUnwrapped = backtraceMetricsContainer else {
+            BacktraceLogger.error("Could not get Summed events, metrics is not initialized")
+            return []
+        }
+        
+        let payload = containerUnwrapped.getSummedEventsPayload()
+        return payload.events as [SummedEvent]
+    }
+    
+    @objc public func getUniqueEvents() -> [Any] {
+        guard let containerUnwrapped = backtraceMetricsContainer else {
+            BacktraceLogger.error("Could not get Unique events, metrics is not initialized")
+            return []
+        }
+        
+        let payload = containerUnwrapped.getUniqueEventsPayload()
+        return payload.events as [UniqueEvent]
+    }
+    
 }

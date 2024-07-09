@@ -32,7 +32,6 @@ final class AttributesProvider {
                              LocaleInfo(),
                              NetworkInfo(),
                              LibInfo(),
-                             LocationInfo(),
                              faultInfo,
                              ApplicationInfo(),
                              BreadcrumbsInfo()]

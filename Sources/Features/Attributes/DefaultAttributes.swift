@@ -1,6 +1,5 @@
 // swiftlint:disable type_name
 import Foundation
-import CoreLocation
 #if os(iOS)
 import UIKit
 #elseif os(macOS)
@@ -196,16 +195,6 @@ struct NetworkInfo: AttributesSource {
     }
 }
 
-struct LocationInfo: AttributesSource {
-
-    var mutable: [String: Any?] {
-        return [
-            "location.enabled": CLLocationManager.locationServicesEnabled(),
-            "location.authorization.status": CLLocationManager.authorizationStatus().name
-        ]
-    }
-}
-
 struct LibInfo: AttributesSource {
 
     private static let applicationGuidKey = "backtrace.unique.user.identifier"
@@ -262,21 +251,6 @@ struct BreadcrumbsInfo: AttributesSource {
 }
 
 // swiftlint:enable type_name
-
-private extension CLAuthorizationStatus {
-
-    var name: String {
-        switch self {
-        case .authorizedAlways: return "Always"
-        case .authorizedWhenInUse: return "WhenInUse"
-        case .denied: return "Denied"
-        case .notDetermined: return "notDetermined"
-        case .restricted: return "restricted"
-        @unknown default:
-            return "Unknown"
-        }
-    }
-}
 
 #if os(iOS)
 private extension UIDeviceOrientation {

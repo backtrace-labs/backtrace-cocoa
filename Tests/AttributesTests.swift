@@ -38,11 +38,6 @@ final class AttributesTests: QuickSpec {
                 expect { attributes.mutable }.toNot(beNil())
                 expect { attributes.immutable }.toNot(beNil())
             }
-            it("sets location info") {
-                let attributes = LocationInfo()
-                expect { attributes.mutable }.toNot(beNil())
-                expect { attributes.immutable }.toNot(beNil())
-            }
         }
 
         describe("Processor Info") {
