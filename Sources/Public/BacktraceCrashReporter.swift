@@ -11,7 +11,7 @@ import Darwin
 
     /// Creates an instance of a crash reporter.
     /// - Parameter config: A `PLCrashReporterConfig` configuration to use.
-    @objc public convenience init(config: PLCrashReporterConfig = PLCrashReporterConfig.defaultConfiguration()) {
+    @objc public convenience init(config: PLCrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all)) {
         self.init(reporter: PLCrashReporter(configuration: config))
     }
 
