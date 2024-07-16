@@ -31,7 +31,7 @@ final class PersistentRepository<Resource: PersistentStorable> {
                 .persistentRepositoryInitError(details: "Couldn't find model url for name: \(momdName)")
         }
 #else
-        guard let bundleURL = Bundle(for: PersistentRepository.self).url(forResource: "Backtrace", withExtension: "bundle"),
+        guard let bundleURL = Bundle(for: type(of: self)).url(forResource: "BacktraceResources", withExtension: "bundle"),
         let resourcesBundle = Bundle(url: bundleURL),
         let modelURL = resourcesBundle.url(forResource: momdName, withExtension: "momd") else {
             throw RepositoryError
