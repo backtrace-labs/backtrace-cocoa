@@ -32,16 +32,54 @@ jobs:
       - name: Run pod lib lint
         run: pod lib lint --verbose --allow-warnings --sources='https://cdn.cocoapods.org/'
   # END COPY PASTE FROM TEST.YML
-  
-  deploy-cocoapods:
+
+ build-dynamic-frameworks:
     runs-on: macos-latest
     needs: [pod-lint, test]
-    
+
+    strategy:
+      matrix:
+          ENABLE_BITCODE: [YES, NO]
+          SWIFT_EMBEDDED: [YES, NO]
+
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v3
+
+    - name: Install cocoapods and rome
+      run: gem install cocoapods cocoapods-rome
+
+    - name: Run pod install with Podfile from workflows directory
+      run: cp .github/workflows/Podfile . && pod install
+      env:
+        ENABLE_BITCODE: ${{ matrix.ENABLE_BITCODE }}
+        SWIFT_EMBEDDED: ${{ matrix.SWIFT_EMBEDDED }}
+        BACKTRACE_VERSION: ${{ github.ref_name }}
+
+    - name: Tar files to preserve file permissions
+      run: tar -cvzf Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}.tar.gz Rome/ dSYM/
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}
+        path: Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}.tar.gz
+
+  upload-to-github-release:
+    runs-on: ubuntu-latest
+    needs: build-dynamic-frameworks
+
     steps:
       - uses: actions/checkout@v3
-      - name: Install dependencies
-        run: sh scripts/install.sh
-      - name: Deploy to Cocoapods
-        run: sh scripts/deploy.sh
+
+      - uses: actions/download-artifact@v3
+        id: download
+        with:
+          path: artifacts/
+
+      - uses: xresloader/upload-to-github-release@v1
         env:
-         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: ${{ steps.download.outputs.download-path }}
+          draft: true
+          verbose: env.ACTIONS_STEP_DEBUG
