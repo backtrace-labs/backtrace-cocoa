@@ -1,10 +1,9 @@
 # Backtrace Cocoa Release Notes
 
 ## Version 2.0.5-beta1
-- Adds BacktraceResources bundle
-- Updates CoreData and Data Model
-- Adds pod integrity check
-- Fixes issue where assets are not copied to generated frameworks when statically linking sdk
+- Initializes Backtrace-PlCrashReporter configuration (#134)
+- Fixes Cocoapods deployment (#135)
+- Adds pod integrity check (#135)
 
 ## Version 2.0.4
 - Upgrades PLCrashReporter (#122)
