@@ -49,33 +49,22 @@ jobs:
   build-dynamic-frameworks:
     runs-on: macos-latest
     needs: [pod-lint, test]
-    
-    strategy:
-      matrix:
-          ENABLE_BITCODE: [YES, NO]
-          SWIFT_EMBEDDED: [YES, NO]
 
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v3
 
-    - name: Install cocoapods and rome
-      run: gem install cocoapods cocoapods-rome
-      
-    - name: Run pod install with Podfile from workflows directory
-      run: cp .github/workflows/Podfile . && pod install
+    - name: Build frameworks
+      run: sh scripts/xcframeworkgen.sh
       env:
-        ENABLE_BITCODE: ${{ matrix.ENABLE_BITCODE }}
-        SWIFT_EMBEDDED: ${{ matrix.SWIFT_EMBEDDED }}
         BACKTRACE_VERSION: ${{ github.ref_name }}
 
     - name: Tar files to preserve file permissions
-      run: tar -cvzf Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}.tar.gz Rome/ dSYM/
+      run: tar -cvzf Archive_XCFrameworks_${{ github.ref_name }}.tar.gz frameworks/
 
     - uses: actions/upload-artifact@v3
       with:
-        name: Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}
-        path: Archive_DynamicFramework_iOS_Bitcode${{ matrix.ENABLE_BITCODE }}_SwiftEmbedded${{ matrix.SWIFT_EMBEDDED }}_${{ github.ref_name }}.tar.gz
+        name: Archive_XCFrameworks_${{ github.ref_name }}
+        path: Archive_XCFrameworks_${{ github.ref_name }}.tar.gz
         
   upload-to-github-release:
     runs-on: ubuntu-latest
