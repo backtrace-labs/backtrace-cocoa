@@ -1,6 +1,7 @@
 source 'https://cdn.cocoapods.org/'
 
 # Library
+project 'Backtrace.xcworkspace'
 
 # Definitions
 def shared_pods

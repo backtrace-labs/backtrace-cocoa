@@ -10,6 +10,16 @@
 		0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
 		0B6B4CFE25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
 		0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
+		2046B45B2C46FA1100A927DB /* Model.xcdatamodeld in Resources */ = {isa = PBXBuildFile; fileRef = F2AB639A22479A3200939BC9 /* Model.xcdatamodeld */; };
+		2046B45C2C46FA5600A927DB /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
+		2046B45F2C46FCE500A927DB /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
+		2046B4622C46FCF400A927DB /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
+		2062D9C62C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
+		2062D9C72C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
+		2062D9C82C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
+		2062D9C92C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
+		2062D9CA2C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
+		2062D9CB2C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
 		282C85E7223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */; };
 		2846E1F8222F1DE60035F98C /* NetworkReachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1F7222F1DE50035F98C /* NetworkReachability.swift */; };
 		2846E1F9222F1DE60035F98C /* NetworkReachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1F7222F1DE50035F98C /* NetworkReachability.swift */; };
@@ -250,7 +260,6 @@
 		F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165721E2A0DA008E4B96 /* URLSession+Sync.swift */; };
 		F29959AB225539960085B5C3 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
 		F29959AC2255399B0085B5C3 /* BacktraceReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075721CEA31F0017367F /* BacktraceReport.swift */; };
-		F29959AD22553B340085B5C3 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2AB639A22479A3200939BC9 /* Model.xcdatamodeld */; };
 		F29CD78D21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD78C21FC6BC700216C59 /* BacktraceFileManager.swift */; };
 		F29CD78E21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD78C21FC6BC700216C59 /* BacktraceFileManager.swift */; };
 		F29CD79121FCC25600216C59 /* BacktraceWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */; };
@@ -274,8 +283,6 @@
 		F2AB637F22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */; };
 		F2AB63812246E16400939BC9 /* ReportingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63802246E16400939BC9 /* ReportingPolicy.swift */; };
 		F2AB63822246E16400939BC9 /* ReportingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63802246E16400939BC9 /* ReportingPolicy.swift */; };
-		F2AB639C22479A3500939BC9 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2AB639A22479A3200939BC9 /* Model.xcdatamodeld */; };
-		F2AB639D22479A3600939BC9 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2AB639A22479A3200939BC9 /* Model.xcdatamodeld */; };
 		F2AB63A022479FDF00939BC9 /* BacktraceApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE3921BD78A9007CFEFA /* BacktraceApi.swift */; };
 		F2AFB5912225E5D000AAA1D7 /* Foundation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFB5902225E5D000AAA1D7 /* Foundation+Extensions.swift */; };
 		F2AFB5922225E5D000AAA1D7 /* Foundation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFB5902225E5D000AAA1D7 /* Foundation+Extensions.swift */; };
@@ -311,6 +318,27 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2046B4592C46F9CE00A927DB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2046B4542C46F97800A927DB;
+			remoteInfo = BacktraceResources;
+		};
+		2046B45D2C46FCDB00A927DB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2046B4542C46F97800A927DB;
+			remoteInfo = BacktraceResources;
+		};
+		2046B4602C46FCED00A927DB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2046B4542C46F97800A927DB;
+			remoteInfo = BacktraceResources;
+		};
 		28F95BBA22525DCC003936E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
@@ -382,6 +410,9 @@
 		0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceOomWatcher.swift; sourceTree = "<group>"; };
 		1B23C39D7D0C11ABC494BDF4 /* Pods_Example_macOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_macOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F36490C977B28FFED3FA6BB /* Pods-Example-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
+		2046B4552C46F97800A927DB /* BacktraceResources.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BacktraceResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataClass.swift"; sourceTree = "<group>"; };
+		2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		26A69065BABD7253C1D61320 /* Pods_Backtrace_tvOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_tvOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceCrashExceptionApplication.swift; sourceTree = "<group>"; };
 		2846E1F7222F1DE50035F98C /* NetworkReachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkReachability.swift; sourceTree = "<group>"; };
@@ -558,6 +589,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2046B4522C46F97800A927DB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		28F95BAD22525DCC003936E0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -926,6 +964,8 @@
 		F2AB6395224799A200939BC9 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */,
+				2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */,
 				F2AB639A22479A3200939BC9 /* Model.xcdatamodeld */,
 			);
 			path = Resources;
@@ -1017,6 +1057,7 @@
 				28F95BB022525DCC003936E0 /* Backtrace.framework */,
 				28F95BB822525DCC003936E0 /* Backtrace-tvOSTests.xctest */,
 				F2A11BF722553C2800354640 /* Example-tvOS.app */,
+				2046B4552C46F97800A927DB /* BacktraceResources.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1150,6 +1191,23 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		2046B4542C46F97800A927DB /* BacktraceResources */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2046B4582C46F97800A927DB /* Build configuration list for PBXNativeTarget "BacktraceResources" */;
+			buildPhases = (
+				2046B4512C46F97800A927DB /* Sources */,
+				2046B4522C46F97800A927DB /* Frameworks */,
+				2046B4532C46F97800A927DB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BacktraceResources;
+			productName = BacktraceResources;
+			productReference = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
 		28F95BAF22525DCC003936E0 /* Backtrace-tvOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 28F95BC122525DCC003936E0 /* Build configuration list for PBXNativeTarget "Backtrace-tvOS" */;
@@ -1164,6 +1222,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2046B4612C46FCED00A927DB /* PBXTargetDependency */,
 			);
 			name = "Backtrace-tvOS";
 			productName = "Backtrace-tvOS";
@@ -1204,6 +1263,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2046B45E2C46FCDB00A927DB /* PBXTargetDependency */,
 			);
 			name = "Backtrace-macOS";
 			productName = "Backtrace-macOS";
@@ -1264,6 +1324,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2046B45A2C46F9CE00A927DB /* PBXTargetDependency */,
 			);
 			name = "Backtrace-iOS";
 			productName = "Backtrace-iOS";
@@ -1359,6 +1420,9 @@
 				LastSwiftUpdateCheck = 1020;
 				LastUpgradeCheck = 1010;
 				TargetAttributes = {
+					2046B4542C46F97800A927DB = {
+						CreatedOnToolsVersion = 15.4;
+					};
 					28F95BAF22525DCC003936E0 = {
 						CreatedOnToolsVersion = 10.1;
 					};
@@ -1417,15 +1481,25 @@
 				F2D8BE1E21BC5F97007CFEFA /* Example-iOS-ObjC */,
 				F2D8BE4121BDA7CF007CFEFA /* Example-macOS-ObjC */,
 				F2A11BF622553C2800354640 /* Example-tvOS */,
+				2046B4542C46F97800A927DB /* BacktraceResources */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2046B4532C46F97800A927DB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2046B45B2C46FA1100A927DB /* Model.xcdatamodeld in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		28F95BAE22525DCC003936E0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2046B4622C46FCF400A927DB /* BacktraceResources.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1441,6 +1515,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2046B45F2C46FCE500A927DB /* BacktraceResources.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1466,6 +1541,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2046B45C2C46FA5600A927DB /* BacktraceResources.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1908,6 +1984,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2046B4512C46F97800A927DB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		28F95BAC22525DCC003936E0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1943,6 +2026,8 @@
 				28F95BC822526023003936E0 /* URLSession+Sync.swift in Sources */,
 				28F95BED225260D3003936E0 /* AttributesProvider.swift in Sources */,
 				28F95BDB22526088003936E0 /* SignalContext.swift in Sources */,
+				2062D9CA2C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */,
+				2062D9CB2C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */,
 				6E896E932727627D0005CDF2 /* BacktraceMetrics.swift in Sources */,
 				6EB713EE275ED4EF0075D1C1 /* SummedEventsPayload.swift in Sources */,
 				28F95BD122526068003936E0 /* BacktraceResult.swift in Sources */,
@@ -1960,7 +2045,6 @@
 				28F95BE2225260A2003936E0 /* BacktraceApi.swift in Sources */,
 				28F95BDC2252608B003936E0 /* Result.swift in Sources */,
 				F2A81B4F23EF1730007C63E4 /* BacktraceApiProtocol.swift in Sources */,
-				F29959AD22553B340085B5C3 /* Model.xcdatamodeld in Sources */,
 				28F95BE3225260A5003936E0 /* HttpMethod.swift in Sources */,
 				28F95BD22252606B003936E0 /* BacktraceDatabaseSettings.swift in Sources */,
 				F29959AC2255399B0085B5C3 /* BacktraceReport.swift in Sources */,
@@ -2023,7 +2107,6 @@
 				F2AFB59E22274EDA00AAA1D7 /* Dispatching.swift in Sources */,
 				2846E1F9222F1DE60035F98C /* NetworkReachability.swift in Sources */,
 				F21211A9222348C2000B3692 /* SignalContext.swift in Sources */,
-				F2AB639D22479A3600939BC9 /* Model.xcdatamodeld in Sources */,
 				F259E4E3222AD9F100F282C7 /* AttributesProvider.swift in Sources */,
 				F266B83321C77B9600D14417 /* BacktraceClient.swift in Sources */,
 				F25F9E9821EE84AF00236E04 /* BacktraceReportStatus.swift in Sources */,
@@ -2061,6 +2144,8 @@
 				F29CD78E21FC6BC700216C59 /* BacktraceFileManager.swift in Sources */,
 				A24A4B8E28B5961A004F5052 /* BacktraceBreadcrumbSettings.swift in Sources */,
 				6E87F5FC27347A6E00B90B07 /* UniqueEventsPayload.swift in Sources */,
+				2062D9C82C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */,
+				2062D9C92C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */,
 				6E87F5F4273325A800B90B07 /* UniqueEvent.swift in Sources */,
 				F2D7122221F10C45002D2A26 /* BacktraceClientConfiguration.swift in Sources */,
 				A24A4B9428B59768004F5052 /* BacktraceBreadcrumbsLogManager.swift in Sources */,
@@ -2141,7 +2226,6 @@
 				28AC773F220A2A2900FED661 /* MultipartRequest.swift in Sources */,
 				F25F9E9A21EE84EA00236E04 /* BacktraceResult.swift in Sources */,
 				A24A4B8528B59604004F5052 /* BacktraceNotificationObserver.swift in Sources */,
-				F2AB639C22479A3500939BC9 /* Model.xcdatamodeld in Sources */,
 				F28F165121E2A08F008E4B96 /* HttpMethod.swift in Sources */,
 				F22EB87721BBD36800DEE94E /* BacktraceClient.swift in Sources */,
 				AF5AB04726261A760003698C /* AttachmentBookmarkHandler.swift in Sources */,
@@ -2169,6 +2253,8 @@
 				F28F165821E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				F26EBF3A23F21AEC00A64218 /* BacktraceNetworkClient.swift in Sources */,
 				A24A4B8928B5960E004F5052 /* BacktraceBreadcrumbs.swift in Sources */,
+				2062D9C62C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */,
+				2062D9C72C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */,
 				28614F9E220B6D7C00D35EFB /* DefaultAttributes.swift in Sources */,
 				F2D8BE3A21BD78A9007CFEFA /* BacktraceApi.swift in Sources */,
 				F2AB636D22442B5100939BC9 /* DebuggerChecker.swift in Sources */,
@@ -2252,6 +2338,21 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2046B45A2C46F9CE00A927DB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2046B4542C46F97800A927DB /* BacktraceResources */;
+			targetProxy = 2046B4592C46F9CE00A927DB /* PBXContainerItemProxy */;
+		};
+		2046B45E2C46FCDB00A927DB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2046B4542C46F97800A927DB /* BacktraceResources */;
+			targetProxy = 2046B45D2C46FCDB00A927DB /* PBXContainerItemProxy */;
+		};
+		2046B4612C46FCED00A927DB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2046B4542C46F97800A927DB /* BacktraceResources */;
+			targetProxy = 2046B4602C46FCED00A927DB /* PBXContainerItemProxy */;
+		};
 		28F95BBB22525DCC003936E0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 28F95BAF22525DCC003936E0 /* Backtrace-tvOS */;
@@ -2321,6 +2422,160 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		2046B4562C46F97800A927DB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=driverkit*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 13.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.BacktraceResources;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "xrsimulator xros watchsimulator watchos macosx iphonesimulator iphoneos driverkit appletvsimulator appletvos";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		2046B4572C46F97800A927DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=driverkit*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 13.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.BacktraceResources;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "xrsimulator xros watchsimulator watchos macosx iphonesimulator iphoneos driverkit appletvsimulator appletvos";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Release;
+		};
 		28F95BC222525DCC003936E0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 33EA597CC049EB0DFA70324F /* Pods-Backtrace-tvOS.debug.xcconfig */;
@@ -2713,7 +2968,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -2796,7 +3051,7 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -2877,7 +3132,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Debug;
 		};
@@ -2949,7 +3204,7 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Release;
 		};
@@ -3222,7 +3477,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -3308,7 +3563,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -3393,7 +3648,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Debug;
 		};
@@ -3468,7 +3723,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -3551,7 +3806,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Debug;
 		};
@@ -3626,7 +3881,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -3706,7 +3961,7 @@
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Debug;
 		};
@@ -3778,7 +4033,7 @@
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -3857,7 +4112,7 @@
 				SDKROOT = macosx;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Debug;
 		};
@@ -3928,13 +4183,22 @@
 				SDKROOT = macosx;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2046B4582C46F97800A927DB /* Build configuration list for PBXNativeTarget "BacktraceResources" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2046B4562C46F97800A927DB /* Debug */,
+				2046B4572C46F97800A927DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		28F95BC122525DCC003936E0 /* Build configuration list for PBXNativeTarget "Backtrace-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
