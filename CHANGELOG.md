@@ -1,5 +1,9 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.0.5
+- Enables client side unwinding default setting (#134)
+- Fixes Cocoapods deployment (#135)
+
 ## Version 2.0.4
 - Upgrades PLCrashReporter (#122)
 - Adds scoped attributes to PLCrashreport (#125)
