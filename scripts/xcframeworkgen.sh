@@ -3,6 +3,7 @@
 PROJECT_DIR="$(dirname "$0")/.."
 BUILD_PATH="${PROJECT_DIR}/.build"
 WORKFLOW_XC_PATH="${PROJECT_DIR}/.github/workflows/frameworks"
+POD_PATH="${PROJECT_DIR}/Pods/PLCrashReporter"
 
 rm -rf ${BUILD_PATH}
 rm -rf ${WORKFLOW_XC_PATH}
@@ -40,4 +41,11 @@ xcodebuild -create-xcframework \
     -output ${WORKFLOW_XC_PATH}/Backtrace.xcframework
 
 rm -rf ${BUILD_PATH}
+
+if [ ! -d "$POD_PATH" ]; then
+  echo "Error: Source directory '$POD_PATH' does not exist."
+  exit 1
+fi
+
+cp -r "$POD_PATH" "$WORKFLOW_XC_PATH"
 
