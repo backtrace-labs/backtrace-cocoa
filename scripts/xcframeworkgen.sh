@@ -2,7 +2,7 @@
 
 PROJECT_DIR="$(dirname "$0")/.."
 BUILD_PATH="${PROJECT_DIR}/.build"
-WORKFLOW_XC_PATH="${PROJECT_DIR}/.github/workflows/frameworks"
+WORKFLOW_XC_PATH="${PROJECT_DIR}/frameworks"
 POD_PATH="${PROJECT_DIR}/Pods/PLCrashReporter"
 
 rm -rf ${BUILD_PATH}
