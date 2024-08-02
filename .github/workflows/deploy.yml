@@ -105,7 +105,7 @@ jobs:
         run: sh scripts/xcframeworkgen.sh
         env:
           BACKTRACE_VERSION: ${{ github.ref_name }}
-          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+          DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM }}
 
       - name: Tar files to preserve file permissions
         run: tar -cvzf Archive_XCFrameworks_${{ github.ref_name }}.tar.gz frameworks/
