@@ -102,9 +102,10 @@ jobs:
           cp $MAC_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Build frameworks
-        run: sh scripts/xcframeworkgen.sh
         env:
           BACKTRACE_VERSION: ${{ github.ref_name }}
+          DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+        run: sh scripts/xcframeworkgen.sh  
 
       - name: Tar files to preserve file permissions
         run: tar -cvzf Archive_XCFrameworks_${{ github.ref_name }}.tar.gz frameworks/
