@@ -13,6 +13,13 @@ mkdir ${BUILD_PATH}
 mkdir ${WORKFLOW_XC_PATH}
 mkdir ${DERIVED_DATA_PATH}
 
+
+if [ -z "$DEVELOPMENT_TEAM" ]; then
+  echo "DEVELOPMENT_TEAM is not set or is empty"
+else
+  echo "The value of DEVELOPMENT_TEAM is: $DEVELOPMENT_TEAM"
+fi
+
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
     -scheme "Backtrace-iOS-lib" \
