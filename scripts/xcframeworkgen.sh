@@ -13,13 +13,6 @@ mkdir ${BUILD_PATH}
 mkdir ${WORKFLOW_XC_PATH}
 mkdir ${DERIVED_DATA_PATH}
 
-
-if [ -z "$DEVELOPMENT_TEAM" ]; then
-  echo "DEVELOPMENT_TEAM is not set or is empty"
-else
-  echo "The value of DEVELOPMENT_TEAM is: $DEVELOPMENT_TEAM"
-fi
-
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
     -scheme "Backtrace-iOS-lib" \
@@ -28,7 +21,7 @@ xcodebuild archive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
-    DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
+    BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
     xcodebuild archive \
     -workspace Backtrace.xcworkspace \
@@ -38,7 +31,7 @@ xcodebuild archive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
-    DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
+    BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
@@ -48,7 +41,7 @@ xcodebuild archive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
-    DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
+    BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
@@ -58,7 +51,7 @@ xcodebuild archive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
-    DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
+    BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
     xcodebuild archive \
     -workspace Backtrace.xcworkspace \
@@ -68,7 +61,7 @@ xcodebuild archive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
-    DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
+    BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
 xcodebuild -create-xcframework \
     -archive ${BUILD_PATH}/Backtrace-iOS-lib.xcarchive -framework Backtrace.framework \
