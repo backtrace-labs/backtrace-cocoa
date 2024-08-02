@@ -584,8 +584,6 @@
 		F2D8BE4F21BDA7D0007CFEFA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F2D8BE5021BDA7D0007CFEFA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		F2D8BE5221BDA7D0007CFEFA /* Example_macOS_ObjC.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Example_macOS_ObjC.entitlements; sourceTree = "<group>"; };
-		F2D8BF1B21BDBA5B007CFEFA /* CrashReporter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CrashReporter.framework; path = Vendor/macOS/CrashReporter.framework; sourceTree = "<group>"; };
-		F2D8BF1D21BDBB93007CFEFA /* CrashReporter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CrashReporter.framework; path = Vendor/iOS/CrashReporter.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1100,8 +1098,6 @@
 		F2D56BC721BBEE2E007D4A03 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F2D8BF1D21BDBB93007CFEFA /* CrashReporter.framework */,
-				F2D8BF1B21BDBA5B007CFEFA /* CrashReporter.framework */,
 				81F19800C7ECF089E0EEBFDF /* Pods_Backtrace_iOS.framework */,
 				43E3476EC18BF98BEF9DBA61 /* Pods_Backtrace_iOSTests.framework */,
 				A029D9F3B2C21AAB02251487 /* Pods_Backtrace_macOS.framework */,
