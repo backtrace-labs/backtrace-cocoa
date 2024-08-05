@@ -1,5 +1,8 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.0.5-alpha1
+- Distributes XCFramework (#137)
+
 ## Version 2.0.5
 - Enables client side unwinding default setting (#134)
 - Fixes Cocoapods deployment (#135)
