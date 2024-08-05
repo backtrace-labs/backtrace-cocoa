@@ -1,13 +1,8 @@
 # Backtrace Cocoa Release Notes
 
-## Version 2.0.5-beta2
-- Generates static frameworks
-
-## Version 2.0.5-beta1
-- Adds BacktraceResources bundle
-- Updates CoreData and Data Model
-- Adds pod integrity check
-- Fixes issue where assets are not copied to generated frameworks when statically linking sdk
+## Version 2.0.5
+- Enables client side unwinding default setting (#134)
+- Fixes Cocoapods deployment (#135)
 
 ## Version 2.0.4
 - Upgrades PLCrashReporter (#122)
