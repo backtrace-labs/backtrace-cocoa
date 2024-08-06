@@ -74,6 +74,12 @@ xcodebuild -create-xcframework \
 rm -rf ${BUILD_PATH}
 rm -rf ${DERIVED_DATA_PATH}
 
+if [ ! -d "${WORKFLOW_XC_PATH}/Backtrace.xcframework" ]; then
+  echo "Error: xcframework failed"
+  rm -rf ${WORKFLOW_XC_PATH}
+  exit 1
+fi
+
 if [ ! -d "$POD_PATH" ]; then
   echo "Error: Source directory '$POD_PATH' does not exist."
   exit 1
