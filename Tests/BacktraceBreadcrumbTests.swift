@@ -245,7 +245,7 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { backtraceObserverMock2.startObservingCalled }.to(beTrue())
                 }
             }
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
             describe("when iOS notifications update") {
                 context("for memory warning notification") {
                     it("iOS breadcrumb added") {

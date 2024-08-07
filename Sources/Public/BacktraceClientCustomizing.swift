@@ -1,7 +1,7 @@
 import Foundation
 
 /// Type-alias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
-#if os(iOS) || os(OSX)
+#if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
     BacktraceLogging & BacktraceMetricsProtocol & BacktraceBreadcrumbProtocol
 #else
@@ -106,7 +106,7 @@ enum BacktraceUrlParsingError: Error {
     case invalidInput(String)
 }
 
-#if os(iOS) || os(OSX)
+#if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
 /// Provides Breadcrumb adding functionality to `BacktraceClient`.
 @objc public protocol BacktraceBreadcrumbProtocol {
     @objc var breadcrumbs: BacktraceBreadcrumbs { get }

@@ -83,7 +83,7 @@ struct ProcessorInfo: AttributesSource {
 struct Device: AttributesSource {
 
     var mutable: [String: Any?] {
-        #if os(iOS)
+        #if os(iOS) && !targetEnvironment(macCatalyst)
         let device = UIDevice.current
         var attributes: [String: Any?] = ["device.orientation": device.orientation.name]
         if device.isBatteryMonitoringEnabled {
@@ -110,11 +110,11 @@ struct Device: AttributesSource {
     }
 
     private func getSysname() -> String {
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
         return "iOS"
 #elseif os(tvOS)
         return "tvOS"
-#elseif os(macOS)
+#elseif os(macOS) || targetEnvironment(macCatalyst)
         return "macOS"
 #else
         return "Unsupported device"
@@ -126,7 +126,7 @@ struct ScreenInfo: AttributesSource {
 
     private enum Key: String {
         case count = "screens.count"
-        #if os(iOS) || os(tvOS)
+        #if (os(iOS) || os(tvOS)) && !targetEnvironment(macCatalyst)
         case scale = "screen.scale"
         case width = "screen.width"
         case height = "screen.height"
@@ -134,7 +134,7 @@ struct ScreenInfo: AttributesSource {
         case nativeWidth = "screen.width.native"
         case nativeHeight = "screen.height.native"
         case brightness = "screen.brightness"
-        #elseif os(macOS)
+        #elseif os(macOS) || targetEnvironment(macCatalyst)
         case mainScreenWidth = "screen.main.width"
         case mainScreenHeight = "screen.main.height"
         case mainScreenScale = "screen.main.scale"
@@ -143,7 +143,7 @@ struct ScreenInfo: AttributesSource {
 
     var immutable: [String: Any?] {
         var screenAttributes: Attributes = [:]
-        #if os(iOS) || os(tvOS)
+        #if (os(iOS) || os(tvOS)) && !targetEnvironment(macCatalyst)
         let mainScreen = UIScreen.main
         screenAttributes[Key.scale.rawValue] = mainScreen.scale
         screenAttributes[Key.width.rawValue] = mainScreen.bounds.width
@@ -152,7 +152,7 @@ struct ScreenInfo: AttributesSource {
         screenAttributes[Key.nativeWidth.rawValue] = mainScreen.nativeBounds.width
         screenAttributes[Key.nativeHeight.rawValue] = mainScreen.nativeBounds.height
         screenAttributes[Key.count.rawValue] = UIScreen.screens.count
-        #elseif os(macOS)
+        #elseif os(macOS) || !targetEnvironment(macCatalyst)
         screenAttributes[Key.count.rawValue] = NSScreen.screens.count
         if let mainScreen = NSScreen.main {
             screenAttributes[Key.mainScreenWidth.rawValue] = mainScreen.frame.width
@@ -161,7 +161,7 @@ struct ScreenInfo: AttributesSource {
         }
         #endif
 
-        #if os(iOS)
+        #if os(iOS) && !targetEnvironment(macCatalyst)
         screenAttributes[Key.brightness.rawValue] = UIScreen.main.brightness
         #endif
         return screenAttributes
@@ -252,7 +252,7 @@ struct BreadcrumbsInfo: AttributesSource {
 
 // swiftlint:enable type_name
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 private extension UIDeviceOrientation {
 
     var name: String {
@@ -271,7 +271,7 @@ private extension UIDeviceOrientation {
 }
 #endif
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 private extension UIDevice.BatteryState {
 
     var name: String {
@@ -287,7 +287,7 @@ private extension UIDevice.BatteryState {
 }
 #endif
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 private extension UIApplication.State {
 
     var name: String {
