@@ -2,7 +2,7 @@ import Foundation
 
 final class BacktraceReporter {
 
-#if os(macOS)
+#if os(macOS) || !targetEnvironment(macCatalyst)
     lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
         DispatchSource.makeMemoryPressureSource(eventMask: [.critical, .warning], queue: .global())
     }()
@@ -126,7 +126,7 @@ extension BacktraceReporter {
     }
 }
 
-#if os(iOS) || os(tvOS)
+#if (os(iOS) || os(tvOS))
 import UIKit
 typealias Application = UIApplication
 #elseif os(macOS)
@@ -157,7 +157,7 @@ extension BacktraceReporter {
                                                name: Application.willResignActiveNotification,
                                                object: nil)
 
-        #if os(iOS) || os(tvOS)
+        #if (os(iOS) || os(tvOS))
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(applicationWillEnterForeground),
                                                name: Application.willEnterForegroundNotification,

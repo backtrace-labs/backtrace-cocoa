@@ -79,11 +79,11 @@ final class AttributesTests: QuickSpec {
                     fail("could not parse uname.sysname")
                     return
                 }
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
                 expect { sysname }.to(equal("iOS"))
 #elseif os(tvOS)
                 expect { sysname }.to(equal("tvOS"))
-#elseif os(macOS)
+#elseif os(macOS) || targetEnvironment(macCatalyst)
                 expect { sysname }.to(equal("macOS"))
 #else
                 fail("unsupported platform")

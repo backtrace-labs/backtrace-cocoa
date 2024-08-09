@@ -42,6 +42,14 @@ Sync Podspec version to Xcode MARKETING_VERSION
 
 Run iOS tests
 
+### ios catalyst_tests
+
+```sh
+[bundle exec] fastlane ios catalyst_tests
+```
+
+Run Mac Catalyst tests
+
 ----
 
 

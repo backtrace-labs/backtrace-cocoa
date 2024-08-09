@@ -24,7 +24,7 @@ protocol BacktraceNotificationObserverDelegate: AnyObject {
         var handlerDelegates: [BacktraceNotificationHandlerDelegate] = [
             BacktraceMemoryNotificationObserver(),
             BacktraceBatteryNotificationObserver()]
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
         handlerDelegates.append(BacktraceOrientationNotificationObserver())
         handlerDelegates.append(BacktraceAppStateNotificationObserver())
         handlerDelegates.append(BacktraceCallNotificationObserver())
@@ -343,7 +343,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
 #endif
 }
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 // MARK: - Application State Observer
 enum ApplicationState: Int {
     case willEnterForeground
