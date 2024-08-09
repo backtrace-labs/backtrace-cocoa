@@ -42,7 +42,7 @@ extension NetworkReachability {
         guard let flags = flags else { return "unknown" }
         guard isNetworkReachable(with: flags) else { return "notReachable" }
 
-        #if os(iOS) || os(tvOS)
+        #if (os(iOS) || os(tvOS)) && !targetEnvironment(macCatalyst)
         if flags.contains(.isWWAN) { return "reachableViaWWAN" }
         #endif
 

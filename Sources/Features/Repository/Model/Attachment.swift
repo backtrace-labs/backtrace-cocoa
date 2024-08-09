@@ -1,5 +1,5 @@
 import Foundation
-#if os(iOS) || os(tvOS)
+#if (os(iOS) || os(tvOS))
 import MobileCoreServices
 #elseif os(macOS)
 import CoreServices

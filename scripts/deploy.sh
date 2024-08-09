@@ -6,4 +6,4 @@ set -o xtrace # to trace what gets executed. Useful for debugging
 
 # This script requires the `COCOAPODS_TRUNK_TOKEN` env var to be set. 
 # See more: https://fuller.li/posts/automated-cocoapods-releases-with-ci/.
-pod trunk push Backtrace.podspec --allow-warnings
+#pod trunk push Backtrace.podspec --allow-warnings

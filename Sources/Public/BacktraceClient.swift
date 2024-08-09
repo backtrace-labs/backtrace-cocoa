@@ -12,7 +12,7 @@ import Foundation
     /// Error-free metrics class instance
     @objc private let metricsInstance: BacktraceMetrics
 
-#if os(iOS) || os(OSX)
+#if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
     /// Breadcrumbs class instance
     @objc private let breadcrumbsInstance: BacktraceBreadcrumbs = BacktraceBreadcrumbs()
 #endif
@@ -220,7 +220,7 @@ extension BacktraceClient: BacktraceMetricsProtocol {
 }
 
 // MARK: - BacktraceBreadcrumbProtocol
-#if os(iOS) || os(OSX)
+#if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
 extension BacktraceClient: BacktraceBreadcrumbProtocol {
     @objc public var breadcrumbs: BacktraceBreadcrumbs {
         return self.breadcrumbsInstance

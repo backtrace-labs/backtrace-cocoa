@@ -216,7 +216,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { result.report?.attributes["application.session"] }.toNot(beNil())
                     expect { result.report?.attributes["application.version"] }.toNot(beNil())
                 }
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
                 it("report should have breadcrumbs attributes if breadcrumbs is enabled") {
                     let breadcrumbs = BacktraceBreadcrumbs()
                     breadcrumbs.enableBreadcrumbs()

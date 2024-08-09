@@ -14,7 +14,7 @@ import Foundation
     /// Error-free metrics settings
     @objc public var metricsSettings: BacktraceMetricsSettings = BacktraceMetricsSettings()
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
     /// Breadcrumbs settings.
     @objc public var breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
 #endif

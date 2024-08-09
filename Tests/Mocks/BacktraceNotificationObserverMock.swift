@@ -2,7 +2,7 @@ import Foundation
 import XCTest
 @testable import Backtrace
 
-#if os(iOS) || os(OSX)
+#if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
 class BacktraceObserverMock: BacktraceNotificationHandlerDelegate {
 
     var delegate: BacktraceNotificationObserverDelegate?
