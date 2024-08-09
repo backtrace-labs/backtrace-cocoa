@@ -33,6 +33,6 @@ Pod::Spec.new do |s|
   s.tvos.public_header_files = ["Backtrace-tvOS/**/*.h*"]
   s.static_framework = true
   s.dependency "PLCrashReporter", '1.11'
-  s.resource_bundle = { 'BacktraceResources' => 'Sources/**/*.xcdatamodeld' }
+  s.resource_bundle = { 'BacktraceResources' => ['Sources/**/*.xcdatamodeld','Sources/Resources/*.xcprivacy']}
 
 end
