@@ -24,7 +24,8 @@ let package = Package(
             .product(name: "CrashReporter", package: "plcrashreporter")
             ],
             path: "Sources",
-            resources: [.process("Features/Resources/Model.xcdatamodeld")
+            resources: [.process("Features/Resources/Model.xcdatamodeld"),
+                        .process("Resources/PrivacyInfo.xcprivacy")
             ]
         ),
         .testTarget(

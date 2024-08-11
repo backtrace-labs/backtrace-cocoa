@@ -14,6 +14,10 @@
 		2046B45C2C46FA5600A927DB /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
 		2046B45F2C46FCE500A927DB /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
 		2046B4622C46FCF400A927DB /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
+		2050DBBF2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
+		2050DBC02C66D98500C6CCA9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
+		2050DBC12C66D98500C6CCA9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
+		2050DBC32C66D99100C6CCA9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
 		2062D9C62C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
 		2062D9C72C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
 		2062D9C82C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
@@ -412,6 +416,7 @@
 		1F36490C977B28FFED3FA6BB /* Pods-Example-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Example-tvOS/Pods-Example-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		2046B4552C46F97800A927DB /* BacktraceResources.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BacktraceResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		2050DB9C2C61A09D00C6CCA9 /* Example-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Example-iOS.entitlements"; sourceTree = "<group>"; };
+		2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataClass.swift"; sourceTree = "<group>"; };
 		2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		26A69065BABD7253C1D61320 /* Pods_Backtrace_tvOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_tvOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -678,6 +683,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2050DBC42C66DD1900C6CCA9 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		28614F9C220B6C6F00D35EFB /* Attributes */ = {
 			isa = PBXGroup;
 			children = (
@@ -1083,6 +1096,7 @@
 		F2C2FA8421BBD2AE00934744 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				2050DBC42C66DD1900C6CCA9 /* Resources */,
 				F2AFB59622274E1400AAA1D7 /* Public */,
 				F2AFB59722274E1C00AAA1D7 /* Features */,
 			);
@@ -1489,6 +1503,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2050DBC32C66D99100C6CCA9 /* PrivacyInfo.xcprivacy in Resources */,
 				2046B45B2C46FA1100A927DB /* Model.xcdatamodeld in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1497,6 +1512,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2050DBC12C66D98500C6CCA9 /* PrivacyInfo.xcprivacy in Resources */,
 				2046B4622C46FCF400A927DB /* BacktraceResources.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1513,6 +1529,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2050DBC02C66D98500C6CCA9 /* PrivacyInfo.xcprivacy in Resources */,
 				2046B45F2C46FCE500A927DB /* BacktraceResources.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1539,6 +1556,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2050DBBF2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy in Resources */,
 				2046B45C2C46FA5600A927DB /* BacktraceResources.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2497,7 +2515,6 @@
 				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 13.1;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2585,7 +2602,6 @@
 				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 13.1;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.BacktraceResources;
@@ -2669,7 +2685,6 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2749,7 +2764,6 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -2982,7 +2996,6 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -3066,7 +3079,6 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -3296,7 +3308,6 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -3371,7 +3382,6 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = apptailors.co.backtrace.swift.tvos.example;
@@ -3488,7 +3498,6 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -3576,7 +3585,6 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
@@ -3820,7 +3828,6 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -3899,7 +3906,6 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = apptailors.co.backtrace.swift.ios.example;
@@ -3984,7 +3990,6 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -4057,7 +4062,6 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = apptailors.co.backtrace.objc.ios.examples;
@@ -4137,7 +4141,6 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -4209,7 +4212,6 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.5-alpha1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = apptailors.co.backtrace.swift.macos.example;
