@@ -105,6 +105,13 @@ jobs:
         run: sh scripts/xcframeworkgen.sh
         env:
           BACKTRACE_VERSION: ${{ github.ref_name }}
+          
+      - name: Codesign frameworks
+        env:
+          DISTRIBUTION_IDENTITY: ${{ secrets.DISTRIBUTION_IDENTITY }}
+        run: |
+          codesign --force --timestamp --sign "$DISTRIBUTION_IDENTITY" frameworks/Backtrace.xcframework
+          codesign --force --timestamp --sign "$DISTRIBUTION_IDENTITY" frameworks/PLCrashReporter/CrashReporter.xcframework  
 
       - name: Tar files to preserve file permissions
         run: tar -cvzf Archive_XCFrameworks_${{ github.ref_name }}.tar.gz frameworks/
