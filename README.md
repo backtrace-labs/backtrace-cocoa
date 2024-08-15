@@ -40,14 +40,12 @@ Add the following to your `Podfile`:
 2. Add Backtrace multiplatform binary framework bundle to your project using the method that best fits your workflow:
     * Drag & drop `.framework` or `.xcframework` from Finder into Xcode's Project Navigator and check the Target Membership setting
     * Using Swift Package Manager's `binaryTarget` flag
-    * Using CocoaPods's `vendored_frameworks` flag
+    * Using CocoaPods's `vendored_frameworks` flag <br><br>
 
    > **Note:**
    > Backtrace multiplatform binary framework contains Mach-O 64-bit dynamic binaries for iOS, macOS, Mac Catalyst and tvOS.
-   >
    > When adding Backtrace to your project, set `Frameworks, Libraries and Embedded Content` section to `Embed`.
-   >
-   > [PLCrashReporter](https://github.com/microsoft/plcrashreporter?tab=readme-ov-file#integration-by-copying-the-binaries-into-your-project) multiplatform binary framework contains static binaries, set `Frameworks, Libraries and Embedded Content` section to `Do Not Embed`.
+   > PLCrashReporter multiplatform binary framework contains static binaries, set `Frameworks, Libraries and Embedded Content` section to `Do Not Embed`.
 
 ## Usage
 ### Swift
