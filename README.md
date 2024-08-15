@@ -17,8 +17,8 @@ Choose one of the following integration methods.
 
 ### Via Xcode
 1. In **File > Add Packages**, search for and add `https://github.com/backtrace-labs/backtrace-cocoa.git`
-1. Verify your project **Package Dependencies** list backtrace-cocoa.
-1. Add Backtrace to your target’s **Frameworks, Libraries, and Embedded Content**.
+2. Verify your project **Package Dependencies** list backtrace-cocoa.
+3. Add Backtrace to your target’s **Frameworks, Libraries, and Embedded Content**.
 
 ### Via Package.swift
 Add this dependency to your `Package.swift` file:
@@ -30,9 +30,24 @@ Add this dependency to your `Package.swift` file:
 Add the following to your `Podfile`:
 - Specify `use_frameworks!`.
 - Add the `Backtrace` pod:
+
     ```
     pod 'Backtrace'
     ```
+
+### Via Multiplatform Binary Framework Bundle
+1. Obtain and Unarchive [Backtrace](https://github.com/backtrace-labs/backtrace-cocoa/releases) binary frameworks
+2. Add Backtrace multiplatform binary framework bundle to your project using the method that best fits your workflow:
+    * Drag & drop `.framework` or `.xcframework` from Finder into Xcode's Project Navigator and check the Target Membership setting
+    * Using Swift Package Manager's `binaryTarget` flag
+    * Using CocoaPods's `vendored_frameworks` flag
+
+   > **Note:**
+   > Backtrace multiplatform binary framework contains Mach-O 64-bit dynamic binaries for iOS, macOS, Mac Catalyst and tvOS.
+   >
+   > When adding Backtrace to your project, set `Frameworks, Libraries and Embedded Content` section to `Embed`.
+   >
+   > [PLCrashReporter](https://github.com/microsoft/plcrashreporter?tab=readme-ov-file#integration-by-copying-the-binaries-into-your-project) multiplatform binary framework contains static binaries, set `Frameworks, Libraries and Embedded Content` section to `Do Not Embed`.
 
 ## Usage
 ### Swift
