@@ -1,7 +1,11 @@
 # Backtrace Cocoa Release Notes
 
-## Version 2.0.5-alpha1
-- Distributes XCFramework (#137)
+## Version 2.0.6
+- Distributes XCFramework (#136)
+- Adds Mac catalyst support (#139)
+- Embeds xcprivacy manifest (#140)
+- Codesigns binaries (#141)
+- Generates PLCReport with exception (#142)
 
 ## Version 2.0.5
 - Enables client side unwinding default setting (#134)
