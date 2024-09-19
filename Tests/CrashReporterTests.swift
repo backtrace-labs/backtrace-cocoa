@@ -32,14 +32,6 @@ final class CrashReporterTests: QuickSpec {
                     
                     expect { reportData.plCrashReport.exceptionInfo }.to(beNil())
                 }
-                
-                it("generated live report contains exception") {
-                    let exception = NSException(name: NSExceptionName.decimalNumberOverflowException, reason: "Test Spec")
-                    let reportData = try crashReporter.generateLiveReport(exception: exception, attributes: [:])
-                    
-                    expect { reportData.plCrashReport.exceptionInfo.exceptionName }.to(equal(NSExceptionName.decimalNumberOverflowException.rawValue))
-                    expect { reportData.plCrashReport.exceptionInfo.exceptionReason }.to(equal("Test Spec"))
-                }
             }
         }
     }

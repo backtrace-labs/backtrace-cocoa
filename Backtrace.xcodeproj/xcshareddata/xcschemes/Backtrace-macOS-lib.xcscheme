@@ -42,7 +42,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C7E1E996357727965E56CE13F8FBC756"
-            BuildableName = "Backtrace.framework"
+            BuildableName = "libBacktrace-macOS.a"
             BlueprintName = "Backtrace-macOS"
             ReferencedContainer = "container:Pods/Pods.xcodeproj">
          </BuildableReference>
