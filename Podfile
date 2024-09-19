@@ -6,7 +6,7 @@ project 'Backtrace.xcworkspace'
 # Definitions
 def shared_pods
     # Define shared CocoaPods here
-    pod 'PLCrashReporter', '1.11.1' 
+    pod 'CrashReporter', :path => 'lib/CrashReporter.xcframework'
 end
 
 def shared_test_pods
