@@ -31,8 +31,8 @@ Pod::Spec.new do |s|
   s.ios.public_header_files = ["Backtrace-iOS/**/*.h*"]
   s.osx.public_header_files = ["Backtrace-macOS/**/*.h*"]
   s.tvos.public_header_files = ["Backtrace-tvOS/**/*.h*"]
-  s.static_framework = true
-  s.dependency "PLCrashReporter", '1.11.1'
+
+  s.dependency "Backtrace-PLCrashReporter", '1.11.2'
   s.resource_bundle = { 'BacktraceResources' => ['Sources/**/*.xcdatamodeld','Sources/Resources/*.xcprivacy']}
 
 end

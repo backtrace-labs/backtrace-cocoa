@@ -1,5 +1,5 @@
 import Foundation
-import CrashReporter
+import Backtrace_PLCrashReporter
 
 /// Model represents single crash report which can be send to Backtrace services.
 @objc final public class BacktraceReport: NSObject {

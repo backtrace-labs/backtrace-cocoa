@@ -1,5 +1,5 @@
 import Foundation
-import CrashReporter
+import Backtrace_PLCrashReporter
 import Darwin
 
 
