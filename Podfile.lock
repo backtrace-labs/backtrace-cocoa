@@ -1,7 +1,7 @@
 PODS:
   - Backtrace (2.0.6):
-    - Backtrace-PLCrashReporter (= 1.11.2)
-  - Backtrace-PLCrashReporter (1.11.2)
+    - Backtrace-PLCrashReporter (= 1.11.2-rc1)
+  - Backtrace-PLCrashReporter (1.11.2-rc1)
   - Nimble (10.0.0)
   - Quick (5.0.1)
 
@@ -23,8 +23,8 @@ EXTERNAL SOURCES:
     :path: "../backtrace-labs/plcrashreporter"
 
 SPEC CHECKSUMS:
-  Backtrace: 8136097c1f43f00f139e2f29fab335dbd74022ea
-  Backtrace-PLCrashReporter: 44e3b97c2b6a308e708adac987400bc5f0fed0bb
+  Backtrace: 3a89490719ee10b343ac8e0d3f08c7b722412587
+  Backtrace-PLCrashReporter: 5f1112482988ca31d5ede19e9adfd42cdd098e3e
   Nimble: 5316ef81a170ce87baf72dd961f22f89a602ff84
   Quick: 749aa754fd1e7d984f2000fe051e18a3a9809179
 
