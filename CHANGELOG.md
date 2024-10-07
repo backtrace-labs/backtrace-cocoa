@@ -1,5 +1,8 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.0.7
+- Adds explicit BacktraceResources-Info.plist
+
 ## Version 2.0.6
 - Distributes XCFramework (#136)
 - Adds Mac catalyst support (#139)
