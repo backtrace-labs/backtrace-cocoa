@@ -1,23 +1,22 @@
 import Foundation
-import CrashReporter
 import Darwin
-
+import CrashReporter
 
 /// A wrapper around `PLCrashReporter`.
 @objc public class BacktraceCrashReporter: NSObject {
-    private let reporter: PLCrashReporter
+    private let reporter: BacktracePLCrashReporter
     static private let crashName = "live_report"
     private let copiedFileAttachments: [URL]
 
     /// Creates an instance of a crash reporter.
     /// - Parameter config: A `PLCrashReporterConfig` configuration to use.
-    @objc public convenience init(config: PLCrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all)) {
-        self.init(reporter: PLCrashReporter(configuration: config))
+    @objc public convenience init(config: BacktracePLCrashReporterConfig = BacktracePLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all)) {
+        self.init(reporter: BacktracePLCrashReporter(configuration: config))
     }
 
     /// Creates an instance of a crash reporter.
     /// - Parameter reporter: An instance of `PLCrashReporter` to use.
-    @objc public init(reporter: PLCrashReporter) {
+    @objc public init(reporter: BacktracePLCrashReporter) {
         self.reporter = reporter
         self.copiedFileAttachments = BacktraceCrashReporter.copyFileAttachmentsFromPendingCrashes()
         super.init()

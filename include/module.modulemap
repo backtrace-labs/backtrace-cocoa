@@ -1,0 +1,5 @@
+module CrashReporter {
+  header "CrashReporter.h"
+
+  export *
+}
