@@ -15,9 +15,9 @@ mkdir ${DERIVED_DATA_PATH}
 
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-iOS-lib" \
+    -scheme "Backtrace-iOS-framework" \
     -destination "generic/platform=iOS" \
-    -archivePath ${BUILD_PATH}/Backtrace-iOS-lib.xcarchive \
+    -archivePath ${BUILD_PATH}/Backtrace-iOS-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
@@ -25,9 +25,9 @@ xcodebuild archive \
 
     xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-iOS-lib" \
+    -scheme "Backtrace-iOS-framework" \
     -destination "generic/platform=iOS Simulator" \
-    -archivePath ${BUILD_PATH}/Backtrace-iOS-Simulator-lib.xcarchive \
+    -archivePath ${BUILD_PATH}/Backtrace-iOS-Simulator-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
@@ -35,9 +35,9 @@ xcodebuild archive \
 
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-iOS-lib" \
+    -scheme "Backtrace-iOS-framework" \
     -destination "platform=macOS,variant=Mac Catalyst" \
-    -archivePath ${BUILD_PATH}/Backtrace-iOS-MacCatalyst-lib.xcarchive \
+    -archivePath ${BUILD_PATH}/Backtrace-iOS-MacCatalyst-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
@@ -45,9 +45,9 @@ xcodebuild archive \
 
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-macOS-lib" \
+    -scheme "Backtrace-macOS-framework" \
     -destination "platform=macOS" \
-    -archivePath ${BUILD_PATH}/Backtrace-macOS-lib.xcarchive \
+    -archivePath ${BUILD_PATH}/Backtrace-macOS-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
@@ -55,9 +55,9 @@ xcodebuild archive \
 
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-tvOS-lib" \
+    -scheme "Backtrace-tvOS-framework" \
     -destination "generic/platform=tvOS" \
-    -archivePath ${BUILD_PATH}/Backtrace-tvOS-lib.xcarchive \
+    -archivePath ${BUILD_PATH}/Backtrace-tvOS-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
@@ -65,21 +65,21 @@ xcodebuild archive \
 
     xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-tvOS-lib" \
+    -scheme "Backtrace-tvOS-framework" \
     -destination "generic/platform=tvOS Simulator" \
-    -archivePath ${BUILD_PATH}/Backtrace-tvOS-Simulator-lib.xcarchive \
+    -archivePath ${BUILD_PATH}/Backtrace-tvOS-Simulator-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
     BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
 xcodebuild -create-xcframework \
-    -archive ${BUILD_PATH}/Backtrace-iOS-lib.xcarchive -framework Backtrace.framework \
-    -archive ${BUILD_PATH}/Backtrace-iOS-Simulator-lib.xcarchive -framework Backtrace.framework \
-    -archive ${BUILD_PATH}/Backtrace-iOS-MacCatalyst-lib.xcarchive -framework Backtrace.framework \
-    -archive ${BUILD_PATH}/Backtrace-macOS-lib.xcarchive -framework Backtrace.framework \
-    -archive ${BUILD_PATH}/Backtrace-tvOS-lib.xcarchive -framework Backtrace.framework \
-    -archive ${BUILD_PATH}/Backtrace-tvOS-Simulator-lib.xcarchive -framework Backtrace.framework \
+    -archive ${BUILD_PATH}/Backtrace-iOS-framework.xcarchive -framework Backtrace.framework \
+    -archive ${BUILD_PATH}/Backtrace-iOS-Simulator-framework.xcarchive -framework Backtrace.framework \
+    -archive ${BUILD_PATH}/Backtrace-iOS-MacCatalyst-framework.xcarchive -framework Backtrace.framework \
+    -archive ${BUILD_PATH}/Backtrace-macOS-framework.xcarchive -framework Backtrace.framework \
+    -archive ${BUILD_PATH}/Backtrace-tvOS-framework.xcarchive -framework Backtrace.framework \
+    -archive ${BUILD_PATH}/Backtrace-tvOS-Simulator-framework.xcarchive -framework Backtrace.framework \
     -output ${WORKFLOW_XC_PATH}/Backtrace.xcframework
 
 rm -rf ${BUILD_PATH}
@@ -91,9 +91,9 @@ if [ ! -d "${WORKFLOW_XC_PATH}/Backtrace.xcframework" ]; then
   exit 1
 fi
 
-if [ ! -d "$POD_PATH" ]; then
-  echo "Error: Source directory '$POD_PATH' does not exist."
-  exit 1
-fi
+#if [ ! -d "$POD_PATH" ]; then
+#  echo "Error: Source directory '$POD_PATH' does not exist."
+#  exit 1
+#fi
 
-cp -r "$POD_PATH" "$WORKFLOW_XC_PATH"
+#cp -r "$POD_PATH" "$WORKFLOW_XC_PATH"

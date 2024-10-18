@@ -1,0 +1,5 @@
+module CrashReporter {
+  umbrella header "CrashReporter.h"
+
+  export *
+}

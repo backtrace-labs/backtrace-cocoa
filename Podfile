@@ -2,11 +2,13 @@ source 'https://cdn.cocoapods.org/'
 
 # Library
 project 'Backtrace.xcworkspace'
+use_frameworks!
 
 # Definitions
 def shared_pods
     # Define shared CocoaPods here
-    pod 'PLCrashReporter', '1.11.1' 
+    #pod 'PLCrashReporter', '1.11.1'
+     pod 'PLCrashReporter', :podspec => '../backtrace-labs/plcrashreporter/PLCrashReporter.podspec', :build_type => :dynamic_framework
 end
 
 def shared_test_pods
@@ -29,7 +31,6 @@ inhibit_all_warnings!
 ## Framework iOS
 target 'Backtrace-iOS' do
     platform :ios, '12.0'
-    use_frameworks!
     shared_ios_mac_pods
     target 'Backtrace-iOSTests' do
         inherit! :search_paths
@@ -40,7 +41,6 @@ end
 ## Framework macOS
 target 'Backtrace-macOS' do
     platform :osx, '10.13'
-    use_frameworks!
     shared_ios_mac_pods
     target 'Backtrace-macOSTests' do
         inherit! :search_paths
@@ -51,7 +51,6 @@ end
 ## Framework tvOS
 target 'Backtrace-tvOS' do
     platform :tvos, '12.0'
-    use_frameworks!
     shared_pods
     target 'Backtrace-tvOSTests' do
         inherit! :search_paths
@@ -69,25 +68,21 @@ end
 ## Example targets
 target 'Example-iOS' do
     platform :ios, '12.0'
-    use_frameworks!
     local_backtrace
 end
 
 target 'Example-iOS-ObjC' do
     platform :ios, '12.0'
-    use_frameworks!
     local_backtrace
 end
 
 target 'Example-macOS-ObjC' do
     platform :osx, '10.13'
-    use_frameworks!
     local_backtrace
 end
 
 target 'Example-tvOS' do
     platform :tvos, '12.0'
-    use_frameworks!
     local_backtrace
 end
 

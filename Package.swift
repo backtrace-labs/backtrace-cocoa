@@ -13,16 +13,18 @@ let package = Package(
         .library(name: "Backtrace", targets: ["Backtrace"])
     ],
     dependencies: [
-        .package(url: "https://github.com/microsoft/plcrashreporter.git", .exact("1.11.1")),
         .package(url: "https://github.com/Quick/Nimble.git", from: "10.0.0"),
         .package(url: "https://github.com/Quick/Quick.git", from: "5.0.1")
     ],
     targets: [
+        .binaryTarget(
+            name: "CrashReporter",
+            url: "https://github.com/backtrace-labs/plcrashreporter/releases/download/1.11.2-rc1/CrashReporter-static.xcframework.zip",
+            checksum: "5f429bb012b928291607030dfd69ac4c215e038f718a2d3aaf1458360c31baa1"
+        ),
         .target(
             name: "Backtrace",
-            dependencies: [
-            .product(name: "CrashReporter", package: "plcrashreporter")
-            ],
+            dependencies: ["CrashReporter"],
             path: "Sources",
             resources: [.process("Features/Resources/Model.xcdatamodeld"),
                         .process("Resources/PrivacyInfo.xcprivacy")
