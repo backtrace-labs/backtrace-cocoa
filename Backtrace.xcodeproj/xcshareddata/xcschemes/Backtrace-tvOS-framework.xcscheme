@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "208658BE2CB9ABE9003F428B"
-               BuildableName = "Backtrace-tvOS-framework.framework"
+               BuildableName = "Backtrace.framework"
                BlueprintName = "Backtrace-tvOS-framework"
                ReferencedContainer = "container:Backtrace.xcodeproj">
             </BuildableReference>
@@ -51,7 +51,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "208658BE2CB9ABE9003F428B"
-            BuildableName = "Backtrace-tvOS-framework.framework"
+            BuildableName = "Backtrace.framework"
             BlueprintName = "Backtrace-tvOS-framework"
             ReferencedContainer = "container:Backtrace.xcodeproj">
          </BuildableReference>

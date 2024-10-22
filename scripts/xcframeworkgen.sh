@@ -25,7 +25,7 @@ xcodebuild archive \
 
     xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-iOS-framework" \
+    -scheme "Backtrace-iOSIM-framework" \
     -destination "generic/platform=iOS Simulator" \
     -archivePath ${BUILD_PATH}/Backtrace-iOS-Simulator-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
@@ -35,7 +35,7 @@ xcodebuild archive \
 
 xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-iOS-framework" \
+    -scheme "Backtrace-catalyst-framework" \
     -destination "platform=macOS,variant=Mac Catalyst" \
     -archivePath ${BUILD_PATH}/Backtrace-iOS-MacCatalyst-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
@@ -65,7 +65,7 @@ xcodebuild archive \
 
     xcodebuild archive \
     -workspace Backtrace.xcworkspace \
-    -scheme "Backtrace-tvOS-framework" \
+    -scheme "Backtrace-tvOSIM-framework" \
     -destination "generic/platform=tvOS Simulator" \
     -archivePath ${BUILD_PATH}/Backtrace-tvOS-Simulator-framework.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
@@ -82,14 +82,14 @@ xcodebuild -create-xcframework \
     -archive ${BUILD_PATH}/Backtrace-tvOS-Simulator-framework.xcarchive -framework Backtrace.framework \
     -output ${WORKFLOW_XC_PATH}/Backtrace.xcframework
 
-rm -rf ${BUILD_PATH}
-rm -rf ${DERIVED_DATA_PATH}
+#rm -rf ${BUILD_PATH}
+#rm -rf ${DERIVED_DATA_PATH}
 
-if [ ! -d "${WORKFLOW_XC_PATH}/Backtrace.xcframework" ]; then
-  echo "Error: xcframework failed"
-  rm -rf ${WORKFLOW_XC_PATH}
-  exit 1
-fi
+#if [ ! -d "${WORKFLOW_XC_PATH}/Backtrace.xcframework" ]; then
+ # echo "Error: xcframework failed"
+  #rm -rf ${WORKFLOW_XC_PATH}
+  #exit 1
+#fi
 
 #if [ ! -d "$POD_PATH" ]; then
 #  echo "Error: Source directory '$POD_PATH' does not exist."

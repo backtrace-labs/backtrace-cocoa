@@ -1,6 +1,10 @@
 import Foundation
 import Darwin
+#if COCOAPODS || SWIFT_PACKAGE
 import CrashReporter
+#else
+import Backtrace.CrashReporter
+#endif
 
 /// A wrapper around `PLCrashReporter`.
 @objc public class BacktraceCrashReporter: NSObject {

@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "208658692CB9ABE1003F428B"
-               BuildableName = "Backtrace-macOS-framework.framework"
+               BuildableName = "Backtrace.framework"
                BlueprintName = "Backtrace-macOS-framework"
                ReferencedContainer = "container:Backtrace.xcodeproj">
             </BuildableReference>
@@ -51,7 +51,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "208658692CB9ABE1003F428B"
-            BuildableName = "Backtrace-macOS-framework.framework"
+            BuildableName = "Backtrace.framework"
             BlueprintName = "Backtrace-macOS-framework"
             ReferencedContainer = "container:Backtrace.xcodeproj">
          </BuildableReference>

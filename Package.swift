@@ -19,7 +19,7 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "CrashReporter",
-            url: "https://github.com/backtrace-labs/plcrashreporter/releases/download/1.11.2-rc1/CrashReporter-static.xcframework.zip",
+            url: "https://github.com/backtrace-labs/plcrashreporter/releases/download/1.11.2-rc1/CrashReporter.xcframework.zip",
             checksum: "5f429bb012b928291607030dfd69ac4c215e038f718a2d3aaf1458360c31baa1"
         ),
         .target(
