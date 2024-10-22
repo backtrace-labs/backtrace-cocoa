@@ -20,8 +20,12 @@ EXTERNAL SOURCES:
   Backtrace:
     :path: "./Backtrace.podspec"
   PLCrashReporter:
-    :build_type: :dynamic_framework
     :podspec: "../backtrace-labs/plcrashreporter/PLCrashReporter.podspec"
+
+CHECKOUT OPTIONS:
+  PLCrashReporter:
+    :commit: 8b005b59f529991dcc5072214ac9755c588949c4
+    :git: https://github.com/backtrace-labs/plcrashreporter.git
 
 SPEC CHECKSUMS:
   Backtrace: 2c5bc7c061aab51fd42651abbdfb7c7be6841b9c
@@ -29,6 +33,6 @@ SPEC CHECKSUMS:
   PLCrashReporter: 37cf7b257cdbacc6697363b11cd769beb774d6fd
   Quick: 749aa754fd1e7d984f2000fe051e18a3a9809179
 
-PODFILE CHECKSUM: 9e77e8484b11e73a9bff848b05d44b2fd771e061
+PODFILE CHECKSUM: ea095aaa4f6c9d372287acfbcb30bdae3d0dfb05
 
 COCOAPODS: 1.15.2
