@@ -3,7 +3,6 @@
 PROJECT_DIR="$(dirname "$0")/.."
 BUILD_PATH="${PROJECT_DIR}/.build"
 WORKFLOW_XC_PATH="${PROJECT_DIR}/frameworks"
-POD_PATH="${PROJECT_DIR}/Pods/PLCrashReporter"
 DERIVED_DATA_PATH="${PROJECT_DIR}/.derivedData"
 
 rm -rf ${BUILD_PATH}
@@ -82,18 +81,11 @@ xcodebuild -create-xcframework \
     -archive ${BUILD_PATH}/Backtrace-tvOS-Simulator-framework.xcarchive -framework Backtrace.framework \
     -output ${WORKFLOW_XC_PATH}/Backtrace.xcframework
 
-#rm -rf ${BUILD_PATH}
-#rm -rf ${DERIVED_DATA_PATH}
+rm -rf ${BUILD_PATH}
+rm -rf ${DERIVED_DATA_PATH}
 
-#if [ ! -d "${WORKFLOW_XC_PATH}/Backtrace.xcframework" ]; then
- # echo "Error: xcframework failed"
-  #rm -rf ${WORKFLOW_XC_PATH}
-  #exit 1
-#fi
-
-#if [ ! -d "$POD_PATH" ]; then
-#  echo "Error: Source directory '$POD_PATH' does not exist."
-#  exit 1
-#fi
-
-#cp -r "$POD_PATH" "$WORKFLOW_XC_PATH"
+if [ ! -d "${WORKFLOW_XC_PATH}/Backtrace.xcframework" ]; then
+  echo "Error: xcframework failed"
+  rm -rf ${WORKFLOW_XC_PATH}
+  exit 1
+fi
