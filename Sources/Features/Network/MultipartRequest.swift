@@ -48,40 +48,58 @@ extension MultipartRequest {
         var multipartRequest = urlRequest
         let boundary = generateBoundaryString()
         multipartRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        let boundaryPrefix = "--\(boundary)\r\n"
-        let body = NSMutableData()
+        
+        // temporary file to stream data
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+        FileManager.default.createFile(atPath: tempURL.path, contents: nil, attributes: nil)
+        let fileHandle = try FileHandle(forWritingTo: tempURL)
+        
+        defer { fileHandle.closeFile() }
+        
         // attributes
         for attribute in report.attributes {
-            body.appendString(boundaryPrefix)
-            body.appendString("Content-Disposition: form-data; name=\"\(attribute.key)\"\r\n\r\n")
-            body.appendString("\(attribute.value)\r\n")
+            writeToFile(fileHandle, "--\(boundary)\r\n")
+            writeToFile(fileHandle, "Content-Disposition: form-data; name=\"\(attribute.key)\"\r\n\r\n")
+            writeToFile(fileHandle, "\(attribute.value)\r\n")
         }
-        // report file
-        body.appendString(boundaryPrefix)
-        body.appendString("Content-Disposition: form-data; name=\"upload_file\"; filename=\"upload_file\"\r\n")
-        body.appendString("Content-Type: application/octet-stream\r\n\r\n")
-        body.append(report.reportData)
-        body.appendString("\r\n")
-
+        
+        // report
+        writeToFile(fileHandle, "--\(boundary)\r\n")
+        writeToFile(fileHandle, "Content-Disposition: form-data; name=\"upload_file\"; filename=\"upload_file\"\r\n")
+        writeToFile(fileHandle, "Content-Type: application/octet-stream\r\n\r\n")
+        fileHandle.write(report.reportData)
+        writeToFile(fileHandle, "\r\n")
+        
         // attachments
         for attachment in Set(report.attachmentPaths).compactMap(Attachment.init(filePath:)) {
-            body.appendString(boundaryPrefix)
-            body.appendString("Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n")
-            body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
-            body.append(attachment.data)
-            body.appendString("\r\n")
+            writeToFile(fileHandle, "--\(boundary)\r\n")
+            writeToFile(fileHandle, "Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n")
+            writeToFile(fileHandle, "Content-Type: \(attachment.mimeType)\r\n\r\n")
+            fileHandle.write(attachment.data)
+            writeToFile(fileHandle, "\r\n")
         }
-        body.appendString("\(boundaryPrefix)--")
-        multipartRequest.httpBody = body as Data
-
-        multipartRequest.setValue("\(body.length)", forHTTPHeaderField: "Content-Length")
-
+        
+        // Final boundary
+        writeToFile(fileHandle, "--\(boundary)--\r\n")
+        
+        // Set Content-Length
+        let fileSize = try FileManager.default.attributesOfItem(atPath: tempURL.path)[.size] as? Int ?? 0
+        multipartRequest.setValue("\(fileSize)", forHTTPHeaderField: "Content-Length")
+        
+        // Attach file stream to HTTP body
+        multipartRequest.httpBodyStream = InputStream(url: tempURL)
+        
         return multipartRequest
     }
 
     private static func generateBoundaryString() -> String {
         return "Boundary-\(NSUUID().uuidString)"
+    }
+    
+    private static func writeToFile(_ fileHandle: FileHandle, _ string: String) {
+        if let data = string.data(using: .utf8) {
+            fileHandle.write(data)
+        }
     }
 }
 
