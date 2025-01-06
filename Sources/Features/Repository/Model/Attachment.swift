@@ -48,7 +48,7 @@ struct Attachment {
     /// - Parameter fileUrl: File URL
     /// - Returns: MIME type as a string, or "application/octet-stream" as fallback
     static private func mimeTypeForPath(fileUrl: URL) -> String {
-        if #available(iOS 14.0, *) {
+        if #available(iOS 14.0, tvOS 14.0, macOS 11.0, *) {
             if let type = UTType(filenameExtension: fileUrl.pathExtension)?.preferredMIMEType {
                 return type
             }
