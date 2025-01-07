@@ -20,7 +20,6 @@ extension URLSession {
         task.resume()
 
         if Thread.isMainThread {
-            BacktraceLogger.warning("Synchronous network call on the main thread, this is not recommended!")
             // if ran from the Main Thread, iOS will kill the app if blocked too long (~20 seconds)
             // https://developer.apple.com/documentation/xcode/addressing-watchdog-terminations
             _ = semaphore.wait(timeout: .now() + .seconds(1))
@@ -29,5 +28,20 @@ extension URLSession {
         }
 
         return response
+    }
+    
+    /// Asynchronously sends a URL request and returns a `Response`.
+    func asyncRequest(_ urlRequest: URLRequest) async -> Response {
+        do {
+            let (data, response) = try await self.data(for: urlRequest)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return (nil, nil, Error.failedToReceiveResponse)
+            }
+            
+            return (data, httpResponse, nil)
+        } catch {
+            return (nil, nil, error)
+        }
     }
 }

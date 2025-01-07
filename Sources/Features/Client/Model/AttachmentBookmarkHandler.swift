@@ -1,26 +1,26 @@
 import Foundation
 
 protocol AttachmentBookmarkHandler {
-    static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) throws -> Bookmarks
-    static func extractAttachmentUrls(_ bookmarks: Bookmarks) throws -> Attachments
+    static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) async throws -> Bookmarks
+    static func extractAttachmentUrls(_ bookmarks: Bookmarks) async throws -> Attachments
 }
 
 enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
-    static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) throws -> Bookmarks {
+    static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) async throws -> Bookmarks {
         var attachmentsBookmarksDict = Bookmarks()
         for attachment in attachments {
             do {
                 let bookmark = try attachment.bookmarkData(options: .minimalBookmark)
                 attachmentsBookmarksDict[attachment.path] = bookmark
             } catch {
-                BacktraceLogger.error("Could not bookmark attachment file URL. Error: \(error)")
+                await BacktraceLogger.error("Could not bookmark attachment file URL. Error: \(error)")
                 continue
             }
         }
         return attachmentsBookmarksDict
     }
 
-    static func extractAttachmentUrls(_ bookmarks: Bookmarks) throws -> Attachments {
+    static func extractAttachmentUrls(_ bookmarks: Bookmarks) async throws -> Attachments {
         var attachments = Attachments()
         for bookmark in bookmarks {
             var stale = Bool(false)
@@ -28,11 +28,11 @@ enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
                                          options: URL.BookmarkResolutionOptions(),
                                          relativeTo: nil,
                                          bookmarkDataIsStale: &stale) else {
-                BacktraceLogger.error("Could not resolve file URL from bookmark")
+                await BacktraceLogger.error("Could not resolve file URL from bookmark")
                 continue
             }
             if stale {
-                BacktraceLogger.error("Bookmark data is stale. This should not happen")
+                await BacktraceLogger.error("Bookmark data is stale. This should not happen")
                 continue
             }
             attachments.append(fileUrl)

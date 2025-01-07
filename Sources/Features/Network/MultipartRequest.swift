@@ -6,18 +6,22 @@ struct MultipartRequest {
 
     private enum Constants {
         static let submissionPath = "/post"
-        static let queryItems = { token in ["format": "plcrash", "token": token] }
+        //static let queryItems = { token in ["format": "plcrash", "token": token] }
+        
+        static func queryItems(for token: String) -> [String: String] {
+                    return ["format": "plcrash", "token": token]
+                }
     }
 
-    init(configuration: BacktraceCredentials.Configuration, report: BacktraceReport) throws {
+    init(configuration: BacktraceCredentials.Configuration, report: BacktraceReport) async throws {
         let request: URLRequest
         switch configuration {
         case .submissionUrl(let url):
             request = MultipartRequest.form(submissionUrl: url)
         case .endpoint(let endpoint, let token):
-            request = try MultipartRequest.formUrlRequest(endpoint: endpoint, token: token)
+            request = try await MultipartRequest.formUrlRequest(endpoint: endpoint, token: token)
         }
-        self.request = try MultipartRequest.writeReport(urlRequest: request, report: report)
+        self.request = try await MultipartRequest.writeReport(urlRequest: request, report: report)
     }
 }
 
@@ -28,12 +32,12 @@ extension MultipartRequest {
         return urlRequest
     }
 
-    static func formUrlRequest(endpoint: URL, token: String) throws -> URLRequest {
+    static func formUrlRequest(endpoint: URL, token: String) async throws -> URLRequest {
         var urlComponents = URLComponents(string: endpoint.absoluteString + Constants.submissionPath)
-        urlComponents?.queryItems = Constants.queryItems(token).map(URLQueryItem.init)
+        urlComponents?.queryItems = Constants.queryItems(for: token).map(URLQueryItem.init)
 
         guard let finalUrl = urlComponents?.url else {
-            BacktraceLogger.error("Malformed URL: \(endpoint)")
+            await BacktraceLogger.error("Malformed URL: \(endpoint)")
             throw HttpError.malformedUrl(endpoint)
         }
         var request = URLRequest(url: finalUrl)
@@ -44,7 +48,7 @@ extension MultipartRequest {
 
 extension MultipartRequest {
 
-    static func writeReport(urlRequest: URLRequest, report: BacktraceReport) throws -> URLRequest {
+    static func writeReport(urlRequest: URLRequest, report: BacktraceReport) async throws -> URLRequest {
         var multipartRequest = urlRequest
         let boundary = generateBoundaryString()
         multipartRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -65,13 +69,24 @@ extension MultipartRequest {
         body.appendString("\r\n")
 
         // attachments
-        for attachment in Set(report.attachmentPaths).compactMap(Attachment.init(filePath:)) {
-            body.appendString(boundaryPrefix)
-            body.appendString("Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n")
-            body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
-            body.append(attachment.data)
-            body.appendString("\r\n")
+//        for attachment in Set(report.attachmentPaths).compactMap(Attachment.init(filePath:)) {
+//            body.appendString(boundaryPrefix)
+//            body.appendString("Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n")
+//            body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
+//            body.append(attachment.data)
+//            body.appendString("\r\n")
+//        }
+        
+        for attachmentPath in Set(report.attachmentPaths) {
+            if let attachment = await Attachment(filePath: attachmentPath) {
+                body.appendString(boundaryPrefix)
+                body.appendString("Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n")
+                body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
+                body.append(attachment.data)
+                body.appendString("\r\n")
+            }
         }
+        
         body.appendString("\(boundaryPrefix)--")
         multipartRequest.httpBody = body as Data
 

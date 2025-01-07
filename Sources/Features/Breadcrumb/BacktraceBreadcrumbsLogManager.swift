@@ -17,7 +17,7 @@ import Foundation
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType,
-                       level: BacktraceBreadcrumbLevel) -> Bool {
+                       level: BacktraceBreadcrumbLevel) async -> Bool {
         breadcrumbId += 1
         BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
 
@@ -29,11 +29,11 @@ import Foundation
                                          "message": message]
         breadcrumb["attributes"] = attributes
 
-        return backtraceBreadcrumbFile.addBreadcrumb(breadcrumb)
+        return await backtraceBreadcrumbFile.addBreadcrumb(breadcrumb)
     }
 
-    func clear() -> Bool {
-        let result = backtraceBreadcrumbFile.clear()
+    func clear() async -> Bool {
+        let result = await backtraceBreadcrumbFile.clear()
         if result {
             breadcrumbId = Date().millisecondsSince1970
             BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId

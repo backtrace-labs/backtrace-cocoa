@@ -19,15 +19,15 @@ final class BacktraceReporter {
          api: BacktraceApi,
          dbSettings: BacktraceDatabaseSettings,
          credentials: BacktraceCredentials,
-         urlSession: URLSession = URLSession(configuration: .ephemeral)) throws {
+         urlSession: URLSession = URLSession(configuration: .ephemeral)) async throws {
         self.reporter = reporter
         self.api = api
         self.watcher =
-            BacktraceWatcher(settings: dbSettings,
+        await BacktraceWatcher(settings: dbSettings,
                              networkClient: BacktraceNetworkClient(urlSession: urlSession),
                              credentials: credentials,
                              repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
-        self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
+        self.repository = try await PersistentRepository<BacktraceReport>(settings: dbSettings)
         let attributesProvider = AttributesProvider(reportHostName: dbSettings.reportHostName)
         self.attributesProvider = attributesProvider
         self.backtraceOomWatcher = BacktraceOomWatcher(
@@ -46,18 +46,23 @@ extension BacktraceReporter {
         watcher.enable()
     }
 
-    func handlePendingCrashes() throws {
-        // always try to remove pending crash report from disk
-        defer { try? reporter.purgePendingCrashReport() }
-
-        // try to send pending crash report
+    func handlePendingCrashes() async throws {
+        // Attempt to send pending crash report
         guard reporter.hasPendingCrashes() else {
-            BacktraceLogger.debug("There are no pending crash crashes to send.")
+            await BacktraceLogger.debug("There are no pending crash reports to send.")
             return
         }
-        BacktraceLogger.debug("There is a pending crash report to send.")
-        let resource = try reporter.pendingCrashReport()
-        _ = send(resource: resource)
+
+        await BacktraceLogger.debug("There is a pending crash report to send.")
+        let resource = try await reporter.pendingCrashReport()
+        _ = await send(resource: resource)
+
+        // Always try to remove pending crash report from disk after handling
+        do {
+            try await reporter.purgePendingCrashReport()
+        } catch {
+            await BacktraceLogger.error("Failed to purge pending crash report: \(error)")
+        }
     }
 }
 
@@ -95,23 +100,23 @@ extension BacktraceReporter: BacktraceClientCustomizing {
 }
 
 extension BacktraceReporter {
-    func send(resource: BacktraceReport) -> BacktraceResult {
+    func send(resource: BacktraceReport) async -> BacktraceResult {
         do {
-            return try api.send(resource)
+            return try await api.send(resource)
         } catch {
-            BacktraceLogger.error(error)
-            try? repository.save(resource)
+            await BacktraceLogger.error(error)
+            try? await repository.save(resource)
             return BacktraceResult(error.backtraceStatus)
         }
     }
 
     func send(exception: NSException? = nil, attachmentPaths: [String] = [],
-              faultMessage: String? = nil) throws -> BacktraceResult {
+              faultMessage: String? = nil) async throws -> BacktraceResult {
         attributesProvider.set(faultMessage: faultMessage)
         let resource = try reporter.generateLiveReport(exception: exception,
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
-        return send(resource: resource)
+        return await send(resource: resource)
     }
 
     func generate(exception: NSException? = nil, attachmentPaths: [String] = [],

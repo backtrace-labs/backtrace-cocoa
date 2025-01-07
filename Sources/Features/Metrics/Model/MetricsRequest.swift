@@ -9,9 +9,9 @@ struct MetricsRequest {
         static let queryItems = { token in ["format": "plcrash", "token": token] }
     }
 
-    init<T: Payload>(url: URL, payload: T) throws {
+    init<T: Payload>(url: URL, payload: T) async throws {
         let request = MetricsRequest.form(submissionUrl: url)
-        self.request = try MetricsRequest.writeMetricsRequest(urlRequest: request, payload: payload)
+        self.request = try await MetricsRequest.writeMetricsRequest(urlRequest: request, payload: payload)
     }
 }
 
@@ -35,7 +35,7 @@ private extension Data {
 }
 
 extension MetricsRequest {
-    static func writeMetricsRequest<T: Payload>(urlRequest: URLRequest, payload: T) throws -> URLRequest {
+    static func writeMetricsRequest<T: Payload>(urlRequest: URLRequest, payload: T) async throws -> URLRequest {
         let jsonEncoder = JSONEncoder()
         let body = try jsonEncoder.encode(payload)
 
@@ -43,7 +43,7 @@ extension MetricsRequest {
         metricsRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         metricsRequest.httpBody = body
 
-        BacktraceLogger.debug("Metrics payload JSON: \(body.prettyPrintedJSONString ?? "")")
+        await BacktraceLogger.debug("Metrics payload JSON: \(body.prettyPrintedJSONString ?? "")")
 
         return metricsRequest
     }

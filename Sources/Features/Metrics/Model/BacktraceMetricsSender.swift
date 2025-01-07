@@ -1,6 +1,7 @@
 import Foundation
 
-final class BacktraceMetricsSender {
+
+final class BacktraceMetricsSender: @unchecked Sendable {
 
     private let api: BacktraceApi
     private let metricsContainer: BacktraceMetricsContainer
@@ -27,46 +28,39 @@ final class BacktraceMetricsSender {
         self.baseUrlString = defaultMetricsBaseUrlString
     }
 
+    
     func enable() {
-        // No need to do in the running thread, can be backgrounded
-        DispatchQueue.global(qos: .background).async {
-            self.sendStartupEvents()
+        // Task to start asynchronous work
+        Task {
+            await self.sendStartupEvents()
         }
     }
 
-    private func sendStartupEvents() {
-        sendStartupSummedEvent()
-        sendStartupUniqueEvent()
+    private func sendStartupEvents() async {
+        await sendSummedEvent()
+        await sendUniqueEvent()
     }
 
-    private func sendStartupUniqueEvent() {
-        sendUniqueEvent()
-    }
-
-    private func sendStartupSummedEvent() {
-        sendSummedEvent()
-    }
-
-    private func sendUniqueEvent() {
+    private func sendUniqueEvent() async {
         let payload = metricsContainer.getUniqueEventsPayload()
 
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.unique)
-            api.sendMetrics(payload, url: url)
+            await api.sendMetrics(payload, url: url)
         } catch {
-            BacktraceLogger.error(error)
+            await BacktraceLogger.error(error)
         }
     }
 
-    private func sendSummedEvent() {
+    private func sendSummedEvent() async {
         let payload = metricsContainer.getSummedEventsPayload()
         metricsContainer.clearSummedEvents()
 
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.summed)
-            api.sendMetrics(payload, url: url)
+            await api.sendMetrics(payload, url: url)
         } catch {
-            BacktraceLogger.error(error)
+            await BacktraceLogger.error(error)
         }
     }
 

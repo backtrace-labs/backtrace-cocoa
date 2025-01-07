@@ -9,6 +9,7 @@ where BacktraceRepository.Resource == BacktraceReport {
     let repository: BacktraceRepository
     var timer: DispatchSourceTimer?
     let queue: DispatchQueue
+    private let state = WatcherStateActor()
 
     init(settings: BacktraceDatabaseSettings,
          networkClient: BacktraceNetworkClient,
@@ -25,29 +26,33 @@ where BacktraceRepository.Resource == BacktraceReport {
 
     func enable() {
         guard settings.retryBehaviour == .interval else { return }
-        configureTimer(with: DispatchWorkItem(block: timerEventHandler))
+        configureTimer(with: DispatchWorkItem {
+            Task {
+                await self.timerEventHandler()
+            }
+        })
     }
 
-    internal func batchRetry() {
+    internal func batchRetry() async {
         guard networkClient.isNetworkAvailable() else { return }
-        guard let reports = try? reportsFromRepository(limit: 10), !reports.isEmpty else { return }
-        BacktraceLogger.debug("Resending reporting. Batch size: \(reports.count)")
+        guard let reports = try? await reportsFromRepository(limit: 10), !reports.isEmpty else { return }
+        await BacktraceLogger.debug("Resending reporting. Batch size: \(reports.count)")
 
         for report in reports {
         do {
-            let request = try MultipartRequest(configuration: credentials.configuration, report: report).request
-            let result = try networkClient.send(request: request)
+            let request = try await MultipartRequest(configuration: credentials.configuration, report: report).request
+            let result = try await networkClient.send(request: request)
             guard !result.isSuccess else {
-                try repository.delete(report)
+                try await repository.delete(report)
                 continue
             }
-            try repository.incrementRetryCount(report, limit: settings.retryLimit)
+            try await repository.incrementRetryCount(report, limit: settings.retryLimit)
             } catch let error as NetworkError {
-                BacktraceLogger.error(error)
+                await BacktraceLogger.error(error)
                 // network connection error - do nothing.
             } catch {
-                BacktraceLogger.error(error)
-                try? repository.incrementRetryCount(report, limit: settings.retryLimit)
+                await BacktraceLogger.error(error)
+                try? await repository.incrementRetryCount(report, limit: settings.retryLimit)
             }
         }
     }
@@ -69,10 +74,10 @@ extension BacktraceWatcher {
         timer.resume()
     }
 
-    internal func timerEventHandler() {
+    internal func timerEventHandler() async {
         self.timer?.suspend()
         defer { self.timer?.resume() }
-        self.batchRetry()
+        await self.batchRetry()
     }
 
     internal func resetTimer() {
@@ -85,10 +90,33 @@ extension BacktraceWatcher {
 extension BacktraceWatcher {
 
     // Takes from `repository` reports to send
-    internal func reportsFromRepository(limit: Int) throws -> [BacktraceRepository.Resource] {
+    internal func reportsFromRepository(limit: Int) async throws -> [BacktraceRepository.Resource] {
         switch settings.retryOrder {
-        case .queue: return try repository.getOldest(count: limit)
-        case .stack: return try repository.getLatest(count: limit)
+        case .queue: return try await repository.getOldest(count: limit)
+        case .stack: return try await repository.getLatest(count: limit)
         }
+    }
+}
+
+// MARK: - Actor for State Management
+actor WatcherStateActor {
+    var timer: DispatchSourceTimer?
+
+    func setTimer(_ newTimer: DispatchSourceTimer) {
+        timer = newTimer
+    }
+
+    func suspendTimer() {
+        timer?.suspend()
+    }
+
+    func resumeTimer() {
+        timer?.resume()
+    }
+
+    func cancelTimer() {
+        timer?.setEventHandler {}
+        timer?.cancel()
+        timer = nil
     }
 }

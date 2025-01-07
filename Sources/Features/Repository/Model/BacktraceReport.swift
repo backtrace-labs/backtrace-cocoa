@@ -27,7 +27,7 @@ import CrashReporter
         self.extendCrashAttributes()
     }
     
-    init(managedObject: Crash) throws {
+    init(managedObject: Crash) async throws {
         guard let reportData = managedObject.reportData,
             let identifierString = managedObject.hashProperty,
             let attachmentPaths = managedObject.attachmentPaths,
@@ -38,7 +38,7 @@ import CrashReporter
         self.plCrashReport = try PLCrashReport(data: reportData)
         self.identifier = identifier
         self.attachmentPaths = attachmentPaths
-        self.attributes = (try? AttributesStorage.retrieve(fileName: identifier.uuidString)) ?? [:]
+        self.attributes = await (try? AttributesStorage.retrieve(fileName: identifier.uuidString)) ?? [:]
         
         super.init()
         

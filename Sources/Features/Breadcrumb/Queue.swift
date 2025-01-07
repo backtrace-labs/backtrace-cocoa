@@ -1,74 +1,63 @@
 import Foundation
 
-@objcMembers
-public class Queue<T>: NSObject {
+public actor Queue<T> {
     private var elements: [T] = []
 
+    /// Adds an element to the end of the queue.
     func enqueue(_ element: T) {
         elements.append(element)
     }
 
-    func dequeue() -> T? {
-        if elements.isEmpty {
-            return nil
-        } else {
-            return elements.removeFirst()
-        }
+    /// Removes and returns the first element of the queue.
+    func dequeue() async -> T? {
+        return elements.isEmpty ? nil : elements.removeFirst()
     }
 
-    func peek() -> T? {
+    /// Returns the first element of the queue without removing it.
+    func peek() async -> T? {
         return elements.first
     }
-    
-    func removeSubrange(range: ClosedRange<Int>) {
-        elements.removeSubrange(range);
+
+    /// Removes a range of elements from the queue.
+    func removeSubrange(_ range: Range<Int>) {
+        elements.removeSubrange(range)
     }
-    
-    func remove(at index: Int) -> T? {
-        guard index < elements.count else {
-            return nil
-        }
-        
-        if (index < 0) {
+
+    /// Removes and returns an element at a specified index.
+    func remove(at index: Int) async -> T? {
+        guard index >= 0 && index < elements.count else {
             return nil
         }
         return elements.remove(at: index)
     }
 
-    func pop(at index: Int) -> T? {
-        guard !elements.isEmpty else {
-            return nil
-        }
-        return remove(at: index)
-    }
-    
-    func element(at index: Int) -> T? {
-        guard index >= 0 && index < elements.count else {
-            return nil
-        }
-        return elements[index]
+    /// Removes and returns the last element of the queue.
+    func pop() async -> T? {
+        return elements.isEmpty ? nil : elements.popLast()
     }
 
-    func pop() -> T? {
-        guard !elements.isEmpty else {
-                return nil
-            }
-        return elements.popLast()
-    }
-    
-    public func allElements() -> [T] {
+    /// Returns all elements of the queue.
+    func allElements() async -> [T] {
         return elements
     }
 
+    /// Clears all elements from the queue.
     func clear() {
         elements.removeAll()
     }
-    
+
+    /// Checks if the queue is empty.
     var isEmpty: Bool {
         return elements.isEmpty
     }
 
+    /// Returns the number of elements in the queue.
     var count: Int {
         return elements.count
+    }
+
+    /// Checks if the queue contains a specific element.
+    func contains(_ element: T) -> Bool where T: Equatable {
+        return elements.contains(element)
     }
 }

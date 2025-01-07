@@ -1,6 +1,6 @@
 import Foundation
 
-@objc public enum BacktraceBreadcrumbType: Int {
+@objc public enum BacktraceBreadcrumbType: Int, Sendable {
 
     case manual = 1
     case log = 2
@@ -66,7 +66,7 @@ import Foundation
     private var breadcrumbTypes: [BacktraceBreadcrumbType]?
     private(set) var isBreadcrumbsEnabled: Bool = false
 
-    public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) {
+    public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) async {
         do {
             self.breadcrumbLevel = breadcrumbSettings.breadcrumbLevel
             self.breadcrumbTypes = breadcrumbSettings.breadcrumbTypes
@@ -79,9 +79,9 @@ import Foundation
             try BreadcrumbsInfo.breadcrumbFile = breadcrumbSettings.getBreadcrumbLogPath()
 
             isBreadcrumbsEnabled = true
-            _ = addBreadcrumb("Breadcrumbs enabled.", type: .system)
+            _ = await addBreadcrumb("Breadcrumbs enabled.", type: .system)
         } catch {
-            BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
+            await BacktraceLogger.warning("\(error.localizedDescription) \nWhen enabling breadcrumbs, breadcrumbs is disabled")
             // disable breadcrumbs, to not leave the class half initialized (errors can be thrown from various dependencies)
             disableBreadcrumbs()
         }
@@ -104,9 +104,9 @@ import Foundation
     public func addBreadcrumb(_ message: String,
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
-                       level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
+                              level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) async -> Bool {
         if let breadcrumbsLogManager = breadcrumbsLogManager, allowBreadcrumbsToAdd(level) {
-            return breadcrumbsLogManager.addBreadcrumb(message, attributes: attributes, type: type, level: level)
+            return await breadcrumbsLogManager.addBreadcrumb(message, attributes: attributes, type: type, level: level)
         }
         return false
     }
@@ -119,8 +119,8 @@ import Foundation
         return isBreadcrumbsEnabled && breadcrumbLevel.rawValue <= level.rawValue
     }
 
-    public func clear() -> Bool {
-        return breadcrumbsLogManager?.clear() ?? false
+    public func clear() async -> Bool {
+        return await breadcrumbsLogManager?.clear() ?? false
     }
 
     public var getCurrentBreadcrumbId: Int? {

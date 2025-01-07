@@ -1,7 +1,7 @@
 import Foundation
 
 /// Logging levels.
-@objc public enum BacktraceLogLevel: Int {
+@objc public enum BacktraceLogLevel: Int, Sendable {
     /// All logs logged to the destination.
     case debug
     /// Warnings, info and errors logged to the destination.
@@ -31,35 +31,58 @@ import Foundation
 
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
+    
+    /// `LoggerState` actor encapsulates the destinations state
+    actor LoggerState {
+        private var destinations: Set<BacktraceBaseDestination> = []
 
-    /// Set of logging destinations.
-    static var destinations: Set<BacktraceBaseDestination> = []
+        func updateDestinations(_ newDestinations: Set<BacktraceBaseDestination>) {
+            self.destinations = newDestinations
+        }
 
-    /// Replaces the logging destinations.
-    ///
+        func getDestinations() -> Set<BacktraceBaseDestination> {
+            return self.destinations
+        }
+    }
+    
+    /// Singleton instance of `LoggerState` actor.
+    private static let loggerState = LoggerState()
+    
+    /// Public async method to get logging destinations.
+    @objc public class func getLoggingDestinations() async -> Set<BacktraceBaseDestination> {
+        return await loggerState.getDestinations()
+    }
+
+    /// Public async method to update logging destinations.
+    @objc public class func setLoggingDestinations(_ destinations: Set<BacktraceBaseDestination>) async {
+        await loggerState.updateDestinations(destinations)
+    }
+    
     /// - Parameter loggingDestinations: Logging destinations.
-    class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
-        self.destinations = destinations
+    @objc class func setDestinations(destinations: Set<BacktraceBaseDestination>) async {
+        await loggerState.updateDestinations(destinations)
     }
+
     // swiftlint:disable line_length
-    class func debug(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
-        log(level: .debug, msg: msg(), file: file, function: function, line: line)
+    class func debug(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) async {
+        await log(level: .debug, msg: msg(), file: file, function: function, line: line)
     }
 
-    class func warning(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
-        log(level: .warning, msg: msg(), file: file, function: function, line: line)
+    class func warning(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) async {
+        await log(level: .warning, msg: msg(), file: file, function: function, line: line)
     }
 
-    class func info(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
-        log(level: .info, msg: msg(), file: file, function: function, line: line)
+    class func info(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) async {
+        await log(level: .info, msg: msg(), file: file, function: function, line: line)
     }
 
-    class func error(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
-        log(level: .error, msg: msg(), file: file, function: function, line: line)
+    class func error(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) async {
+        await log(level: .error, msg: msg(), file: file, function: function, line: line)
     }
 
-    private class func log(level: BacktraceLogLevel, msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
+    private class func log(level: BacktraceLogLevel, msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) async {
         let message = String(describing: msg())
+        let destinations = await loggerState.getDestinations()
         destinations
             .filter { $0.shouldLog(level: level) }
             .forEach { $0.log(level: level, msg: message, file: file, function: function, line: line) }
@@ -71,7 +94,7 @@ import Foundation
 ///
 /// A methods `func log(level:msg:file:function:line:)` is abstract and needs to be overridden.
 ///
-@objc open class BacktraceBaseDestination: NSObject {
+@objc open class BacktraceBaseDestination: NSObject, @unchecked Sendable {
 
     private let level: BacktraceLogLevel
 
@@ -103,7 +126,7 @@ import Foundation
 }
 
 /// Provides logging functionality to IDE console.
-@objc final public class BacktraceFancyConsoleDestination: BacktraceBaseDestination {
+@objc final public class BacktraceFancyConsoleDestination: BacktraceBaseDestination, @unchecked Sendable {
 
     /// Used date formatter for logging.
     @objc public static var dateFormatter: DateFormatter {
@@ -130,7 +153,7 @@ import Foundation
 }
 
 /// Provides logging functionality to IDE console.
-@objc final public class BacktraceConsoleDestination: BacktraceBaseDestination {
+@objc final public class BacktraceConsoleDestination: BacktraceBaseDestination, @unchecked Sendable {
 
     // swiftlint:disable line_length
     /// Logs the event to console destination.

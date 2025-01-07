@@ -4,14 +4,13 @@ enum BacktraceBreadcrumbFileError: Error {
     case invalidFormat
 }
 
-@objc class BacktraceBreadcrumbFile: NSObject {
+@objc class BacktraceBreadcrumbFile: NSObject, @unchecked Sendable  {
 
     private static let minimumQueueFileSizeBytes = 4096
     private let maximumIndividualBreadcrumbSize: Int
     private let maxQueueFileSizeBytes: Int
     private let queue: Queue<BreadcrumbRecord>
     private let breadcrumbLogURL: URL
-    private let dispatchQueue = DispatchQueue(label: "io.backtrace.BacktraceBreadcrumbFile@\(UUID().uuidString)")
 
     public init(_ breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
         self.breadcrumbLogURL = try breadcrumbSettings.getBreadcrumbLogPath()
@@ -22,75 +21,67 @@ enum BacktraceBreadcrumbFileError: Error {
         super.init()
     }
 
-    func addBreadcrumb(_ breadcrumb: [String: Any]) -> Bool {
+    func addBreadcrumb(_ breadcrumb: [String: Any]) async -> Bool {
         guard let breadcrumbJsonData = try? JSONSerialization.data(withJSONObject: breadcrumb) else {
-            BacktraceLogger.warning("Error when converting breadcrumb to data")
+            await BacktraceLogger.warning("Error when converting breadcrumb to data")
             return false
         }
         guard let breadcrumbJsonString = String(data: breadcrumbJsonData, encoding: .utf8) else {
-            BacktraceLogger.warning("Error when converting breadcrumb to string")
+            await BacktraceLogger.warning("Error when converting breadcrumb to string")
             return false
         }
         let breadcrumbSize = breadcrumbJsonData.count
         // Check if breadcrumb size is larger than the maximum specified
         if breadcrumbSize > maximumIndividualBreadcrumbSize {
-            BacktraceLogger.warning(
+            await BacktraceLogger.warning(
                 "Discarding breadcrumb that was larger than the maximum specified (\(maximumIndividualBreadcrumbSize).")
             return false
         }
-        dispatchQueue.sync {
-            let queueBreadcrumb = BreadcrumbRecord(size: breadcrumbSize, json: breadcrumbJsonString)
-            queue.enqueue(queueBreadcrumb)
-            let queuedBreadcrumbs = queue.allElements()
-            let queueSize = queue.count
-            var breadcrumbsArray = [String]()
-            var size = 0
-            for index in (0..<queueSize).reversed() {
-                guard index < queuedBreadcrumbs.count else {
-                    continue
-                }
-                let queueBreadcrumb = queuedBreadcrumbs[index]
-                let breadcrumbSize = queueBreadcrumb.size
-                // Pop last element if size is greater than maxQueueFileSizeBytes
-                if size + breadcrumbSize > maxQueueFileSizeBytes && !queue.isEmpty {
-                    queue.removeSubrange(range: (0...index))
-                    break
-                }
-                let breadcrumbJsonData = queueBreadcrumb.json
-                breadcrumbsArray.append(breadcrumbJsonData)
-                size += breadcrumbSize
+        // Enqueue the breadcrumb record
+        let queueBreadcrumb = BreadcrumbRecord(size: breadcrumbSize, json: breadcrumbJsonString)
+        await queue.enqueue(queueBreadcrumb)
+        
+        // Prepare breadcrumbs array for logging
+        var size = 0
+        var breadcrumbsArray = [String]()
+        let records = await queue.allElements().reversed()
+        
+        for record in records {
+            if size + record.size > maxQueueFileSizeBytes {
+                break
             }
-            let breadcrumbString = "[\(breadcrumbsArray.joined(separator: ","))]"
-            writeBreadcrumbToLogFile(breadcrumb: breadcrumbString, at: self.breadcrumbLogURL)
+            breadcrumbsArray.append(record.json)
+            size += record.size
         }
-
+        
+        let breadcrumbString = "[\(breadcrumbsArray.joined(separator: ","))]"
+        await writeBreadcrumbToLogFile(breadcrumb: breadcrumbString, at: breadcrumbLogURL)
+        
         return true
     }
 
-    func clear() -> Bool {
-        dispatchQueue.sync {
-            queue.clear()
-            clearBreadcrumbLogFile(at:self.breadcrumbLogURL)
-        }
+    func clear() async -> Bool {
+        await self.queue.clear()
+        await self.clearBreadcrumbLogFile(at: self.breadcrumbLogURL)
         return true
     }
 }
 
 extension BacktraceBreadcrumbFile {
     
-    func writeBreadcrumbToLogFile(breadcrumb: String, at breadcrumbLogURL: URL) {
+    func writeBreadcrumbToLogFile(breadcrumb: String, at breadcrumbLogURL: URL) async {
         do {
             try breadcrumb.write(to: breadcrumbLogURL, atomically: true, encoding: .utf8)
         } catch {
-            BacktraceLogger.warning("Error writing breadcrumb to log file at: \(breadcrumbLogURL) - \(error.localizedDescription)")
+            await BacktraceLogger.warning("Error writing breadcrumb to log file at: \(breadcrumbLogURL) - \(error.localizedDescription)")
         }
     }
 
-    func clearBreadcrumbLogFile(at breadcrumbLogURL: URL) {
+    func clearBreadcrumbLogFile(at breadcrumbLogURL: URL) async {
         do {
             try "".write(to: breadcrumbLogURL, atomically: false, encoding: .utf8)
         } catch {
-            BacktraceLogger.warning("Error clearing breadcrumb log file at: \(breadcrumbLogURL) - \(error.localizedDescription)")
+            await BacktraceLogger.warning("Error clearing breadcrumb log file at: \(breadcrumbLogURL) - \(error.localizedDescription)")
         }
     }
 }

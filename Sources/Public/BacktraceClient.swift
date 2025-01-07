@@ -1,10 +1,35 @@
 import Foundation
 
+actor BacktraceClientManager {
+    
+    static let shared = BacktraceClientManager()
+    
+    private var sharedInstance: BacktraceClientProtocol?
+
+    /// Async method to get the shared instance.
+    func getSharedInstance() -> BacktraceClientProtocol? {
+        return sharedInstance
+    }
+
+    /// Async method to set the shared instance.
+    func setSharedInstance(_ instance: BacktraceClientProtocol?) {
+        sharedInstance = instance
+    }
+}
+
 /// Provides the default implementation of `BacktraceClientProtocol` protocol.
 @objc open class BacktraceClient: NSObject {
 
     /// Shared instance of BacktraceClient class. Should be created before sending any reports.
-    @objc public static var shared: BacktraceClientProtocol?
+    //@objc public static var shared: BacktraceClientProtocol?
+    
+    @objc public class func getShared() async -> BacktraceClientProtocol? {
+        return await BacktraceClientManager.shared.getSharedInstance()
+    }
+
+    @objc public class func setShared(_ instance: BacktraceClientProtocol?) async {
+        await BacktraceClientManager.shared.setSharedInstance(instance)
+    }
 
     /// `BacktraceClient`'s configuration. Allows to configure `BacktraceClient` in a custom way.
     @objc public let configuration: BacktraceClientConfiguration
@@ -153,19 +178,21 @@ extension BacktraceClient: BacktraceReporting {
             completion(BacktraceResult(.debuggerAttached))
             return
         }
-
+        
         guard let resource = try? reporter.generate(exception: exception,
                                                     attachmentPaths: attachmentPaths,
                                                     faultMessage: faultMessage) else {
             completion(BacktraceResult(.unknownError))
             return
         }
-
+        
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             completion(self.reporter.send(resource: resource))
         }, completion: {
-            BacktraceLogger.debug("Finished sending an error report.")
+            Task {
+                await BacktraceLogger.debug("Finished sending an error report.")
+            }
         })
     }
 
@@ -175,39 +202,40 @@ extension BacktraceClient: BacktraceReporting {
         }
 
         try reporter.enableCrashReporter()
-        dispatcher.dispatch({ [weak self] in
-            guard let self = self else { return }
+        
+        // Use Task with a strong local copy of `self`
+        let strongSelf = self
+        
+        // Use Task to handle async calls
+        Task { [weak self] in
+            guard let self else { return }
             do {
-                try self.reporter.handlePendingCrashes()
+                try await self.reporter.handlePendingCrashes()
+                await BacktraceLogger.debug("Started error reporter.")
             } catch {
-                BacktraceLogger.error(error)
+                await BacktraceLogger.error(error)
             }
-            }, completion: {
-                BacktraceLogger.debug("Started error reporter.")
-        })
+        }
 
         if self.configuration.detectOom {
-            dispatcher.dispatch({ [weak self] in
-                guard let self = self else { return }
-                self.reporter.enableOomWatcher()
-                }, completion: {
-                    BacktraceLogger.debug("Started OOM Watcher.")
-            })
-        }
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    self.reporter.enableOomWatcher()
+                    await BacktraceLogger.debug("Started OOM Watcher.")
+                }
+            }
     }
 }
 
 // MARK: - BacktraceLogging
 extension BacktraceClient: BacktraceLogging {
 
-    /// A collection of logging destinations.
-    public var loggingDestinations: Set<BacktraceBaseDestination> {
-        get {
-            return BacktraceLogger.destinations
-        }
-        set {
-            BacktraceLogger.destinations = newValue
-        }
+    public func getLoggingDestinations() async -> Set<BacktraceBaseDestination> {
+        return await BacktraceLogger.getLoggingDestinations()
+    }
+
+    public func setLoggingDestinations(_ destinations: Set<BacktraceBaseDestination>) async {
+        await BacktraceLogger.setLoggingDestinations(destinations)
     }
 }
 
@@ -226,43 +254,43 @@ extension BacktraceClient: BacktraceBreadcrumbProtocol {
         return self.breadcrumbsInstance
     }
 
-    @objc public func enableBreadcrumbs() {
-        breadcrumbsInstance.enableBreadcrumbs()
+    @objc public func enableBreadcrumbs() async {
+        await breadcrumbsInstance.enableBreadcrumbs()
     }
 
-    @objc public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings) {
-        breadcrumbsInstance.enableBreadcrumbs(breadcrumbSettings)
+    @objc public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings) async {
+        await breadcrumbsInstance.enableBreadcrumbs(breadcrumbSettings)
     }
 
     @objc public func addBreadcrumb(_ message: String,
                                     attributes: [String: String],
                                     type: BacktraceBreadcrumbType,
-                                    level: BacktraceBreadcrumbLevel) -> Bool {
-        return breadcrumbsInstance.addBreadcrumb(message, attributes: attributes, type: type, level: level)
+                                    level: BacktraceBreadcrumbLevel) async -> Bool {
+        return await breadcrumbsInstance.addBreadcrumb(message, attributes: attributes, type: type, level: level)
     }
 
-    @objc public func addBreadcrumb(_ message: String) -> Bool {
-        return breadcrumbsInstance.addBreadcrumb(message)
+    @objc public func addBreadcrumb(_ message: String) async -> Bool {
+        return await breadcrumbsInstance.addBreadcrumb(message)
     }
 
-    @objc public func addBreadcrumb(_ message: String, attributes: [String: String]) -> Bool {
-        return breadcrumbsInstance.addBreadcrumb(message, attributes: attributes)
+    @objc public func addBreadcrumb(_ message: String, attributes: [String: String]) async -> Bool {
+        return await breadcrumbsInstance.addBreadcrumb(message, attributes: attributes)
     }
 
-    @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) -> Bool {
-        return breadcrumbsInstance.addBreadcrumb(message, type: type, level: level)
+    @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType, level: BacktraceBreadcrumbLevel) async -> Bool {
+        return await breadcrumbsInstance.addBreadcrumb(message, type: type, level: level)
     }
 
-    @objc public func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) -> Bool {
-        return breadcrumbsInstance.addBreadcrumb(message, level: level)
+    @objc public func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) async -> Bool {
+        return await breadcrumbsInstance.addBreadcrumb(message, level: level)
     }
 
-    @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType) -> Bool {
-        return breadcrumbsInstance.addBreadcrumb(message, type: type)
+    @objc public func addBreadcrumb(_ message: String, type: BacktraceBreadcrumbType) async -> Bool {
+        return await breadcrumbsInstance.addBreadcrumb(message, type: type)
     }
 
-    @objc public func clearBreadcrumbs() -> Bool {
-        return breadcrumbsInstance.clear()
+    @objc public func clearBreadcrumbs() async -> Bool {
+        return await breadcrumbsInstance.clear()
     }
 }
 #endif

@@ -83,10 +83,16 @@ public typealias Bookmarks = [String: Data]
 
 /// Provides logging functionality to `BacktraceClient`.
 @objc public protocol BacktraceLogging {
-
-    /// Set of logging destinations.
-    @available(*, renamed: "destinations")
+    
+    /// Set of logging destinations (deprecated).
+    @available(*, unavailable, message: "Use getLoggingDestinations() and setLoggingDestinations(_:) instead.")
     @objc var loggingDestinations: Set<BacktraceBaseDestination> { get set }
+    
+    /// Asynchronously retrieves the logging destinations.
+    func getLoggingDestinations() async -> Set<BacktraceBaseDestination>
+
+    /// Asynchronously sets the logging destinations.
+    func setLoggingDestinations(_ destinations: Set<BacktraceBaseDestination>) async
 }
 
 /// Provides error-free metrics functionality to `BacktraceClient`
@@ -113,13 +119,13 @@ enum BacktraceUrlParsingError: Error {
 
     /// Enable breadcrumbs with default BradcrumbsSettings
     ///
-    @objc func enableBreadcrumbs()
+    @objc func enableBreadcrumbs() async
 
     /// Enable breadcrumbs
     ///
     /// - Parameters:
     ///   - breadcrumbSettings: bradcrumb settings.
-    @objc func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings)
+    @objc func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings) async
 
     /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
     ///
@@ -131,13 +137,13 @@ enum BacktraceUrlParsingError: Error {
     @objc func addBreadcrumb(_ message: String,
                              attributes: [String: String],
                              type: BacktraceBreadcrumbType,
-                             level: BacktraceBreadcrumbLevel) -> Bool
+                             level: BacktraceBreadcrumbLevel) async -> Bool
 
     /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
     ///
     /// - Parameters:
     ///   - message: The message to add.
-    @objc func addBreadcrumb(_ message: String) -> Bool
+    @objc func addBreadcrumb(_ message: String) async -> Bool
 
     /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
     ///
@@ -145,7 +151,7 @@ enum BacktraceUrlParsingError: Error {
     ///   - message: The message to add.
     ///   - attributes: The attributes to attach to the the breadcrumb
     @objc func addBreadcrumb(_ message: String,
-                             attributes: [String: String]) -> Bool
+                             attributes: [String: String]) async -> Bool
 
     /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
     ///
@@ -155,7 +161,7 @@ enum BacktraceUrlParsingError: Error {
     ///   - level: The breadcrumb severity level to add
     @objc func addBreadcrumb(_ message: String,
                              type: BacktraceBreadcrumbType,
-                             level: BacktraceBreadcrumbLevel) -> Bool
+                             level: BacktraceBreadcrumbLevel) async -> Bool
 
     /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
     ///
@@ -163,7 +169,7 @@ enum BacktraceUrlParsingError: Error {
     ///   - message: The message to add.
     ///   - level: The breadcrumb severity level to add
     @objc func addBreadcrumb(_ message: String,
-                             level: BacktraceBreadcrumbLevel) -> Bool
+                             level: BacktraceBreadcrumbLevel) async -> Bool
 
     /// Adds a breadcrumb to the breadcrumb trail. The breadcrumb plus attributes should not exceed 4kB, or it will be discarded.
     ///
@@ -171,10 +177,10 @@ enum BacktraceUrlParsingError: Error {
     ///   - message: The message to add.
     ///   - level: The breadcrumb severity level to add
     @objc func addBreadcrumb(_ message: String,
-                             type: BacktraceBreadcrumbType) -> Bool
+                             type: BacktraceBreadcrumbType) async -> Bool
 
     /// Clear breadcrumbs
     ///
-    @objc func clearBreadcrumbs() -> Bool
+    @objc func clearBreadcrumbs() async -> Bool
 }
 #endif

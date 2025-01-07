@@ -10,7 +10,10 @@ import Foundation
 
     @objc public var count: Int {
         guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.warning("Count method called but metrics is not enabled")
+            //TODO: Reveiw This
+            Task {
+                await BacktraceLogger.warning("Count method called but metrics is not enabled")
+            }
             return 0
         }
         return containerUnwrapped.count
@@ -21,47 +24,47 @@ import Foundation
         super.init()
     }
 
-    @objc public func enable(settings: BacktraceMetricsSettings) {
+    @objc public func enable(settings: BacktraceMetricsSettings) async {
         backtraceMetricsContainer = BacktraceMetricsContainer(settings: settings)
         guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.error("Could not initialize Backtrace metrics sender")
+            await BacktraceLogger.error("Could not initialize Backtrace metrics sender")
             return
         }
         backtraceMetricsSender = BacktraceMetricsSender(api: api, metricsContainer: containerUnwrapped, settings: settings)
         guard let senderUnwrapped = backtraceMetricsSender else {
-            BacktraceLogger.error("Could not initialize Backtrace metrics sender")
+            await BacktraceLogger.error("Could not initialize Backtrace metrics sender")
             return
         }
         senderUnwrapped.enable()
     }
 
-    @objc public func addUniqueEvent(name: String) {
+    @objc public func addUniqueEvent(name: String) async {
         guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.error("Could not add metrics event, metrics is not initialized")
+            await BacktraceLogger.error("Could not add metrics event, metrics is not initialized")
             return
         }
         containerUnwrapped.add(event: UniqueEvent(name: name))
     }
 
-    @objc public func addSummedEvent(name: String) {
+    @objc public func addSummedEvent(name: String) async {
         guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.error("Could not add metrics event, metrics is not initialized")
+            await BacktraceLogger.error("Could not add metrics event, metrics is not initialized")
             return
         }
         containerUnwrapped.add(event: SummedEvent(name: name))
     }
     
-    @objc public func clearSummedEvents() {
+    @objc public func clearSummedEvents() async {
         guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.error("Could not clear metrics event, metrics is not initialized")
+            await BacktraceLogger.error("Could not clear metrics event, metrics is not initialized")
             return
         }
         containerUnwrapped.clearSummedEvents()
     }
     
-    @objc public func getSummedEvents() -> [Any] {
+    @objc public func getSummedEvents() async -> [Any] {
         guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.error("Could not get Summed events, metrics is not initialized")
+            await BacktraceLogger.error("Could not get Summed events, metrics is not initialized")
             return []
         }
         
@@ -69,9 +72,9 @@ import Foundation
         return payload.events as [SummedEvent]
     }
     
-    @objc public func getUniqueEvents() -> [Any] {
+    @objc public func getUniqueEvents() async -> [Any] {
         guard let containerUnwrapped = backtraceMetricsContainer else {
-            BacktraceLogger.error("Could not get Unique events, metrics is not initialized")
+            await BacktraceLogger.error("Could not get Unique events, metrics is not initialized")
             return []
         }
         
