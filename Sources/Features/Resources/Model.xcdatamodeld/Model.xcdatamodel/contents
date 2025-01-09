@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23507" systemVersion="24B83" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Crash" representedClassName="Crash" syncable="YES">
-        <attribute name="attachmentPaths" attributeType="Transformable" valueTransformerName="" customClassName="[String]"/>
-        <attribute name="dateAdded" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="hashProperty" attributeType="String"/>
-        <attribute name="reportData" attributeType="Binary"/>
+        <attribute name="attachmentPaths" optional="YES" attributeType="Transformable" valueTransformerName=""/>
+        <attribute name="dateAdded" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="hashProperty" optional="YES" attributeType="String"/>
+        <attribute name="reportData" optional="YES" attributeType="Binary"/>
         <attribute name="retryCount" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
 </model>
