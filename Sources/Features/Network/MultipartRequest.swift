@@ -60,7 +60,7 @@ extension MultipartRequest {
             
             let fileHandle = try FileHandle(forWritingTo: tempURL)
             defer {
-                if #available(iOS 13.0, *) {
+                if #available(iOS 13.0, tvOS 13.0, macOS 11.0, *) {
                     try? fileHandle.close()
                 } else {
                     fileHandle.closeFile()

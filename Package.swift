@@ -6,7 +6,7 @@ let package = Package(
     name: "Backtrace",
     platforms: [
         .iOS(.v12),
-        .macOS(.v11),
+        .macOS(.v10_13),
         .tvOS(.v12)
     ],
     products: [
