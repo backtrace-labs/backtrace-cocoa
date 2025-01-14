@@ -68,16 +68,19 @@ extension MultipartRequest {
             }
             
             // attributes
+            var attributesString = ""
             for attribute in report.attributes {
-                try writeToFile(fileHandle, "--\(boundary)\r\n")
-                try writeToFile(fileHandle, "Content-Disposition: form-data; name=\"\(attribute.key)\"\r\n\r\n")
-                try writeToFile(fileHandle, "\(attribute.value)\r\n")
+                attributesString += "--\(boundary)\r\n"
+                attributesString += "Content-Disposition: form-data; name=\"\(attribute.key)\"\r\n\r\n"
+                attributesString += "\(attribute.value)\r\n"
             }
+            try writeToFile(fileHandle, attributesString)
             
             // report
-            try writeToFile(fileHandle, "--\(boundary)\r\n")
-            try writeToFile(fileHandle, "Content-Disposition: form-data; name=\"upload_file\"; filename=\"upload_file\"\r\n")
-            try writeToFile(fileHandle, "Content-Type: application/octet-stream\r\n\r\n")
+            var reportString = "--\(boundary)\r\n"
+            reportString += "Content-Disposition: form-data; name=\"upload_file\"; filename=\"upload_file\"\r\n"
+            reportString += "Content-Type: application/octet-stream\r\n\r\n"
+            try writeToFile(fileHandle, reportString)
             fileHandle.write(report.reportData)
             try writeToFile(fileHandle, "\r\n")
             
