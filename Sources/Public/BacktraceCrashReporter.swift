@@ -54,7 +54,7 @@ extension BacktraceCrashReporter: CrashReporting {
         if let exception = exception {
             reportData = try reporter.generateLiveReport(with: exception)
         } else {
-            reportData = try reporter.generateLiveReport()
+            reportData = reporter.generateLiveReport()
         }
         
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
