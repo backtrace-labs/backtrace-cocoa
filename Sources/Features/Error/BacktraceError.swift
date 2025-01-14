@@ -16,6 +16,10 @@ enum NetworkError: BacktraceError {
 
 enum HttpError: BacktraceError {
     case malformedUrl(URL)
+    case fileCreationFailed(URL)
+    case fileWriteFailed
+    case attachmentError(String)
+    case multipartFormError(Error)
     case unknownError
 }
 
@@ -42,7 +46,7 @@ enum CodingError: BacktraceError {
 extension HttpError {
     var backtraceStatus: BacktraceReportStatus {
         switch self {
-        case .malformedUrl:
+        case .malformedUrl, .fileCreationFailed, .fileWriteFailed, .attachmentError, .multipartFormError:
             return .unknownError
         case .unknownError:
             return .serverError
@@ -62,8 +66,18 @@ extension NetworkError {
 extension HttpError {
     var localizedDescription: String {
         switch self {
-        case .malformedUrl(let url): return "Provided URL cannot be parsed: \(url)."
-        case .unknownError: return "Unknown error occurred."
+        case .malformedUrl(let url):
+            return "Provided URL cannot be parsed: \(url)."
+        case .fileCreationFailed(let url):
+            return "File Error occurred: \(url)."
+        case .fileWriteFailed:
+            return "File Write Error occurred."
+        case .attachmentError(let string):
+            return "Attachment Error occurred: \(string)."
+        case .multipartFormError(let error):
+            return "Multipart Form Error occurred: \(error.localizedDescription)."
+        case .unknownError:
+            return "Unknown error occurred."
         }
     }
 }
