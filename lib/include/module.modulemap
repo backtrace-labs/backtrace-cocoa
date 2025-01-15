@@ -1,0 +1,27 @@
+framework module CrashReporter {
+ header "CrashReporter.h"
+ header "PLCrashReport.h"
+ header "PLCrashFeatureConfig.h"
+ header "PLCrashMacros.h"
+ header "PLCrashNamespace.h"
+ header "PLCrashReportApplicationInfo.h"
+ header "PLCrashReportBinaryImageInfo.h"
+ header "PLCrashReportBinaryImageInfo.h"
+ header "PLCrashReporter.h"
+ header "PLCrashReporterConfig.h"
+ header "PLCrashReportExceptionInfo.h"
+ header "PLCrashReportFormatter.h"
+ header "PLCrashReportMachExceptionInfo.h"
+ header "PLCrashReportMachineInfo.h"
+ header "PLCrashReportProcessInfo.h"
+ header "PLCrashReportProcessorInfo.h"
+ header "PLCrashReportRegisterInfo.h"
+ header "PLCrashReportSignalInfo.h"
+ header "PLCrashReportStackFrameInfo.h"
+ header "PLCrashReportSymbolInfo.h"
+ header "PLCrashReportSystemInfo.h"
+ header "PLCrashReportTextFormatter.h"
+ header "PLCrashReportThreadInfo.h"
+
+  export *
+}

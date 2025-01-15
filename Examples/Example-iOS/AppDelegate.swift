@@ -18,8 +18,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
-                                                        token: Keys.backtraceToken as String)
+        let backtraceCredentials = BacktraceCredentials(submissionUrl: URL(string: "https://submit.backtrace.io/spmtests/16420a4a0d6827e008642761298a64ec35d5c19db2df86374a3f59f2cdb80ffc/plcrash")!)
+
 
         let backtraceDatabaseSettings = BacktraceDatabaseSettings()
         backtraceDatabaseSettings.maxRecordCount = 10

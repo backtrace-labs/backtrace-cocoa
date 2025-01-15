@@ -1,5 +1,9 @@
 import Foundation
+#if COCOAPODS || SWIFT_PACKAGE
 import CrashReporter
+#else
+import Backtrace.CrashReporter
+#endif
 
 /// Model represents single crash report which can be send to Backtrace services.
 @objc final public class BacktraceReport: NSObject {
@@ -7,7 +11,7 @@ import CrashReporter
     /// Encoded informations about report like stack trace etc.
     @objc public let reportData: Data
 
-    let plCrashReport: PLCrashReport
+    let plCrashReport: BacktracePLCrashReport
     let identifier: UUID
 
     /// Array of files paths attached to the report.
@@ -17,7 +21,7 @@ import CrashReporter
     @objc public var attributes: Attributes
 
     init(report: Data, attributes: Attributes, attachmentPaths: [String]) throws {
-        self.plCrashReport = try PLCrashReport(data: report)
+        self.plCrashReport = try BacktracePLCrashReport(data: report)
         reportData = report
         identifier = UUID()
         self.attachmentPaths = attachmentPaths
@@ -35,7 +39,7 @@ import CrashReporter
                 throw RepositoryError.canNotCreateEntityDescription
         }
         self.reportData = reportData
-        self.plCrashReport = try PLCrashReport(data: reportData)
+        self.plCrashReport = try BacktracePLCrashReport(data: reportData)
         self.identifier = identifier
         self.attachmentPaths = attachmentPaths
         self.attributes = (try? AttributesStorage.retrieve(fileName: identifier.uuidString)) ?? [:]

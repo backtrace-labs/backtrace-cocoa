@@ -6,7 +6,9 @@ project 'Backtrace.xcworkspace'
 # Definitions
 def shared_pods
     # Define shared CocoaPods here
-    pod 'PLCrashReporter', '1.11.1' 
+     pod 'PLCrashReporter', :podspec => 'https://raw.githubusercontent.com/backtrace-labs/plcrashreporter/master/PLCrashReporter.podspec'
+     #pod 'PLCrashReporter', :podspec => '../backtrace-labs/plcrashreporter/PLCrashReporter.podspec'
+
 end
 
 def shared_test_pods
