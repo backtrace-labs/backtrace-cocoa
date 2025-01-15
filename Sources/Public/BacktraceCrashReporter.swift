@@ -50,13 +50,8 @@ extension BacktraceCrashReporter: CrashReporting {
     func generateLiveReport(exception: NSException? = nil,
                             attributes: Attributes,
                             attachmentPaths: [String] = []) throws -> BacktraceReport {
-        let reportData: Data
-        if let exception = exception {
-            reportData = try reporter.generateLiveReport(with: exception)
-        } else {
-            reportData = reporter.generateLiveReport()
-        }
         
+        let reportData = try reporter.generateLiveReport(with: exception)
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
 
