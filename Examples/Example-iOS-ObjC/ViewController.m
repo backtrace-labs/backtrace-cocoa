@@ -38,5 +38,4 @@ static NSMutableData *wastedMemory = nil;
     array[1];
 }
 
-
 @end
