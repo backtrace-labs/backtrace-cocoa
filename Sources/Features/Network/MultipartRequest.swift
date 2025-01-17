@@ -48,25 +48,16 @@ extension MultipartRequest {
         var multipartRequest = urlRequest
         let boundary = generateBoundaryString()
         multipartRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        
-        // temporary file to stream data
-        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-        
+
+        // output stream
+        // TODO: bind input & output streams
+        let outputStream = OutputStream.toMemory()
+        outputStream.open()
+        defer { outputStream.close() }
+
+        let writeLock = DispatchQueue(label: "backtrace.multipartRequest.writeLock")
+
         do {
-            let fileCreated = FileManager.default.createFile(atPath: tempURL.path, contents: nil, attributes: nil)
-            if !fileCreated {
-                throw HttpError.fileCreationFailed(tempURL)
-            }
-            
-            let fileHandle = try FileHandle(forWritingTo: tempURL)
-            defer {
-                if #available(iOS 13.0, tvOS 13.0, macOS 11.0, *) {
-                    try? fileHandle.close()
-                } else {
-                    fileHandle.closeFile()
-                }
-            }
-            
             // attributes
             var attributesString = ""
             for attribute in report.attributes {
@@ -74,57 +65,90 @@ extension MultipartRequest {
                 attributesString += "Content-Disposition: form-data; name=\"\(attribute.key)\"\r\n\r\n"
                 attributesString += "\(attribute.value)\r\n"
             }
-            try writeToFile(fileHandle, attributesString)
-            
+            try writeToStream(outputStream, attributesString, writeLock: writeLock)
+
             // report
             var reportString = "--\(boundary)\r\n"
             reportString += "Content-Disposition: form-data; name=\"upload_file\"; filename=\"upload_file\"\r\n"
             reportString += "Content-Type: application/octet-stream\r\n\r\n"
-            try writeToFile(fileHandle, reportString)
-            fileHandle.write(report.reportData)
-            try writeToFile(fileHandle, "\r\n")
-            
+            try writeToStream(outputStream, reportString, writeLock: writeLock)
+            try writeLock.sync {
+                let data = report.reportData
+                let bytesWritten = data.withUnsafeBytes {
+                    guard let baseAddress = $0.bindMemory(to: UInt8.self).baseAddress else {
+                        return -1
+                    }
+                    return outputStream.write(baseAddress, maxLength: data.count)
+                }
+                if bytesWritten < 0 {
+                    throw HttpError.streamWriteFailed
+                }
+            }
+            try writeToStream(outputStream, "\r\n", writeLock: writeLock)
+
             // attachments
             for attachmentPath in Set(report.attachmentPaths) {
                 guard let attachment = Attachment(filePath: attachmentPath) else {
                     BacktraceLogger.error("Failed to create attachment for path: \(attachmentPath)")
                     continue
                 }
-                
-                try writeToFile(fileHandle, "--\(boundary)\r\n")
-                try writeToFile(fileHandle, "Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n")
-                try writeToFile(fileHandle, "Content-Type: \(attachment.mimeType)\r\n\r\n")
-                fileHandle.write(attachment.data)
-                try writeToFile(fileHandle, "\r\n")
+
+                try writeToStream(outputStream, "--\(boundary)\r\n", writeLock: writeLock)
+                try writeToStream(outputStream, "Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n", writeLock: writeLock)
+                try writeToStream(outputStream, "Content-Type: \(attachment.mimeType)\r\n\r\n", writeLock: writeLock)
+                try writeLock.sync {
+                    let data = attachment.data
+                    let bytesWritten = data.withUnsafeBytes {
+                        guard let baseAddress = $0.bindMemory(to: UInt8.self).baseAddress else {
+                            return -1
+                        }
+                        return outputStream.write(baseAddress, maxLength: data.count)
+                    }
+                    if bytesWritten < 0 {
+                        throw HttpError.streamWriteFailed
+                    }
+                }
+                try writeToStream(outputStream, "\r\n", writeLock: writeLock)
             }
-            
+
             // Final boundary
-            try writeToFile(fileHandle, "--\(boundary)--\r\n")
+            try writeToStream(outputStream, "--\(boundary)--\r\n", writeLock: writeLock)
             
+            // Data from Output Stream
+            guard let data = outputStream.property(forKey: .dataWrittenToMemoryStreamKey) as? Data else {
+                throw HttpError.streamReadFailed
+            }
             // Set Content-Length
-            let fileSize = try FileManager.default.attributesOfItem(atPath: tempURL.path)[.size] as? Int ?? 0
-            multipartRequest.setValue("\(fileSize)", forHTTPHeaderField: "Content-Length")
-            
+            multipartRequest.setValue("\(data.count)", forHTTPHeaderField: "Content-Length")
             // Attach file stream to HTTP body
-            multipartRequest.httpBodyStream = InputStream(url: tempURL)
-            
+            multipartRequest.httpBodyStream = InputStream(data: data)
         } catch {
             BacktraceLogger.error("Error during multipart form creation: \(error.localizedDescription)")
             throw HttpError.multipartFormError(error)
         }
-        
+
         return multipartRequest
     }
 
     private static func generateBoundaryString() -> String {
         return "Boundary-\(NSUUID().uuidString)"
     }
-    
-    private static func writeToFile(_ fileHandle: FileHandle, _ string: String) throws {
-        if let data = string.data(using: .utf8) {
-            fileHandle.write(data)
-        } else {
+
+    private static func writeToStream(_ stream: OutputStream, _ string: String, writeLock: DispatchQueue) throws {
+        guard let data = string.data(using: .utf8) else {
+            BacktraceLogger.error("Failed to convert string to UTF-8 data: \(string)")
             throw HttpError.fileWriteFailed
+        }
+        try writeLock.sync {
+            let bytesWritten = data.withUnsafeBytes {
+                guard let baseAddress = $0.bindMemory(to: UInt8.self).baseAddress else {
+                    return -1
+                }
+                return stream.write(baseAddress, maxLength: data.count)
+            }
+            if bytesWritten < 0 {
+                throw HttpError.streamWriteFailed
+            }
         }
     }
 }
@@ -132,7 +156,10 @@ extension MultipartRequest {
 private extension NSMutableData {
 
     func appendString(_ string: String) {
-        guard let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false) else { return }
+        guard let data = string.data(using: String.Encoding.utf8, allowLossyConversion: false) else {
+            BacktraceLogger.error("Failed to append string as UTF-8 data: \(string)")
+            return
+        }
         append(data)
     }
 }
