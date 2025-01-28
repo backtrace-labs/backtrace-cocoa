@@ -28,6 +28,9 @@
 		20DE4B342D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
 		20DE4B352D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
 		20DE4B362D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
+		20DE4B382D48616A0076B3F6 /* NSManagedObjectContextExtensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B372D48615C0076B3F6 /* NSManagedObjectContextExtensionTests.swift */; };
+		20DE4B392D48616A0076B3F6 /* NSManagedObjectContextExtensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B372D48615C0076B3F6 /* NSManagedObjectContextExtensionTests.swift */; };
+		20DE4B3A2D48616A0076B3F6 /* NSManagedObjectContextExtensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B372D48615C0076B3F6 /* NSManagedObjectContextExtensionTests.swift */; };
 		282C85E7223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */; };
 		2846E1F8222F1DE60035F98C /* NetworkReachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1F7222F1DE50035F98C /* NetworkReachability.swift */; };
 		2846E1F9222F1DE60035F98C /* NetworkReachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1F7222F1DE50035F98C /* NetworkReachability.swift */; };
@@ -424,6 +427,7 @@
 		2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		20D4E5F32CB46A41000C92BF /* BacktraceResources-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "BacktraceResources-Info.plist"; sourceTree = "<group>"; };
 		20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+Extensions.swift"; sourceTree = "<group>"; };
+		20DE4B372D48615C0076B3F6 /* NSManagedObjectContextExtensionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSManagedObjectContextExtensionTests.swift; sourceTree = "<group>"; };
 		282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceCrashExceptionApplication.swift; sourceTree = "<group>"; };
 		2846E1F7222F1DE50035F98C /* NetworkReachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkReachability.swift; sourceTree = "<group>"; };
 		2846E1FD223070CB0035F98C /* Attachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Attachment.swift; sourceTree = "<group>"; };
@@ -880,6 +884,7 @@
 		F266B85321C77D5D00D14417 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				20DE4B372D48615C0076B3F6 /* NSManagedObjectContextExtensionTests.swift */,
 				A24A4B5428B595D8004F5052 /* AttachmentStorageTests.swift */,
 				A24A4B4F28B595D8004F5052 /* AttachmentTests.swift */,
 				A24A4B5328B595D8004F5052 /* AttributesTests.swift */,
@@ -2093,6 +2098,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20DE4B382D48616A0076B3F6 /* NSManagedObjectContextExtensionTests.swift in Sources */,
 				A24A4B7D28B595D9004F5052 /* AttachmentStorageTests.swift in Sources */,
 				F21DD39D2255666F00404CC3 /* Quick+Throws.swift in Sources */,
 				A24A4B7428B595D9004F5052 /* BacktraceApiTests.swift in Sources */,
@@ -2212,6 +2218,7 @@
 				F2AB63762246484100939BC9 /* WatcherRepositoryMock.swift in Sources */,
 				A24A4B6428B595D9004F5052 /* BacktraceReporterTests.swift in Sources */,
 				A24A4B5828B595D9004F5052 /* BacktraceMetricsTest.swift in Sources */,
+				20DE4B3A2D48616A0076B3F6 /* NSManagedObjectContextExtensionTests.swift in Sources */,
 				A24A4B6128B595D9004F5052 /* BacktraceFileManagerTests.swift in Sources */,
 				F229D78C223A591F008EC851 /* UrlSessionMock.swift in Sources */,
 				A24A4B7028B595D9004F5052 /* BacktraceCredentialsTests.swift in Sources */,
@@ -2326,6 +2333,7 @@
 				F2AB63752246484100939BC9 /* WatcherRepositoryMock.swift in Sources */,
 				A24A4B6328B595D9004F5052 /* BacktraceReporterTests.swift in Sources */,
 				A24A4B5728B595D9004F5052 /* BacktraceMetricsTest.swift in Sources */,
+				20DE4B392D48616A0076B3F6 /* NSManagedObjectContextExtensionTests.swift in Sources */,
 				A24A4B6028B595D9004F5052 /* BacktraceFileManagerTests.swift in Sources */,
 				F229D78D223A5920008EC851 /* UrlSessionMock.swift in Sources */,
 				A24A4B6F28B595D9004F5052 /* BacktraceCredentialsTests.swift in Sources */,
