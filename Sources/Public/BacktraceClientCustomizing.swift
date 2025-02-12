@@ -169,7 +169,7 @@ enum BacktraceUrlParsingError: Error {
     ///
     /// - Parameters:
     ///   - message: The message to add.
-    ///   - level: The breadcrumb severity level to add
+    ///   - type: The Breadcrumb type to add
     @objc func addBreadcrumb(_ message: String,
                              type: BacktraceBreadcrumbType) -> Bool
 
