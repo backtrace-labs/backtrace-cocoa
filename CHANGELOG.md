@@ -1,5 +1,10 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.0.8
+- Fixes CoreData swift/objc attributes Interoperability (#149)
+- Updates Transformer class to use NSSecureUnarchiveFromData secure coding (#150)
+- Updates PersistentRepository to safely perform concurrent Core Data operations (#151)
+
 ## Version 2.0.7
 - Adds explicit BacktraceResources-Info.plist
 

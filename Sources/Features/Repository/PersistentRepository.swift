@@ -133,7 +133,6 @@ extension PersistentRepository: Repository {
             try backgroundContext.save()
         }
         // File storage outside the Core Data backgroundContext (optional concurrency).
-        // TODO: Verify AttributesStorage for concurrency
         try AttributesStorage.store(resource.attributes, fileName: resource.identifier.uuidString)
     }
     
