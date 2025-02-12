@@ -4,6 +4,7 @@
 - Fixes CoreData swift/objc attributes Interoperability (#149)
 - Updates Transformer class to use NSSecureUnarchiveFromData secure coding (#150)
 - Updates PersistentRepository to safely perform concurrent Core Data operations (#151)
+- Fixes doc-comment parameter name mismatch ("level" → "type") (#153)
 
 ## Version 2.0.7
 - Adds explicit BacktraceResources-Info.plist
