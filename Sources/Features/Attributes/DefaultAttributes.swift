@@ -101,15 +101,6 @@ struct Device: AttributesSource {
         #endif
     }
 
-//    var immutable: [String: Any?] {
-//        return [
-//            "device.machine": try? System.machine(),
-//            "device.model": try? System.machine(),
-//            "uname.sysname": getSysname()
-//        ]
-//    }
-//
-    
     var immutable: [String : Any?] {
         var result: [String : Any?] = [:]
 
@@ -121,6 +112,7 @@ struct Device: AttributesSource {
 
         let machine = try? System.machine()
         result["uname.machine"] = machine
+        result["device.machine"] = machine
 
         let model = try? System.model()
         result["device.model"] = model
