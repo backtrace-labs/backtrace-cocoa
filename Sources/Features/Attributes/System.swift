@@ -240,21 +240,13 @@ struct System {
         }
         return currentTime.tv_sec - bootTime
     }
-
-//    static func machine() throws -> String {
-//        return try SystemControl.string(mib: [CTL_HW, HW_MACHINE])
-//    }
-//
-//    static func model() throws -> String {
-//        return try SystemControl.string(mib: [CTL_HW, HW_MODEL])
-//    }
     
-    static var machine: String {
-        (try? Sysctl.string(forKeys: [CTL_HW, HW_MACHINE])) ?? "unknown"
+    static func machine() throws -> String {
+        return (try? Sysctl.string(forKeys: [CTL_HW, HW_MACHINE])) ?? "unknown"
     }
 
-    static var model: String {
-        (try? Sysctl.string(forKeys: [CTL_HW, HW_MODEL])) ?? "unknown"
+    static func model() throws -> String {
+        return (try? Sysctl.string(forKeys: [CTL_HW, HW_MODEL])) ?? "unknown"
     }
 }
 
