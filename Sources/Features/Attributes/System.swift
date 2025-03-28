@@ -116,7 +116,7 @@ struct SystemControl {
         guard let string = try bytes(mib: mib).withUnsafeBufferPointer({ dataPointer -> String? in
             dataPointer.baseAddress.flatMap { String(validatingUTF8: $0) }
         }) else {
-            throw CodingError.encodingFailed
+            throw SysctlError.invalidUTF8("Failed to convert sysctl data to string.")
         }
         return string
     }
@@ -126,6 +126,33 @@ struct SystemControl {
             guard let baseAddress = buffer.baseAddress else { throw KernError.unexpected }
             return baseAddress.withMemoryRebound(to: T.self, capacity: 1, { $0.pointee })
         })
+    }
+    
+    static func string(forKeys keys: [Int32]) throws -> String {
+        var keys = keys
+        var size = 0
+        if sysctl(&keys, u_int(keys.count), nil, &size, nil, 0) != 0 {
+            throw SysctlError.sysctlFailed("Failed to get size of sysctl data.")
+        }
+
+        var data = [CChar](repeating: 0, count: size)
+        if sysctl(&keys, u_int(keys.count), &data, &size, nil, 0) != 0 {
+            throw SysctlError.sysctlFailed("Failed to get sysctl data.")
+        }
+
+        guard let result = String(cString: data, encoding: .utf8) else {
+            throw SysctlError.invalidUTF8("Failed to convert sysctl data to string.")
+        }
+        return result.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    static func integer<T: FixedWidthInteger>(forName name: String) throws -> T {
+        var size = MemoryLayout<T>.stride
+        var value = T(0)
+        if sysctlbyname(name, &value, &size, nil, 0) != 0 {
+            throw SysctlError.sysctlFailed("Failed to read \(name).")
+        }
+        return value
     }
 }
 
@@ -242,49 +269,19 @@ struct System {
     }
     
     static func machine() throws -> String {
-        return (try? Sysctl.string(forKeys: [CTL_HW, HW_MACHINE])) ?? "unknown"
+        return (try? SystemControl.string(forKeys: [CTL_HW, HW_MACHINE])) ?? "unknown"
     }
 
     static func model() throws -> String {
-        return (try? Sysctl.string(forKeys: [CTL_HW, HW_MODEL])) ?? "unknown"
-    }
-}
-
-struct Sysctl {
-
-    static func string(forKeys keys: [Int32]) throws -> String {
-        var keys = keys
-        var size = 0
-        if sysctl(&keys, u_int(keys.count), nil, &size, nil, 0) != 0 {
-            throw SysctlError.sysctlFailed("Failed to get size of sysctl data.")
-        }
-
-        var data = [CChar](repeating: 0, count: size)
-        if sysctl(&keys, u_int(keys.count), &data, &size, nil, 0) != 0 {
-            throw SysctlError.sysctlFailed("Failed to get sysctl data.")
-        }
-
-        guard let result = String(cString: data, encoding: .utf8) else {
-            throw SysctlError.unknown
-        }
-        return result.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    static func integer<T: FixedWidthInteger>(forName name: String) throws -> T {
-        var size = MemoryLayout<T>.stride
-        var value = T(0)
-        if sysctlbyname(name, &value, &size, nil, 0) != 0 {
-            throw SysctlError.sysctlFailed("Failed to read \(name).")
-        }
-        return value
+        return (try? SystemControl.string(forKeys: [CTL_HW, HW_MODEL])) ?? "unknown"
     }
 }
 
 struct CPU {
     static func architecture() -> String {
         do {
-            let cpuType: cpu_type_t = try Sysctl.integer(forName: "hw.cputype")
-            let cpuSubType: cpu_subtype_t = try Sysctl.integer(forName: "hw.cpusubtype")
+            let cpuType: cpu_type_t = try SystemControl.integer(forName: "hw.cputype")
+            let cpuSubType: cpu_subtype_t = try SystemControl.integer(forName: "hw.cpusubtype")
             
             return architectureString(cpuType: cpuType, cpuSubType: cpuSubType)
         } catch {
@@ -368,7 +365,7 @@ struct OSInfo {
     static var buildNumber: String {
         let mib = [CTL_KERN, KERN_OSVERSION]
         do {
-            return try Sysctl.string(forKeys: mib)
+            return try SystemControl.string(forKeys: mib)
         } catch {
             return "unknown"
         }
@@ -394,11 +391,6 @@ struct Processor {
 enum KernError: Error {
     case code(_ value: Int32)
     case unexpected
-}
-
-enum SysctlError: Error {
-    case unknown
-    case sysctlFailed(String)
 }
 
 // MARK: - CPU ticks
