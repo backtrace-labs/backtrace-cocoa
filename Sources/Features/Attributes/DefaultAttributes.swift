@@ -101,12 +101,37 @@ struct Device: AttributesSource {
         #endif
     }
 
-    var immutable: [String: Any?] {
-        return [
-            "device.machine": try? System.machine(),
-            "device.model": try? System.machine(),
-            "uname.sysname": getSysname()
-        ]
+//    var immutable: [String: Any?] {
+//        return [
+//            "device.machine": try? System.machine(),
+//            "device.model": try? System.machine(),
+//            "uname.sysname": getSysname()
+//        ]
+//    }
+//
+    
+    var immutable: [String : Any?] {
+        var result: [String : Any?] = [:]
+
+        result["device.arch"] = CPU.architecture()
+        result["cpu.arch"] = CPU.architecture()
+        
+        let sysname = OSInfo.name
+        result["uname.sysname"] = sysname
+
+        let machine = System.machine
+        result["uname.machine"] = machine
+
+        let model = System.model
+        result["device.model"] = model
+
+        result["device.isSimulator"] = isSimulator()
+
+        result["device.osName"] = OSInfo.name
+        result["device.osVersion"] = OSInfo.version
+        result["device.osBuildNumber"] = OSInfo.buildNumber
+
+        return result
     }
 
     private func getSysname() -> String {
@@ -119,6 +144,14 @@ struct Device: AttributesSource {
 #else
         return "Unsupported device"
 #endif
+    }
+    
+    func isSimulator() -> Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return false
+        #endif
     }
 }
 
