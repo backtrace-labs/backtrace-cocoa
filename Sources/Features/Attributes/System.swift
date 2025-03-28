@@ -366,7 +366,7 @@ struct OSInfo {
     }
 
     static var buildNumber: String {
-        var mib = [CTL_KERN, KERN_OSVERSION]
+        let mib = [CTL_KERN, KERN_OSVERSION]
         do {
             return try Sysctl.string(forKeys: mib)
         } catch {

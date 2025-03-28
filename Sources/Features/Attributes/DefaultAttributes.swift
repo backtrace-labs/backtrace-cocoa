@@ -119,10 +119,10 @@ struct Device: AttributesSource {
         let sysname = OSInfo.name
         result["uname.sysname"] = sysname
 
-        let machine = System.machine
+        let machine = try? System.machine()
         result["uname.machine"] = machine
 
-        let model = System.model
+        let model = try? System.model()
         result["device.model"] = model
 
         result["device.isSimulator"] = isSimulator()
