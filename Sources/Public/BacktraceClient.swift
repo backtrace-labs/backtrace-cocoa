@@ -52,7 +52,20 @@ import Foundation
     @objc public convenience init(configuration: BacktraceClientConfiguration) throws {
         let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
-        let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
+        
+        let crashReporter: BacktraceCrashReporter
+        if let customDir = configuration.crashDirectory {
+            crashReporter = BacktraceCrashReporter(
+                crashDirectory: customDir,
+                fileProtection: configuration.fileProtection,
+                signalHandlerType: .BSD,
+                symbolicationStrategy: .all
+            )
+        } else {
+            crashReporter = BacktraceCrashReporter()
+        }
+        
+        let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
                                              credentials: configuration.credentials)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)

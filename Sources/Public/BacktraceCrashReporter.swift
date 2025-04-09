@@ -14,6 +14,48 @@ import Darwin
     @objc public convenience init(config: PLCrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all)) {
         self.init(reporter: PLCrashReporter(configuration: config))
     }
+    
+    /**
+     Convenience initializer to create an instance of a crash reporter, allow storing crash logs in a custom directory.
+
+     - Parameters:
+       - crashDirectory: Directory for `.plcrash` logs.
+       - fileProtection:  File protection level. Default is `.none`.
+       - signalHandlerType: Type of crash signal handling. Defaults to `.BSD`.
+       - symbolicationStrategy: Strategy for local symbolication. Defaults to `.all`.
+
+     The directory is created if it doesn't exist, and the file protection attribute is applied.
+     */
+    @objc public convenience init(crashDirectory: URL,
+                                  fileProtection: FileProtectionType = .none,
+                                  signalHandlerType: PLCrashReporterSignalHandlerType = .BSD,
+                                  symbolicationStrategy: PLCrashReporterSymbolicationStrategy = .all) {
+        do {
+            let fm = FileManager.default
+            var attributes = [FileAttributeKey: Any]()
+            attributes[.protectionKey] = fileProtection
+            try fm.createDirectory(
+                at: crashDirectory,
+                withIntermediateDirectories: true,
+                attributes: attributes
+            )
+        } catch {
+            BacktraceLogger.error("Could not create custom crash directory: \(error)")
+        }
+        
+        let basePathConfig = PLCrashReporterConfig(
+            signalHandlerType: signalHandlerType,
+            symbolicationStrategy: symbolicationStrategy,
+            basePath: crashDirectory.path
+        )
+        
+        let defaultConfig = PLCrashReporterConfig(
+            signalHandlerType: .BSD,
+            symbolicationStrategy: .all
+        )
+        
+        self.init(reporter: PLCrashReporter(configuration: basePathConfig) ?? PLCrashReporter(configuration: defaultConfig))
+    }
 
     /// Creates an instance of a crash reporter.
     /// - Parameter reporter: An instance of `PLCrashReporter` to use.
