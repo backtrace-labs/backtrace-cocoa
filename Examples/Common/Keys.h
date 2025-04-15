@@ -6,11 +6,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(class, nonatomic, assign, readonly) NSString *universeName;
 
-/// [Submission URL](https://support.backtrace.io/hc/en-us/articles/360040516451-What-is-a-submission-url-)
+/// [Submission URL](https://docs.saucelabs.com/error-reporting/project-setup/submission-url/#creating-submission-urls)
 @property(class, nonatomic, assign, readonly) NSString *backtraceUrl;
 @property(class, nonatomic, assign, readonly) NSString *backtraceSubmissionUrl;
 
-/// [Submission token](https://support.backtrace.io/hc/en-us/articles/360040105172)
+/// [Submission token](https://docs.saucelabs.com/error-reporting/project-setup/submission-url/#creating-api-tokens)
 @property(class, nonatomic, assign, readonly) NSString *backtraceToken;
 
 @end
