@@ -104,8 +104,9 @@ struct Device: AttributesSource {
     var immutable: [String : Any?] {
         var result: [String : Any?] = [:]
 
-        result["device.arch"] = CPU.architecture()
-        result["cpu.arch"] = CPU.architecture()
+        let architecture = CPU.architecture()
+        result["device.arch"] = architecture
+        result["cpu.arch"] = architecture
         
         let sysname = OSInfo.name
         result["uname.sysname"] = sysname

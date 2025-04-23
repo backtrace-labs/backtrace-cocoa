@@ -112,15 +112,6 @@ struct SystemControl {
         return data
     }
 
-    static func string(mib: [Int32]) throws -> String {
-        guard let string = try bytes(mib: mib).withUnsafeBufferPointer({ dataPointer -> String? in
-            dataPointer.baseAddress.flatMap { String(validatingUTF8: $0) }
-        }) else {
-            throw SysctlError.invalidUTF8("Failed to convert sysctl data to string.")
-        }
-        return string
-    }
-
     static func value<T>(mib: [Int32]) throws -> T {
         return try bytes(mib: mib).withUnsafeBufferPointer({ (buffer) throws -> T in
             guard let baseAddress = buffer.baseAddress else { throw KernError.unexpected }
