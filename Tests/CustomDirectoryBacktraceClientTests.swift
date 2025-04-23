@@ -48,14 +48,14 @@ final class CustomDirectoryBacktraceClientTests: QuickSpec {
                     reporter = BacktraceCrashReporter(config: basePathConfig)
                 }
                 
+#if !targetEnvironment(simulator)
                 it("enables PLCrashReporter without error and respects file protection") {
                     expect { try reporter.enableCrashReporting() }.toNot(throwError())
-#if !targetEnvironment(simulator)
                     let attributes = try? FileManager.default.attributesOfItem(atPath: customDir.path)
                     let protection = attributes?[.protectionKey] as? FileProtectionType
                     expect(protection).to(equal(FileProtectionType.none), description: "Expected file protection to match input (.none).")
-#endif
                 }
+#endif
                 
                 it("generates a live report without error") {
                     expect { _ = try reporter.generateLiveReport(attributes: ["foo": "bar"]) }.toNot(throwError())
