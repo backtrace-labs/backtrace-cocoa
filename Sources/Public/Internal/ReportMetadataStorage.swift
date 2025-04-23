@@ -17,7 +17,7 @@ enum ReportMetadataStorageImpl: ReportMetadataStorage {
         if !FileManager.default.fileExists(atPath: config.directoryUrl.path) {
             try FileManager.default.createDirectory(atPath: config.directoryUrl.path,
                                                     withIntermediateDirectories: false,
-                                                    attributes: nil)
+                                                    attributes: [.protectionKey: FileProtectionType.none])
         }
 
         if #available(iOS 11.0, tvOS 11.0, macOS 10.13, *) {
