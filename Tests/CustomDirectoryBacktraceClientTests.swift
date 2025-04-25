@@ -48,7 +48,7 @@ final class CustomDirectoryBacktraceClientTests: QuickSpec {
                     reporter = BacktraceCrashReporter(config: basePathConfig)
                 }
                 
-#if !targetEnvironment(simulator)
+#if !targetEnvironment(simulator)  && !os(macOS) && !targetEnvironment(macCatalyst)
                 it("enables PLCrashReporter without error and respects file protection") {
                     let attributes = try? FileManager.default.attributesOfItem(atPath: customDir.path)
                     let protection = attributes?[.protectionKey] as? FileProtectionType
