@@ -54,6 +54,25 @@ extension BacktraceCrashReporter: CrashReporting {
         let reportData = try reporter.generateLiveReport(with: exception)
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
+    
+    func generateLiveReport(exception: NSException? = nil,
+                            thread: mach_port_t = mach_thread_self(),
+                            attributes: Attributes,
+                            attachmentPaths: [String] = []) throws -> BacktraceReport {
+        
+        defer { mach_port_deallocate(mach_task_self_, thread) }
+        let reportData = try reporter.generateLiveReport(withThread: thread, exception: exception)
+        
+        return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
+    }
+    
+    // Returns the thread ID
+    // can be used for logging/testing
+    static func currentThreadIdentifier() -> thread_t {
+        let tid = mach_thread_self()
+        mach_port_deallocate(mach_task_self_, tid)
+        return tid
+    }
 
     func enableCrashReporting() throws {
         try reporter.enableAndReturnError()

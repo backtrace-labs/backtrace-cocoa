@@ -118,6 +118,7 @@ extension BacktraceReporter {
                   faultMessage: String? = nil) throws -> BacktraceReport {
         attributesProvider.set(faultMessage: faultMessage)
         let resource = try reporter.generateLiveReport(exception: exception,
+                                                       thread: mach_thread_self(),
                                                        attributes: attributesProvider.allAttributes,
                                                        attachmentPaths: attachmentPaths + attributesProvider.attachmentPaths)
         
