@@ -264,7 +264,11 @@ struct System {
     }
 
     static func model() throws -> String {
+#if os(iOS) || os(tvOS) || os(watchOS)
+        return (try? SystemControl.string(forKeys: [CTL_HW, HW_MACHINE])) ?? "unknown"
+#else
         return (try? SystemControl.string(forKeys: [CTL_HW, HW_MODEL])) ?? "unknown"
+#endif
     }
 }
 
