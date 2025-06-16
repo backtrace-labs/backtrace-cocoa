@@ -1,4 +1,6 @@
 import Foundation
+import MachO
+import Darwin
 
 struct Statistics {
 
@@ -110,20 +112,38 @@ struct SystemControl {
         return data
     }
 
-    static func string(mib: [Int32]) throws -> String {
-        guard let string = try bytes(mib: mib).withUnsafeBufferPointer({ dataPointer -> String? in
-            dataPointer.baseAddress.flatMap { String(validatingUTF8: $0) }
-        }) else {
-            throw CodingError.encodingFailed
-        }
-        return string
-    }
-
     static func value<T>(mib: [Int32]) throws -> T {
         return try bytes(mib: mib).withUnsafeBufferPointer({ (buffer) throws -> T in
             guard let baseAddress = buffer.baseAddress else { throw KernError.unexpected }
             return baseAddress.withMemoryRebound(to: T.self, capacity: 1, { $0.pointee })
         })
+    }
+    
+    static func string(forKeys keys: [Int32]) throws -> String {
+        var keys = keys
+        var size = 0
+        if sysctl(&keys, u_int(keys.count), nil, &size, nil, 0) != 0 {
+            throw SysctlError.sysctlFailed("Failed to get size of sysctl data.")
+        }
+
+        var data = [CChar](repeating: 0, count: size)
+        if sysctl(&keys, u_int(keys.count), &data, &size, nil, 0) != 0 {
+            throw SysctlError.sysctlFailed("Failed to get sysctl data.")
+        }
+
+        guard let result = String(cString: data, encoding: .utf8) else {
+            throw SysctlError.invalidUTF8("Failed to convert sysctl data to string.")
+        }
+        return result.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    static func integer<T: FixedWidthInteger>(forName name: String) throws -> T {
+        var size = MemoryLayout<T>.stride
+        var value = T(0)
+        if sysctlbyname(name, &value, &size, nil, 0) != 0 {
+            throw SysctlError.sysctlFailed("Failed to read \(name).")
+        }
+        return value
     }
 }
 
@@ -238,13 +258,112 @@ struct System {
         }
         return currentTime.tv_sec - bootTime
     }
-
+    
     static func machine() throws -> String {
-        return try SystemControl.string(mib: [CTL_HW, HW_MACHINE])
+        return (try? SystemControl.string(forKeys: [CTL_HW, HW_MACHINE])) ?? "unknown"
     }
 
     static func model() throws -> String {
-        return try SystemControl.string(mib: [CTL_HW, HW_MODEL])
+#if os(iOS) || os(tvOS) || os(watchOS)
+        return (try? SystemControl.string(forKeys: [CTL_HW, HW_MACHINE])) ?? "unknown"
+#else
+        return (try? SystemControl.string(forKeys: [CTL_HW, HW_MODEL])) ?? "unknown"
+#endif
+    }
+}
+
+struct CPU {
+    static func architecture() -> String {
+        do {
+            let cpuType: cpu_type_t = try SystemControl.integer(forName: "hw.cputype")
+            let cpuSubType: cpu_subtype_t = try SystemControl.integer(forName: "hw.cpusubtype")
+            
+            return architectureString(cpuType: cpuType, cpuSubType: cpuSubType)
+        } catch {
+            return "unknown"
+        }
+    }
+
+    private static func architectureString(cpuType: cpu_type_t, cpuSubType: cpu_subtype_t) -> String {
+        switch cpuType {
+        case CPU_TYPE_X86:
+            switch cpuSubType {
+            case CPU_SUBTYPE_X86_64_H:
+                return "x86_64h"
+            case CPU_SUBTYPE_X86_64_ALL:
+                return "x86_64"
+            default:
+                return "x86"
+            }
+        case CPU_TYPE_X86_64:
+            return "x86_64"
+
+        case CPU_TYPE_ARM:
+            switch cpuSubType {
+            case CPU_SUBTYPE_ARM_V6:
+                return "armv6"
+            case CPU_SUBTYPE_ARM_V7:
+                return "armv7"
+            case CPU_SUBTYPE_ARM_V7S:
+                return "armv7s"
+            case CPU_SUBTYPE_ARM_V7K:
+                return "armv7k"
+            default:
+                return "arm"
+            }
+
+        case CPU_TYPE_ARM64, CPU_TYPE_ARM64_32:
+            switch cpuSubType {
+            case CPU_SUBTYPE_ARM64_V8:
+                return "armv8"
+            case CPU_SUBTYPE_ARM64E:
+                return "arm64e"
+            default:
+                return "arm64"
+            }
+
+        default:
+            return "unknown (type=\(cpuType), subType=\(cpuSubType))"
+        }
+    }
+}
+
+struct OSInfo {
+    static var name: String {
+        #if os(macOS)
+        return "macOS"
+        #elseif os(tvOS)
+        return "tvOS"
+        #elseif os(watchOS)
+        return "watchOS"
+        #elseif os(iOS) && !targetEnvironment(macCatalyst)
+        return UIDevice.current.systemName
+        #elseif os(iOS) && targetEnvironment(macCatalyst)
+        return "Catalyst"
+        #else
+        return "unknownOS"
+        #endif
+    }
+
+    static var version: String {
+        #if os(iOS) && !targetEnvironment(macCatalyst)
+        return UIDevice.current.systemVersion
+        #elseif os(watchOS)
+        let version = ProcessInfo.processInfo.operatingSystemVersion
+        return "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
+        #else
+        let version = ProcessInfo.processInfo.operatingSystemVersion
+        return "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
+        #endif
+    }
+
+    static var buildNumber: String {
+        let mib = [CTL_KERN, KERN_OSVERSION]
+        do {
+            return try SystemControl.string(forKeys: mib)
+        } catch {
+            return "unknown"
+        }
     }
 }
 

@@ -39,6 +39,11 @@ enum CodingError: BacktraceError {
     case encodingFailed
 }
 
+enum SysctlError: BacktraceError {
+    case sysctlFailed(String?)
+    case invalidUTF8(String?)
+}
+
 extension HttpError {
     var backtraceStatus: BacktraceReportStatus {
         switch self {
