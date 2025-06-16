@@ -51,7 +51,20 @@ extension BacktraceCrashReporter: CrashReporting {
                             attributes: Attributes,
                             attachmentPaths: [String] = []) throws -> BacktraceReport {
         
-        let reportData = try reporter.generateLiveReport(with: exception)
+        return try generateLiveReport(exception: exception,
+                                          thread: mach_thread_self(),
+                                          attributes: attributes,
+                                          attachmentPaths: attachmentPaths)
+    }
+    
+    func generateLiveReport(exception: NSException? = nil,
+                            thread: mach_port_t,
+                            attributes: Attributes,
+                            attachmentPaths: [String] = []) throws -> BacktraceReport {
+        
+        defer { mach_port_deallocate(mach_task_self_, thread) }
+        let reportData = try reporter.generateLiveReport(withThread: thread, exception: exception)
+        
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
     }
 

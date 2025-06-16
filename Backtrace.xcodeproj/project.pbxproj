@@ -25,6 +25,9 @@
 		2062D9C92C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
 		2062D9CA2C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
 		2062D9CB2C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
+		20B01A542DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
+		20B01A552DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
+		20B01A562DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
 		20B01A4B2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
 		20B01A4C2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
 		20B01A4D2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
@@ -428,6 +431,7 @@
 		2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataClass.swift"; sourceTree = "<group>"; };
 		2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceReporterThreadSpec.swift; sourceTree = "<group>"; };
 		20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDirectoryBacktraceClientTests.swift; sourceTree = "<group>"; };
 		20D4E5F32CB46A41000C92BF /* BacktraceResources-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "BacktraceResources-Info.plist"; sourceTree = "<group>"; };
 		20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+Extensions.swift"; sourceTree = "<group>"; };
@@ -888,6 +892,7 @@
 		F266B85321C77D5D00D14417 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */,
 				20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */,
 				20DE4B372D48615C0076B3F6 /* NSManagedObjectContextExtensionTests.swift */,
 				A24A4B5428B595D8004F5052 /* AttachmentStorageTests.swift */,
@@ -2121,6 +2126,7 @@
 				A24A4B6228B595D9004F5052 /* BacktraceFileManagerTests.swift in Sources */,
 				AFCCCE252625392300B83A28 /* ReportMetadataStorageMock.swift in Sources */,
 				A24A4B7128B595D9004F5052 /* BacktraceCredentialsTests.swift in Sources */,
+				20B01A562DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */,
 				A24A4B5F28B595D9004F5052 /* BacktraceDatabaseTests.swift in Sources */,
 				A24A4B9328B59653004F5052 /* BacktraceNotificationObserverMock.swift in Sources */,
 				A24A4B6B28B595D9004F5052 /* BacktraceRateLimiterTests.swift in Sources */,
@@ -2215,6 +2221,7 @@
 				A24A4B8228B595D9004F5052 /* BacktraceBreadcrumbTests.swift in Sources */,
 				A24A4B7628B595D9004F5052 /* DispatcherTests.swift in Sources */,
 				A24A4B6728B595D9004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
+				20B01A542DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */,
 				F2AB636B2244243500939BC9 /* Quick+Throws.swift in Sources */,
 				A24A4B5B28B595D9004F5052 /* BacktraceWatcherTests.swift in Sources */,
 				A24A4B7928B595D9004F5052 /* AttributesTests.swift in Sources */,
@@ -2331,6 +2338,7 @@
 				A24A4B8128B595D9004F5052 /* BacktraceBreadcrumbTests.swift in Sources */,
 				A24A4B7528B595D9004F5052 /* DispatcherTests.swift in Sources */,
 				A24A4B6628B595D9004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
+				20B01A552DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */,
 				F2AB636A2244243500939BC9 /* Quick+Throws.swift in Sources */,
 				A24A4B5A28B595D9004F5052 /* BacktraceWatcherTests.swift in Sources */,
 				A24A4B7828B595D9004F5052 /* AttributesTests.swift in Sources */,
