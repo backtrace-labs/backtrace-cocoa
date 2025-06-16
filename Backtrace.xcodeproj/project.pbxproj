@@ -25,12 +25,12 @@
 		2062D9C92C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
 		2062D9CA2C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
 		2062D9CB2C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
-		20B01A542DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
-		20B01A552DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
-		20B01A562DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
 		20B01A4B2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
 		20B01A4C2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
 		20B01A4D2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
+		20B01A542DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
+		20B01A552DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
+		20B01A562DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
 		20DE4B342D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
 		20DE4B352D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
 		20DE4B362D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
@@ -431,8 +431,8 @@
 		2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataClass.swift"; sourceTree = "<group>"; };
 		2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceReporterThreadSpec.swift; sourceTree = "<group>"; };
 		20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDirectoryBacktraceClientTests.swift; sourceTree = "<group>"; };
+		20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceReporterThreadSpec.swift; sourceTree = "<group>"; };
 		20D4E5F32CB46A41000C92BF /* BacktraceResources-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "BacktraceResources-Info.plist"; sourceTree = "<group>"; };
 		20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+Extensions.swift"; sourceTree = "<group>"; };
 		20DE4B372D48615C0076B3F6 /* NSManagedObjectContextExtensionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSManagedObjectContextExtensionTests.swift; sourceTree = "<group>"; };
@@ -3446,7 +3446,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.8;
+				MARKETING_VERSION = 2.0.9;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_VERSION = 5.0;
@@ -3460,7 +3460,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MARKETING_VERSION = 2.0.8;
+				MARKETING_VERSION = 2.0.9;
 				STRIP_STYLE = debugging;
 				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_VERSION = 5.0;
