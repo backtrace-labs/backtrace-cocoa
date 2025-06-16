@@ -1,5 +1,11 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.0.9
+- Adds OS/build and CPU/architecture metadata, fixes uname fields, and exposes isSimulator attribute (#154)
+- Updates submission url documentation links in Example Apps (#156)
+- Adds custom .plcrash directory with configurable FileProtectionType and updates example App & Tests (#157)
+- Generates live reports on the faulting thread, fixes thread attribution, and defers Mach-port cleanup (#158)
+
 ## Version 2.0.8
 - Fixes CoreData swift/objc attributes Interoperability (#149)
 - Updates Transformer class to use NSSecureUnarchiveFromData secure coding (#150)
