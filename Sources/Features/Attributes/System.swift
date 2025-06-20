@@ -1,6 +1,9 @@
 import Foundation
 import MachO
 import Darwin
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct Statistics {
 
@@ -336,7 +339,7 @@ struct OSInfo {
         return "tvOS"
         #elseif os(watchOS)
         return "watchOS"
-        #elseif os(iOS) && !targetEnvironment(macCatalyst)
+        #elseif os(iOS) && canImport(UIKit) && !targetEnvironment(macCatalyst)
         return UIDevice.current.systemName
         #elseif os(iOS) && targetEnvironment(macCatalyst)
         return "Catalyst"
@@ -346,7 +349,7 @@ struct OSInfo {
     }
 
     static var version: String {
-        #if os(iOS) && !targetEnvironment(macCatalyst)
+        #if os(iOS) && canImport(UIKit) && !targetEnvironment(macCatalyst)
         return UIDevice.current.systemVersion
         #elseif os(watchOS)
         let version = ProcessInfo.processInfo.operatingSystemVersion
