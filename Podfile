@@ -68,25 +68,25 @@ end
 
 ## Example targets
 target 'Example-iOS' do
-    platform :ios, '12.0'
+    platform :ios, '13.0'
     use_frameworks!
     local_backtrace
 end
 
 target 'Example-iOS-ObjC' do
-    platform :ios, '12.0'
+    platform :ios, '13.0'
     use_frameworks!
     local_backtrace
 end
 
 target 'Example-macOS-ObjC' do
-    platform :osx, '10.13'
+    platform :osx, '12'
     use_frameworks!
     local_backtrace
 end
 
 target 'Example-tvOS' do
-    platform :tvos, '12.0'
+    platform :tvos, '13.0'
     use_frameworks!
     local_backtrace
 end
@@ -96,9 +96,9 @@ post_install do |installer|
     installer.pods_project.targets.each do |target|
         target.build_configurations.each do |config|
             config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
-            config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
-            config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
-            config.build_settings['TVOS_DEPLOYMENT_TARGET'] = '12.0'
+            config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+            config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12'
+            config.build_settings['TVOS_DEPLOYMENT_TARGET'] = '13.0'
         end
     end
   end
