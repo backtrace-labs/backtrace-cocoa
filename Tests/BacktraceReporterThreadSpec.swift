@@ -62,14 +62,13 @@ private final class PLCrashReporterMock: PLCrashReporter {
     private(set) var lastThread: thread_t = mach_thread_self()
     
     override func generateLiveReport(
-        withThread thread: thread_t,
-        exception: NSException?
-    ) throws -> Data {
+        withThread thread: thread_t
+    ) -> Data {
         lastThread = thread
         return Data([0xCA, 0xFE])
     }
     
-    override func generateLiveReport(with exception: NSException?) throws -> Data {
+    override func generateLiveReport() -> Data {
         return Data([0xBE, 0xEF])
     }
 }

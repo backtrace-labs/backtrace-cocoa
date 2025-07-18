@@ -33,7 +33,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   detectOOM: true)
         
         // Customize PLCrashReporterConfig with custom basePath https://docs.saucelabs.com/error-reporting/platform-integrations/ios/configuration/#plcrashreporter
-        guard let plcrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all, basePath: crashDirectory.path) else {
+        guard let plcrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all) else {
             fatalError("Could not create PLCrashReporterConfig")
         }
         

@@ -6,7 +6,7 @@ project 'Backtrace.xcworkspace'
 # Definitions
 def shared_pods
     # Define shared CocoaPods here
-    pod 'PLCrashReporter', '1.11.1' 
+    pod 'PLCrashReporter', '1.8.1' 
 end
 
 def shared_test_pods
@@ -28,7 +28,7 @@ inhibit_all_warnings!
 
 ## Framework iOS
 target 'Backtrace-iOS' do
-    platform :ios, '12.0'
+    platform :ios, '13.0'
     use_frameworks!
     shared_ios_mac_pods
     target 'Backtrace-iOSTests' do
@@ -39,7 +39,7 @@ end
 
 ## Framework macOS
 target 'Backtrace-macOS' do
-    platform :osx, '10.13'
+    platform :osx, '12'
     use_frameworks!
     shared_ios_mac_pods
     target 'Backtrace-macOSTests' do
@@ -50,7 +50,7 @@ end
 
 ## Framework tvOS
 target 'Backtrace-tvOS' do
-    platform :tvos, '12.0'
+    platform :tvos, '13.0'
     use_frameworks!
     shared_pods
     target 'Backtrace-tvOSTests' do
