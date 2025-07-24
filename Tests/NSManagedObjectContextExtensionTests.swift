@@ -20,7 +20,7 @@ final class NSManagedObjectContextExtensionTests: QuickSpec {
                     // in-memory context
                     let mom = NSManagedObjectModel()
                     let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: mom)
-                    try? persistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType,
+                    _ = try? persistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType,
                                                                        configurationName: nil,
                                                                        at: nil,
                                                                        options: nil)

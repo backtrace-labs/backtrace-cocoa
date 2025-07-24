@@ -120,9 +120,15 @@ final class BacktraceApiTests: QuickSpec {
 
             context("given new report") {
                 throwingIt("can modify the report") {
-                    try NSMutableData.init(bytes: [], length: 1024).write(toFile: "path1")
-                    try NSMutableData.init(bytes: [], length: 1024).write(toFile: "path2")
-
+                    let path1URL = URL(fileURLWithPath: "path1")
+                    let path2URL = URL(fileURLWithPath: "path2")
+                    
+                    let path1data = Data(count: 1024)
+                    let path2data = Data(count: 1024)
+                    
+                    try path1data.write(to: path1URL)
+                    try path2data.write(to: path2URL)
+                    
                     let delegate = BacktraceClientDelegateMock()
                     let backtraceReport = try crashReporter.generateLiveReport(attributes: [:])
                     let attachmentPaths = ["path1", "path2"]
