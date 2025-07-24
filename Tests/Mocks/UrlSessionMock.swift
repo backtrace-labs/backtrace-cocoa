@@ -5,7 +5,7 @@ import Backtrace
 typealias VoidClosure = () -> Void
 
 // based on: https://medium.com/@johnsundell/mocking-in-swift-56a913ee7484
-final class URLSessionMock: URLSession {
+final class URLSessionMock: URLSession, @unchecked Sendable {
     typealias CompletionHandler = (Data?, URLResponse?, Error?) -> Void
     // Properties that enable us to set exactly what data or error
     // we want our mocked URLSession to return for any request.
@@ -21,11 +21,19 @@ final class URLSessionMock: URLSession {
 }
 
 // We create a partial mock by subclassing the original class
-final class URLSessionDataTaskMock: URLSessionDataTask {
-    private let closure: () -> Void
-    init(closure: @escaping () -> Void) {
+final class URLSessionDataTaskMock: URLSessionDataTask, @unchecked Sendable {
+    private let closure: VoidClosure
+    
+    /// Test‑only initializer; suppresses the deprecated `super.init()`.
+    @available(
+        iOS, deprecated: 13.0,
+        message: "Unit‑test stubbing only; do not use in production"
+    )
+    init(closure: @escaping VoidClosure) {
         self.closure = closure
+        super.init()
     }
+    
     // We override the 'resume' method and simply call our closure
     // instead of actually resuming any task.
     override func resume() {
