@@ -164,7 +164,7 @@ final class BacktraceOomWatcher {
     }
 
     // MARK: Private – only run on `queue`
-
+    // swiftlint:disable:next identifier_name
     internal func _sendPendingOomReports() {
         defer { Self.clean() }
 
@@ -253,7 +253,7 @@ final class BacktraceOomWatcher {
     }
 
     // MARK: State persistence
-
+    // swiftlint:disable:next identifier_name
     internal func _loadPreviousState() -> ApplicationInfo? {
         guard let url = Self.oomFileURL,
               let data = try? Data(contentsOf: url) else { return nil }
