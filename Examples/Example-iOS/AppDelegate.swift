@@ -30,7 +30,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
                                                                   allowsAttachingDebugger: true,
-                                                                  detectOOM: true)
+                                                                  oomMode: .full)
         
         // Customize PLCrashReporterConfig with custom basePath https://docs.saucelabs.com/error-reporting/platform-integrations/ios/configuration/#plcrashreporter
         guard let plcrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all, basePath: crashDirectory.path) else {

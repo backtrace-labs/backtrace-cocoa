@@ -1,5 +1,15 @@
 import Foundation
 
+/// Determines how the SDK should handle OOM (Out‑Of‑Memory) events.
+@objc public enum BacktraceOomMode: Int {
+    /// Disable OOM tracking (identical to legacy `detectOOM = false`).
+    case none = 0
+    /// Lightweight report (no symbolication, current thread).
+    case light = 1
+    /// Full crash report (all threads, symbolicated) – legacy default.
+    case full = 2
+}
+
 /// Backtrace client configuration settings.
 @objc public class BacktraceClientConfiguration: NSObject {
 
@@ -24,9 +34,18 @@ import Foundation
 
     /// Flag indicating if the Backtrace client should report reports when the debugger is attached. Default `false`.
     @objc public var allowsAttachingDebugger: Bool = false
+    
+    /// How the SDK should handle OOM detection.
+    /// Default is `.none` to preserve launch‑time performance unless the integrator opts‑in.
+    @objc public var oomMode: BacktraceOomMode = .none
 
-    /// Flag responsible for detecting and sending possible OOM cashes
-    @objc public var detectOom: Bool = false
+    /// The legacy `detectOom` boolean remains for source compatibility but is now deprecated.
+    @available(*, deprecated, renamed: "oomMode")
+    @objc public var detectOom: Bool {
+        get { oomMode != .none }
+        set { oomMode = newValue ? .full : .none }
+    }
+    
     /// Produces Backtrace client configuration settings.
     ///
     /// - Parameters:
@@ -41,18 +60,39 @@ import Foundation
     ///   - credentials: Backtrace server API credentials.
     ///   - dbSettings: Backtrace database settings.
     ///   - reportsPerMin: Maximum number of records sent to Backtrace services in 1 minute. Default: `30`.
-    ///   - allowsAttachingDebugger: if set to `true` BacktraceClient will report reports even when the debugger
-    /// is attached. Default: `false`.
-    ///   - detectOOM: if set to `true` BacktraceClient will detect when the app is out of memory. Default: `false`.
+    ///   - allowsAttachingDebugger: if set to `true` BacktraceClient will report reports even when the debugger is attached. Default: `false`.
+    ///   - oomMode: BacktraceOomMode [.none, .light, .full]
     @objc public init(credentials: BacktraceCredentials,
                       dbSettings: BacktraceDatabaseSettings = BacktraceDatabaseSettings(),
                       reportsPerMin: Int = 30,
                       allowsAttachingDebugger: Bool = false,
-                      detectOOM: Bool = false) {
+                      oomMode: BacktraceOomMode = .none) {
         self.credentials = credentials
         self.dbSettings = dbSettings
         self.reportsPerMin = reportsPerMin
         self.allowsAttachingDebugger = allowsAttachingDebugger
-        self.detectOom = detectOOM
+        self.oomMode  = oomMode
+    }
+    
+    /// Legacy Initialiser for compatibility.
+    /// Produces Backtrace client configuration settings.
+    ///
+    /// - Parameters:
+    ///   - credentials: Backtrace server API credentials.
+    ///   - dbSettings: Backtrace database settings.
+    ///   - reportsPerMin: Maximum number of records sent to Backtrace services in 1 minute. Default: `30`.
+    ///   - allowsAttachingDebugger: if set to `true` BacktraceClient will report reports even when the debugger is attached. Default: `false`.
+    ///   - detectOOM: if set to `true` BacktraceClient will detect when the app is out of memory. Default: `false`.
+    @available(*, deprecated, message: "Use init(credentials:dbSettings:reportsPerMin:allowsAttachingDebugger:oomMode:) instead")
+    @objc public convenience init(credentials: BacktraceCredentials,
+                                  dbSettings: BacktraceDatabaseSettings = .init(),
+                                  reportsPerMin: Int = 30,
+                                  allowsAttachingDebugger: Bool = false,
+                                  detectOOM: Bool = false) {
+        self.init(credentials: credentials,
+                  dbSettings: dbSettings,
+                  reportsPerMin: reportsPerMin,
+                  allowsAttachingDebugger: allowsAttachingDebugger,
+                  oomMode: detectOOM ? .full : .none)
     }
 }

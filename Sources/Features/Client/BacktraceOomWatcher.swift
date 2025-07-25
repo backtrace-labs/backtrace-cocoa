@@ -1,253 +1,302 @@
 import Foundation
+import CrashReporter
+import MachO
 
+/// Handles low‑memory warnings and, on the next launch, decides if the previous session ended in an OOM crash.
+///
+/// **Thread‑safety:**
+/// Every public entry‑point hops onto a dedicated serial `queue` : `DispatchQueue`
+/// Callers may invoke the watcher from *any* context without risk of races.
+/// Internal helpers prefixed with `_` expect to already be on that queue.
 final class BacktraceOomWatcher {
 
-    // Relaxed visibility for testing
-    internal var state: ApplicationInfo
+    /// Milliseconds after handling a low‑memory warning during which further warnings are ignored.
+    /// default is 60 seconds
+    var quietTimeInMillis: Int = 60_000
 
-    // time the OomWatcher will ignore new lowMemoryWarnings for after a lowMemoryWarning was processed
-    var quietTimeInMillis: Int = 60 * 1000 // default is 60 seconds
+    // MARK: Private & internal
+    
+    private static let oomFileName = "BacktraceOomState.plist"
+    internal static var oomFileURL: URL? = {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
+            .first?
+            .appendingPathComponent(oomFileName)
+    }()
 
-    let lowMemoryFilePrefix = "_lowMemory"
-    private(set) static var oomFilePath: URL? = getStatusFilePath()
-
-    private(set) var crashReporter: CrashReporting
+    // MARK: Dependencies
+    
+    private let crashReporter: CrashReporting
     private(set) var attributesProvider: AttributesProvider
-    private(set) var backtraceApi: BacktraceApi
+    private let backtraceApi: BacktraceApi
     private let repository: PersistentRepository<BacktraceReport>
+    private let oomMode: BacktraceOomMode
 
-    init(
-        repository: PersistentRepository<BacktraceReport>,
-        crashReporter: CrashReporting,
-        attributes: AttributesProvider,
-        backtraceApi: BacktraceApi) {
-        self.crashReporter = crashReporter
-        self.attributesProvider = attributes
-        self.backtraceApi = backtraceApi
-        self.repository = repository
+    // MARK: Concurrency
 
-        // set default state
-        state = ApplicationInfo()
+    /// Serial queue for all heavy or file‑system work to keep launch fast and avoid races.
+    internal let queue: DispatchQueue
 
-        // set status file url if the default (in the cache dir) didn't work
-        if BacktraceOomWatcher.oomFilePath == nil {
-            // database path will point out sqlite database path
-            // oom status should exist in the same directory where database exists.
-            BacktraceOomWatcher.oomFilePath = self.repository.url.deletingLastPathComponent().absoluteURL
-                .appendingPathComponent("BacktraceOomState.plist")
-        }
+    // MARK: Application State (persisted across launches)
+
+    internal struct ApplicationInfo: Codable {
+        var state: ApplicationState = .active
+        var debugger: Bool          = DebuggerChecker.isAttached()
+        var appVersion: String      = BacktraceOomWatcher.appVersion()
+        var osVersion: String       = ProcessInfo.processInfo.operatingSystemVersionString
+        var memoryWarningReceived   = false
+        var memoryWarningTimestamp: Int?
     }
 
+    internal enum ApplicationState: String, Codable { case active, inactive, background }
+
+    /// In‑memory copy of the current session’s state (serialised to disk on mutation).
+    internal var state = ApplicationInfo()
+
+    // MARK: Static helpers to store attributes/attachments between sessions
+
     internal static var reportAttributes: Attributes? {
-        get {
-            return try? AttributesStorage.retrieve(fileName: "oom_report")
-        }
+        get { try? AttributesStorage.retrieve(fileName: "oom_report") }
         set {
-            if let newValue = newValue {
-                try? AttributesStorage.store(newValue, fileName: "oom_report")
-            } else {
-                try? AttributesStorage.remove(fileName: "oom_report")
-            }
+            do {
+                if let newValue = newValue {
+                    try AttributesStorage.store(newValue, fileName: "oom_report")
+                } else {
+                    try AttributesStorage.remove(fileName: "oom_report")
+                }
+            } catch { BacktraceLogger.error(error) }
         }
     }
 
     internal static var reportAttachments: Attachments? {
-        get {
-            return try? AttachmentsStorage.retrieve(fileName: "oom_report")
-        }
+        get { try? AttachmentsStorage.retrieve(fileName: "oom_report") }
         set {
-            if let newValue = newValue {
-                try? AttachmentsStorage.store(newValue, fileName: "oom_report")
-            } else {
-                try? AttachmentsStorage.remove(fileName: "oom_report")
+            do {
+                if let newValue = newValue {
+                    try AttachmentsStorage.store(newValue, fileName: "oom_report")
+                } else {
+                    try AttachmentsStorage.remove(fileName: "oom_report")
+                }
+            } catch { BacktraceLogger.error(error) }
+        }
+    }
+
+    // MARK: Init / Deinit
+
+    init(repository: PersistentRepository<BacktraceReport>,
+         crashReporter: CrashReporting,
+         attributes: AttributesProvider,
+         backtraceApi: BacktraceApi,
+         oomMode: BacktraceOomMode,
+         qos: DispatchQoS = .utility) {
+
+        self.repository       = repository
+        self.crashReporter    = crashReporter
+        self.attributesProvider = attributes
+        self.backtraceApi     = backtraceApi
+        self.oomMode          = oomMode
+        self.queue            = DispatchQueue(label: "com.backtrace.oom", qos: qos)
+
+        // If the default cache location was not resolved, store next to the DB.
+        if Self.oomFileURL == nil {
+            Self.oomFileURL = repository.url.deletingLastPathComponent()
+                                .appendingPathComponent(Self.oomFileName)
+        }
+    }
+
+    deinit { Self.clean() }
+
+    // MARK: Public API (non-blocking)
+
+    func start() {
+        guard oomMode != .none else { return }
+        
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            self._sendPendingOomReports()
+            self._saveState()
+        }
+    }
+
+    func appChangedState(_ newState: ApplicationState) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            self.state.state = newState
+            self._saveState()
+        }
+    }
+
+    /// A normal termination wipes the OOM marker
+    func handleTermination() {
+        queue.async {
+            Self.clean()
+        }
+    }
+
+    func handleLowMemoryWarning() {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            let now = Date().millisecondsSince1970
+            // ignore if within quiet window
+            if let last = self.state.memoryWarningTimestamp,
+               now - last < self.quietTimeInMillis {
+                return
             }
+            
+            self.state.memoryWarningTimestamp = now
+            self.state.memoryWarningReceived  = true
+            
+            // attributes
+            var attrs = self.attributesProvider.allAttributes
+            attrs["error.message"] = "Out of memory detected."
+            attrs["error.type"] = "Low Memory"
+            attrs["memory.warning.timestamp"] = now
+            attrs["state"] = self.state.state.rawValue
+            
+            if let footprint = Self.currentMemoryFootprint() {
+                attrs["memory.footprint.bytes"] = footprint
+            }
+            
+            Self.reportAttributes = attrs
+            Self.reportAttachments = self.attributesProvider.allAttachments
+            
+            self._saveState()
         }
     }
 
-    deinit {
-        BacktraceOomWatcher.clean()
+    // MARK: Private – only run on `queue`
+    // swiftlint:disable:next identifier_name
+    internal func _sendPendingOomReports() {
+        defer { Self.clean() }
+
+        guard let url = Self.oomFileURL,
+              FileManager.default.fileExists(atPath: url.path),
+              let previousState = _loadPreviousState() else { return }
+
+        guard _shouldReportOom(previousState) else { return }
+
+        _reportOom()
     }
 
-    internal static func clean() {
-        if let oomFilePath = BacktraceOomWatcher.oomFilePath {
-            // ignore errors or use do/catch block to handle errors more gracefully
-            try? FileManager.default.removeItem(at: oomFilePath)
-        }
-        reportAttributes = nil
-        reportAttachments = nil
+    private func _shouldReportOom(_ prev: ApplicationInfo) -> Bool {
+        
+        guard prev.memoryWarningReceived else { return false }
+        guard !prev.debugger else { return false }
+        guard prev.osVersion == ProcessInfo.processInfo.operatingSystemVersionString else { return false }
+        guard prev.appVersion == Self.appVersion() else { return false }
+        return true
     }
 
-    internal static func getAppVersion() -> String {
-        // appVersion is also known as the marketing version, shown on the app store
-        // buildVersion is usually a build number
-        if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-           let buildVersion = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-            return appVersion + "-" + buildVersion
-        } else {
-            return ""
-        }
-    }
-
-    internal func start() {
-        sendPendingOomReports()
-        // override previous application state after reading all information
-        saveState()
-    }
-
-    internal static func getStatusFilePath() -> URL? {
-        // oom status file is available in application cache dir - the same dir
-        // where we store attributes
-        guard let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
-            return nil
-        }
-        return cacheDir.appendingPathComponent("BacktraceOomState.plist")
-    }
-
-    internal func sendPendingOomReports() {
-        // Remove the state file regardless of what happens
-        defer { BacktraceOomWatcher.clean() }
-
-        // if oom state file doesn't exist it means that we deleted it to
-        // prevent sending false oom crashes
-        if let oomFilePath = BacktraceOomWatcher.oomFilePath, !FileManager.default.fileExists(atPath: oomFilePath.path) {
+    private func _reportOom() {
+        // oomMode to use [.light, .full]
+        // never called if oomMode == .none.
+        switch oomMode {
+        case .light:
+            if _sendLightweightOom() { return }
+            BacktraceLogger.warning("Lightweight OOM capture failed – retrying with full report.")
+            // fall back on .full if .light fails
+            fallthrough
+        case .full:
+            _sendFullOom()
+            // edge case (watcher not created in `.none`)
+        case .none:
             return
         }
-
-        guard let appState = self.loadPreviousState() else {
-            return
-        }
-
-        if !shouldReportOom(appState: appState) {
-            return
-        }
-
-        reportOom(appState: appState)
     }
 
-    private func shouldReportOom(appState: ApplicationInfo) -> Bool {
-        // no low memory warning
-        if !appState.memoryWarningReceived {
-            return false
-        }
+    // MARK: Report styles
 
-        // check if debugger was enabled
-        if appState.debugger {
-            // detected debugger in previous session
-            return false
-        }
-        // check system update
-        if appState.version != ProcessInfo.processInfo.operatingSystemVersionString {
-            // detected system update
-            return false
-        }
+    /// .light path: current thread only, no symbolication – returns `true` on success.
+    private func _sendLightweightOom() -> Bool {
+        // PLCrashReporterSymbolicationStrategyNone = [] due to how Swift interoperates with objc
+        // because PLCrashReporterSymbolicationStrategy is defined as an NS_OPTIONS.
+        let cfg = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: [])
+        let lightReporter = PLCrashReporter(configuration: cfg)
+        let thread = mach_thread_self()
+        defer { mach_port_deallocate(mach_task_self_, thread) }
 
-        // check application update
-        if appState.appVersion != BacktraceOomWatcher.getAppVersion() {
-            // detected app update
+        guard let data = try? lightReporter?.generateLiveReport(withThread: thread, exception: nil),
+              let report = try? BacktraceReport(report: data,
+                                                attributes: Self.reportAttributes ?? [:],
+                                                attachmentPaths: Self.reportAttachments?.map(\.path) ?? []) else {
             return false
+        }
+        do {
+            _ = try backtraceApi.send(report)
+        } catch {
+            BacktraceLogger.error(error)
+            try? repository.save(report)
         }
         return true
     }
 
-    private func reportOom(appState: ApplicationInfo) {
-        guard let reportData = try? crashReporter.generateLiveReport(exception: nil,
-                                                                      attributes: [:],
-                                                                      attachmentPaths: []).reportData else {
-             BacktraceLogger.warning("Could not create live_report for OomReport.")
-             return
-         }
-
-        // ok - we detected oom and we should report it
-        guard let report = try? BacktraceReport(report: reportData,
-                                                attributes: BacktraceOomWatcher.reportAttributes ?? [:],
-                                                attachmentPaths: BacktraceOomWatcher.reportAttachments?.map(\.path) ?? [])
+    /// Full path: legacy behaviour (all threads, symbolicated).
+    private func _sendFullOom() {
+        guard let live = try? crashReporter.generateLiveReport(exception: nil,
+                                                               attributes: [:],
+                                                               attachmentPaths: [])
         else {
+            BacktraceLogger.warning("Unable to construct full OOM crash report.")
+            return
+        }
+        
+        guard let report = try? BacktraceReport(report: live.reportData,
+                                                attributes: Self.reportAttributes ?? [:],
+                                                attachmentPaths: Self.reportAttachments?.map(\.path) ?? []) else {
             return
         }
         do {
             _ = try backtraceApi.send(report)
         } catch {
             BacktraceLogger.error(error)
-            try? self.repository.save(report)
+            try? repository.save(report)
         }
     }
-}
 
-extension BacktraceOomWatcher {
-    /// Describes the current application's state
-    enum ApplicationState: String, Codable {
-        /// The app is in the foreground and actively in use.
-        case active
-        /// The app is in an inactive state when it is in the foreground but receiving events.
-        case inactive
-        /// The app transitions into the background.
-        case background
+    // MARK: State persistence
+    // swiftlint:disable:next identifier_name
+    internal func _loadPreviousState() -> ApplicationInfo? {
+        guard let url = Self.oomFileURL,
+              let data = try? Data(contentsOf: url) else { return nil }
+        return try? PropertyListDecoder().decode(ApplicationInfo.self, from: data)
     }
 
-    //// Describes the current application's information
-    struct ApplicationInfo: Codable {
-        var state: ApplicationState = .active
-        var debugger: Bool = DebuggerChecker.isAttached()
-        var appVersion: String = BacktraceOomWatcher.getAppVersion()
-        var version: String = ProcessInfo.processInfo.operatingSystemVersionString
-        var memoryWarningReceived = false
-        var memoryWarningTimestamp: Int?
-    }
-}
-
-extension BacktraceOomWatcher {
-    func appChangedState(_ newState: ApplicationState) {
-        self.state.state = newState
-        saveState()
-    }
-
-    func handleTermination() {
-        // application terminates correctly - for example: user decide to close app
-        BacktraceOomWatcher.clean()
-    }
-
-    func handleLowMemoryWarning() {
-        // If the quiet time hasn't passed, skip to prevent excessive work when app is under memory pressure
-        let now = Date().millisecondsSince1970
-        if let memoryWarningTimestamp = self.state.memoryWarningTimestamp,
-           now - memoryWarningTimestamp < quietTimeInMillis {
-            return
+    private func _saveState() {
+        guard let url = Self.oomFileURL,
+              let data = try? PropertyListEncoder().encode(state) else { return }
+        if FileManager.default.fileExists(atPath: url.path) {
+            try? data.write(to: url)
+        } else {
+            FileManager.default.createFile(atPath: url.path, contents: data)
         }
-
-        self.state.memoryWarningTimestamp = now
-        self.state.memoryWarningReceived = true
-
-        var attributes = attributesProvider.allAttributes
-        attributes["error.message"] = "Out of memory detected."
-        attributes["error.type"] = "Low Memory"
-        attributes["memory.warning.timestamp"] = self.state.memoryWarningTimestamp
-        attributes["state"] = self.state.state.rawValue
-
-        BacktraceOomWatcher.reportAttributes = attributes
-        BacktraceOomWatcher.reportAttachments = attributesProvider.allAttachments
-
-        saveState()
     }
 
-    internal func loadPreviousState() -> ApplicationInfo? {
-        let decoder = PropertyListDecoder()
+    // MARK: Helpers
 
-        guard let destPath = BacktraceOomWatcher.oomFilePath,
-              let data = try? Data(contentsOf: destPath),
-              let previousAppState = try? decoder.decode(ApplicationInfo.self, from: data) else { return nil }
-        return previousAppState
+    /// Removes persisted OOM flag + cached attrs/attachments.
+    internal static func clean() {
+        if let url = Self.oomFileURL { try? FileManager.default.removeItem(at: url) }
+        reportAttributes  = nil
+        reportAttachments = nil
     }
 
-    private func saveState() {
-        let encoder = PropertyListEncoder()
-        if let data = try? encoder.encode(self.state),
-           let destPath = BacktraceOomWatcher.oomFilePath {
-            if FileManager.default.fileExists(atPath: destPath.path) {
-                try? data.write(to: destPath)
-            } else {
-                FileManager.default.createFile(atPath: destPath.path, contents: data, attributes: nil)
+    internal static func appVersion() -> String {
+        let dict = Bundle.main.infoDictionary
+        // appVersion is also known as the marketing version as shown on the app store
+        // buildVersion is usually the build number
+        let app  = dict?["CFBundleShortVersionString"] as? String ?? ""
+        let build = dict?["CFBundleVersion"]           as? String ?? ""
+        return app + "-" + build
+    }
+
+    /// Returns the resident size of the current process in bytes or `nil` if unavailable.
+    private static func currentMemoryFootprint() -> UInt64? {
+        var info  = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout.size(ofValue: info)) / 4
+        let kerr  = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
             }
-
         }
+        return kerr == KERN_SUCCESS ? UInt64(info.resident_size) : nil
     }
 }
