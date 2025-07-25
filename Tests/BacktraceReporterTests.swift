@@ -17,6 +17,7 @@ final class BacktraceReporterTests: QuickSpec {
                                                   api: backtraceApi,
                                                   dbSettings: BacktraceDatabaseSettings(),
                                                   credentials: credentials,
+                                                  oomMode: .full,
                                                   urlSession: urlSession)
 
             throwingBeforeEach {
@@ -26,6 +27,7 @@ final class BacktraceReporterTests: QuickSpec {
                                                  api: backtraceApi,
                                                  dbSettings: BacktraceDatabaseSettings(),
                                                  credentials: credentials,
+                                                 oomMode: .full,
                                                  urlSession: urlSession)
                 try reporter.repository.clear()
                 reporter.delegate = delegate
@@ -102,6 +104,7 @@ final class BacktraceReporterTests: QuickSpec {
                                                      api: backtraceApi,
                                                      dbSettings: BacktraceDatabaseSettings(),
                                                      credentials: credentials,
+                                                     oomMode: .full,
                                                      urlSession: urlSession)
                     reporter.delegate = delegate
 
