@@ -13,15 +13,18 @@ final class BacktraceReporter {
     private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
     private(set) var attributesProvider: SignalContext
     private(set) var backtraceOomWatcher: BacktraceOomWatcher
+    private let oomMode: BacktraceOomMode
     let repository: PersistentRepository<BacktraceReport>
 
     init(reporter: CrashReporting,
          api: BacktraceApi,
          dbSettings: BacktraceDatabaseSettings,
          credentials: BacktraceCredentials,
+         oomMode: BacktraceOomMode,
          urlSession: URLSession = URLSession(configuration: .ephemeral)) throws {
         self.reporter = reporter
         self.api = api
+        self.oomMode = oomMode
         self.watcher =
             BacktraceWatcher(settings: dbSettings,
                              networkClient: BacktraceNetworkClient(urlSession: urlSession),
@@ -34,7 +37,8 @@ final class BacktraceReporter {
             repository: self.repository,
             crashReporter: self.reporter,
             attributes: attributesProvider,
-            backtraceApi: self.api)
+            backtraceApi: self.api,
+            oomMode: oomMode)
         self.reporter.signalContext(&self.attributesProvider)
     }
 }
@@ -140,6 +144,8 @@ typealias Application = NSApplication
 extension BacktraceReporter {
 
     internal func enableOomWatcher() {
+        guard oomMode != .none else { return }
+        
         self.backtraceOomWatcher.start()
 
         NotificationCenter.default.addObserver(self,
