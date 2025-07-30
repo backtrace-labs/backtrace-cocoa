@@ -53,7 +53,7 @@ import Foundation
         let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
-                                             credentials: configuration.credentials)
+                                             credentials: configuration.credentials, oomMode: configuration.oomMode)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)
     }
@@ -68,7 +68,7 @@ import Foundation
         let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
-                                             credentials: configuration.credentials)
+                                             credentials: configuration.credentials, oomMode: configuration.oomMode)
 
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)
@@ -175,6 +175,7 @@ extension BacktraceClient: BacktraceReporting {
         }
 
         try reporter.enableCrashReporter()
+        
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
             do {
@@ -186,7 +187,7 @@ extension BacktraceClient: BacktraceReporting {
                 BacktraceLogger.debug("Started error reporter.")
         })
 
-        if self.configuration.detectOom {
+        if self.configuration.oomMode != .none {
             dispatcher.dispatch({ [weak self] in
                 guard let self = self else { return }
                 self.reporter.enableOomWatcher()
