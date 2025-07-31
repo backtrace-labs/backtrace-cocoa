@@ -13,7 +13,7 @@ let package = Package(
         .library(name: "Backtrace", targets: ["Backtrace"])
     ],
     dependencies: [
-        .package(url: "https://github.com/microsoft/plcrashreporter.git", .exact("1.11.2")),
+        .package(url: "https://github.com/microsoft/plcrashreporter.git", .exact("1.12.0")),
         .package(url: "https://github.com/Quick/Nimble.git", from: "10.0.0"),
         .package(url: "https://github.com/Quick/Quick.git", from: "5.0.1")
     ],
