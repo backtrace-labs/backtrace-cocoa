@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     strategy:
       fail-fast: false
@@ -23,7 +23,7 @@ jobs:
         run: fastlane ${{ matrix.platform }} tests
 
   pod-lint:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
       - uses: actions/checkout@v3
