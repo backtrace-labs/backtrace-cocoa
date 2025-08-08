@@ -1,5 +1,13 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.1.0
+- Adds OSInfo conditional import UIKit & guards UIDevice to unblock non-UIKit builds (#160)
+- Updates Target Platforms (#161)
+- Updates swift tools version, framework targets & handle tests deprecations (#162)
+- Updates OOM handling (#163)
+- Bumps PLCrashReporter ver to 1.12.0' (#165)
+- Pins workflow runner to macos-15 (#166)
+
 ## Version 2.0.9
 - Adds OS/build and CPU/architecture metadata, fixes uname fields, and exposes isSimulator attribute (#154)
 - Updates submission url documentation links in Example Apps (#156)
