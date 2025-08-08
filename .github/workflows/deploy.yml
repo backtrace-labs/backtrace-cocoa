@@ -8,7 +8,7 @@ jobs:
   # test is copied pasted from test.yml - do in a clean way in the future
   # BEGIN COPY PASTE FROM TEST.YML
   test:
-    runs-on: macos-15
+    runs-on: macos-14
     
     strategy:
       fail-fast: false
@@ -23,7 +23,7 @@ jobs:
         run: fastlane ${{ matrix.platform }} tests
     
   pod-lint:
-    runs-on: macos-15
+    runs-on: macos-14
     
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
   # END COPY PASTE FROM TEST.YML
 
   deploy-cocoapods:
-    runs-on: macos-15
+    runs-on: macos-14
     needs: [pod-lint, test]
     
     steps:
@@ -47,7 +47,7 @@ jobs:
          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
 
   sign-and-build-frameworks:
-    runs-on: macos-15
+    runs-on: macos-14
     needs: [pod-lint, test]
 
     steps:
