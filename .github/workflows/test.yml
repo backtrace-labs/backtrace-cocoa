@@ -31,3 +31,98 @@ jobs:
         run: sh scripts/install.sh
       - name: Run pod lib lint
         run: pod lib lint --verbose --allow-warnings --sources='https://cdn.cocoapods.org/'
+  
+  sign-and-build-frameworks:
+    runs-on: macos-14
+    needs: [pod-lint, test]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install pods
+        run: pod install
+      - name: Install the Apple certificate and provisioning profile
+        env:
+          BUILD_CERTIFICATE_BASE64_2026: ${{ secrets.BUILD_CERTIFICATE_BASE64_2026 }}
+          BUILD_PROVISION_PROFILE_BASE64_2026: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64_2026 }}
+          MAC_BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64_2026 }}
+          MAC_BUILD_PROVISION_PROFILE_BASE64_2026: ${{ secrets.MAC_BUILD_PROVISION_PROFILE_BASE64_2026 }}
+          P12_PASSWORD_2026: ${{ secrets.P12_PASSWORD_2026 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+
+          MAC_CERTIFICATE_PATH=$RUNNER_TEMP/mac_build_certificate.p12
+          MAC_PP_PATH=$RUNNER_TEMP/mac_build_pp.provisionprofile
+
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import iOS certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64_2026" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64_2026" | base64 --decode -o $PP_PATH
+
+          # import macOS certificate and provisioning profile from secrets
+          echo -n "$MAC_BUILD_CERTIFICATE_BASE64" | base64 --decode -o $MAC_CERTIFICATE_PATH
+          echo -n "$MAC_BUILD_PROVISION_PROFILE_BASE64_2026" | base64 --decode -o $MAC_PP_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import iOS certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD_2026" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # import macOS certificate to keychain
+          security import $MAC_CERTIFICATE_PATH -P "$P12_PASSWORD_2026" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # apply provisioning profiles
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $MAC_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+      - name: Build frameworks
+        run: sh scripts/xcframeworkgen.sh
+        env:
+          BACKTRACE_VERSION: ${{ github.ref_name }}
+          
+      - name: Codesign frameworks
+        env:
+          DISTRIBUTION_IDENTITY: ${{ secrets.DISTRIBUTION_IDENTITY }}
+        run: |
+          codesign --force --timestamp --sign "$DISTRIBUTION_IDENTITY" frameworks/Backtrace.xcframework
+          codesign --force --timestamp --sign "$DISTRIBUTION_IDENTITY" frameworks/PLCrashReporter/CrashReporter.xcframework  
+
+      - name: Tar files to preserve file permissions
+        run: tar -cvzf Archive_XCFrameworks_${{ github.ref_name }}.tar.gz frameworks/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Archive_XCFrameworks_${{ github.ref_name }}
+          path: Archive_XCFrameworks_${{ github.ref_name }}.tar.gz    
+        
+  upload-xcframeworks:
+    runs-on: ubuntu-latest
+    needs: sign-and-build-frameworks
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        id: download
+        with:
+          path: artifacts/
+
+      - uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: ${{ steps.download.outputs.download-path }}
+          draft: true
+          verbose: env.ACTIONS_STEP_DEBUG
