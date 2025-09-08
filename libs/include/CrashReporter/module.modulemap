@@ -1,0 +1,5 @@
+module CrashReporter [system] {
+  umbrella "."
+  export *
+  module * { export * }
+}

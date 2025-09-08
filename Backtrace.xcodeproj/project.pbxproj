@@ -30,6 +30,38 @@
 		20B01A542DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
 		20B01A552DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
 		20B01A562DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
+		20C03B512E6F5D040026AD73 /* Backtrace.h in Headers */ = {isa = PBXBuildFile; fileRef = F266B81421C77AC800D14417 /* Backtrace.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		20C03B9A2E6F5D040026AD73 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
+		20C03B9B2E6F5D040026AD73 /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
+		20C03BD62E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BD42E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a */; };
+		20C03BD72E6F62910026AD73 /* PLCrashReportExceptionInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC62E6F62910026AD73 /* PLCrashReportExceptionInfo.h */; };
+		20C03BD82E6F62910026AD73 /* PLCrashReportFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC72E6F62910026AD73 /* PLCrashReportFormatter.h */; };
+		20C03BD92E6F62910026AD73 /* PLCrashReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC12E6F62910026AD73 /* PLCrashReport.h */; };
+		20C03BDA2E6F62910026AD73 /* PLCrashReporterConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC52E6F62910026AD73 /* PLCrashReporterConfig.h */; };
+		20C03BDB2E6F62910026AD73 /* PLCrashReportRegisterInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCC2E6F62910026AD73 /* PLCrashReportRegisterInfo.h */; };
+		20C03BDC2E6F62910026AD73 /* PLCrashReporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC42E6F62910026AD73 /* PLCrashReporter.h */; };
+		20C03BDD2E6F62910026AD73 /* PLCrashReportTextFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BD12E6F62910026AD73 /* PLCrashReportTextFormatter.h */; };
+		20C03BDE2E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC82E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h */; };
+		20C03BDF2E6F62910026AD73 /* PLCrashNamespace.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC02E6F62910026AD73 /* PLCrashNamespace.h */; };
+		20C03BE02E6F62910026AD73 /* PLCrashReportSystemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BD02E6F62910026AD73 /* PLCrashReportSystemInfo.h */; };
+		20C03BE12E6F62910026AD73 /* PLCrashReportThreadInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BD22E6F62910026AD73 /* PLCrashReportThreadInfo.h */; };
+		20C03BE22E6F62910026AD73 /* PLCrashReportSignalInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCD2E6F62910026AD73 /* PLCrashReportSignalInfo.h */; };
+		20C03BE32E6F62910026AD73 /* PLCrashReportMachineInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC92E6F62910026AD73 /* PLCrashReportMachineInfo.h */; };
+		20C03BE42E6F62910026AD73 /* CrashReporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BBD2E6F62910026AD73 /* CrashReporter.h */; };
+		20C03BE52E6F62910026AD73 /* PLCrashMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BBF2E6F62910026AD73 /* PLCrashMacros.h */; };
+		20C03BE62E6F62910026AD73 /* PLCrashFeatureConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BBE2E6F62910026AD73 /* PLCrashFeatureConfig.h */; };
+		20C03BE72E6F62910026AD73 /* PLCrashReportProcessInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCA2E6F62910026AD73 /* PLCrashReportProcessInfo.h */; };
+		20C03BE82E6F62910026AD73 /* PLCrashReportSymbolInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCF2E6F62910026AD73 /* PLCrashReportSymbolInfo.h */; };
+		20C03BE92E6F62910026AD73 /* PLCrashReportStackFrameInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCE2E6F62910026AD73 /* PLCrashReportStackFrameInfo.h */; };
+		20C03BEA2E6F62910026AD73 /* PLCrashReportProcessorInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCB2E6F62910026AD73 /* PLCrashReportProcessorInfo.h */; };
+		20C03BEB2E6F62910026AD73 /* PLCrashReportApplicationInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC22E6F62910026AD73 /* PLCrashReportApplicationInfo.h */; };
+		20C03BEC2E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC32E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h */; };
+		20C03BEE2E6F63970026AD73 /* BacktraceUnityBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 20C03BED2E6F63620026AD73 /* BacktraceUnityBridge.mm */; };
+		20C03BF02E6F64050026AD73 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BEF2E6F64050026AD73 /* Foundation.framework */; };
+		20C03BF22E6F64130026AD73 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BF12E6F64130026AD73 /* CoreData.framework */; };
+		20C03BF62E6F65690026AD73 /* Backtrace.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F266B81221C77AC800D14417 /* Backtrace.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		20C03BF92E6F6BEC0026AD73 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BF82E6F6BEC0026AD73 /* AppKit.framework */; };
+		20C03BFC2E6F79400026AD73 /* Backtrace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F266B81221C77AC800D14417 /* Backtrace.framework */; };
 		20DE4B342D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
 		20DE4B352D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
 		20DE4B362D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
@@ -355,6 +387,20 @@
 			remoteGlobalIDString = 2046B4542C46F97800A927DB;
 			remoteInfo = BacktraceResources;
 		};
+		20C03B4E2E6F5D040026AD73 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2046B4542C46F97800A927DB;
+			remoteInfo = BacktraceResources;
+		};
+		20C03BFA2E6F77760026AD73 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F266B81121C77AC800D14417;
+			remoteInfo = "Backtrace-macOS";
+		};
 		28F95BBA22525DCC003936E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
@@ -379,6 +425,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		20C03BF52E6F64F90026AD73 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				20C03BF62E6F65690026AD73 /* Backtrace.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		28C74A2F226FBD7700CE713A /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -431,6 +487,59 @@
 		2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDirectoryBacktraceClientTests.swift; sourceTree = "<group>"; };
 		20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceReporterThreadSpec.swift; sourceTree = "<group>"; };
+		20C03BA12E6F5D040026AD73 /* BacktraceMacUnity.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BacktraceMacUnity.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		20C03BA22E6F5D040026AD73 /* Backtrace-bundle.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Backtrace-bundle.plist"; path = "/Users/melekr/Documents/GitHub/backtrace-cocoa/Backtrace-bundle.plist"; sourceTree = "<absolute>"; };
+		20C03BA32E6F5ED80026AD73 /* libCrashReporter-MacOSX-Static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libCrashReporter-MacOSX-Static.a"; path = "libs/libCrashReporter-MacOSX-Static.a"; sourceTree = "<group>"; };
+		20C03BA62E6F60A10026AD73 /* CrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrashReporter.h; sourceTree = "<group>"; };
+		20C03BA72E6F60A10026AD73 /* PLCrashFeatureConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashFeatureConfig.h; sourceTree = "<group>"; };
+		20C03BA82E6F60A10026AD73 /* PLCrashMacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashMacros.h; sourceTree = "<group>"; };
+		20C03BA92E6F60A10026AD73 /* PLCrashNamespace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashNamespace.h; sourceTree = "<group>"; };
+		20C03BAA2E6F60A10026AD73 /* PLCrashReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReport.h; sourceTree = "<group>"; };
+		20C03BAB2E6F60A10026AD73 /* PLCrashReportApplicationInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportApplicationInfo.h; sourceTree = "<group>"; };
+		20C03BAC2E6F60A10026AD73 /* PLCrashReportBinaryImageInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportBinaryImageInfo.h; sourceTree = "<group>"; };
+		20C03BAD2E6F60A10026AD73 /* PLCrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReporter.h; sourceTree = "<group>"; };
+		20C03BAE2E6F60A10026AD73 /* PLCrashReporterConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReporterConfig.h; sourceTree = "<group>"; };
+		20C03BAF2E6F60A10026AD73 /* PLCrashReportExceptionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportExceptionInfo.h; sourceTree = "<group>"; };
+		20C03BB02E6F60A10026AD73 /* PLCrashReportFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportFormatter.h; sourceTree = "<group>"; };
+		20C03BB12E6F60A10026AD73 /* PLCrashReportMachExceptionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportMachExceptionInfo.h; sourceTree = "<group>"; };
+		20C03BB22E6F60A10026AD73 /* PLCrashReportMachineInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportMachineInfo.h; sourceTree = "<group>"; };
+		20C03BB32E6F60A10026AD73 /* PLCrashReportProcessInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportProcessInfo.h; sourceTree = "<group>"; };
+		20C03BB42E6F60A10026AD73 /* PLCrashReportProcessorInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportProcessorInfo.h; sourceTree = "<group>"; };
+		20C03BB52E6F60A10026AD73 /* PLCrashReportRegisterInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportRegisterInfo.h; sourceTree = "<group>"; };
+		20C03BB62E6F60A10026AD73 /* PLCrashReportSignalInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSignalInfo.h; sourceTree = "<group>"; };
+		20C03BB72E6F60A10026AD73 /* PLCrashReportStackFrameInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportStackFrameInfo.h; sourceTree = "<group>"; };
+		20C03BB82E6F60A10026AD73 /* PLCrashReportSymbolInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSymbolInfo.h; sourceTree = "<group>"; };
+		20C03BB92E6F60A10026AD73 /* PLCrashReportSystemInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSystemInfo.h; sourceTree = "<group>"; };
+		20C03BBA2E6F60A10026AD73 /* PLCrashReportTextFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportTextFormatter.h; sourceTree = "<group>"; };
+		20C03BBB2E6F60A10026AD73 /* PLCrashReportThreadInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportThreadInfo.h; sourceTree = "<group>"; };
+		20C03BBD2E6F62910026AD73 /* CrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrashReporter.h; sourceTree = "<group>"; };
+		20C03BBE2E6F62910026AD73 /* PLCrashFeatureConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashFeatureConfig.h; sourceTree = "<group>"; };
+		20C03BBF2E6F62910026AD73 /* PLCrashMacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashMacros.h; sourceTree = "<group>"; };
+		20C03BC02E6F62910026AD73 /* PLCrashNamespace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashNamespace.h; sourceTree = "<group>"; };
+		20C03BC12E6F62910026AD73 /* PLCrashReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReport.h; sourceTree = "<group>"; };
+		20C03BC22E6F62910026AD73 /* PLCrashReportApplicationInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportApplicationInfo.h; sourceTree = "<group>"; };
+		20C03BC32E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportBinaryImageInfo.h; sourceTree = "<group>"; };
+		20C03BC42E6F62910026AD73 /* PLCrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReporter.h; sourceTree = "<group>"; };
+		20C03BC52E6F62910026AD73 /* PLCrashReporterConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReporterConfig.h; sourceTree = "<group>"; };
+		20C03BC62E6F62910026AD73 /* PLCrashReportExceptionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportExceptionInfo.h; sourceTree = "<group>"; };
+		20C03BC72E6F62910026AD73 /* PLCrashReportFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportFormatter.h; sourceTree = "<group>"; };
+		20C03BC82E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportMachExceptionInfo.h; sourceTree = "<group>"; };
+		20C03BC92E6F62910026AD73 /* PLCrashReportMachineInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportMachineInfo.h; sourceTree = "<group>"; };
+		20C03BCA2E6F62910026AD73 /* PLCrashReportProcessInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportProcessInfo.h; sourceTree = "<group>"; };
+		20C03BCB2E6F62910026AD73 /* PLCrashReportProcessorInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportProcessorInfo.h; sourceTree = "<group>"; };
+		20C03BCC2E6F62910026AD73 /* PLCrashReportRegisterInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportRegisterInfo.h; sourceTree = "<group>"; };
+		20C03BCD2E6F62910026AD73 /* PLCrashReportSignalInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSignalInfo.h; sourceTree = "<group>"; };
+		20C03BCE2E6F62910026AD73 /* PLCrashReportStackFrameInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportStackFrameInfo.h; sourceTree = "<group>"; };
+		20C03BCF2E6F62910026AD73 /* PLCrashReportSymbolInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSymbolInfo.h; sourceTree = "<group>"; };
+		20C03BD02E6F62910026AD73 /* PLCrashReportSystemInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSystemInfo.h; sourceTree = "<group>"; };
+		20C03BD12E6F62910026AD73 /* PLCrashReportTextFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportTextFormatter.h; sourceTree = "<group>"; };
+		20C03BD22E6F62910026AD73 /* PLCrashReportThreadInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportThreadInfo.h; sourceTree = "<group>"; };
+		20C03BD42E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libCrashReporter-MacOSX-Static.a"; sourceTree = "<group>"; };
+		20C03BED2E6F63620026AD73 /* BacktraceUnityBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = BacktraceUnityBridge.mm; sourceTree = "<group>"; };
+		20C03BEF2E6F64050026AD73 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		20C03BF12E6F64130026AD73 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		20C03BF72E6F67DC0026AD73 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		20C03BF82E6F6BEC0026AD73 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		20D4E5F32CB46A41000C92BF /* BacktraceResources-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "BacktraceResources-Info.plist"; sourceTree = "<group>"; };
 		20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+Extensions.swift"; sourceTree = "<group>"; };
 		20DE4B372D48615C0076B3F6 /* NSManagedObjectContextExtensionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSManagedObjectContextExtensionTests.swift; sourceTree = "<group>"; };
@@ -617,6 +726,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		20C03B972E6F5D040026AD73 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20C03BFC2E6F79400026AD73 /* Backtrace.framework in Frameworks */,
+				20C03BF22E6F64130026AD73 /* CoreData.framework in Frameworks */,
+				20C03BF92E6F6BEC0026AD73 /* AppKit.framework in Frameworks */,
+				20C03BF02E6F64050026AD73 /* Foundation.framework in Frameworks */,
+				20C03BD62E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		28F95BAD22525DCC003936E0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -708,6 +829,83 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		20C03BBC2E6F60A10026AD73 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				20C03BA62E6F60A10026AD73 /* CrashReporter.h */,
+				20C03BA72E6F60A10026AD73 /* PLCrashFeatureConfig.h */,
+				20C03BA82E6F60A10026AD73 /* PLCrashMacros.h */,
+				20C03BA92E6F60A10026AD73 /* PLCrashNamespace.h */,
+				20C03BAA2E6F60A10026AD73 /* PLCrashReport.h */,
+				20C03BAB2E6F60A10026AD73 /* PLCrashReportApplicationInfo.h */,
+				20C03BAC2E6F60A10026AD73 /* PLCrashReportBinaryImageInfo.h */,
+				20C03BAD2E6F60A10026AD73 /* PLCrashReporter.h */,
+				20C03BAE2E6F60A10026AD73 /* PLCrashReporterConfig.h */,
+				20C03BAF2E6F60A10026AD73 /* PLCrashReportExceptionInfo.h */,
+				20C03BB02E6F60A10026AD73 /* PLCrashReportFormatter.h */,
+				20C03BB12E6F60A10026AD73 /* PLCrashReportMachExceptionInfo.h */,
+				20C03BB22E6F60A10026AD73 /* PLCrashReportMachineInfo.h */,
+				20C03BB32E6F60A10026AD73 /* PLCrashReportProcessInfo.h */,
+				20C03BB42E6F60A10026AD73 /* PLCrashReportProcessorInfo.h */,
+				20C03BB52E6F60A10026AD73 /* PLCrashReportRegisterInfo.h */,
+				20C03BB62E6F60A10026AD73 /* PLCrashReportSignalInfo.h */,
+				20C03BB72E6F60A10026AD73 /* PLCrashReportStackFrameInfo.h */,
+				20C03BB82E6F60A10026AD73 /* PLCrashReportSymbolInfo.h */,
+				20C03BB92E6F60A10026AD73 /* PLCrashReportSystemInfo.h */,
+				20C03BBA2E6F60A10026AD73 /* PLCrashReportTextFormatter.h */,
+				20C03BBB2E6F60A10026AD73 /* PLCrashReportThreadInfo.h */,
+			);
+			name = include;
+			path = libs/include;
+			sourceTree = "<group>";
+		};
+		20C03BD32E6F62910026AD73 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				20C03BF42E6F64550026AD73 /* CrashReporter */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		20C03BD52E6F62910026AD73 /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				20C03BD32E6F62910026AD73 /* include */,
+				20C03BD42E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a */,
+			);
+			path = libs;
+			sourceTree = "<group>";
+		};
+		20C03BF42E6F64550026AD73 /* CrashReporter */ = {
+			isa = PBXGroup;
+			children = (
+				20C03BF72E6F67DC0026AD73 /* module.modulemap */,
+				20C03BBD2E6F62910026AD73 /* CrashReporter.h */,
+				20C03BBE2E6F62910026AD73 /* PLCrashFeatureConfig.h */,
+				20C03BBF2E6F62910026AD73 /* PLCrashMacros.h */,
+				20C03BC02E6F62910026AD73 /* PLCrashNamespace.h */,
+				20C03BC12E6F62910026AD73 /* PLCrashReport.h */,
+				20C03BC22E6F62910026AD73 /* PLCrashReportApplicationInfo.h */,
+				20C03BC32E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h */,
+				20C03BC42E6F62910026AD73 /* PLCrashReporter.h */,
+				20C03BC52E6F62910026AD73 /* PLCrashReporterConfig.h */,
+				20C03BC62E6F62910026AD73 /* PLCrashReportExceptionInfo.h */,
+				20C03BC72E6F62910026AD73 /* PLCrashReportFormatter.h */,
+				20C03BC82E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h */,
+				20C03BC92E6F62910026AD73 /* PLCrashReportMachineInfo.h */,
+				20C03BCA2E6F62910026AD73 /* PLCrashReportProcessInfo.h */,
+				20C03BCB2E6F62910026AD73 /* PLCrashReportProcessorInfo.h */,
+				20C03BCC2E6F62910026AD73 /* PLCrashReportRegisterInfo.h */,
+				20C03BCD2E6F62910026AD73 /* PLCrashReportSignalInfo.h */,
+				20C03BCE2E6F62910026AD73 /* PLCrashReportStackFrameInfo.h */,
+				20C03BCF2E6F62910026AD73 /* PLCrashReportSymbolInfo.h */,
+				20C03BD02E6F62910026AD73 /* PLCrashReportSystemInfo.h */,
+				20C03BD12E6F62910026AD73 /* PLCrashReportTextFormatter.h */,
+				20C03BD22E6F62910026AD73 /* PLCrashReportThreadInfo.h */,
+			);
+			path = CrashReporter;
+			sourceTree = "<group>";
+		};
 		20D4E5EF2CB45C9A000C92BF /* Backtrace-resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -764,6 +962,11 @@
 		3244E0D003CBFCD7622C2C33 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				20C03BF82E6F6BEC0026AD73 /* AppKit.framework */,
+				20C03BF12E6F64130026AD73 /* CoreData.framework */,
+				20C03BEF2E6F64050026AD73 /* Foundation.framework */,
+				20C03BBC2E6F60A10026AD73 /* include */,
+				20C03BA32E6F5ED80026AD73 /* libCrashReporter-MacOSX-Static.a */,
 				81E86641379A966F00E5C7AD /* Pods_Backtrace_iOS.framework */,
 				9E24C54A0B9E7E16E5BF06C3 /* Pods_Backtrace_iOSTests.framework */,
 				D5072296132BBA537171DB64 /* Pods_Backtrace_macOS.framework */,
@@ -1087,6 +1290,8 @@
 		F2C2FA4421BBD23B00934744 = {
 			isa = PBXGroup;
 			children = (
+				20C03BED2E6F63620026AD73 /* BacktraceUnityBridge.mm */,
+				20C03BD52E6F62910026AD73 /* libs */,
 				20D4E5EF2CB45C9A000C92BF /* Backtrace-resources */,
 				F254690423E6FB750063E4B9 /* Examples */,
 				F266B85321C77D5D00D14417 /* Tests */,
@@ -1100,6 +1305,7 @@
 				F2C2FA5121BBD26300934744 /* Products */,
 				E1CB76ADFD3A1D9326B4E46D /* Pods */,
 				3244E0D003CBFCD7622C2C33 /* Frameworks */,
+				20C03BA22E6F5D040026AD73 /* Backtrace-bundle.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1117,6 +1323,7 @@
 				28F95BB822525DCC003936E0 /* Backtrace-tvOSTests.xctest */,
 				F2A11BF722553C2800354640 /* Example-tvOS.app */,
 				2046B4552C46F97800A927DB /* BacktraceResources.bundle */,
+				20C03BA12E6F5D040026AD73 /* BacktraceMacUnity.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1206,6 +1413,36 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		20C03B502E6F5D040026AD73 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20C03BD72E6F62910026AD73 /* PLCrashReportExceptionInfo.h in Headers */,
+				20C03BD82E6F62910026AD73 /* PLCrashReportFormatter.h in Headers */,
+				20C03BD92E6F62910026AD73 /* PLCrashReport.h in Headers */,
+				20C03BDA2E6F62910026AD73 /* PLCrashReporterConfig.h in Headers */,
+				20C03BDB2E6F62910026AD73 /* PLCrashReportRegisterInfo.h in Headers */,
+				20C03BDC2E6F62910026AD73 /* PLCrashReporter.h in Headers */,
+				20C03BDD2E6F62910026AD73 /* PLCrashReportTextFormatter.h in Headers */,
+				20C03BDE2E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h in Headers */,
+				20C03BDF2E6F62910026AD73 /* PLCrashNamespace.h in Headers */,
+				20C03BE02E6F62910026AD73 /* PLCrashReportSystemInfo.h in Headers */,
+				20C03BE12E6F62910026AD73 /* PLCrashReportThreadInfo.h in Headers */,
+				20C03BE22E6F62910026AD73 /* PLCrashReportSignalInfo.h in Headers */,
+				20C03BE32E6F62910026AD73 /* PLCrashReportMachineInfo.h in Headers */,
+				20C03BE42E6F62910026AD73 /* CrashReporter.h in Headers */,
+				20C03BE52E6F62910026AD73 /* PLCrashMacros.h in Headers */,
+				20C03BE62E6F62910026AD73 /* PLCrashFeatureConfig.h in Headers */,
+				20C03BE72E6F62910026AD73 /* PLCrashReportProcessInfo.h in Headers */,
+				20C03BE82E6F62910026AD73 /* PLCrashReportSymbolInfo.h in Headers */,
+				20C03BE92E6F62910026AD73 /* PLCrashReportStackFrameInfo.h in Headers */,
+				20C03BEA2E6F62910026AD73 /* PLCrashReportProcessorInfo.h in Headers */,
+				20C03BEB2E6F62910026AD73 /* PLCrashReportApplicationInfo.h in Headers */,
+				20C03BEC2E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h in Headers */,
+				20C03B512E6F5D040026AD73 /* Backtrace.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		28F95BAB22525DCC003936E0 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -1248,6 +1485,28 @@
 			name = BacktraceResources;
 			productName = BacktraceResources;
 			productReference = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+		20C03B4C2E6F5D040026AD73 /* Backtrace-bundle */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 20C03B9E2E6F5D040026AD73 /* Build configuration list for PBXNativeTarget "Backtrace-bundle" */;
+			buildPhases = (
+				20C03B502E6F5D040026AD73 /* Headers */,
+				20C03B522E6F5D040026AD73 /* Sources */,
+				20C03B972E6F5D040026AD73 /* Frameworks */,
+				20C03B992E6F5D040026AD73 /* Resources */,
+				20C03B9C2E6F5D040026AD73 /* Lint */,
+				20C03BF52E6F64F90026AD73 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				20C03BFB2E6F77760026AD73 /* PBXTargetDependency */,
+				20C03B4D2E6F5D040026AD73 /* PBXTargetDependency */,
+			);
+			name = "Backtrace-bundle";
+			productName = "Backtrace-macOS";
+			productReference = 20C03BA12E6F5D040026AD73 /* BacktraceMacUnity.bundle */;
 			productType = "com.apple.product-type.bundle";
 		};
 		28F95BAF22525DCC003936E0 /* Backtrace-tvOS */ = {
@@ -1530,6 +1789,7 @@
 				F2D8BE4121BDA7CF007CFEFA /* Example-macOS-ObjC */,
 				F2A11BF622553C2800354640 /* Example-tvOS */,
 				2046B4542C46F97800A927DB /* BacktraceResources */,
+				20C03B4C2E6F5D040026AD73 /* Backtrace-bundle */,
 			);
 		};
 /* End PBXProject section */
@@ -1541,6 +1801,15 @@
 			files = (
 				2050DBC32C66D99100C6CCA9 /* PrivacyInfo.xcprivacy in Resources */,
 				2046B45B2C46FA1100A927DB /* Model.xcdatamodeld in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		20C03B992E6F5D040026AD73 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20C03B9A2E6F5D040026AD73 /* PrivacyInfo.xcprivacy in Resources */,
+				20C03B9B2E6F5D040026AD73 /* BacktraceResources.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1678,6 +1947,24 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		20C03B9C2E6F5D040026AD73 /* Lint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Lint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint >/dev/null; then\nswiftlint\nelse\necho \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		2771D9DCA6F479495207BB6F /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2145,6 +2432,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		20C03B522E6F5D040026AD73 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20C03BEE2E6F63970026AD73 /* BacktraceUnityBridge.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		28F95BAC22525DCC003936E0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2519,6 +2814,16 @@
 			target = 2046B4542C46F97800A927DB /* BacktraceResources */;
 			targetProxy = 2046B4602C46FCED00A927DB /* PBXContainerItemProxy */;
 		};
+		20C03B4D2E6F5D040026AD73 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2046B4542C46F97800A927DB /* BacktraceResources */;
+			targetProxy = 20C03B4E2E6F5D040026AD73 /* PBXContainerItemProxy */;
+		};
+		20C03BFB2E6F77760026AD73 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F266B81121C77AC800D14417 /* Backtrace-macOS */;
+			targetProxy = 20C03BFA2E6F77760026AD73 /* PBXContainerItemProxy */;
+		};
 		28F95BBB22525DCC003936E0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 28F95BAF22525DCC003936E0 /* Backtrace-tvOS */;
@@ -2762,6 +3067,223 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Release;
+		};
+		20C03B9F2E6F5D040026AD73 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E80745B2DB8BAE252FD0C466 /* Pods-Backtrace-macOS.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				DYLIB_INSTALL_NAME_BASE = "";
+				ENABLE_BITCODE = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(inherited)\"",
+					"\" $(CONFIGURATION_BUILD_DIR) $(BUILD_DIR)/Products/$(CONFIGURATION)\"",
+				);
+				FRAMEWORK_VERSION = "";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(CONFIGURATION_BUILD_DIR)/Backtrace.framework/Headers",
+					"$(BUILD_DIR)/Products/$(CONFIGURATION)/Backtrace.framework/Headers",
+					"$(PROJECT_DIR)/libs/include",
+					"$(PROJECT_DIR)/libs/include/CrashReporter",
+				);
+				INFOPLIST_FILE = "Backtrace-bundle.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_DYLIB_INSTALL_NAME = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/libs",
+				);
+				MACH_O_TYPE = mh_bundle;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-l\"c++\"",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
+				PRODUCT_MODULE_NAME = Backtrace;
+				PRODUCT_NAME = BacktraceMacUnity;
+				SDKROOT = macosx;
+				SKIP_INSTALL = NO;
+				STRIP_SWIFT_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 13.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		20C03BA02E6F5D040026AD73 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4D9081B01BBF20E4A9F0649C /* Pods-Backtrace-macOS.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				DYLIB_INSTALL_NAME_BASE = "";
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(inherited)\"",
+					"\" $(CONFIGURATION_BUILD_DIR) $(BUILD_DIR)/Products/$(CONFIGURATION)\"",
+				);
+				FRAMEWORK_VERSION = "";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(CONFIGURATION_BUILD_DIR)/Backtrace.framework/Headers",
+					"$(BUILD_DIR)/Products/$(CONFIGURATION)/Backtrace.framework/Headers",
+					"$(PROJECT_DIR)/libs/include",
+					"$(PROJECT_DIR)/libs/include/CrashReporter",
+				);
+				INFOPLIST_FILE = "Backtrace-bundle.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_DYLIB_INSTALL_NAME = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/libs",
+				);
+				MACH_O_TYPE = mh_bundle;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-l\"c++\"",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
+				PRODUCT_MODULE_NAME = Backtrace;
+				PRODUCT_NAME = BacktraceMacUnity;
+				SDKROOT = macosx;
+				SKIP_INSTALL = NO;
+				STRIP_SWIFT_SYMBOLS = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 13.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
 				WRAPPER_EXTENSION = bundle;
 			};
 			name = Release;
@@ -3076,7 +3598,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E80745B2DB8BAE252FD0C466 /* Pods-Backtrace-macOS.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3165,7 +3686,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4D9081B01BBF20E4A9F0649C /* Pods-Backtrace-macOS.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3580,7 +4100,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = F92D7126629E8ADECA7286BA /* Pods-Backtrace-iOS.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -3673,7 +4192,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D16770278510B65847C3FC13 /* Pods-Backtrace-iOS.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -4381,6 +4899,15 @@
 			buildConfigurations = (
 				2046B4562C46F97800A927DB /* Debug */,
 				2046B4572C46F97800A927DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		20C03B9E2E6F5D040026AD73 /* Build configuration list for PBXNativeTarget "Backtrace-bundle" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				20C03B9F2E6F5D040026AD73 /* Debug */,
+				20C03BA02E6F5D040026AD73 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
