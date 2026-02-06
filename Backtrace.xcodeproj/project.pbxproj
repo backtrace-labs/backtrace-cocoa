@@ -18,6 +18,106 @@
 		2050DBC02C66D98500C6CCA9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
 		2050DBC12C66D98500C6CCA9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
 		2050DBC32C66D99100C6CCA9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
+		205E77DC2F15A3AA0065E445 /* Backtrace.h in Headers */ = {isa = PBXBuildFile; fileRef = F266B81421C77AC800D14417 /* Backtrace.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		205E77DE2F15A3AA0065E445 /* BacktraceNotificationObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B8428B59604004F5052 /* BacktraceNotificationObserver.swift */; };
+		205E77DF2F15A3AA0065E445 /* BacktraceApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE3921BD78A9007CFEFA /* BacktraceApi.swift */; };
+		205E77E02F15A3AA0065E445 /* CrashReporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240531D21C5680600FC9394 /* CrashReporting.swift */; };
+		205E77E12F15A3AA0065E445 /* BacktraceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28162F921EFD6AD00A12B7A /* BacktraceResponse.swift */; };
+		205E77E22F15A3AA0065E445 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28A65305285D1BF700306631 /* Date+Extensions.swift */; };
+		205E77E32F15A3AA0065E445 /* MetricsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713F7276294160075D1C1 /* MetricsRequest.swift */; };
+		205E77E42F15A3AA0065E445 /* BacktraceClientDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79321FDD5E900216C59 /* BacktraceClientDelegate.swift */; };
+		205E77E52F15A3AA0065E445 /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CC8ACA21CF8D8400A68CAC /* Dispatcher.swift */; };
+		205E77E62F15A3AA0065E445 /* AttachmentsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7833BA2613D1B400530A10 /* AttachmentsStorage.swift */; };
+		205E77E72F15A3AA0065E445 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5EA2733174C00B90B07 /* Event.swift */; };
+		205E77E82F15A3AA0065E445 /* BacktraceDatabaseSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773B21FA5A8400FED661 /* BacktraceDatabaseSettings.swift */; };
+		205E77E92F15A3AA0065E445 /* BacktraceLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F240532021C578AA00FC9394 /* BacktraceLogger.swift */; };
+		205E77EA2F15A3AA0065E445 /* BacktraceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E8927274A190005CDF2 /* BacktraceMetrics.swift */; };
+		205E77EB2F15A3AA0065E445 /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
+		205E77EC2F15A3AA0065E445 /* Dispatching.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFB59C22274EDA00AAA1D7 /* Dispatching.swift */; };
+		205E77ED2F15A3AA0065E445 /* NetworkReachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1F7222F1DE50035F98C /* NetworkReachability.swift */; };
+		205E77EE2F15A3AA0065E445 /* SignalContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A7222348C2000B3692 /* SignalContext.swift */; };
+		205E77EF2F15A3AA0065E445 /* AttributesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F259E4E12229C29A00F282C7 /* AttributesProvider.swift */; };
+		205E77F02F15A3AA0065E445 /* BacktraceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22EB87621BBD36800DEE94E /* BacktraceClient.swift */; };
+		205E77F12F15A3AA0065E445 /* BacktraceReportStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25F9E9621EE84AF00236E04 /* BacktraceReportStatus.swift */; };
+		205E77F22F15A3AA0065E445 /* Foundation+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFB5902225E5D000AAA1D7 /* Foundation+Extensions.swift */; };
+		205E77F32F15A3AA0065E445 /* BacktraceNetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26EBF3923F21AEC00A64218 /* BacktraceNetworkClient.swift */; };
+		205E77F42F15A3AA0065E445 /* MultipartRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AC773E220A2A2900FED661 /* MultipartRequest.swift */; };
+		205E77F52F15A3AA0065E445 /* Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E896E97272767080005CDF2 /* Payload.swift */; };
+		205E77F62F15A3AA0065E445 /* ReportingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63802246E16400939BC9 /* ReportingPolicy.swift */; };
+		205E77F72F15A3AA0065E445 /* BacktraceResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25F9E9921EE84EA00236E04 /* BacktraceResult.swift */; };
+		205E77F82F15A3AA0065E445 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21D302A224A18D50013B5D7 /* Store.swift */; };
+		205E77F92F15A3AA0065E445 /* BacktraceError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE3721BD7894007CFEFA /* BacktraceError.swift */; };
+		205E77FA2F15A3AA0065E445 /* BreadcrumbRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B947DBD2A055D21000FAB59 /* BreadcrumbRecord.swift */; };
+		205E77FB2F15A3AA0065E445 /* AttachmentBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */; };
+		205E77FC2F15A3AA0065E445 /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B947DBA2A055CA3000FAB59 /* Queue.swift */; };
+		205E77FD2F15A3AA0065E445 /* ReportMetadataStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7477582620C6B200DEE7D1 /* ReportMetadataStorage.swift */; };
+		205E77FE2F15A3AA0065E445 /* BacktraceBreadcrumbs.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B8828B5960E004F5052 /* BacktraceBreadcrumbs.swift */; };
+		205E77FF2F15A3AA0065E445 /* AttributesStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28966EF92214BBD200E6E891 /* AttributesStorage.swift */; };
+		205E78002F15A3AA0065E445 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = F259E4D52229A40C00F282C7 /* Result.swift */; };
+		205E78012F15A3AA0065E445 /* System.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28635462288958C00F45412 /* System.swift */; };
+		205E78022F15A3AA0065E445 /* Attachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1FD223070CB0035F98C /* Attachment.swift */; };
+		205E78032F15A3AA0065E445 /* BacktraceCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D7122321F10E78002D2A26 /* BacktraceCredentials.swift */; };
+		205E78042F15A3AA0065E445 /* BacktraceReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F164521E28441008E4B96 /* BacktraceReporter.swift */; };
+		205E78052F15A3AA0065E445 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
+		205E78062F15A3AA0065E445 /* BacktraceReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075721CEA31F0017367F /* BacktraceReport.swift */; };
+		205E78072F15A3AA0065E445 /* PersistentRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C1513F21F7D8E30014F1B3 /* PersistentRepository.swift */; };
+		205E78082F15A3AA0065E445 /* DefaultAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28614F9D220B6D7C00D35EFB /* DefaultAttributes.swift */; };
+		205E78092F15A3AA0065E445 /* BacktraceApiProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A81B4C23EF1730007C63E4 /* BacktraceApiProtocol.swift */; };
+		205E780A2F15A3AA0065E445 /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F282075A21CEA37A0017367F /* Repository.swift */; };
+		205E780B2F15A3AA0065E445 /* BacktraceMetricsSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713EF276125760075D1C1 /* BacktraceMetricsSender.swift */; };
+		205E780C2F15A3AA0065E445 /* BacktraceRateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26EBF3723F21AE000A64218 /* BacktraceRateLimiter.swift */; };
+		205E780D2F15A3AA0065E445 /* BacktraceBreadcrumbFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28A652E9285C6C1400306631 /* BacktraceBreadcrumbFile.swift */; };
+		205E780E2F15A3AA0065E445 /* BacktraceMetricsContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713F327617ED00075D1C1 /* BacktraceMetricsContainer.swift */; };
+		205E780F2F15A3AA0065E445 /* HttpMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165021E2A08F008E4B96 /* HttpMethod.swift */; };
+		205E78102F15A3AA0065E445 /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
+		205E78112F15A3AA0065E445 /* BacktraceFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD78C21FC6BC700216C59 /* BacktraceFileManager.swift */; };
+		205E78122F15A3AA0065E445 /* BacktraceBreadcrumbSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B8C28B5961A004F5052 /* BacktraceBreadcrumbSettings.swift */; };
+		205E78132F15A3AA0065E445 /* UniqueEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5FA27347A6E00B90B07 /* UniqueEventsPayload.swift */; };
+		205E78142F15A3AA0065E445 /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
+		205E78152F15A3AA0065E445 /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
+		205E78162F15A3AA0065E445 /* UniqueEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5F2273325A800B90B07 /* UniqueEvent.swift */; };
+		205E78172F15A3AA0065E445 /* BacktraceClientConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D7122021F10C45002D2A26 /* BacktraceClientConfiguration.swift */; };
+		205E78182F15A3AA0065E445 /* BacktraceBreadcrumbsLogManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28A652EB285C6C1500306631 /* BacktraceBreadcrumbsLogManager.swift */; };
+		205E78192F15A3AA0065E445 /* SummedEventsPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713EB275ED4EF0075D1C1 /* SummedEventsPayload.swift */; };
+		205E781A2F15A3AA0065E445 /* BacktraceWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29CD79021FCC25600216C59 /* BacktraceWatcher.swift */; };
+		205E781B2F15A3AA0065E445 /* BacktraceCrashExceptionApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282C85E6223FD8E70014FE75 /* BacktraceCrashExceptionApplication.swift */; };
+		205E781C2F15A3AA0065E445 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
+		205E781D2F15A3AA0065E445 /* SummedEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E87F5F6273332B400B90B07 /* SummedEvent.swift */; };
+		205E781E2F15A3AA0065E445 /* BacktraceClientCustomizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AFB59922274E5400AAA1D7 /* BacktraceClientCustomizing.swift */; };
+		205E781F2F15A3AA0065E445 /* URLSession+Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F165721E2A0DA008E4B96 /* URLSession+Sync.swift */; };
+		205E78202F15A3AA0065E445 /* DebuggerChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */; };
+		205E78212F15A3AA0065E445 /* Map+KeyPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28635392283685100F45412 /* Map+KeyPath.swift */; };
+		205E78252F15A3AA0065E445 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
+		205E782E2F15A63D0065E445 /* libCrashReporter-MacOSX-Static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BD42E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a */; };
+		205E785E2F15ABED0065E445 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BF12E6F64130026AD73 /* CoreData.framework */; };
+		205E785F2F15ABF30065E445 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BF82E6F6BEC0026AD73 /* AppKit.framework */; };
+		205E78602F15ABFD0065E445 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BEF2E6F64050026AD73 /* Foundation.framework */; };
+		205E78782F15B5570065E445 /* Backtrace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 205E782C2F15A3AA0065E445 /* Backtrace.framework */; };
+		205E78792F15B5570065E445 /* Backtrace.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 205E782C2F15A3AA0065E445 /* Backtrace.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		205E78812F15CF3D0065E445 /* BacktraceUnityBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 20C03BED2E6F63620026AD73 /* BacktraceUnityBridge.mm */; };
+		205E788F2F15F3080065E445 /* Model.xcdatamodeld in Resources */ = {isa = PBXBuildFile; fileRef = F2AB639A22479A3200939BC9 /* Model.xcdatamodeld */; };
+		205E78A72F161E950065E445 /* PLCrashReportApplicationInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78962F161E950065E445 /* PLCrashReportApplicationInfo.h */; };
+		205E78A82F161E950065E445 /* CrashReporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78902F161E950065E445 /* CrashReporter.h */; };
+		205E78A92F161E950065E445 /* PLCrashReportTextFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78A52F161E950065E445 /* PLCrashReportTextFormatter.h */; };
+		205E78AA2F161E950065E445 /* PLCrashReportProcessorInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E789F2F161E950065E445 /* PLCrashReportProcessorInfo.h */; };
+		205E78AB2F161E950065E445 /* PLCrashReporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78982F161E950065E445 /* PLCrashReporter.h */; };
+		205E78AC2F161E950065E445 /* PLCrashReportStackFrameInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78A22F161E950065E445 /* PLCrashReportStackFrameInfo.h */; };
+		205E78AD2F161E950065E445 /* PLCrashReportSymbolInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78A32F161E950065E445 /* PLCrashReportSymbolInfo.h */; };
+		205E78AE2F161E950065E445 /* PLCrashReportBinaryImageInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78972F161E950065E445 /* PLCrashReportBinaryImageInfo.h */; };
+		205E78AF2F161E950065E445 /* PLCrashReporterConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78992F161E950065E445 /* PLCrashReporterConfig.h */; };
+		205E78B02F161E950065E445 /* PLCrashFeatureConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78922F161E950065E445 /* PLCrashFeatureConfig.h */; };
+		205E78B12F161E950065E445 /* PLCrashReportProcessInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E789E2F161E950065E445 /* PLCrashReportProcessInfo.h */; };
+		205E78B22F161E950065E445 /* PLCrashReportSignalInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78A12F161E950065E445 /* PLCrashReportSignalInfo.h */; };
+		205E78B32F161E950065E445 /* PLCrashReportMachineInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E789D2F161E950065E445 /* PLCrashReportMachineInfo.h */; };
+		205E78B42F161E950065E445 /* PLCrashReportExceptionInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E789A2F161E950065E445 /* PLCrashReportExceptionInfo.h */; };
+		205E78B52F161E950065E445 /* PLCrashReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78952F161E950065E445 /* PLCrashReport.h */; };
+		205E78B62F161E950065E445 /* PLCrashReportMachExceptionInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E789C2F161E950065E445 /* PLCrashReportMachExceptionInfo.h */; };
+		205E78B72F161E950065E445 /* PLCrashReportRegisterInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78A02F161E950065E445 /* PLCrashReportRegisterInfo.h */; };
+		205E78B82F161E950065E445 /* PLCrashReportFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E789B2F161E950065E445 /* PLCrashReportFormatter.h */; };
+		205E78B92F161E950065E445 /* PLCrashReportSystemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78A42F161E950065E445 /* PLCrashReportSystemInfo.h */; };
+		205E78BA2F161E950065E445 /* PLCrashReportThreadInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78A62F161E950065E445 /* PLCrashReportThreadInfo.h */; };
+		205E78BB2F161E950065E445 /* PLCrashMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78932F161E950065E445 /* PLCrashMacros.h */; };
+		205E78BC2F161E950065E445 /* PLCrashNamespace.h in Headers */ = {isa = PBXBuildFile; fileRef = 205E78942F161E950065E445 /* PLCrashNamespace.h */; };
 		2062D9C62C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
 		2062D9C72C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
 		2062D9C82C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
@@ -31,37 +131,6 @@
 		20B01A552DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
 		20B01A562DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */; };
 		20C03B512E6F5D040026AD73 /* Backtrace.h in Headers */ = {isa = PBXBuildFile; fileRef = F266B81421C77AC800D14417 /* Backtrace.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		20C03B9A2E6F5D040026AD73 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */; };
-		20C03B9B2E6F5D040026AD73 /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
-		20C03BD62E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BD42E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a */; };
-		20C03BD72E6F62910026AD73 /* PLCrashReportExceptionInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC62E6F62910026AD73 /* PLCrashReportExceptionInfo.h */; };
-		20C03BD82E6F62910026AD73 /* PLCrashReportFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC72E6F62910026AD73 /* PLCrashReportFormatter.h */; };
-		20C03BD92E6F62910026AD73 /* PLCrashReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC12E6F62910026AD73 /* PLCrashReport.h */; };
-		20C03BDA2E6F62910026AD73 /* PLCrashReporterConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC52E6F62910026AD73 /* PLCrashReporterConfig.h */; };
-		20C03BDB2E6F62910026AD73 /* PLCrashReportRegisterInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCC2E6F62910026AD73 /* PLCrashReportRegisterInfo.h */; };
-		20C03BDC2E6F62910026AD73 /* PLCrashReporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC42E6F62910026AD73 /* PLCrashReporter.h */; };
-		20C03BDD2E6F62910026AD73 /* PLCrashReportTextFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BD12E6F62910026AD73 /* PLCrashReportTextFormatter.h */; };
-		20C03BDE2E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC82E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h */; };
-		20C03BDF2E6F62910026AD73 /* PLCrashNamespace.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC02E6F62910026AD73 /* PLCrashNamespace.h */; };
-		20C03BE02E6F62910026AD73 /* PLCrashReportSystemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BD02E6F62910026AD73 /* PLCrashReportSystemInfo.h */; };
-		20C03BE12E6F62910026AD73 /* PLCrashReportThreadInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BD22E6F62910026AD73 /* PLCrashReportThreadInfo.h */; };
-		20C03BE22E6F62910026AD73 /* PLCrashReportSignalInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCD2E6F62910026AD73 /* PLCrashReportSignalInfo.h */; };
-		20C03BE32E6F62910026AD73 /* PLCrashReportMachineInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC92E6F62910026AD73 /* PLCrashReportMachineInfo.h */; };
-		20C03BE42E6F62910026AD73 /* CrashReporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BBD2E6F62910026AD73 /* CrashReporter.h */; };
-		20C03BE52E6F62910026AD73 /* PLCrashMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BBF2E6F62910026AD73 /* PLCrashMacros.h */; };
-		20C03BE62E6F62910026AD73 /* PLCrashFeatureConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BBE2E6F62910026AD73 /* PLCrashFeatureConfig.h */; };
-		20C03BE72E6F62910026AD73 /* PLCrashReportProcessInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCA2E6F62910026AD73 /* PLCrashReportProcessInfo.h */; };
-		20C03BE82E6F62910026AD73 /* PLCrashReportSymbolInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCF2E6F62910026AD73 /* PLCrashReportSymbolInfo.h */; };
-		20C03BE92E6F62910026AD73 /* PLCrashReportStackFrameInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCE2E6F62910026AD73 /* PLCrashReportStackFrameInfo.h */; };
-		20C03BEA2E6F62910026AD73 /* PLCrashReportProcessorInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BCB2E6F62910026AD73 /* PLCrashReportProcessorInfo.h */; };
-		20C03BEB2E6F62910026AD73 /* PLCrashReportApplicationInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC22E6F62910026AD73 /* PLCrashReportApplicationInfo.h */; };
-		20C03BEC2E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 20C03BC32E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h */; };
-		20C03BEE2E6F63970026AD73 /* BacktraceUnityBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 20C03BED2E6F63620026AD73 /* BacktraceUnityBridge.mm */; };
-		20C03BF02E6F64050026AD73 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BEF2E6F64050026AD73 /* Foundation.framework */; };
-		20C03BF22E6F64130026AD73 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BF12E6F64130026AD73 /* CoreData.framework */; };
-		20C03BF62E6F65690026AD73 /* Backtrace.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F266B81221C77AC800D14417 /* Backtrace.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		20C03BF92E6F6BEC0026AD73 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20C03BF82E6F6BEC0026AD73 /* AppKit.framework */; };
-		20C03BFC2E6F79400026AD73 /* Backtrace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F266B81221C77AC800D14417 /* Backtrace.framework */; };
 		20DE4B342D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
 		20DE4B352D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
 		20DE4B362D4830D80076B3F6 /* NSManagedObjectContext+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */; };
@@ -387,19 +456,12 @@
 			remoteGlobalIDString = 2046B4542C46F97800A927DB;
 			remoteInfo = BacktraceResources;
 		};
-		20C03B4E2E6F5D040026AD73 /* PBXContainerItemProxy */ = {
+		205E787A2F15B5570065E445 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 2046B4542C46F97800A927DB;
-			remoteInfo = BacktraceResources;
-		};
-		20C03BFA2E6F77760026AD73 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F2C2FA4521BBD23B00934744 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F266B81121C77AC800D14417;
-			remoteInfo = "Backtrace-macOS";
+			remoteGlobalIDString = 205E77D72F15A3AA0065E445;
+			remoteInfo = "Backtrace-macOS-static";
 		};
 		28F95BBA22525DCC003936E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -425,14 +487,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		20C03BF52E6F64F90026AD73 /* CopyFiles */ = {
+		205E787C2F15B5570065E445 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				20C03BF62E6F65690026AD73 /* Backtrace.framework in CopyFiles */,
+				205E78792F15B5570065E445 /* Backtrace.framework in Embed Frameworks */,
 			);
+			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		28C74A2F226FBD7700CE713A /* Embed Frameworks */ = {
@@ -483,11 +546,36 @@
 		2046B4552C46F97800A927DB /* BacktraceResources.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BacktraceResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		2050DB9C2C61A09D00C6CCA9 /* Example-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Example-iOS.entitlements"; sourceTree = "<group>"; };
 		2050DBBE2C66D98500C6CCA9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		205E782C2F15A3AA0065E445 /* Backtrace.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Backtrace.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		205E782D2F15A3AA0065E445 /* Backtrace-macOS-static.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Backtrace-macOS-static.plist"; path = "/Users/melekr/Documents/GitHub/backtrace-cocoa/Backtrace-macOS-static.plist"; sourceTree = "<absolute>"; };
+		205E78902F161E950065E445 /* CrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrashReporter.h; sourceTree = "<group>"; };
+		205E78912F161E950065E445 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		205E78922F161E950065E445 /* PLCrashFeatureConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashFeatureConfig.h; sourceTree = "<group>"; };
+		205E78932F161E950065E445 /* PLCrashMacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashMacros.h; sourceTree = "<group>"; };
+		205E78942F161E950065E445 /* PLCrashNamespace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashNamespace.h; sourceTree = "<group>"; };
+		205E78952F161E950065E445 /* PLCrashReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReport.h; sourceTree = "<group>"; };
+		205E78962F161E950065E445 /* PLCrashReportApplicationInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportApplicationInfo.h; sourceTree = "<group>"; };
+		205E78972F161E950065E445 /* PLCrashReportBinaryImageInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportBinaryImageInfo.h; sourceTree = "<group>"; };
+		205E78982F161E950065E445 /* PLCrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReporter.h; sourceTree = "<group>"; };
+		205E78992F161E950065E445 /* PLCrashReporterConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReporterConfig.h; sourceTree = "<group>"; };
+		205E789A2F161E950065E445 /* PLCrashReportExceptionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportExceptionInfo.h; sourceTree = "<group>"; };
+		205E789B2F161E950065E445 /* PLCrashReportFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportFormatter.h; sourceTree = "<group>"; };
+		205E789C2F161E950065E445 /* PLCrashReportMachExceptionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportMachExceptionInfo.h; sourceTree = "<group>"; };
+		205E789D2F161E950065E445 /* PLCrashReportMachineInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportMachineInfo.h; sourceTree = "<group>"; };
+		205E789E2F161E950065E445 /* PLCrashReportProcessInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportProcessInfo.h; sourceTree = "<group>"; };
+		205E789F2F161E950065E445 /* PLCrashReportProcessorInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportProcessorInfo.h; sourceTree = "<group>"; };
+		205E78A02F161E950065E445 /* PLCrashReportRegisterInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportRegisterInfo.h; sourceTree = "<group>"; };
+		205E78A12F161E950065E445 /* PLCrashReportSignalInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSignalInfo.h; sourceTree = "<group>"; };
+		205E78A22F161E950065E445 /* PLCrashReportStackFrameInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportStackFrameInfo.h; sourceTree = "<group>"; };
+		205E78A32F161E950065E445 /* PLCrashReportSymbolInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSymbolInfo.h; sourceTree = "<group>"; };
+		205E78A42F161E950065E445 /* PLCrashReportSystemInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSystemInfo.h; sourceTree = "<group>"; };
+		205E78A52F161E950065E445 /* PLCrashReportTextFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportTextFormatter.h; sourceTree = "<group>"; };
+		205E78A62F161E950065E445 /* PLCrashReportThreadInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportThreadInfo.h; sourceTree = "<group>"; };
 		2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataClass.swift"; sourceTree = "<group>"; };
 		2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Crash+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDirectoryBacktraceClientTests.swift; sourceTree = "<group>"; };
 		20B01A532DEE4DC600FED98F /* BacktraceReporterThreadSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceReporterThreadSpec.swift; sourceTree = "<group>"; };
-		20C03BA12E6F5D040026AD73 /* BacktraceMacUnity.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BacktraceMacUnity.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		20C03BA12E6F5D040026AD73 /* BacktraceMacUnity.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BacktraceMacUnity.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		20C03BA22E6F5D040026AD73 /* Backtrace-bundle.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Backtrace-bundle.plist"; path = "/Users/melekr/Documents/GitHub/backtrace-cocoa/Backtrace-bundle.plist"; sourceTree = "<absolute>"; };
 		20C03BA32E6F5ED80026AD73 /* libCrashReporter-MacOSX-Static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libCrashReporter-MacOSX-Static.a"; path = "libs/libCrashReporter-MacOSX-Static.a"; sourceTree = "<group>"; };
 		20C03BA62E6F60A10026AD73 /* CrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrashReporter.h; sourceTree = "<group>"; };
@@ -512,33 +600,10 @@
 		20C03BB92E6F60A10026AD73 /* PLCrashReportSystemInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSystemInfo.h; sourceTree = "<group>"; };
 		20C03BBA2E6F60A10026AD73 /* PLCrashReportTextFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportTextFormatter.h; sourceTree = "<group>"; };
 		20C03BBB2E6F60A10026AD73 /* PLCrashReportThreadInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportThreadInfo.h; sourceTree = "<group>"; };
-		20C03BBD2E6F62910026AD73 /* CrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrashReporter.h; sourceTree = "<group>"; };
-		20C03BBE2E6F62910026AD73 /* PLCrashFeatureConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashFeatureConfig.h; sourceTree = "<group>"; };
-		20C03BBF2E6F62910026AD73 /* PLCrashMacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashMacros.h; sourceTree = "<group>"; };
-		20C03BC02E6F62910026AD73 /* PLCrashNamespace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashNamespace.h; sourceTree = "<group>"; };
-		20C03BC12E6F62910026AD73 /* PLCrashReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReport.h; sourceTree = "<group>"; };
-		20C03BC22E6F62910026AD73 /* PLCrashReportApplicationInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportApplicationInfo.h; sourceTree = "<group>"; };
-		20C03BC32E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportBinaryImageInfo.h; sourceTree = "<group>"; };
-		20C03BC42E6F62910026AD73 /* PLCrashReporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReporter.h; sourceTree = "<group>"; };
-		20C03BC52E6F62910026AD73 /* PLCrashReporterConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReporterConfig.h; sourceTree = "<group>"; };
-		20C03BC62E6F62910026AD73 /* PLCrashReportExceptionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportExceptionInfo.h; sourceTree = "<group>"; };
-		20C03BC72E6F62910026AD73 /* PLCrashReportFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportFormatter.h; sourceTree = "<group>"; };
-		20C03BC82E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportMachExceptionInfo.h; sourceTree = "<group>"; };
-		20C03BC92E6F62910026AD73 /* PLCrashReportMachineInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportMachineInfo.h; sourceTree = "<group>"; };
-		20C03BCA2E6F62910026AD73 /* PLCrashReportProcessInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportProcessInfo.h; sourceTree = "<group>"; };
-		20C03BCB2E6F62910026AD73 /* PLCrashReportProcessorInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportProcessorInfo.h; sourceTree = "<group>"; };
-		20C03BCC2E6F62910026AD73 /* PLCrashReportRegisterInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportRegisterInfo.h; sourceTree = "<group>"; };
-		20C03BCD2E6F62910026AD73 /* PLCrashReportSignalInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSignalInfo.h; sourceTree = "<group>"; };
-		20C03BCE2E6F62910026AD73 /* PLCrashReportStackFrameInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportStackFrameInfo.h; sourceTree = "<group>"; };
-		20C03BCF2E6F62910026AD73 /* PLCrashReportSymbolInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSymbolInfo.h; sourceTree = "<group>"; };
-		20C03BD02E6F62910026AD73 /* PLCrashReportSystemInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportSystemInfo.h; sourceTree = "<group>"; };
-		20C03BD12E6F62910026AD73 /* PLCrashReportTextFormatter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportTextFormatter.h; sourceTree = "<group>"; };
-		20C03BD22E6F62910026AD73 /* PLCrashReportThreadInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLCrashReportThreadInfo.h; sourceTree = "<group>"; };
 		20C03BD42E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libCrashReporter-MacOSX-Static.a"; sourceTree = "<group>"; };
 		20C03BED2E6F63620026AD73 /* BacktraceUnityBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = BacktraceUnityBridge.mm; sourceTree = "<group>"; };
 		20C03BEF2E6F64050026AD73 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		20C03BF12E6F64130026AD73 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		20C03BF72E6F67DC0026AD73 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		20C03BF82E6F6BEC0026AD73 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		20D4E5F32CB46A41000C92BF /* BacktraceResources-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "BacktraceResources-Info.plist"; sourceTree = "<group>"; };
 		20DE4B332D4830D00076B3F6 /* NSManagedObjectContext+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+Extensions.swift"; sourceTree = "<group>"; };
@@ -726,15 +791,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		205E78222F15A3AA0065E445 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				205E78602F15ABFD0065E445 /* Foundation.framework in Frameworks */,
+				205E785F2F15ABF30065E445 /* AppKit.framework in Frameworks */,
+				205E785E2F15ABED0065E445 /* CoreData.framework in Frameworks */,
+				205E782E2F15A63D0065E445 /* libCrashReporter-MacOSX-Static.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		20C03B972E6F5D040026AD73 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20C03BFC2E6F79400026AD73 /* Backtrace.framework in Frameworks */,
-				20C03BF22E6F64130026AD73 /* CoreData.framework in Frameworks */,
-				20C03BF92E6F6BEC0026AD73 /* AppKit.framework in Frameworks */,
-				20C03BF02E6F64050026AD73 /* Foundation.framework in Frameworks */,
-				20C03BD62E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a in Frameworks */,
+				205E78782F15B5570065E445 /* Backtrace.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -829,6 +901,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		205E78472F15A63D0065E445 /* include */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = include;
+			path = libs/include;
+			sourceTree = "<group>";
+		};
 		20C03BBC2E6F60A10026AD73 /* include */ = {
 			isa = PBXGroup;
 			children = (
@@ -862,7 +942,29 @@
 		20C03BD32E6F62910026AD73 /* include */ = {
 			isa = PBXGroup;
 			children = (
-				20C03BF42E6F64550026AD73 /* CrashReporter */,
+				205E78902F161E950065E445 /* CrashReporter.h */,
+				205E78912F161E950065E445 /* module.modulemap */,
+				205E78922F161E950065E445 /* PLCrashFeatureConfig.h */,
+				205E78932F161E950065E445 /* PLCrashMacros.h */,
+				205E78942F161E950065E445 /* PLCrashNamespace.h */,
+				205E78952F161E950065E445 /* PLCrashReport.h */,
+				205E78962F161E950065E445 /* PLCrashReportApplicationInfo.h */,
+				205E78972F161E950065E445 /* PLCrashReportBinaryImageInfo.h */,
+				205E78982F161E950065E445 /* PLCrashReporter.h */,
+				205E78992F161E950065E445 /* PLCrashReporterConfig.h */,
+				205E789A2F161E950065E445 /* PLCrashReportExceptionInfo.h */,
+				205E789B2F161E950065E445 /* PLCrashReportFormatter.h */,
+				205E789C2F161E950065E445 /* PLCrashReportMachExceptionInfo.h */,
+				205E789D2F161E950065E445 /* PLCrashReportMachineInfo.h */,
+				205E789E2F161E950065E445 /* PLCrashReportProcessInfo.h */,
+				205E789F2F161E950065E445 /* PLCrashReportProcessorInfo.h */,
+				205E78A02F161E950065E445 /* PLCrashReportRegisterInfo.h */,
+				205E78A12F161E950065E445 /* PLCrashReportSignalInfo.h */,
+				205E78A22F161E950065E445 /* PLCrashReportStackFrameInfo.h */,
+				205E78A32F161E950065E445 /* PLCrashReportSymbolInfo.h */,
+				205E78A42F161E950065E445 /* PLCrashReportSystemInfo.h */,
+				205E78A52F161E950065E445 /* PLCrashReportTextFormatter.h */,
+				205E78A62F161E950065E445 /* PLCrashReportThreadInfo.h */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -874,36 +976,6 @@
 				20C03BD42E6F62910026AD73 /* libCrashReporter-MacOSX-Static.a */,
 			);
 			path = libs;
-			sourceTree = "<group>";
-		};
-		20C03BF42E6F64550026AD73 /* CrashReporter */ = {
-			isa = PBXGroup;
-			children = (
-				20C03BF72E6F67DC0026AD73 /* module.modulemap */,
-				20C03BBD2E6F62910026AD73 /* CrashReporter.h */,
-				20C03BBE2E6F62910026AD73 /* PLCrashFeatureConfig.h */,
-				20C03BBF2E6F62910026AD73 /* PLCrashMacros.h */,
-				20C03BC02E6F62910026AD73 /* PLCrashNamespace.h */,
-				20C03BC12E6F62910026AD73 /* PLCrashReport.h */,
-				20C03BC22E6F62910026AD73 /* PLCrashReportApplicationInfo.h */,
-				20C03BC32E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h */,
-				20C03BC42E6F62910026AD73 /* PLCrashReporter.h */,
-				20C03BC52E6F62910026AD73 /* PLCrashReporterConfig.h */,
-				20C03BC62E6F62910026AD73 /* PLCrashReportExceptionInfo.h */,
-				20C03BC72E6F62910026AD73 /* PLCrashReportFormatter.h */,
-				20C03BC82E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h */,
-				20C03BC92E6F62910026AD73 /* PLCrashReportMachineInfo.h */,
-				20C03BCA2E6F62910026AD73 /* PLCrashReportProcessInfo.h */,
-				20C03BCB2E6F62910026AD73 /* PLCrashReportProcessorInfo.h */,
-				20C03BCC2E6F62910026AD73 /* PLCrashReportRegisterInfo.h */,
-				20C03BCD2E6F62910026AD73 /* PLCrashReportSignalInfo.h */,
-				20C03BCE2E6F62910026AD73 /* PLCrashReportStackFrameInfo.h */,
-				20C03BCF2E6F62910026AD73 /* PLCrashReportSymbolInfo.h */,
-				20C03BD02E6F62910026AD73 /* PLCrashReportSystemInfo.h */,
-				20C03BD12E6F62910026AD73 /* PLCrashReportTextFormatter.h */,
-				20C03BD22E6F62910026AD73 /* PLCrashReportThreadInfo.h */,
-			);
-			path = CrashReporter;
 			sourceTree = "<group>";
 		};
 		20D4E5EF2CB45C9A000C92BF /* Backtrace-resources */ = {
@@ -962,6 +1034,7 @@
 		3244E0D003CBFCD7622C2C33 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				205E78472F15A63D0065E445 /* include */,
 				20C03BF82E6F6BEC0026AD73 /* AppKit.framework */,
 				20C03BF12E6F64130026AD73 /* CoreData.framework */,
 				20C03BEF2E6F64050026AD73 /* Foundation.framework */,
@@ -1306,6 +1379,7 @@
 				E1CB76ADFD3A1D9326B4E46D /* Pods */,
 				3244E0D003CBFCD7622C2C33 /* Frameworks */,
 				20C03BA22E6F5D040026AD73 /* Backtrace-bundle.plist */,
+				205E782D2F15A3AA0065E445 /* Backtrace-macOS-static.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1324,6 +1398,7 @@
 				F2A11BF722553C2800354640 /* Example-tvOS.app */,
 				2046B4552C46F97800A927DB /* BacktraceResources.bundle */,
 				20C03BA12E6F5D040026AD73 /* BacktraceMacUnity.bundle */,
+				205E782C2F15A3AA0065E445 /* Backtrace.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1413,32 +1488,40 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		205E77DB2F15A3AA0065E445 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				205E77DC2F15A3AA0065E445 /* Backtrace.h in Headers */,
+				205E78A72F161E950065E445 /* PLCrashReportApplicationInfo.h in Headers */,
+				205E78A82F161E950065E445 /* CrashReporter.h in Headers */,
+				205E78A92F161E950065E445 /* PLCrashReportTextFormatter.h in Headers */,
+				205E78AA2F161E950065E445 /* PLCrashReportProcessorInfo.h in Headers */,
+				205E78AB2F161E950065E445 /* PLCrashReporter.h in Headers */,
+				205E78AC2F161E950065E445 /* PLCrashReportStackFrameInfo.h in Headers */,
+				205E78AD2F161E950065E445 /* PLCrashReportSymbolInfo.h in Headers */,
+				205E78AE2F161E950065E445 /* PLCrashReportBinaryImageInfo.h in Headers */,
+				205E78AF2F161E950065E445 /* PLCrashReporterConfig.h in Headers */,
+				205E78B02F161E950065E445 /* PLCrashFeatureConfig.h in Headers */,
+				205E78B12F161E950065E445 /* PLCrashReportProcessInfo.h in Headers */,
+				205E78B22F161E950065E445 /* PLCrashReportSignalInfo.h in Headers */,
+				205E78B32F161E950065E445 /* PLCrashReportMachineInfo.h in Headers */,
+				205E78B42F161E950065E445 /* PLCrashReportExceptionInfo.h in Headers */,
+				205E78B52F161E950065E445 /* PLCrashReport.h in Headers */,
+				205E78B62F161E950065E445 /* PLCrashReportMachExceptionInfo.h in Headers */,
+				205E78B72F161E950065E445 /* PLCrashReportRegisterInfo.h in Headers */,
+				205E78B82F161E950065E445 /* PLCrashReportFormatter.h in Headers */,
+				205E78B92F161E950065E445 /* PLCrashReportSystemInfo.h in Headers */,
+				205E78BA2F161E950065E445 /* PLCrashReportThreadInfo.h in Headers */,
+				205E78BB2F161E950065E445 /* PLCrashMacros.h in Headers */,
+				205E78BC2F161E950065E445 /* PLCrashNamespace.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		20C03B502E6F5D040026AD73 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20C03BD72E6F62910026AD73 /* PLCrashReportExceptionInfo.h in Headers */,
-				20C03BD82E6F62910026AD73 /* PLCrashReportFormatter.h in Headers */,
-				20C03BD92E6F62910026AD73 /* PLCrashReport.h in Headers */,
-				20C03BDA2E6F62910026AD73 /* PLCrashReporterConfig.h in Headers */,
-				20C03BDB2E6F62910026AD73 /* PLCrashReportRegisterInfo.h in Headers */,
-				20C03BDC2E6F62910026AD73 /* PLCrashReporter.h in Headers */,
-				20C03BDD2E6F62910026AD73 /* PLCrashReportTextFormatter.h in Headers */,
-				20C03BDE2E6F62910026AD73 /* PLCrashReportMachExceptionInfo.h in Headers */,
-				20C03BDF2E6F62910026AD73 /* PLCrashNamespace.h in Headers */,
-				20C03BE02E6F62910026AD73 /* PLCrashReportSystemInfo.h in Headers */,
-				20C03BE12E6F62910026AD73 /* PLCrashReportThreadInfo.h in Headers */,
-				20C03BE22E6F62910026AD73 /* PLCrashReportSignalInfo.h in Headers */,
-				20C03BE32E6F62910026AD73 /* PLCrashReportMachineInfo.h in Headers */,
-				20C03BE42E6F62910026AD73 /* CrashReporter.h in Headers */,
-				20C03BE52E6F62910026AD73 /* PLCrashMacros.h in Headers */,
-				20C03BE62E6F62910026AD73 /* PLCrashFeatureConfig.h in Headers */,
-				20C03BE72E6F62910026AD73 /* PLCrashReportProcessInfo.h in Headers */,
-				20C03BE82E6F62910026AD73 /* PLCrashReportSymbolInfo.h in Headers */,
-				20C03BE92E6F62910026AD73 /* PLCrashReportStackFrameInfo.h in Headers */,
-				20C03BEA2E6F62910026AD73 /* PLCrashReportProcessorInfo.h in Headers */,
-				20C03BEB2E6F62910026AD73 /* PLCrashReportApplicationInfo.h in Headers */,
-				20C03BEC2E6F62910026AD73 /* PLCrashReportBinaryImageInfo.h in Headers */,
 				20C03B512E6F5D040026AD73 /* Backtrace.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1487,6 +1570,25 @@
 			productReference = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */;
 			productType = "com.apple.product-type.bundle";
 		};
+		205E77D72F15A3AA0065E445 /* Backtrace-macOS-static */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 205E78292F15A3AA0065E445 /* Build configuration list for PBXNativeTarget "Backtrace-macOS-static" */;
+			buildPhases = (
+				205E77DB2F15A3AA0065E445 /* Headers */,
+				205E77DD2F15A3AA0065E445 /* Sources */,
+				205E78222F15A3AA0065E445 /* Frameworks */,
+				205E78242F15A3AA0065E445 /* Resources */,
+				205E78272F15A3AA0065E445 /* Lint */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Backtrace-macOS-static";
+			productName = "Backtrace-macOS";
+			productReference = 205E782C2F15A3AA0065E445 /* Backtrace.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		20C03B4C2E6F5D040026AD73 /* Backtrace-bundle */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 20C03B9E2E6F5D040026AD73 /* Build configuration list for PBXNativeTarget "Backtrace-bundle" */;
@@ -1496,13 +1598,12 @@
 				20C03B972E6F5D040026AD73 /* Frameworks */,
 				20C03B992E6F5D040026AD73 /* Resources */,
 				20C03B9C2E6F5D040026AD73 /* Lint */,
-				20C03BF52E6F64F90026AD73 /* CopyFiles */,
+				205E787C2F15B5570065E445 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				20C03BFB2E6F77760026AD73 /* PBXTargetDependency */,
-				20C03B4D2E6F5D040026AD73 /* PBXTargetDependency */,
+				205E787B2F15B5570065E445 /* PBXTargetDependency */,
 			);
 			name = "Backtrace-bundle";
 			productName = "Backtrace-macOS";
@@ -1790,6 +1891,7 @@
 				F2A11BF622553C2800354640 /* Example-tvOS */,
 				2046B4542C46F97800A927DB /* BacktraceResources */,
 				20C03B4C2E6F5D040026AD73 /* Backtrace-bundle */,
+				205E77D72F15A3AA0065E445 /* Backtrace-macOS-static */,
 			);
 		};
 /* End PBXProject section */
@@ -1804,12 +1906,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		205E78242F15A3AA0065E445 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				205E788F2F15F3080065E445 /* Model.xcdatamodeld in Resources */,
+				205E78252F15A3AA0065E445 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		20C03B992E6F5D040026AD73 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20C03B9A2E6F5D040026AD73 /* PrivacyInfo.xcprivacy in Resources */,
-				20C03B9B2E6F5D040026AD73 /* BacktraceResources.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1947,6 +2056,24 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		205E78272F15A3AA0065E445 /* Lint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Lint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint >/dev/null; then\nswiftlint\nelse\necho \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		20C03B9C2E6F5D040026AD73 /* Lint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2432,11 +2559,86 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		205E77DD2F15A3AA0065E445 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				205E77DE2F15A3AA0065E445 /* BacktraceNotificationObserver.swift in Sources */,
+				205E77DF2F15A3AA0065E445 /* BacktraceApi.swift in Sources */,
+				205E77E02F15A3AA0065E445 /* CrashReporting.swift in Sources */,
+				205E77E12F15A3AA0065E445 /* BacktraceResponse.swift in Sources */,
+				205E77E22F15A3AA0065E445 /* Date+Extensions.swift in Sources */,
+				205E77E32F15A3AA0065E445 /* MetricsRequest.swift in Sources */,
+				205E77E42F15A3AA0065E445 /* BacktraceClientDelegate.swift in Sources */,
+				205E77E52F15A3AA0065E445 /* Dispatcher.swift in Sources */,
+				205E77E62F15A3AA0065E445 /* AttachmentsStorage.swift in Sources */,
+				205E77E72F15A3AA0065E445 /* Event.swift in Sources */,
+				205E78812F15CF3D0065E445 /* BacktraceUnityBridge.mm in Sources */,
+				205E77E82F15A3AA0065E445 /* BacktraceDatabaseSettings.swift in Sources */,
+				205E77E92F15A3AA0065E445 /* BacktraceLogger.swift in Sources */,
+				205E77EA2F15A3AA0065E445 /* BacktraceMetrics.swift in Sources */,
+				205E77EB2F15A3AA0065E445 /* BacktraceMetricsSettings.swift in Sources */,
+				205E77EC2F15A3AA0065E445 /* Dispatching.swift in Sources */,
+				205E77ED2F15A3AA0065E445 /* NetworkReachability.swift in Sources */,
+				205E77EE2F15A3AA0065E445 /* SignalContext.swift in Sources */,
+				205E77EF2F15A3AA0065E445 /* AttributesProvider.swift in Sources */,
+				205E77F02F15A3AA0065E445 /* BacktraceClient.swift in Sources */,
+				205E77F12F15A3AA0065E445 /* BacktraceReportStatus.swift in Sources */,
+				205E77F22F15A3AA0065E445 /* Foundation+Extensions.swift in Sources */,
+				205E77F32F15A3AA0065E445 /* BacktraceNetworkClient.swift in Sources */,
+				205E77F42F15A3AA0065E445 /* MultipartRequest.swift in Sources */,
+				205E77F52F15A3AA0065E445 /* Payload.swift in Sources */,
+				205E77F62F15A3AA0065E445 /* ReportingPolicy.swift in Sources */,
+				205E77F72F15A3AA0065E445 /* BacktraceResult.swift in Sources */,
+				205E77F82F15A3AA0065E445 /* Store.swift in Sources */,
+				205E77F92F15A3AA0065E445 /* BacktraceError.swift in Sources */,
+				205E77FA2F15A3AA0065E445 /* BreadcrumbRecord.swift in Sources */,
+				205E77FB2F15A3AA0065E445 /* AttachmentBookmarkHandler.swift in Sources */,
+				205E77FC2F15A3AA0065E445 /* Queue.swift in Sources */,
+				205E77FD2F15A3AA0065E445 /* ReportMetadataStorage.swift in Sources */,
+				205E77FE2F15A3AA0065E445 /* BacktraceBreadcrumbs.swift in Sources */,
+				205E77FF2F15A3AA0065E445 /* AttributesStorage.swift in Sources */,
+				205E78002F15A3AA0065E445 /* Result.swift in Sources */,
+				205E78012F15A3AA0065E445 /* System.swift in Sources */,
+				205E78022F15A3AA0065E445 /* Attachment.swift in Sources */,
+				205E78032F15A3AA0065E445 /* BacktraceCredentials.swift in Sources */,
+				205E78042F15A3AA0065E445 /* BacktraceReporter.swift in Sources */,
+				205E78052F15A3AA0065E445 /* BacktraceCrashReporter.swift in Sources */,
+				205E78062F15A3AA0065E445 /* BacktraceReport.swift in Sources */,
+				205E78072F15A3AA0065E445 /* PersistentRepository.swift in Sources */,
+				205E78082F15A3AA0065E445 /* DefaultAttributes.swift in Sources */,
+				205E78092F15A3AA0065E445 /* BacktraceApiProtocol.swift in Sources */,
+				205E780A2F15A3AA0065E445 /* Repository.swift in Sources */,
+				205E780B2F15A3AA0065E445 /* BacktraceMetricsSender.swift in Sources */,
+				205E780C2F15A3AA0065E445 /* BacktraceRateLimiter.swift in Sources */,
+				205E780D2F15A3AA0065E445 /* BacktraceBreadcrumbFile.swift in Sources */,
+				205E780E2F15A3AA0065E445 /* BacktraceMetricsContainer.swift in Sources */,
+				205E780F2F15A3AA0065E445 /* HttpMethod.swift in Sources */,
+				205E78102F15A3AA0065E445 /* BacktraceOomWatcher.swift in Sources */,
+				205E78112F15A3AA0065E445 /* BacktraceFileManager.swift in Sources */,
+				205E78122F15A3AA0065E445 /* BacktraceBreadcrumbSettings.swift in Sources */,
+				205E78132F15A3AA0065E445 /* UniqueEventsPayload.swift in Sources */,
+				205E78142F15A3AA0065E445 /* Crash+CoreDataClass.swift in Sources */,
+				205E78152F15A3AA0065E445 /* Crash+CoreDataProperties.swift in Sources */,
+				205E78162F15A3AA0065E445 /* UniqueEvent.swift in Sources */,
+				205E78172F15A3AA0065E445 /* BacktraceClientConfiguration.swift in Sources */,
+				205E78182F15A3AA0065E445 /* BacktraceBreadcrumbsLogManager.swift in Sources */,
+				205E78192F15A3AA0065E445 /* SummedEventsPayload.swift in Sources */,
+				205E781A2F15A3AA0065E445 /* BacktraceWatcher.swift in Sources */,
+				205E781B2F15A3AA0065E445 /* BacktraceCrashExceptionApplication.swift in Sources */,
+				205E781C2F15A3AA0065E445 /* NSManagedObjectContext+Extensions.swift in Sources */,
+				205E781D2F15A3AA0065E445 /* SummedEvent.swift in Sources */,
+				205E781E2F15A3AA0065E445 /* BacktraceClientCustomizing.swift in Sources */,
+				205E781F2F15A3AA0065E445 /* URLSession+Sync.swift in Sources */,
+				205E78202F15A3AA0065E445 /* DebuggerChecker.swift in Sources */,
+				205E78212F15A3AA0065E445 /* Map+KeyPath.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		20C03B522E6F5D040026AD73 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				20C03BEE2E6F63970026AD73 /* BacktraceUnityBridge.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2814,15 +3016,10 @@
 			target = 2046B4542C46F97800A927DB /* BacktraceResources */;
 			targetProxy = 2046B4602C46FCED00A927DB /* PBXContainerItemProxy */;
 		};
-		20C03B4D2E6F5D040026AD73 /* PBXTargetDependency */ = {
+		205E787B2F15B5570065E445 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2046B4542C46F97800A927DB /* BacktraceResources */;
-			targetProxy = 20C03B4E2E6F5D040026AD73 /* PBXContainerItemProxy */;
-		};
-		20C03BFB2E6F77760026AD73 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F266B81121C77AC800D14417 /* Backtrace-macOS */;
-			targetProxy = 20C03BFA2E6F77760026AD73 /* PBXContainerItemProxy */;
+			target = 205E77D72F15A3AA0065E445 /* Backtrace-macOS-static */;
+			targetProxy = 205E787A2F15B5570065E445 /* PBXContainerItemProxy */;
 		};
 		28F95BBB22525DCC003936E0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3071,9 +3268,205 @@
 			};
 			name = Release;
 		};
+		205E782A2F15A3AA0065E445 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_VERSION = A;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/libs/include/",
+				);
+				INFOPLIST_FILE = "Backtrace-macOS-static.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/libs",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				OTHER_SWIFT_FLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
+				PRODUCT_NAME = Backtrace;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRIP_SWIFT_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_INCLUDE_PATHS = "$(PROJECT_DIR)/libs/include/";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 13.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		205E782B2F15A3AA0065E445 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_VERSION = A;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/libs/include/",
+				);
+				INFOPLIST_FILE = "Backtrace-macOS-static.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/libs",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				OTHER_SWIFT_FLAGS = "";
+				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
+				PRODUCT_NAME = Backtrace;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRIP_SWIFT_SYMBOLS = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_INCLUDE_PATHS = "$(PROJECT_DIR)/libs/include/";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TVOS_DEPLOYMENT_TARGET = 13.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		20C03B9F2E6F5D040026AD73 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E80745B2DB8BAE252FD0C466 /* Pods-Backtrace-macOS.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
@@ -3111,7 +3504,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEFINES_MODULE = YES;
+				DEFINES_MODULE = NO;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
@@ -3120,8 +3513,8 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(inherited)\"",
-					"\" $(CONFIGURATION_BUILD_DIR) $(BUILD_DIR)/Products/$(CONFIGURATION)\"",
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
 				);
 				FRAMEWORK_VERSION = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -3140,10 +3533,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(CONFIGURATION_BUILD_DIR)/Backtrace.framework/Headers",
-					"$(BUILD_DIR)/Products/$(CONFIGURATION)/Backtrace.framework/Headers",
-					"$(PROJECT_DIR)/libs/include",
-					"$(PROJECT_DIR)/libs/include/CrashReporter",
+					"$(SRCROOT)/libs/include",
 				);
 				INFOPLIST_FILE = "Backtrace-bundle.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -3155,18 +3545,15 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/libs",
+					"$(SRCROOT)/libs/include",
 				);
 				MACH_O_TYPE = mh_bundle;
 				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-l\"c++\"",
-				);
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
 				PRODUCT_MODULE_NAME = Backtrace;
 				PRODUCT_NAME = BacktraceMacUnity;
@@ -3185,7 +3572,6 @@
 		};
 		20C03BA02E6F5D040026AD73 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4D9081B01BBF20E4A9F0649C /* Pods-Backtrace-macOS.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
@@ -3223,7 +3609,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEFINES_MODULE = YES;
+				DEFINES_MODULE = NO;
 				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
@@ -3232,8 +3618,8 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(inherited)\"",
-					"\" $(CONFIGURATION_BUILD_DIR) $(BUILD_DIR)/Products/$(CONFIGURATION)\"",
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
 				);
 				FRAMEWORK_VERSION = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -3246,10 +3632,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(CONFIGURATION_BUILD_DIR)/Backtrace.framework/Headers",
-					"$(BUILD_DIR)/Products/$(CONFIGURATION)/Backtrace.framework/Headers",
-					"$(PROJECT_DIR)/libs/include",
-					"$(PROJECT_DIR)/libs/include/CrashReporter",
+					"$(SRCROOT)/libs/include",
 				);
 				INFOPLIST_FILE = "Backtrace-bundle.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -3261,17 +3644,14 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/libs",
+					"$(SRCROOT)/libs/include",
 				);
 				MACH_O_TYPE = mh_bundle;
 				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-l\"c++\"",
-				);
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = Backtrace.io.Backtrace;
 				PRODUCT_MODULE_NAME = Backtrace;
 				PRODUCT_NAME = BacktraceMacUnity;
@@ -4899,6 +5279,15 @@
 			buildConfigurations = (
 				2046B4562C46F97800A927DB /* Debug */,
 				2046B4572C46F97800A927DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		205E78292F15A3AA0065E445 /* Build configuration list for PBXNativeTarget "Backtrace-macOS-static" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				205E782A2F15A3AA0065E445 /* Debug */,
+				205E782B2F15A3AA0065E445 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

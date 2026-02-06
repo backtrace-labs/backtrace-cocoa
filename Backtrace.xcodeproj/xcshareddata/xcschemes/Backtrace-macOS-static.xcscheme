@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "20C03B4C2E6F5D040026AD73"
-               BuildableName = "BacktraceMacUnity.bundle"
-               BlueprintName = "Backtrace-bundle"
+               BlueprintIdentifier = "205E77D72F15A3AA0065E445"
+               BuildableName = "Backtrace-macOS-static.framework"
+               BlueprintName = "Backtrace-macOS-static"
                ReferencedContainer = "container:Backtrace.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -50,9 +50,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "20C03B4C2E6F5D040026AD73"
-            BuildableName = "BacktraceMacUnity.bundle"
-            BlueprintName = "Backtrace-bundle"
+            BlueprintIdentifier = "205E77D72F15A3AA0065E445"
+            BuildableName = "Backtrace-macOS-static.framework"
+            BlueprintName = "Backtrace-macOS-static"
             ReferencedContainer = "container:Backtrace.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

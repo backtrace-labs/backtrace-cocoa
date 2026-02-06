@@ -1,14 +1,15 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 #import <AppKit/AppKit.h>
-#import <CrashReporter/CrashReporter.h>
-// Swift-generated umbrella header from Backtrace.xcframework:
+
+// Backtrace.xcframework: Swift-generated umbrella header
 #if __has_include(<Backtrace/Backtrace-Swift.h>)
 #  import <Backtrace/Backtrace-Swift.h>
 #else
 #  import "Backtrace-Swift.h"
 #endif
 #include <sys/sysctl.h>
+#import "CrashReporter.h"
 
 typedef struct {
     const char* Key;
@@ -26,17 +27,14 @@ static inline const char* BTDup(NSString* s) {
 }
 
 static bool BTDebuggerAttached(void) {
-    // Same approach as old Utils.isDebuggerAttached
     int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid() };
     struct kinfo_proc info; size_t size = sizeof(info); info.kp_proc.p_flag = 0;
     if (sysctl(mib, 4, &info, &size, NULL, 0) == -1) return false;
     return ((info.kp_proc.p_flag & P_TRACED) != 0);
 }
 
-// ---------------- C API expected by Unity ----------------
 extern "C" {
 
-// Matches your old signature/order from NativeClient.cs
 void StartBacktraceIntegration(const char* rawUrl,
                                const char* attributeKeys[], const char* attributeValues[], int attributesCount,
                                bool enableOomSupport,
@@ -45,11 +43,12 @@ void StartBacktraceIntegration(const char* rawUrl,
 {
     if (!rawUrl) return;
 
-    // Credentials from submission URL (what Unity currently passes)
+    // Credentials from submission URL
     NSURL *url = [NSURL URLWithString:BTStr(rawUrl)];
     BacktraceCredentials *creds = [[BacktraceCredentials alloc] initWithSubmissionUrl:url];
 
-    // Configure the client: iOS 13+ project should embed Swift stdlibs via post-build
+    // Client Config
+    // iOS 13+ project should embed Swift stdlibs via post-build
     BacktraceClientConfiguration *cfg =
         [[BacktraceClientConfiguration alloc] initWithCredentials:creds
                                                        dbSettings:[BacktraceDatabaseSettings new]
@@ -57,7 +56,7 @@ void StartBacktraceIntegration(const char* rawUrl,
                                          allowsAttachingDebugger:NO
                                                           oomMode:(enableOomSupport ? BacktraceOomModeFull : BacktraceOomModeNone)];
 
-    // Configure PLCrashReporter: allow you to toggle client-side unwinding/symbolication
+    // PLCrashReporter Config
     PLCrashReporterConfig *plcfg = [[PLCrashReporterConfig alloc]
                                     initWithSignalHandlerType: PLCrashReporterSignalHandlerTypeBSD
                                     symbolicationStrategy: (enableClientSideUnwinding
@@ -71,7 +70,7 @@ void StartBacktraceIntegration(const char* rawUrl,
     if (err) { NSLog(@"[Backtrace] init error: %@", err); return; }
     BacktraceClient.shared = client;
 
-    // Initial attributes
+    // Attributes
     NSMutableDictionary *attrs = [NSMutableDictionary dictionaryWithCapacity:(NSUInteger)MAX(0, attributesCount)];
     for (int i = 0; i < attributesCount; ++i) {
         const char* ck = attributeKeys ? attributeKeys[i] : NULL;
@@ -80,7 +79,7 @@ void StartBacktraceIntegration(const char* rawUrl,
     }
     client.attributes = attrs;
 
-    // Initial attachments
+    // Attachments
     NSMutableArray<NSURL*> *urls = [NSMutableArray arrayWithCapacity:(NSUInteger)MAX(0, attachmentSize)];
     for (int i = 0; i < attachmentSize; ++i) {
         const char* p = attachments ? attachments[i] : NULL;
@@ -105,10 +104,9 @@ void GetAttributes(Entry** entriesOut, int* sizeOut)
         entries[i].Key   = BTDup(k);
         entries[i].Value = BTDup(v);
     }
-    *entriesOut = entries; // Your C# currently frees only the array; see note below.
+    *entriesOut = entries;
 }
 
-// Optional exact free helper (not currently called by your C#)
 void FreeAttributes(Entry* entries, int size)
 {
     if (!entries) return;
@@ -125,7 +123,6 @@ void NativeReport(const char* message, bool /*setMainThreadAsFaultingThread*/, b
     if (ignoreIfDebugger && BTDebuggerAttached()) return;
 
     NSString *msg = BTStr(message);
-    // Empty attachmentPaths: rely on client.attachments set in StartBacktraceIntegration
     [BacktraceClient.shared sendWithMessage:msg
                            attachmentPaths:@[]
                                 completion:^ (BacktraceResult * _Nonnull r) {}];
