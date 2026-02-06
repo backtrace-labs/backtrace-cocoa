@@ -1,169 +1,172 @@
-import XCTest
-
-import Nimble
-import Quick
+import Foundation
+import Testing
 @testable import Backtrace
 
-final class AttributesTests: QuickSpec {
-    // swiftlint:disable function_body_length
-    override func spec() {
-        describe("Components") {
-            it("sets processor info") {
-                let attributes = ProcessorInfo()
-                expect { attributes.mutable }.toNot(beNil())
-                expect { attributes.immutable }.toNot(beNil())
-            }
-            it("sets device info") {
-                let attributes = Device()
-                expect { attributes.mutable }.toNot(beNil())
-                expect { attributes.immutable }.toNot(beNil())
-            }
-            it("sets screen info") {
-                let attributes = ScreenInfo()
-                expect { attributes.mutable }.toNot(beNil())
-                expect { attributes.immutable }.toNot(beNil())
-            }
-            it("sets locale info") {
-                let attributes = LocaleInfo()
-                expect { attributes.mutable }.toNot(beNil())
-                expect { attributes.immutable }.toNot(beNil())
-            }
-            it("sets network info") {
-                let attributes = NetworkInfo()
-                expect { attributes.mutable }.toNot(beNil())
-                expect { attributes.immutable }.toNot(beNil())
-            }
-            it("sets lib info") {
-                let attributes = LibInfo()
-                expect { attributes.mutable }.toNot(beNil())
-                expect { attributes.immutable }.toNot(beNil())
-            }
-        }
+@Suite struct AttributesTests {
 
-        describe("Processor Info") {
-            it("can disable hostname") {
-                let attributes = ProcessorInfo()
-                let hostname = attributes.immutable["hostname"] as? String
-                expect { hostname }.to(beEmpty())
-            }
-            it("can enable hostname") {
-                let attributes = ProcessorInfo(reportHostName: true)
-                let hostname = attributes.immutable["hostname"] as? String
-                expect { hostname }.toNot(beEmpty())
-            }
-        }
+    // MARK: - Components
 
-        describe("Fault information") {
-            it("can override fault information") {
-                let oldAttributeValue = "a"
-                let newAttributeValue = "b"
-                let attributes = AttributesProvider()
-                attributes.set(faultMessage: oldAttributeValue)
-                attributes.set(faultMessage: newAttributeValue)
-                expect{ attributes.allAttributes["error.message"] as? String}.to(equal(newAttributeValue))
-            }
-        }
-
-        describe("Metrics Info") {
-            it("will always set application.version and application.session ") {
-                let attributes = ApplicationInfo()
-                expect { attributes.immutable["application.version"]}.toNot(beNil())
-                expect { attributes.immutable["application.session"]}.toNot(beNil())
-            }
-        }
-
-        describe("Device") {
-            it("will set uname.sysname correctly depending on platform") {
-                let attributes = Device()
-                guard let sysname = attributes.immutable["uname.sysname"] as? String else {
-                    fail("could not parse uname.sysname")
-                    return
-                }
-#if os(iOS) && !targetEnvironment(macCatalyst)
-                expect { sysname }.to(equal("iOS"))
-#elseif os(tvOS)
-                expect { sysname }.to(equal("tvOS"))
-#elseif os(macOS) || targetEnvironment(macCatalyst)
-                expect { sysname }.to(equal("macOS"))
-#else
-                fail("unsupported platform")
-#endif
-            }
-        }
-
-        describe("Attributes Provider") {
-            it("will set application.version and application.session even if metrics attributes are NOT enabled") {
-                let attributes = AttributesProvider()
-                expect { attributes.allAttributes["application.version"]}.notTo(beNil())
-                expect { attributes.allAttributes["application.session"]}.notTo(beNil())
-            }
-        }
-
-        describe("Version Provider") {
-            it("will find the framework version correctly") {
-                let attributes = AttributesProvider()
-
-                expect { attributes.allAttributes["lang.version"] as? String }.toNot(beNil())
-                expect { attributes.allAttributes["backtrace.version"] as? String }.toNot(beNil())
-            }
-        }
-
-        describe("C API") {
-            it("sets vm_statistics64 information") {
-                expect { try Statistics.vmStatistics64() }.toNot(beNil())
-            }
-
-            it("sets processor_set_load_info information") {
-                expect { try Statistics.processorSetLoadInfo() }.toNot(beNil())
-            }
-
-            it("sets [host_cpu_load_info] information") {
-                expect { try Statistics.hostCpuLoadInfo() }.toNot(beNil())
-            }
-
-            it("sets mach_task_basic_info information") {
-                expect { try Statistics.machTaskBasicInfo() }.toNot(beNil())
-            }
-
-            it("sets task_vm_info information") {
-                expect { try Statistics.taskVmInfo() }.toNot(beNil())
-            }
-
-            it("sets task_events_info information") {
-                expect { try Statistics.taskEventsInfo() }.toNot(beNil())
-            }
-
-            it("sets boottime information") {
-                expect { try System.boottime() }.toNot(equal(0))
-            }
-
-            it("sets uptime information") {
-                expect { try System.uptime() }.toNot(equal(0))
-            }
-
-            it("sets machine name information") {
-                expect { try System.machine() }.toNot(beEmpty())
-            }
-
-            it("sets model name information") {
-                expect { try System.model() }.toNot(beEmpty())
-            }
-
-            it("sets process start time information") {
-                expect { try ProcessInfo.startTime() }.toNot(equal(0))
-            }
-
-            it("sets process age information") {
-                expect {
-                    sleep(1)
-                    return try ProcessInfo.age()
-                }.toNot(equal(0))
-            }
-
-            it("sets number of threads information") {
-                expect { try ProcessInfo.numberOfThreads() }.toNot(equal(0))
-            }
-        }
+    @Test func setsProcessorInfo() {
+        let attributes = ProcessorInfo()
+        #expect(attributes.mutable != nil)
+        #expect(attributes.immutable != nil)
     }
-    // swiftlint:enable function_body_length
+
+    @Test func setsDeviceInfo() {
+        let attributes = Device()
+        #expect(attributes.mutable != nil)
+        #expect(attributes.immutable != nil)
+    }
+
+    @Test func setsScreenInfo() {
+        let attributes = ScreenInfo()
+        #expect(attributes.mutable != nil)
+        #expect(attributes.immutable != nil)
+    }
+
+    @Test func setsLocaleInfo() {
+        let attributes = LocaleInfo()
+        #expect(attributes.mutable != nil)
+        #expect(attributes.immutable != nil)
+    }
+
+    @Test func setsNetworkInfo() {
+        let attributes = NetworkInfo()
+        #expect(attributes.mutable != nil)
+        #expect(attributes.immutable != nil)
+    }
+
+    @Test func setsLibInfo() {
+        let attributes = LibInfo()
+        #expect(attributes.mutable != nil)
+        #expect(attributes.immutable != nil)
+    }
+
+    // MARK: - Processor Info
+
+    @Test func canDisableHostname() {
+        let attributes = ProcessorInfo()
+        let hostname = attributes.immutable["hostname"] as? String
+        #expect(hostname?.isEmpty == true)
+    }
+
+    @Test func canEnableHostname() {
+        let attributes = ProcessorInfo(reportHostName: true)
+        let hostname = attributes.immutable["hostname"] as? String
+        #expect(hostname?.isEmpty == false)
+    }
+
+    // MARK: - Fault information
+
+    @Test func canOverrideFaultInformation() {
+        let oldAttributeValue = "a"
+        let newAttributeValue = "b"
+        let attributes = AttributesProvider()
+        attributes.set(faultMessage: oldAttributeValue)
+        attributes.set(faultMessage: newAttributeValue)
+        #expect(attributes.allAttributes["error.message"] as? String == newAttributeValue)
+    }
+
+    // MARK: - Metrics Info
+
+    @Test func setsApplicationVersionAndSession() {
+        let attributes = ApplicationInfo()
+        #expect(attributes.immutable["application.version"] != nil)
+        #expect(attributes.immutable["application.session"] != nil)
+    }
+
+    // MARK: - Device
+
+    @Test func setsUnameSysnameCorrectlyDependingOnPlatform() {
+        let attributes = Device()
+        guard let sysname = attributes.immutable["uname.sysname"] as? String else {
+            Issue.record("could not parse uname.sysname")
+            return
+        }
+#if os(iOS) && !targetEnvironment(macCatalyst)
+        #expect(sysname == "iOS")
+#elseif os(tvOS)
+        #expect(sysname == "tvOS")
+#elseif os(macOS) || targetEnvironment(macCatalyst)
+        #expect(sysname == "macOS")
+#else
+        Issue.record("unsupported platform")
+#endif
+    }
+
+    // MARK: - Attributes Provider
+
+    @Test func setsApplicationVersionAndSessionEvenIfMetricsNotEnabled() {
+        let attributes = AttributesProvider()
+        #expect(attributes.allAttributes["application.version"] != nil)
+        #expect(attributes.allAttributes["application.session"] != nil)
+    }
+
+    // MARK: - Version Provider
+
+    @Test func findsFrameworkVersionCorrectly() {
+        let attributes = AttributesProvider()
+
+        #expect(attributes.allAttributes["lang.version"] as? String != nil)
+        #expect(attributes.allAttributes["backtrace.version"] as? String != nil)
+    }
+
+    // MARK: - C API - Statistics
+
+    @Test func setsVmStatistics64Information() throws {
+        #expect(try Statistics.vmStatistics64() != nil)
+    }
+
+    @Test func setsProcessorSetLoadInfoInformation() throws {
+        #expect(try Statistics.processorSetLoadInfo() != nil)
+    }
+
+    @Test func setsHostCpuLoadInfoInformation() throws {
+        #expect(try Statistics.hostCpuLoadInfo() != nil)
+    }
+
+    @Test func setsMachTaskBasicInfoInformation() throws {
+        #expect(try Statistics.machTaskBasicInfo() != nil)
+    }
+
+    @Test func setsTaskVmInfoInformation() throws {
+        #expect(try Statistics.taskVmInfo() != nil)
+    }
+
+    @Test func setsTaskEventsInfoInformation() throws {
+        #expect(try Statistics.taskEventsInfo() != nil)
+    }
+
+    // MARK: - C API - System
+
+    @Test func setsBoottimeInformation() throws {
+        #expect(try System.boottime() != 0)
+    }
+
+    @Test func setsUptimeInformation() throws {
+        #expect(try System.uptime() != 0)
+    }
+
+    @Test func setsMachineNameInformation() throws {
+        #expect(try System.machine().isEmpty == false)
+    }
+
+    @Test func setsModelNameInformation() throws {
+        #expect(try System.model().isEmpty == false)
+    }
+
+    // MARK: - C API - ProcessInfo
+
+    @Test func setsProcessStartTimeInformation() throws {
+        #expect(try ProcessInfo.startTime() != 0)
+    }
+
+    @Test func setsProcessAgeInformation() throws {
+        sleep(1)
+        #expect(try ProcessInfo.age() != 0)
+    }
+
+    @Test func setsNumberOfThreadsInformation() throws {
+        #expect(try ProcessInfo.numberOfThreads() != 0)
+    }
 }

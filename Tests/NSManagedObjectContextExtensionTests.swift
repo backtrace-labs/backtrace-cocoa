@@ -1,55 +1,45 @@
-import Nimble
+import Testing
 import CoreData
-import Quick
-@testable import Backtrace
-#if SWIFT_PACKAGE
 import Foundation
-#endif
+@testable import Backtrace
 
 private enum MockTestError: Error, Equatable {
     case somethingWentWrong
 }
 
-final class NSManagedObjectContextExtensionTests: QuickSpec {
-    override func spec() {
-        describe("performAndWaitThrowing") {
-            throwingContext("with an in-memory NSManagedObjectContext") {
-                var inMemoryContext: NSManagedObjectContext!
-                
-                beforeEach {
-                    // in-memory context
-                    let mom = NSManagedObjectModel()
-                    let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: mom)
-                    _ = try? persistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType,
-                                                                       configurationName: nil,
-                                                                       at: nil,
-                                                                       options: nil)
-                    inMemoryContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
-                    inMemoryContext.persistentStoreCoordinator = persistentStoreCoordinator
-                }
-                
-                afterEach {
-                    inMemoryContext = nil
-                }
-                
-                throwingIt("returns the correct value if the block succeeds") {
-                    let expected = "expected result"
-                    let result: String = try inMemoryContext.performAndWaitThrowing {
-                        // Return a simple string
-                        return expected
-                    }
-                    expect(result).to(equal(expected))
-                }
-                
-                throwingIt("rethrows an error if the block fails") {
-                    expect {
-                        try inMemoryContext.performAndWaitThrowing {
-                            throw MockTestError.somethingWentWrong
-                        }
-                    }
-                    .to(throwError(MockTestError.somethingWentWrong))
-                }
+@Suite struct NSManagedObjectContextExtensionTests {
+
+    private func makeInMemoryContext() -> NSManagedObjectContext {
+        let mom = NSManagedObjectModel()
+        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: mom)
+        _ = try? persistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType,
+                                                               configurationName: nil,
+                                                               at: nil,
+                                                               options: nil)
+        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        context.persistentStoreCoordinator = persistentStoreCoordinator
+        return context
+    }
+
+    @Test("Returns the correct value if the block succeeds")
+    func returnsCorrectValue() throws {
+        let inMemoryContext = makeInMemoryContext()
+        let expected = "expected result"
+        let result: String = try inMemoryContext.performAndWaitThrowing {
+            return expected
+        }
+        #expect(result == expected)
+    }
+
+    @Test("Rethrows an error if the block fails")
+    func rethrowsError() throws {
+        let inMemoryContext = makeInMemoryContext()
+        #expect {
+            try inMemoryContext.performAndWaitThrowing {
+                throw MockTestError.somethingWentWrong
             }
+        } throws: {
+            ($0 as? MockTestError) == .somethingWentWrong
         }
     }
 }

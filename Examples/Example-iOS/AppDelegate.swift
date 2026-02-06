@@ -19,7 +19,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
         // Usage https://docs.saucelabs.com/error-reporting/platform-integrations/ios/configuration/#usage
-        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!, token: Keys.backtraceToken as String)
+        //let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!, token: Keys.backtraceToken as String)
+        let backtraceCredentials = BacktraceCredentials(submissionUrl: URL(string: "https://submit.backtrace.io/spmtests/16420a4a0d6827e008642761298a64ec35d5c19db2df86374a3f59f2cdb80ffc/plcrash")!)
+
 
         // Customize Database Settings https://docs.saucelabs.com/error-reporting/platform-integrations/ios/configuration/#database-settings
         let backtraceDatabaseSettings = BacktraceDatabaseSettings()

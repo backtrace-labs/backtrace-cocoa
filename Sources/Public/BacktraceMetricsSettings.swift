@@ -20,3 +20,5 @@ import Foundation
     /// Custom submission URL. If null or empty will use default Backtrace metrics submission URL.
     @objc public var customSubmissionUrl: String = ""
 }
+
+extension BacktraceMetricsSettings: @unchecked Sendable {}

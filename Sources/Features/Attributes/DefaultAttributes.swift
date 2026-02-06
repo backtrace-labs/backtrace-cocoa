@@ -8,7 +8,7 @@ import AppKit
 import UIKit
 #endif
 
-final class FaultInfo: AttributesSource {
+final class FaultInfo: AttributesSource, @unchecked Sendable {
     var faultMessage: String?
     
     var immutable: [String : Any?] {
@@ -258,8 +258,8 @@ struct ApplicationInfo: AttributesSource {
 }
 
 struct BreadcrumbsInfo: AttributesSource {
-    internal static var currentBreadcrumbsId: Int?
-    internal static var breadcrumbFile: URL?
+    nonisolated(unsafe) internal static var currentBreadcrumbsId: Int?
+    nonisolated(unsafe) internal static var breadcrumbFile: URL?
 
     var mutable: [String: Any?] {
         if let currentBreadcrumbsId = BreadcrumbsInfo.currentBreadcrumbsId {

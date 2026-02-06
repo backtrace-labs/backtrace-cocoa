@@ -39,3 +39,5 @@ extension BacktraceNetworkClient {
         task.resume()
     }
 }
+
+extension BacktraceNetworkClient: @unchecked Sendable {}

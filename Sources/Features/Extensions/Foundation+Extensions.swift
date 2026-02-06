@@ -1,4 +1,12 @@
 import Foundation
+@preconcurrency import Darwin
+
+/// Wraps `mach_task_self_` to silence the strict-concurrency warning about
+/// the C global variable.  The underlying value is a per-process constant.
+@inline(__always)
+func currentTaskPort() -> mach_port_t {
+    mach_task_self_
+}
 
 extension Dictionary {
 

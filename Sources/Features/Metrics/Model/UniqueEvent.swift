@@ -1,6 +1,6 @@
 import Foundation
 
-struct UniqueEvent: Event {
+struct UniqueEvent: Event, Sendable {
 
     var timestamp: Int64
     var attributes: DecodableAttributes

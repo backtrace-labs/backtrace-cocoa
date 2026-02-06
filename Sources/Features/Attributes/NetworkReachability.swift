@@ -58,3 +58,5 @@ extension NetworkReachability {
         return isReachable && (!needsConnection || canConnectWithoutUserInteraction)
     }
 }
+
+extension NetworkReachability: @unchecked Sendable {}

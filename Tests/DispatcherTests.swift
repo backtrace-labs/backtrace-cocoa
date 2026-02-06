@@ -1,25 +1,19 @@
-import XCTest
-
-import Nimble
-import Quick
+import Testing
 @testable import Backtrace
+import Foundation
 
-final class DispatcherTests: QuickSpec {
+@Suite("Dispatcher")
+struct DispatcherTests {
 
-    override func spec() {
-        describe("Dispatcher") {
-            let dispatcher = Dispatcher()
-            var dispatched = false
-            context("Dispatcher operation") {
-                it("calls the completion closure") {
-                    dispatcher.dispatch({
-                        dispatched = true
-                    }, completion: {
-                        // spec will be updated after upgrading Quick & Nimble to resolve Fastlane hangs
-                        expect(dispatched).to(beTrue())
-                    })
-                }
-            }
-        }
+    @Test("Dispatcher operation calls the completion closure")
+    func dispatcherCallsCompletionClosure() {
+        let dispatcher = Dispatcher()
+        var dispatched = false
+        dispatcher.dispatch({
+            dispatched = true
+        }, completion: {
+            // spec will be updated after upgrading Quick & Nimble to resolve Fastlane hangs
+            #expect(dispatched == true)
+        })
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-struct UniqueEventsPayload: Payload {
+struct UniqueEventsPayload: Payload, Sendable {
 
     typealias Event = UniqueEvent
 

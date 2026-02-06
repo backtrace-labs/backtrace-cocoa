@@ -52,3 +52,5 @@ import Foundation
         return fileURL
     }
 }
+
+extension BacktraceBreadcrumbSettings: @unchecked Sendable {}

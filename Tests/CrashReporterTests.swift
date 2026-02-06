@@ -1,46 +1,41 @@
-import XCTest
-
-import Nimble
-import Quick
+import Foundation
+import Testing
 @testable import Backtrace
 
-final class CrashReporterTests: QuickSpec {
+@Suite struct CrashReporterTests {
 
-    override func spec() {
-        describe("Crash reporter") {
-            let crashReporter = BacktraceCrashReporter()
+    @Test func hasNoPendingCrashes() throws {
+        let crashReporter = BacktraceCrashReporter()
+        #expect(crashReporter.hasPendingCrashes() == false)
+        #expect(throws: (any Error).self) { try crashReporter.pendingCrashReport() }
+        #expect(throws: (any Error).self) { try crashReporter.purgePendingCrashReport() }
+    }
 
-            it("has no pending crashes") {
-                expect(crashReporter.hasPendingCrashes()).to(beFalse())
-                expect { try crashReporter.pendingCrashReport() }.to(throwError())
-                expect { try crashReporter.purgePendingCrashReport() }.to(throwError())
-            }
+    @Test func generatesLiveReportOnDemand() throws {
+        let crashReporter = BacktraceCrashReporter()
+        #expect(throws: Never.self) { try crashReporter.generateLiveReport(attributes: [:]) }
+    }
 
-            context("given valid configuration") {
-                it("generates live report on demand") {
-                    expect { try crashReporter.generateLiveReport(attributes: [:]) }.toNot(throwError())
-                }
-                
-                it("generate live report on demand 10 times") {
-                    for _ in 0...10 {
-                        expect { try crashReporter.generateLiveReport(attributes: [:]) }.toNot(throwError())
-                    }
-                }
-                
-                it("generated live report without exception") {
-                    let reportData = try crashReporter.generateLiveReport(exception: nil, attributes: [:])
-                    
-                    expect { reportData.plCrashReport.exceptionInfo }.to(beNil())
-                }
-                
-                it("generated live report contains exception") {
-                    let exception = NSException(name: NSExceptionName.decimalNumberOverflowException, reason: "Test Spec")
-                    let reportData = try crashReporter.generateLiveReport(exception: exception, attributes: [:])
-                    
-                    expect { reportData.plCrashReport.exceptionInfo.exceptionName }.to(equal(NSExceptionName.decimalNumberOverflowException.rawValue))
-                    expect { reportData.plCrashReport.exceptionInfo.exceptionReason }.to(equal("Test Spec"))
-                }
-            }
+    @Test func generatesLiveReportOnDemandTenTimes() throws {
+        let crashReporter = BacktraceCrashReporter()
+        for _ in 0...10 {
+            #expect(throws: Never.self) { try crashReporter.generateLiveReport(attributes: [:]) }
         }
+    }
+
+    @Test func generatedLiveReportWithoutException() throws {
+        let crashReporter = BacktraceCrashReporter()
+        let reportData = try crashReporter.generateLiveReport(exception: nil, attributes: [:])
+
+        #expect(reportData.plCrashReport.exceptionInfo == nil)
+    }
+
+    @Test func generatedLiveReportContainsException() throws {
+        let crashReporter = BacktraceCrashReporter()
+        let exception = NSException(name: NSExceptionName.decimalNumberOverflowException, reason: "Test Spec")
+        let reportData = try crashReporter.generateLiveReport(exception: exception, attributes: [:])
+
+        #expect(reportData.plCrashReport.exceptionInfo.exceptionName == NSExceptionName.decimalNumberOverflowException.rawValue)
+        #expect(reportData.plCrashReport.exceptionInfo.exceptionReason == "Test Spec")
     }
 }

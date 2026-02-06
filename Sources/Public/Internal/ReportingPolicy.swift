@@ -1,6 +1,6 @@
 import Foundation
 
-struct ReportingPolicy {
+struct ReportingPolicy: Sendable {
     let configuration: BacktraceClientConfiguration
     let debuggerChecker: DebuggerChecking.Type
 

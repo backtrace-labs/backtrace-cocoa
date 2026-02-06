@@ -10,7 +10,7 @@ extension URLSession {
     // NOTE: DON'T CALL FROM MAIN THREAD
     func sync(_ urlRequest: URLRequest) -> Response {
         let semaphore = DispatchSemaphore(value: 0)
-        var response: Response = Response(nil, nil, Error.failedToReceiveResponse)
+        nonisolated(unsafe) var response: Response = Response(nil, nil, Error.failedToReceiveResponse)
 
         let task = dataTask(with: urlRequest,
                             completionHandler: { (responseData, responseUrl, responseError) in

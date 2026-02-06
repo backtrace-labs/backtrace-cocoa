@@ -1,56 +1,50 @@
-import XCTest
-
-import Nimble
-import Quick
+import Testing
 @testable import Backtrace
+import Foundation
 
-final class ReportingPolicyTests: QuickSpec {
-    override func spec() {
-        describe("Reporting Policy") {
-            throwingContext("given valid credentials") {
-                let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!,
-                                                       token: "")
+@Suite("Reporting Policy")
+struct ReportingPolicyTests {
 
-                context("policy allows debugger attachment") {
-                    let configuration = BacktraceClientConfiguration(credentials: credentials,
-                                                                     allowsAttachingDebugger: true)
-                    context("the debugger is attached") {
-                        it("can report") {
-                            expect(ReportingPolicy(configuration: configuration,
-                                                   debuggerChecker: AttachedDebuggerCheckerMock.self).allowsReporting)
-                                .to(beTrue())
-                        }
-                    }
+    let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!,
+                                           token: "")
 
-                    context("the debugger is not attached") {
-                        it("can report") {
-                            expect(ReportingPolicy(configuration: configuration,
-                                                   debuggerChecker: DetachedDebuggerCheckerMock.self).allowsReporting)
-                                .to(beTrue())
-                        }
-                    }
-                }
+    // MARK: - Policy allows debugger attachment
 
-                context("policy disallows debugger attachment") {
-                    let configuration = BacktraceClientConfiguration(credentials: credentials,
-                                                                     allowsAttachingDebugger: false)
-                    context("the debugger is attached") {
-                        it("cannot report") {
-                            expect(ReportingPolicy(configuration: configuration,
-                                                   debuggerChecker: AttachedDebuggerCheckerMock.self).allowsReporting)
-                                .to(beFalse())
-                        }
-                    }
+    @Test("Allows reporting when policy allows debugger attachment and debugger is attached")
+    func allowsReportingWhenPolicyAllowsDebuggerAndDebuggerIsAttached() {
+        let configuration = BacktraceClientConfiguration(credentials: credentials,
+                                                         allowsAttachingDebugger: true)
+        let policy = ReportingPolicy(configuration: configuration,
+                                     debuggerChecker: AttachedDebuggerCheckerMock.self)
+        #expect(policy.allowsReporting)
+    }
 
-                    context("the debugger is not attached") {
-                        it("can report") {
-                            expect(ReportingPolicy(configuration: configuration,
-                                                   debuggerChecker: DetachedDebuggerCheckerMock.self).allowsReporting)
-                                .to(beTrue())
-                        }
-                    }
-                }
-            }
-        }
+    @Test("Allows reporting when policy allows debugger attachment and debugger is not attached")
+    func allowsReportingWhenPolicyAllowsDebuggerAndDebuggerIsNotAttached() {
+        let configuration = BacktraceClientConfiguration(credentials: credentials,
+                                                         allowsAttachingDebugger: true)
+        let policy = ReportingPolicy(configuration: configuration,
+                                     debuggerChecker: DetachedDebuggerCheckerMock.self)
+        #expect(policy.allowsReporting)
+    }
+
+    // MARK: - Policy disallows debugger attachment
+
+    @Test("Cannot report when policy disallows debugger attachment and debugger is attached")
+    func cannotReportWhenPolicyDisallowsDebuggerAndDebuggerIsAttached() {
+        let configuration = BacktraceClientConfiguration(credentials: credentials,
+                                                         allowsAttachingDebugger: false)
+        let policy = ReportingPolicy(configuration: configuration,
+                                     debuggerChecker: AttachedDebuggerCheckerMock.self)
+        #expect(!policy.allowsReporting)
+    }
+
+    @Test("Allows reporting when policy disallows debugger attachment and debugger is not attached")
+    func allowsReportingWhenPolicyDisallowsDebuggerAndDebuggerIsNotAttached() {
+        let configuration = BacktraceClientConfiguration(credentials: credentials,
+                                                         allowsAttachingDebugger: false)
+        let policy = ReportingPolicy(configuration: configuration,
+                                     debuggerChecker: DetachedDebuggerCheckerMock.self)
+        #expect(policy.allowsReporting)
     }
 }

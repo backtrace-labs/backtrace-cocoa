@@ -1,5 +1,5 @@
 import Foundation
-import CrashReporter
+@preconcurrency import CrashReporter
 import Darwin
 
 
@@ -62,7 +62,7 @@ extension BacktraceCrashReporter: CrashReporting {
                             attributes: Attributes,
                             attachmentPaths: [String] = []) throws -> BacktraceReport {
         
-        defer { mach_port_deallocate(mach_task_self_, thread) }
+        defer { mach_port_deallocate(currentTaskPort(), thread) }
         let reportData = try reporter.generateLiveReport(withThread: thread, exception: exception)
         
         return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
@@ -137,3 +137,5 @@ extension BacktraceCrashReporter: CrashReporting {
         }
     }
 }
+
+extension BacktraceCrashReporter: @unchecked Sendable {}

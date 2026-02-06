@@ -4,7 +4,7 @@ import Foundation
 @objc open class BacktraceClient: NSObject {
 
     /// Shared instance of BacktraceClient class. Should be created before sending any reports.
-    @objc public static var shared: BacktraceClientProtocol?
+    @objc public nonisolated(unsafe) static var shared: BacktraceClientProtocol?
 
     /// `BacktraceClient`'s configuration. Allows to configure `BacktraceClient` in a custom way.
     @objc public let configuration: BacktraceClientConfiguration
@@ -125,30 +125,30 @@ extension BacktraceClient: BacktraceReporting {
 
     @objc public func send(error: Error,
                            attachmentPaths: [String] = [],
-                           completion: @escaping ((BacktraceResult) -> Void)) {
+                           completion: @escaping @Sendable ((BacktraceResult) -> Void)) {
         reportCrash(faultMessage: error.localizedDescription, attachmentPaths: attachmentPaths, completion: completion)
     }
 
     @objc public func send(message: String,
                            attachmentPaths: [String] = [],
-                           completion: @escaping ((BacktraceResult) -> Void)) {
+                           completion: @escaping @Sendable ((BacktraceResult) -> Void)) {
         reportCrash(faultMessage: message, attachmentPaths: attachmentPaths, completion: completion)
     }
 
     @objc public func send(exception: NSException?,
                            attachmentPaths: [String] = [],
-                           completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+                           completion: @escaping @Sendable ((_ result: BacktraceResult) -> Void)) {
         reportCrash(faultMessage: exception?.name.rawValue ?? "Unknown exception", exception: exception,
                     attachmentPaths: attachmentPaths, completion: completion)
     }
 
     @objc public func send(attachmentPaths: [String] = [],
-                           completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+                           completion: @escaping @Sendable ((_ result: BacktraceResult) -> Void)) {
         reportCrash(attachmentPaths: attachmentPaths, completion: completion)
     }
 
     private func reportCrash(faultMessage: String? = nil, exception: NSException? = nil, attachmentPaths: [String] = [],
-                             completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+                             completion: @escaping @Sendable ((_ result: BacktraceResult) -> Void)) {
         guard reportingPolicy.allowsReporting else {
             completion(BacktraceResult(.debuggerAttached))
             return
@@ -161,9 +161,10 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
 
+        nonisolated(unsafe) let sendCompletion = completion
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
-            completion(self.reporter.send(resource: resource))
+            sendCompletion(self.reporter.send(resource: resource))
         }, completion: {
             BacktraceLogger.debug("Finished sending an error report.")
         })
@@ -267,3 +268,5 @@ extension BacktraceClient: BacktraceBreadcrumbProtocol {
     }
 }
 #endif
+
+extension BacktraceClient: @unchecked Sendable {}

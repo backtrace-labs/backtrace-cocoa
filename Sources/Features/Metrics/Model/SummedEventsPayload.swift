@@ -1,6 +1,6 @@
 import Foundation
 
-struct SummedEventsPayload: Payload {
+struct SummedEventsPayload: Payload, Sendable {
 
     typealias Event = SummedEvent
 

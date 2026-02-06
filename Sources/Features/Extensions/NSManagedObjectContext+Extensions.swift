@@ -13,7 +13,7 @@ extension NSManagedObjectContext {
     /// - Returns: The value returned by `block`
     /// - Throws:
     ///     - Rethrows any error from `block`, or `PerformAndWaitError.blockDidNotRun` if the closure never produced a result
-    func performAndWaitThrowing<T>(_ block: () throws -> T) throws -> T {
+    func performAndWaitThrowing<T>(_ block: @Sendable () throws -> T) throws -> T {
         var result: T!
         var thrownError: Error?
         performAndWait {
@@ -30,7 +30,7 @@ extension NSManagedObjectContext {
     }
     
     // Swift 5 approach
-    func performAndWaitThrowingSwift5<T>(_ block: () throws -> T) throws -> T {
+    func performAndWaitThrowingSwift5<T>(_ block: @Sendable () throws -> T) throws -> T {
         var result: Swift.Result<T, Error>?
             performAndWait {
                 // Captures returned value or throws error

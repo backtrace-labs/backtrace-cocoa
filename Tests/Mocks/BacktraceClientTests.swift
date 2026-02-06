@@ -1,72 +1,70 @@
-import XCTest
-
-import Nimble
-import Quick
-import CrashReporter
+import Testing
+import Foundation
 @testable import Backtrace
 
-final class BacktraceClientTests: QuickSpec {
+@Suite struct BacktraceClientTests {
 
-    // swiftlint:disable function_body_length
-    override func spec() {
+    private let endpoint = URL(string: "https://wwww.backtrace.io")!
+    private let token = "token"
 
-        describe("Backtrace client") {
-            throwingContext("given default values") {
-                guard let endpoint = URL(string: "https://wwww.backtrace.io") else { fail(); return }
-                let token = "token"
-                let credentials = BacktraceCredentials(endpoint: endpoint, token: token)
+    private var credentials: BacktraceCredentials {
+        BacktraceCredentials(endpoint: endpoint, token: token)
+    }
 
-                it("has default database settings") {
-                    let defaultDbSettings = BacktraceDatabaseSettings()
-                    expect(defaultDbSettings.maxDatabaseSize).to(equal(0))
-                    expect(defaultDbSettings.maxRecordCount).to(equal(0))
-                    expect(defaultDbSettings.retryInterval).to(equal(5))
-                    expect(defaultDbSettings.retryLimit).to(equal(3))
-                    expect(defaultDbSettings.retryBehaviour.rawValue).to(equal(RetryBehaviour.interval.rawValue))
-                    expect(defaultDbSettings.retryOrder.rawValue).to(equal(RetryOrder.queue.rawValue))
-                    expect(defaultDbSettings.maxDatabaseSizeInBytes).to(equal(0))
-                }
+    @Test("Has default database settings")
+    func defaultDatabaseSettings() {
+        let defaultDbSettings = BacktraceDatabaseSettings()
+        #expect(defaultDbSettings.maxDatabaseSize == 0)
+        #expect(defaultDbSettings.maxRecordCount == 0)
+        #expect(defaultDbSettings.retryInterval == 5)
+        #expect(defaultDbSettings.retryLimit == 3)
+        #expect(defaultDbSettings.retryBehaviour.rawValue == RetryBehaviour.interval.rawValue)
+        #expect(defaultDbSettings.retryOrder.rawValue == RetryOrder.queue.rawValue)
+        #expect(defaultDbSettings.maxDatabaseSizeInBytes == 0)
+    }
 
-                it("has default configuration") {
-                    let dbSettings = BacktraceDatabaseSettings()
-                    let reportsPerMin = 3
-                    let configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings,
-                                                                     reportsPerMin: reportsPerMin)
-                    expect(configuration.credentials).to(be(credentials))
-                    expect(configuration.reportsPerMin).to(equal(reportsPerMin))
-                    expect(configuration.dbSettings).to(be(dbSettings))
-                }
+    @Test("Has default configuration")
+    func defaultConfiguration() {
+        let dbSettings = BacktraceDatabaseSettings()
+        let reportsPerMin = 3
+        let configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings,
+                                                         reportsPerMin: reportsPerMin)
+        #expect(configuration.credentials === credentials)
+        #expect(configuration.reportsPerMin == reportsPerMin)
+        #expect(configuration.dbSettings === dbSettings)
+    }
 
-                it("can create instance of BacktraceClient") {
-                    expect { try BacktraceClient(credentials: credentials) }.notTo(throwError())
-                }
-
-                it("modifies the default values") {
-                    let customDbSettings = BacktraceDatabaseSettings()
-                    let maxRecordCount = 10
-                    let maxDatabaseSize = 10
-                    let retryInterval = 10
-                    let retryBehaviour = RetryBehaviour.interval
-                    let retryOrder = RetryOrder.stack
-                    let retryLimit = 10
-
-                    customDbSettings.maxRecordCount = maxRecordCount
-                    customDbSettings.maxDatabaseSize = maxDatabaseSize
-                    customDbSettings.retryInterval = retryInterval
-                    customDbSettings.retryBehaviour = retryBehaviour
-                    customDbSettings.retryOrder = retryOrder
-                    customDbSettings.retryLimit = retryLimit
-
-                    expect(customDbSettings.maxDatabaseSize).to(equal(maxDatabaseSize))
-                    expect(customDbSettings.maxRecordCount).to(equal(maxRecordCount))
-                    expect(customDbSettings.retryInterval).to(equal(retryInterval))
-                    expect(customDbSettings.retryLimit).to(equal(retryLimit))
-                    expect(customDbSettings.retryBehaviour.rawValue).to(equal(retryBehaviour.rawValue))
-                    expect(customDbSettings.retryOrder.rawValue).to(equal(retryOrder.rawValue))
-                    expect(customDbSettings.maxDatabaseSizeInBytes).to(equal(1024 * 1024 * maxDatabaseSize))
-                }
-            }
+    @Test("Can create instance of BacktraceClient")
+    func canCreateBacktraceClientInstance() throws {
+        #expect(throws: Never.self) {
+            try BacktraceClient(credentials: BacktraceCredentials(endpoint: URL(string: "https://wwww.backtrace.io")!,
+                                                                  token: "token"))
         }
     }
-    // swiftlint:enable function_body_length
+
+    @Test("Modifies the default values")
+    func modifiesDefaultValues() {
+        let customDbSettings = BacktraceDatabaseSettings()
+        let maxRecordCount = 10
+        let maxDatabaseSize = 10
+        let retryInterval = 10
+        let retryBehaviour = RetryBehaviour.interval
+        let retryOrder = RetryOrder.stack
+        let retryLimit = 10
+
+        customDbSettings.maxRecordCount = maxRecordCount
+        customDbSettings.maxDatabaseSize = maxDatabaseSize
+        customDbSettings.retryInterval = retryInterval
+        customDbSettings.retryBehaviour = retryBehaviour
+        customDbSettings.retryOrder = retryOrder
+        customDbSettings.retryLimit = retryLimit
+
+        #expect(customDbSettings.maxDatabaseSize == maxDatabaseSize)
+        #expect(customDbSettings.maxRecordCount == maxRecordCount)
+        #expect(customDbSettings.retryInterval == retryInterval)
+        #expect(customDbSettings.retryLimit == retryLimit)
+        #expect(customDbSettings.retryBehaviour.rawValue == retryBehaviour.rawValue)
+        #expect(customDbSettings.retryOrder.rawValue == retryOrder.rawValue)
+        #expect(customDbSettings.maxDatabaseSizeInBytes == 1024 * 1024 * maxDatabaseSize)
+    }
 }

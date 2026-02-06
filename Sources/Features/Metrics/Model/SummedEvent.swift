@@ -1,6 +1,6 @@
 import Foundation
 
-struct SummedEvent: Event {
+struct SummedEvent: Event, Sendable {
 
     var timestamp: Int64
     var attributes: DecodableAttributes

@@ -1,6 +1,6 @@
 import Foundation
 
-struct EventsMetadata: Encodable {
+struct EventsMetadata: Encodable, Sendable {
 
     var droppedEvents = 0
 
@@ -9,7 +9,7 @@ struct EventsMetadata: Encodable {
     }
 }
 
-protocol Payload: Encodable {
+protocol Payload: Encodable, Sendable {
 
     associatedtype Event
     var applicationName: String { get }

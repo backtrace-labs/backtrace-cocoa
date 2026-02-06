@@ -1,12 +1,14 @@
 import Foundation
 
-struct MultipartRequest {
+struct MultipartRequest: Sendable {
 
     let request: URLRequest
 
     private enum Constants {
         static let submissionPath = "/post"
-        static let queryItems = { token in ["format": "plcrash", "token": token] }
+        static func queryItems(_ token: String) -> [String: String] {
+            ["format": "plcrash", "token": token]
+        }
     }
 
     init(configuration: BacktraceCredentials.Configuration, report: BacktraceReport) throws {

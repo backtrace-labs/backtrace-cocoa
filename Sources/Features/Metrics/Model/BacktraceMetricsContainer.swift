@@ -4,12 +4,13 @@ final class BacktraceMetricsContainer {
 
     private var uniqueEvents = [UniqueEvent]()
     private var summedEvents = [SummedEvent]()
+    private let lock = NSLock()
 
     static let startupSummedEventName = "Application Launches"
     static let startupUniqueEventName = "guid"
 
     var count: Int {
-        return uniqueEvents.count + summedEvents.count
+        return lock.withLock { uniqueEvents.count + summedEvents.count }
     }
 
     init(settings: BacktraceMetricsSettings) {
@@ -18,22 +19,24 @@ final class BacktraceMetricsContainer {
     }
 
     func add(event: UniqueEvent) {
-        uniqueEvents.append(event)
+        lock.withLock { uniqueEvents.append(event) }
     }
 
     func add(event: SummedEvent) {
-        summedEvents.append(event)
+        lock.withLock { summedEvents.append(event) }
     }
 
     func getSummedEventsPayload() -> SummedEventsPayload {
-        return SummedEventsPayload(events: summedEvents)
+        return lock.withLock { SummedEventsPayload(events: summedEvents) }
     }
 
     func getUniqueEventsPayload() -> UniqueEventsPayload {
-        return UniqueEventsPayload(events: uniqueEvents)
+        return lock.withLock { UniqueEventsPayload(events: uniqueEvents) }
     }
 
     func clearSummedEvents() {
-        summedEvents.removeAll()
+        lock.withLock { summedEvents.removeAll() }
     }
 }
+
+extension BacktraceMetricsContainer: @unchecked Sendable {}

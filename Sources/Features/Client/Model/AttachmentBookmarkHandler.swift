@@ -1,6 +1,6 @@
 import Foundation
 
-protocol AttachmentBookmarkHandler {
+protocol AttachmentBookmarkHandler: Sendable {
     static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) throws -> Bookmarks
     static func extractAttachmentUrls(_ bookmarks: Bookmarks) throws -> Attachments
 }

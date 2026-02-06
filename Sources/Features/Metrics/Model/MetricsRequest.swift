@@ -1,12 +1,14 @@
 import Foundation
 
-struct MetricsRequest {
+struct MetricsRequest: Sendable {
 
     let request: URLRequest
 
     private enum Constants {
         static let submissionPath = "/post"
-        static let queryItems = { token in ["format": "plcrash", "token": token] }
+        static func queryItems(_ token: String) -> [String: String] {
+            ["format": "plcrash", "token": token]
+        }
     }
 
     init<T: Payload>(url: URL, payload: T) throws {

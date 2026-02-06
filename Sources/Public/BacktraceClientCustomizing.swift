@@ -47,7 +47,7 @@ public typealias Bookmarks = [String: Data]
     ///   - completion: Backtrace services response.
     @objc func send(error: Error,
                     attachmentPaths: [String],
-                    completion: @escaping ((_ result: BacktraceResult) -> Void))
+                    completion: @escaping @Sendable ((_ result: BacktraceResult) -> Void))
 
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
@@ -58,7 +58,7 @@ public typealias Bookmarks = [String: Data]
     ///   - completion: Backtrace services response.
     @objc func send(message: String,
                     attachmentPaths: [String],
-                    completion: @escaping ((_ result: BacktraceResult) -> Void))
+                    completion: @escaping @Sendable ((_ result: BacktraceResult) -> Void))
 
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
@@ -67,7 +67,7 @@ public typealias Bookmarks = [String: Data]
     ///   - attachmentPaths: Array of paths to files that should be send alongside with crash report.
     ///   - completion: Backtrace services response.
     @objc func send(attachmentPaths: [String],
-                    completion: @escaping ((_ result: BacktraceResult) -> Void))
+                    completion: @escaping @Sendable ((_ result: BacktraceResult) -> Void))
 
     /// Automatically generates and sends a crash report to Backtrace services.
     /// The services response is returned in a completion block.
@@ -78,7 +78,7 @@ public typealias Bookmarks = [String: Data]
     ///   - completion: Backtrace services response.
     @objc func send(exception: NSException?,
                     attachmentPaths: [String],
-                    completion: @escaping ((_ result: BacktraceResult) -> Void))
+                    completion: @escaping @Sendable ((_ result: BacktraceResult) -> Void))
 }
 
 /// Provides logging functionality to `BacktraceClient`.

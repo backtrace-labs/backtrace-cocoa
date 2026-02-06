@@ -80,3 +80,5 @@ import Foundation
     }
     
 }
+
+extension BacktraceMetrics: @unchecked Sendable {}

@@ -1,272 +1,307 @@
-import XCTest
+// swiftlint:disable function_body_length force_try
 
-import Nimble
-import Quick
+import Foundation
+import Testing
+
 @testable import Backtrace
 
-final class BacktraceReporterTests: QuickSpec {
-    // swiftlint:disable function_body_length force_try
-    override func spec() {
-        describe("Backtrace reporter") {
-            let urlSession = URLSessionMock()
-            let credentials =
-                BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
-            var backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
-            let delegate = BacktraceClientDelegateSpy()
-            var reporter = try! BacktraceReporter(reporter: BacktraceCrashReporter(),
-                                                  api: backtraceApi,
-                                                  dbSettings: BacktraceDatabaseSettings(),
-                                                  credentials: credentials,
-                                                  oomMode: .full,
-                                                  urlSession: urlSession)
+@Suite(.serialized) struct BacktraceReporterTests {
 
-            throwingBeforeEach {
-                delegate.clear()
-                backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
-                reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
-                                                 api: backtraceApi,
-                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                 credentials: credentials,
-                                                 oomMode: .full,
-                                                 urlSession: urlSession)
-                try reporter.repository.clear()
-                reporter.delegate = delegate
-            }
+    // MARK: - Shared setup helper
 
-            context("given valid HTTP response") {
-                it("sends report and calls delegate methods") {
-                    urlSession.response = MockOkResponse()
-                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
-                        .to(equal(.ok))
+    private static func makeReporter(
+        urlSession: URLSessionMock = URLSessionMock()
+    ) throws -> (reporter: BacktraceReporter, urlSession: URLSessionMock, backtraceApi: BacktraceApi, delegate: BacktraceClientDelegateSpy) {
+        // Clear global breadcrumb state to avoid cross-test contamination
+        BreadcrumbsInfo.breadcrumbFile = nil
+        BreadcrumbsInfo.currentBreadcrumbsId = nil
 
-                    expect { delegate.calledWillSend }.to(beTrue())
-                    expect { delegate.calledWillSendRequest }.to(beTrue())
-                    expect { delegate.calledServerDidRespond }.to(beTrue())
-                    expect { delegate.calledConnectionDidFail }.to(beFalse())
-                    expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
-                    expect { try reporter.repository.countResources() }.to(equal(0))
-                }
-            }
-            context("given no HTTP response") {
-                it("sends report and calls delegate methods") {
-                    urlSession.response = MockNoResponse()
-                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
-                        .to(equal(.unknownError))
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let delegate = BacktraceClientDelegateSpy()
+        delegate.clear()
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+        let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
+                                              api: backtraceApi,
+                                              dbSettings: BacktraceDatabaseSettings(),
+                                              credentials: credentials,
+                                              oomMode: .full,
+                                              urlSession: urlSession)
+        try reporter.repository.clear()
+        reporter.delegate = delegate
+        return (reporter, urlSession, backtraceApi, delegate)
+    }
 
-                    expect { delegate.calledWillSend }.to(beTrue())
-                    expect { delegate.calledWillSendRequest }.to(beTrue())
-                    expect { delegate.calledConnectionDidFail }.to(beTrue())
-                    expect { delegate.calledServerDidRespond }.to(beFalse())
-                    expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
-                    expect { try reporter.repository.countResources() }.to(equal(1))
-                }
-            }
+    // MARK: - Given valid HTTP response
 
-            context("given connection error") {
-                it("fails to send report and calls delegate methods") {
-                    urlSession.response =
-                        MockConnectionErrorResponse()
-                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
-                        .to(equal(.unknownError))
+    @Test("sends report and calls delegate methods with valid HTTP response")
+    func validHTTPResponse() throws {
+        let (reporter, urlSession, backtraceApi, delegate) = try BacktraceReporterTests.makeReporter()
+        urlSession.response = MockOkResponse()
 
-                    expect { delegate.calledWillSend }.to(beTrue())
-                    expect { delegate.calledWillSendRequest }.to(beTrue())
-                    expect { delegate.calledConnectionDidFail }.to(beTrue())
-                    expect { delegate.calledServerDidRespond }.to(beFalse())
-                    expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
-                    expect { try reporter.repository.countResources() }.to(equal(1))
-                }
-            }
+        let result = reporter.send(resource: try reporter.generate())
+        #expect(result.backtraceStatus == .ok)
 
-            context("given forbidden HTTP response") {
-                it("fails to send crash report and calls delegate methods") {
-                    urlSession.response = Mock403Response()
-                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
-                        .to(equal(.serverError))
+        #expect(delegate.calledWillSend)
+        #expect(delegate.calledWillSendRequest)
+        #expect(delegate.calledServerDidRespond)
+        #expect(!delegate.calledConnectionDidFail)
+        #expect(!delegate.calledDidReachLimit)
+        #expect(backtraceApi.backtraceRateLimiter.timestamps.count == 1)
+        #expect(try reporter.repository.countResources() == 0)
+    }
 
-                    expect { delegate.calledWillSend }.to(beTrue())
-                    expect { delegate.calledWillSendRequest }.to(beTrue())
-                    expect { delegate.calledServerDidRespond }.to(beTrue())
-                    expect { delegate.calledConnectionDidFail }.to(beFalse())
-                    expect { delegate.calledDidReachLimit }.to(beFalse())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
-                    expect { try reporter.repository.countResources() }.to(equal(0))
-                }
-            }
+    // MARK: - Given no HTTP response
 
-            context("given too many reports to send") {
-                throwingIt("fails and calls limit reached delegate methods") {
-                    backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
-                    reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
-                                                     api: backtraceApi,
-                                                     dbSettings: BacktraceDatabaseSettings(),
-                                                     credentials: credentials,
-                                                     oomMode: .full,
-                                                     urlSession: urlSession)
-                    reporter.delegate = delegate
+    @Test("sends report and calls delegate methods with no HTTP response")
+    func noHTTPResponse() throws {
+        let (reporter, urlSession, backtraceApi, delegate) = try BacktraceReporterTests.makeReporter()
+        urlSession.response = MockNoResponse()
 
-                    urlSession.response = MockOkResponse()
-                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
-                        .to(equal(.limitReached))
+        let result = reporter.send(resource: try reporter.generate())
+        #expect(result.backtraceStatus == .unknownError)
 
-                    expect { delegate.calledWillSend }.to(beFalse())
-                    expect { delegate.calledWillSendRequest }.to(beFalse())
-                    expect { delegate.calledServerDidRespond }.to(beFalse())
-                    expect { delegate.calledConnectionDidFail }.to(beFalse())
-                    expect { delegate.calledDidReachLimit }.to(beTrue())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(0))
-                    expect { try reporter.repository.countResources() }.to(equal(0))
-                }
-            }
+        #expect(delegate.calledWillSend)
+        #expect(delegate.calledWillSendRequest)
+        #expect(delegate.calledConnectionDidFail)
+        #expect(!delegate.calledServerDidRespond)
+        #expect(!delegate.calledDidReachLimit)
+        #expect(backtraceApi.backtraceRateLimiter.timestamps.count == 1)
+        #expect(try reporter.repository.countResources() == 1)
+    }
 
-            context("given new report") {
-                throwingIt("can modify multiple reports via reporter attachments and attributes properties") {
-                    let delegate = BacktraceClientDelegateMock()
-                    let attachmentPaths = [URL(fileURLWithPath: "/path1"), URL(fileURLWithPath: "/path2")]
-                    reporter.attachments += attachmentPaths
-                    reporter.attributes = ["a": "b"]
+    // MARK: - Given connection error
 
-                    urlSession.response = MockOkResponse()
-                    backtraceApi.delegate = delegate
+    @Test("fails to send report and calls delegate methods with connection error")
+    func connectionError() throws {
+        let (reporter, urlSession, backtraceApi, delegate) = try BacktraceReporterTests.makeReporter()
+        urlSession.response = MockConnectionErrorResponse()
 
-                    for _ in 0...5 {
-                        let backtraceReport = try reporter.generate()
-                        let result = reporter.send(resource: backtraceReport)
+        let result = reporter.send(resource: try reporter.generate())
+        #expect(result.backtraceStatus == .unknownError)
 
-                        expect { result.backtraceStatus }.to(equal(.ok))
-                        expect { result.report?.attachmentPaths }.to(equal(attachmentPaths.map(\.path)))
-                        expect { result.report?.attributes["a"] as? String }.to(equal("b"))
-                    }
-                }
+        #expect(delegate.calledWillSend)
+        #expect(delegate.calledWillSendRequest)
+        #expect(delegate.calledConnectionDidFail)
+        #expect(!delegate.calledServerDidRespond)
+        #expect(!delegate.calledDidReachLimit)
+        #expect(backtraceApi.backtraceRateLimiter.timestamps.count == 1)
+        #expect(try reporter.repository.countResources() == 1)
+    }
 
-                throwingIt("can modify report and request if modified in willSend callbacks") {
-                    let delegate = BacktraceClientDelegateMock()
-                    let attachmentPaths = ["path1", "path2"]
-                    let header = (key: "foo", value: "bar")
-                    urlSession.response = MockOkResponse()
-                    backtraceApi.delegate = delegate
+    // MARK: - Given forbidden HTTP response
 
-                    delegate.willSendClosure = { report in
-                        report.attachmentPaths += attachmentPaths
-                        report.attributes = ["a": "b"]
-                        return report
-                    }
+    @Test("fails to send crash report and calls delegate methods with forbidden HTTP response")
+    func forbiddenHTTPResponse() throws {
+        let (reporter, urlSession, backtraceApi, delegate) = try BacktraceReporterTests.makeReporter()
+        urlSession.response = Mock403Response()
 
-                    delegate.willSendRequestClosure = { request in
-                        var request = request
-                        request.addValue(header.key, forHTTPHeaderField: header.value)
-                        return request
-                    }
+        let result = reporter.send(resource: try reporter.generate())
+        #expect(result.backtraceStatus == .serverError)
 
-                    let result = reporter.send(resource: try reporter.generate())
+        #expect(delegate.calledWillSend)
+        #expect(delegate.calledWillSendRequest)
+        #expect(delegate.calledServerDidRespond)
+        #expect(!delegate.calledConnectionDidFail)
+        #expect(!delegate.calledDidReachLimit)
+        #expect(backtraceApi.backtraceRateLimiter.timestamps.count == 1)
+        #expect(try reporter.repository.countResources() == 0)
+    }
 
-                    expect { result.backtraceStatus }.to(equal(.ok))
-                    expect { result.report?.attachmentPaths }.to(equal(attachmentPaths))
-                    expect { result.report?.attributes["a"] as? String }.to(equal("b"))
+    // MARK: - Given too many reports to send (rate limit)
 
-                    // Now result the closures and verify the attributes and attachments disappear
-                    delegate.willSendClosure = { report in
-                        return report
-                    }
-                    delegate.willSendRequestClosure = { request in
-                        return request
-                    }
+    @Test("fails and calls limit reached delegate methods when rate limited")
+    func rateLimitReached() throws {
+        let urlSession = URLSessionMock()
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let delegate = BacktraceClientDelegateSpy()
+        delegate.clear()
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
+        let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
+                                              api: backtraceApi,
+                                              dbSettings: BacktraceDatabaseSettings(),
+                                              credentials: credentials,
+                                              oomMode: .full,
+                                              urlSession: urlSession)
+        reporter.delegate = delegate
 
-                    let result2 = reporter.send(resource: try reporter.generate())
+        urlSession.response = MockOkResponse()
+        let result = reporter.send(resource: try reporter.generate())
+        #expect(result.backtraceStatus == .limitReached)
 
-                    expect { result2.backtraceStatus }.to(equal(.ok))
-                    expect { result2.report?.attachmentPaths }.to(beEmpty())
-                    expect { result2.report?.attributes["a"] }.to(beNil())
-                }
+        #expect(!delegate.calledWillSend)
+        #expect(!delegate.calledWillSendRequest)
+        #expect(!delegate.calledServerDidRespond)
+        #expect(!delegate.calledConnectionDidFail)
+        #expect(delegate.calledDidReachLimit)
+        #expect(backtraceApi.backtraceRateLimiter.timestamps.count == 0)
+        #expect(try reporter.repository.countResources() == 0)
+    }
 
-                it("report should have application version and session attributes") {
-                    let delegate = BacktraceClientDelegateMock()
-                    let backtraceReport = try reporter.generate()
-                    urlSession.response = MockOkResponse()
-                    backtraceApi.delegate = delegate
+    // MARK: - Modify reports via properties
 
-                    delegate.willSendClosure = { report in
-                        expect { report.attributes["application.session"] }.notTo(beNil())
-                        expect { report.attributes["application.version"] }.notTo(beNil())
-                        return report
-                    }
+    @Test("can modify multiple reports via reporter attachments and attributes properties")
+    func modifyReportsViaProperties() throws {
+        let (reporter, urlSession, backtraceApi, _) = try BacktraceReporterTests.makeReporter()
+        let delegate = BacktraceClientDelegateMock()
+        let attachmentPaths = [URL(fileURLWithPath: "/path1"), URL(fileURLWithPath: "/path2")]
+        reporter.attachments += attachmentPaths
+        reporter.attributes = ["a": "b"]
 
-                    let result = reporter.send(resource: backtraceReport)
+        urlSession.response = MockOkResponse()
+        backtraceApi.delegate = delegate
 
-                    expect { result.backtraceStatus }.to(equal(.ok))
-                    expect { result.report?.attributes["application.session"] }.notTo(beNil())
-                    expect { result.report?.attributes["application.version"] }.notTo(beNil())
-                }
+        for _ in 0...5 {
+            let backtraceReport = try reporter.generate()
+            let result = reporter.send(resource: backtraceReport)
 
-                it("report should have metrics attributes") {
-                    let delegate = BacktraceClientDelegateMock()
-                    let backtraceReport = try reporter.generate()
-                    urlSession.response = MockOkResponse()
-                    backtraceApi.delegate = delegate
-
-                    delegate.willSendClosure = { report in
-                        expect { report.attributes["application.session"] }.toNot(beNil())
-                        expect { report.attributes["application.version"] }.toNot(beNil())
-                        return report
-                    }
-
-                    let result = reporter.send(resource: backtraceReport)
-
-                    expect { result.backtraceStatus }.to(equal(.ok))
-                    expect { result.report?.attributes["application.session"] }.toNot(beNil())
-                    expect { result.report?.attributes["application.version"] }.toNot(beNil())
-                }
-#if os(iOS) && !targetEnvironment(macCatalyst)
-                it("report should have breadcrumbs attributes if breadcrumbs is enabled") {
-                    let breadcrumbs = BacktraceBreadcrumbs()
-                    breadcrumbs.enableBreadcrumbs()
-
-                    let delegate = BacktraceClientDelegateMock()
-                    let backtraceReport = try reporter.generate()
-                    urlSession.response = MockOkResponse()
-                    backtraceApi.delegate = delegate
-
-                    delegate.willSendClosure = { report in
-                        expect { report.attributes["breadcrumbs.lastId"] }.toNot(beNil())
-                        expect { report.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
-                        return report
-                    }
-
-                    let result = reporter.send(resource: backtraceReport)
-
-                    expect { result.backtraceStatus }.to(equal(.ok))
-                    expect { result.report?.attributes["breadcrumbs.lastId"] }.toNot(beNil())
-                    expect { result.report?.attachmentPaths.first }.to(contain("bt-breadcrumbs-0"))
-
-                    breadcrumbs.disableBreadcrumbs()
-                }
-
-                it("report should NOT have breadcrumbs attributes if breadcrumbs is NOT enabled") {
-                    _ = BacktraceBreadcrumbs()
-
-                    let delegate = BacktraceClientDelegateMock()
-                    let backtraceReport = try reporter.generate()
-                    urlSession.response = MockOkResponse()
-                    backtraceApi.delegate = delegate
-
-                    delegate.willSendClosure = { report in
-                        expect { report.attributes["breadcrumbs.lastId"] }.to(beNil())
-                        expect { report.attachmentPaths.first }.to(beNil())
-                        return report
-                    }
-
-                    let result = reporter.send(resource: backtraceReport)
-
-                    expect { result.backtraceStatus }.to(equal(.ok))
-                    expect { result.report?.attributes["breadcrumbs.lastId"] }.to(beNil())
-                    expect { result.report?.attachmentPaths.first }.to(beNil())
-                }
-#endif
-            }
+            #expect(result.backtraceStatus == .ok)
+            #expect(result.report?.attachmentPaths == attachmentPaths.map(\.path))
+            #expect(result.report?.attributes["a"] as? String == "b")
         }
     }
-    // swiftlint:enable function_body_length force_try
+
+    // MARK: - Modify via willSend callbacks
+
+    @Test("can modify report and request if modified in willSend callbacks")
+    func modifyReportViaWillSendCallbacks() throws {
+        let (reporter, urlSession, backtraceApi, _) = try BacktraceReporterTests.makeReporter()
+        let delegate = BacktraceClientDelegateMock()
+        let attachmentPaths = ["path1", "path2"]
+        let header = (key: "foo", value: "bar")
+        urlSession.response = MockOkResponse()
+        backtraceApi.delegate = delegate
+
+        delegate.willSendClosure = { report in
+            report.attachmentPaths += attachmentPaths
+            report.attributes = ["a": "b"]
+            return report
+        }
+
+        delegate.willSendRequestClosure = { request in
+            var request = request
+            request.addValue(header.key, forHTTPHeaderField: header.value)
+            return request
+        }
+
+        let result = reporter.send(resource: try reporter.generate())
+
+        #expect(result.backtraceStatus == .ok)
+        #expect(result.report?.attachmentPaths == attachmentPaths)
+        #expect(result.report?.attributes["a"] as? String == "b")
+
+        // Now reset the closures and verify the attributes and attachments disappear
+        delegate.willSendClosure = { report in
+            return report
+        }
+        delegate.willSendRequestClosure = { request in
+            return request
+        }
+
+        let result2 = reporter.send(resource: try reporter.generate())
+
+        #expect(result2.backtraceStatus == .ok)
+        #expect(result2.report?.attachmentPaths.isEmpty == true)
+        #expect(result2.report?.attributes["a"] == nil)
+    }
+
+    // MARK: - Report has app version and session
+
+    @Test("report should have application version and session attributes")
+    func reportHasAppVersionAndSession() throws {
+        let (reporter, urlSession, backtraceApi, _) = try BacktraceReporterTests.makeReporter()
+        let delegate = BacktraceClientDelegateMock()
+        let backtraceReport = try reporter.generate()
+        urlSession.response = MockOkResponse()
+        backtraceApi.delegate = delegate
+
+        delegate.willSendClosure = { report in
+            #expect(report.attributes["application.session"] != nil)
+            #expect(report.attributes["application.version"] != nil)
+            return report
+        }
+
+        let result = reporter.send(resource: backtraceReport)
+
+        #expect(result.backtraceStatus == .ok)
+        #expect(result.report?.attributes["application.session"] != nil)
+        #expect(result.report?.attributes["application.version"] != nil)
+    }
+
+    // MARK: - Report has metrics attributes
+
+    @Test("report should have metrics attributes")
+    func reportHasMetricsAttributes() throws {
+        let (reporter, urlSession, backtraceApi, _) = try BacktraceReporterTests.makeReporter()
+        let delegate = BacktraceClientDelegateMock()
+        let backtraceReport = try reporter.generate()
+        urlSession.response = MockOkResponse()
+        backtraceApi.delegate = delegate
+
+        delegate.willSendClosure = { report in
+            #expect(report.attributes["application.session"] != nil)
+            #expect(report.attributes["application.version"] != nil)
+            return report
+        }
+
+        let result = reporter.send(resource: backtraceReport)
+
+        #expect(result.backtraceStatus == .ok)
+        #expect(result.report?.attributes["application.session"] != nil)
+        #expect(result.report?.attributes["application.version"] != nil)
+    }
+
+    // MARK: - Breadcrumbs attributes (platform-specific)
+
+#if os(iOS) && !targetEnvironment(macCatalyst)
+    @Test("report should have breadcrumbs attributes if breadcrumbs is enabled")
+    func reportHasBreadcrumbsAttributesWhenEnabled() throws {
+        let (reporter, urlSession, backtraceApi, _) = try BacktraceReporterTests.makeReporter()
+        let breadcrumbs = BacktraceBreadcrumbs()
+        breadcrumbs.enableBreadcrumbs()
+
+        let delegate = BacktraceClientDelegateMock()
+        let backtraceReport = try reporter.generate()
+        urlSession.response = MockOkResponse()
+        backtraceApi.delegate = delegate
+
+        delegate.willSendClosure = { report in
+            #expect(report.attributes["breadcrumbs.lastId"] != nil)
+            #expect(report.attachmentPaths.first?.contains("bt-breadcrumbs-0") == true)
+            return report
+        }
+
+        let result = reporter.send(resource: backtraceReport)
+
+        #expect(result.backtraceStatus == .ok)
+        #expect(result.report?.attributes["breadcrumbs.lastId"] != nil)
+        #expect(result.report?.attachmentPaths.first?.contains("bt-breadcrumbs-0") == true)
+
+        breadcrumbs.disableBreadcrumbs()
+    }
+
+    @Test("report should NOT have breadcrumbs attributes if breadcrumbs is NOT enabled")
+    func reportDoesNotHaveBreadcrumbsAttributesWhenDisabled() throws {
+        let (reporter, urlSession, backtraceApi, _) = try BacktraceReporterTests.makeReporter()
+        _ = BacktraceBreadcrumbs()
+
+        let delegate = BacktraceClientDelegateMock()
+        let backtraceReport = try reporter.generate()
+        urlSession.response = MockOkResponse()
+        backtraceApi.delegate = delegate
+
+        delegate.willSendClosure = { report in
+            #expect(report.attributes["breadcrumbs.lastId"] == nil)
+            #expect(report.attachmentPaths.first == nil)
+            return report
+        }
+
+        let result = reporter.send(resource: backtraceReport)
+
+        #expect(result.backtraceStatus == .ok)
+        #expect(result.report?.attributes["breadcrumbs.lastId"] == nil)
+        #expect(result.report?.attachmentPaths.first == nil)
+    }
+#endif
 }
+
+// swiftlint:enable function_body_length force_try

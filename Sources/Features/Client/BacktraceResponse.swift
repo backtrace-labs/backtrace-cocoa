@@ -1,6 +1,6 @@
 import Foundation
 
-struct BacktraceHttpResponse: CustomStringConvertible {
+struct BacktraceHttpResponse: CustomStringConvertible, Sendable {
     let isSuccess: Bool
     let description: String
 

@@ -1,85 +1,91 @@
-import XCTest
-
-import Nimble
-import Quick
+import Testing
 @testable import Backtrace
+import Foundation
 
-final class BacktraceFileManagerTests: QuickSpec {
+private class BundleToken {}
 
-    // swiftlint:disable function_body_length
-    override func spec() {
-        describe("File manager") {
-            describe("Excluding from backup") {
-                throwingContext("given non-existing") {
-                    it("throws an error") {
-                        let nonExistingFile = URL(fileURLWithPath: "nonExistingFile")
-                        expect {
-                            try BacktraceFileManager.excludeFromBackup(nonExistingFile)
-                        }.to(throwError(FileError.fileNotExists))
-                    }
-                    throwingContext("given URL file") {
-                        it("throws an error") {
-                            guard let httpUrl = URL(string: "http://backtrace.io") else { fail(); return }
-                            expect {
-                                try BacktraceFileManager.excludeFromBackup(httpUrl)
-                            }.to(throwError(FileError.unsupportedScheme))
-                        }
-                    }
-                    throwingContext("given existing file") {
-                        it("excludes file from backup") {
-#if SWIFT_PACKAGE
-                            guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else { fail(); return }
-#else
-                            let bundle = Bundle(for: type(of: self))
-                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
-                            let url = URL(fileURLWithPath: path)
-#endif
-                            expect {
-                                try BacktraceFileManager.excludeFromBackup(url)
-                            }.toNot(throwError())
-                        }
-                    }
-                }
-            }
-            describe("Checking size of file") {
-                throwingContext("given non-existing file") {
-                    it("throws an error") {
-                        let nonExistingFile = URL(fileURLWithPath: "nonExistingFile")
-                        expect {
-                            try BacktraceFileManager.sizeOfFile(at: nonExistingFile)
-                        }.to(throwError(FileError.fileNotExists))
-                    }
-                }
-                throwingContext("given URL file") {
-                    it("throws an error") {
-                        guard let httpUrl = URL(string: "http://backtrace.io") else { fail(); return }
-                        expect {
-                            try BacktraceFileManager.sizeOfFile(at: httpUrl)
-                        }.to(throwError(FileError.unsupportedScheme))
-                    }
-                    throwingContext("given existing file") {
-                        it("gets the size of a file") {
+@Suite("File manager")
+struct BacktraceFileManagerTests {
 
-                            
-                            
-#if SWIFT_PACKAGE
-                            guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else { fail(); return }
-#else
-                            let bundle = Bundle(for: type(of: self))
-                            guard let path = bundle.path(forResource: "test", ofType: "txt") else { fail(); return }
-                            let url = URL(fileURLWithPath: path)
-#endif
-                            
-                            
+    // MARK: - Excluding from backup
 
-                            expect {
-                                try BacktraceFileManager.sizeOfFile(at: url)
-                            }.toNot(throwError())
-                        }
-                    }
-                }
-            }
+    @Test("Excluding non-existing file from backup throws fileNotExists error")
+    func excludeFromBackupNonExistingFileThrows() {
+        let nonExistingFile = URL(fileURLWithPath: "nonExistingFile")
+        #expect(throws: FileError.fileNotExists) {
+            try BacktraceFileManager.excludeFromBackup(nonExistingFile)
         }
     }
-    // swiftlint:enable function_body_length
+
+    @Test("Excluding URL file from backup throws unsupportedScheme error")
+    func excludeFromBackupUrlFileThrows() throws {
+        guard let httpUrl = URL(string: "http://backtrace.io") else {
+            Issue.record("Failed to create URL")
+            return
+        }
+        #expect(throws: FileError.unsupportedScheme) {
+            try BacktraceFileManager.excludeFromBackup(httpUrl)
+        }
+    }
+
+    @Test("Excluding existing file from backup succeeds")
+    func excludeFromBackupExistingFileSucceeds() throws {
+#if SWIFT_PACKAGE
+        guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else {
+            Issue.record("Failed to find test resource")
+            return
+        }
+#else
+        let bundle = Bundle(for: BundleToken.self)
+        guard let path = bundle.path(forResource: "test", ofType: "txt") else {
+            Issue.record("Failed to find test resource")
+            return
+        }
+        let url = URL(fileURLWithPath: path)
+#endif
+        #expect(throws: Never.self) {
+            try BacktraceFileManager.excludeFromBackup(url)
+        }
+    }
+
+    // MARK: - Checking size of file
+
+    @Test("Size of non-existing file throws fileNotExists error")
+    func sizeOfNonExistingFileThrows() {
+        let nonExistingFile = URL(fileURLWithPath: "nonExistingFile")
+        #expect(throws: FileError.fileNotExists) {
+            try BacktraceFileManager.sizeOfFile(at: nonExistingFile)
+        }
+    }
+
+    @Test("Size of URL file throws unsupportedScheme error")
+    func sizeOfUrlFileThrows() throws {
+        guard let httpUrl = URL(string: "http://backtrace.io") else {
+            Issue.record("Failed to create URL")
+            return
+        }
+        #expect(throws: FileError.unsupportedScheme) {
+            try BacktraceFileManager.sizeOfFile(at: httpUrl)
+        }
+    }
+
+    @Test("Size of existing file succeeds")
+    func sizeOfExistingFileSucceeds() throws {
+#if SWIFT_PACKAGE
+        guard let url = Bundle.module.url(forResource: "test", withExtension: "txt") else {
+            Issue.record("Failed to find test resource")
+            return
+        }
+#else
+        let bundle = Bundle(for: BundleToken.self)
+        guard let path = bundle.path(forResource: "test", ofType: "txt") else {
+            Issue.record("Failed to find test resource")
+            return
+        }
+        let url = URL(fileURLWithPath: path)
+#endif
+        #expect(throws: Never.self) {
+            try BacktraceFileManager.sizeOfFile(at: url)
+        }
+    }
 }

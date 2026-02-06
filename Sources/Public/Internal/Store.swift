@@ -1,13 +1,13 @@
 import Foundation
 
-protocol Store {
+protocol Store: Sendable {
     static func store<T>(_ value: T, forKey key: String) throws
     static func value<T>(forKey key: String) throws -> T?
     static func removeValue(forKey key: String) throws
 }
 
 struct UserDefaultsStore: Store {
-    private static let userDefaults = UserDefaults.standard
+    nonisolated(unsafe) private static let userDefaults = UserDefaults.standard
 
     static func store<T>(_ value: T, forKey: String) {
         userDefaults.set(value, forKey: forKey)

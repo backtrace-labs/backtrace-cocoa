@@ -1,6 +1,6 @@
 import Foundation
 
-protocol SignalContext: CustomStringConvertible {
+protocol SignalContext: CustomStringConvertible, Sendable {
     var scopedAttributes: Attributes { get }
     var allAttributes: Attributes { get }
     var dynamicAttributes: Attributes { get }

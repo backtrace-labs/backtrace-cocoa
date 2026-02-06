@@ -1,5 +1,5 @@
 import Foundation
 
-protocol Dispatching {
-    func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void)
+protocol Dispatching: Sendable {
+    func dispatch(_ block: @escaping @Sendable () -> Void, completion: @escaping @Sendable () -> Void)
 }

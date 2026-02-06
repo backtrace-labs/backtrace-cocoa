@@ -94,3 +94,5 @@ extension BacktraceBreadcrumbFile {
         }
     }
 }
+
+extension BacktraceBreadcrumbFile: @unchecked Sendable {}

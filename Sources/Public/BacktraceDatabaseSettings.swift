@@ -46,3 +46,5 @@ import Foundation
     /// Library will retry sending youngest reports first (LIFO).
     case stack
 }
+
+extension BacktraceDatabaseSettings: @unchecked Sendable {}

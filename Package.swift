@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 import PackageDescription
 
@@ -13,9 +13,7 @@ let package = Package(
         .library(name: "Backtrace", targets: ["Backtrace"])
     ],
     dependencies: [
-        .package(url: "https://github.com/microsoft/plcrashreporter.git", .exact("1.12.0")),
-        .package(url: "https://github.com/Quick/Nimble.git", from: "10.0.0"),
-        .package(url: "https://github.com/Quick/Quick.git", from: "5.0.1")
+        .package(url: "https://github.com/microsoft/plcrashreporter.git", .exact("1.12.0"))
     ],
     targets: [
         .target(
@@ -26,14 +24,20 @@ let package = Package(
             path: "Sources",
             resources: [.process("Features/Resources/Model.xcdatamodeld"),
                         .process("Resources/PrivacyInfo.xcprivacy")
+            ],
+            swiftSettings: [
+                .enableUpcomingFeature("StrictConcurrency")
             ]
         ),
         .testTarget(
             name: "Backtrace-Tests",
-            dependencies: ["Backtrace", "Quick", "Nimble"],
+            dependencies: ["Backtrace"],
             path: "Tests",
-            resources: [.process("Resources")]
+            resources: [.process("Resources")],
+            swiftSettings: [
+                .enableUpcomingFeature("StrictConcurrency")
+            ]
         ),
     ],
-    swiftLanguageVersions: [.v5]
+    swiftLanguageVersions: [.v5, .version("6")]
 )

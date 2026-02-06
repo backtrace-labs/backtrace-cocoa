@@ -1,6 +1,6 @@
 import Foundation
 
-struct BreadcrumbRecord {
+struct BreadcrumbRecord: Sendable {
     let size: Int
     let json: String
     

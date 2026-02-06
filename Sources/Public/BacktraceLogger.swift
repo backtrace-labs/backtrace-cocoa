@@ -33,7 +33,12 @@ import Foundation
 @objc public class BacktraceLogger: NSObject {
 
     /// Set of logging destinations.
-    static var destinations: Set<BacktraceBaseDestination> = []
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var _destinations: Set<BacktraceBaseDestination> = []
+    static var destinations: Set<BacktraceBaseDestination> {
+        get { lock.withLock { _destinations } }
+        set { lock.withLock { _destinations = newValue } }
+    }
 
     /// Replaces the logging destinations.
     ///
@@ -103,7 +108,7 @@ import Foundation
 }
 
 /// Provides logging functionality to IDE console.
-@objc final public class BacktraceFancyConsoleDestination: BacktraceBaseDestination {
+@objc final public class BacktraceFancyConsoleDestination: BacktraceBaseDestination, @unchecked Sendable {
 
     /// Used date formatter for logging.
     @objc public static var dateFormatter: DateFormatter {
@@ -130,7 +135,7 @@ import Foundation
 }
 
 /// Provides logging functionality to IDE console.
-@objc final public class BacktraceConsoleDestination: BacktraceBaseDestination {
+@objc final public class BacktraceConsoleDestination: BacktraceBaseDestination, @unchecked Sendable {
 
     // swiftlint:disable line_length
     /// Logs the event to console destination.
@@ -146,3 +151,5 @@ import Foundation
     }
     // swiftlint:enable line_length
 }
+
+extension BacktraceBaseDestination: @unchecked Sendable {}

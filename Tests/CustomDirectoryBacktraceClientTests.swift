@@ -1,70 +1,14 @@
-import Quick
-import Nimble
-@testable import Backtrace
-@testable import CrashReporter
+import Foundation
+import Testing
 
-final class CustomDirectoryBacktraceClientTests: QuickSpec {
-    override func spec() {
-        
-        describe("Custom crash directory") {
-            
-            var customDir: URL!
-            var credentials: BacktraceCredentials!
-            var backtraceClientConfiguration: BacktraceClientConfiguration!
-            var basePathConfig: PLCrashReporterConfig!
-            
-            beforeEach {
-                customDir = try! self.createCustomDirAndProtectionType()
-                credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
-                backtraceClientConfiguration = BacktraceClientConfiguration(credentials: credentials)
-                basePathConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all, basePath: customDir.path)
-            }
-            
-            afterEach {
-                try? FileManager.default.removeItem(at: customDir)
-            }
-            
-            it("creates a valid PLCrashReporterConfig with a custom basePath") {
-                expect(basePathConfig).toNot(beNil())
-            }
-            
-            it("initializes BacktraceCrashReporter without throwing") {
-                expect { _ = BacktraceCrashReporter(config: basePathConfig) }.toNot(throwError())
-            }
-            
-            it("initializes BacktraceClient with BacktraceCrashReporte") {
-                let reporter = BacktraceCrashReporter(config: basePathConfig)
-                var client: BacktraceClient!
-                expect {client = try BacktraceClient(configuration: backtraceClientConfiguration,crashReporter: reporter)}.toNot(throwError())
-                
-                BacktraceClient.shared = client
-                expect(BacktraceClient.shared).to(be(client))
-            }
-            
-            describe("enabled reporter behavior") {
-                var reporter: BacktraceCrashReporter!
-                
-                beforeEach {
-                    reporter = BacktraceCrashReporter(config: basePathConfig)
-                }
-                
-#if !targetEnvironment(simulator)  && !os(macOS) && !targetEnvironment(macCatalyst)
-                it("enables PLCrashReporter without error and respects file protection") {
-                    let attributes = try? FileManager.default.attributesOfItem(atPath: customDir.path)
-                    let protection = attributes?[.protectionKey] as? FileProtectionType
-                    expect(protection).to(equal(FileProtectionType.none), description: "Expected file protection to match input (.none).")
-                }
-#endif
-                
-                it("generates a live report without error") {
-                    expect { _ = try reporter.generateLiveReport(attributes: ["foo": "bar"]) }.toNot(throwError())
-                }
-            }
-        }
-    }
-    
-    // MARK: – Helpers
-    
+@testable import Backtrace
+@preconcurrency import CrashReporter
+
+@Suite("Custom crash directory")
+struct CustomDirectoryBacktraceClientTests {
+
+    // MARK: - Helpers
+
     private func createCustomDirAndProtectionType() throws -> URL {
         let baseURL = try FileManager.default.url(
             for: .libraryDirectory,
@@ -79,5 +23,78 @@ final class CustomDirectoryBacktraceClientTests: QuickSpec {
             attributes: [.protectionKey: FileProtectionType.none]
         )
         return dir
+    }
+
+    private func makeSetup() throws -> (customDir: URL, credentials: BacktraceCredentials,
+                                         clientConfig: BacktraceClientConfiguration,
+                                         basePathConfig: PLCrashReporterConfig) {
+        let customDir = try createCustomDirAndProtectionType()
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let clientConfig = BacktraceClientConfiguration(credentials: credentials)
+        guard let basePathConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all, basePath: customDir.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return (customDir, credentials, clientConfig, basePathConfig)
+    }
+
+    // MARK: - Tests
+
+    @Test("Creates a valid PLCrashReporterConfig with a custom basePath")
+    func createsValidPLCrashReporterConfig() throws {
+        let setup = try makeSetup()
+        defer { try? FileManager.default.removeItem(at: setup.customDir) }
+
+        #expect(setup.basePathConfig != nil)
+    }
+
+    @Test("Initializes BacktraceCrashReporter without throwing")
+    func initializesBacktraceCrashReporterWithoutThrowing() throws {
+        let setup = try makeSetup()
+        defer { try? FileManager.default.removeItem(at: setup.customDir) }
+
+        #expect(throws: Never.self) {
+            _ = BacktraceCrashReporter(config: setup.basePathConfig)
+        }
+    }
+
+    @Test("Initializes BacktraceClient with BacktraceCrashReporter")
+    func initializesBacktraceClientWithCrashReporter() throws {
+        let setup = try makeSetup()
+        defer { try? FileManager.default.removeItem(at: setup.customDir) }
+
+        let reporter = BacktraceCrashReporter(config: setup.basePathConfig)
+        var client: BacktraceClient!
+        #expect(throws: Never.self) {
+            client = try BacktraceClient(configuration: setup.clientConfig, crashReporter: reporter)
+        }
+
+        BacktraceClient.shared = client
+        #expect(BacktraceClient.shared === client)
+    }
+
+#if !targetEnvironment(simulator) && !os(macOS) && !targetEnvironment(macCatalyst)
+    @Test("Enables PLCrashReporter without error and respects file protection")
+    func respectsFileProtection() throws {
+        let setup = try makeSetup()
+        defer { try? FileManager.default.removeItem(at: setup.customDir) }
+
+        _ = BacktraceCrashReporter(config: setup.basePathConfig)
+
+        let attributes = try? FileManager.default.attributesOfItem(atPath: setup.customDir.path)
+        let protection = attributes?[.protectionKey] as? FileProtectionType
+        #expect(protection == FileProtectionType.none, "Expected file protection to match input (.none).")
+    }
+#endif
+
+    @Test("Generates a live report without error")
+    func generatesLiveReportWithoutError() throws {
+        let setup = try makeSetup()
+        defer { try? FileManager.default.removeItem(at: setup.customDir) }
+
+        let reporter = BacktraceCrashReporter(config: setup.basePathConfig)
+
+        #expect(throws: Never.self) {
+            _ = try reporter.generateLiveReport(attributes: ["foo": "bar"])
+        }
     }
 }

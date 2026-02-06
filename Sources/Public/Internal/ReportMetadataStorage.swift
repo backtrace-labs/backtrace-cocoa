@@ -1,12 +1,12 @@
 import Foundation
 
-protocol Config {
+protocol Config: Sendable {
     var cacheUrl: URL { get }
     var directoryUrl: URL { get }
     var fileUrl: URL { get }
 }
 
-protocol ReportMetadataStorage {
+protocol ReportMetadataStorage: Sendable {
     static func storeToFile(_ dictionary: [String: Any], config: Config) throws
     static func retrieveFromFile(config: Config) throws -> [String: Any]
     static func removeFile(config: Config) throws

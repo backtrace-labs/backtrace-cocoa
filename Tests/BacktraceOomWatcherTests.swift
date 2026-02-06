@@ -1,291 +1,481 @@
 // swiftlint:disable force_try function_body_length
 
-import XCTest
-import Nimble
-import Quick
+import Foundation
+import Testing
 
 @testable import Backtrace
 
 extension BacktraceOomWatcher {
     /// BacktraceOomWatcher now performs all work asynchronously on its dedicated serial queue.
-    /// The original unit‑tests assume that the start(), handleLowMemoryWarning() and appChangedState(_:) invocations finish synchronously, so their assertions run before the queue has persisted state or updated the static attributes/attachments.
-    /// **test‑only**
+    /// The original unit-tests assume that the start(), handleLowMemoryWarning() and appChangedState(_:) invocations finish synchronously, so their assertions run before the queue has persisted state or updated the static attributes/attachments.
+    /// **test-only**
     /// Blocks until all queued tasks have completed.
     func flushQueue() {
         queue.sync(flags: .barrier) { }
     }
 }
 
-class BacktraceOomWatcherTests: QuickSpec {
+@Suite(.serialized) struct BacktraceOomWatcherTests {
 
-    override func spec() {
-        describe("BacktraceOomWatcher") {
-            var oomWatcher: BacktraceOomWatcher?
-            let urlSession = URLSessionMock()
-            let credentials =
-                BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
-            let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
-            let crashReporter = BacktraceCrashReporter()
-            let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
-            let newFile = URL(fileURLWithPath: "newfile")
+    // MARK: - Shared setup helper
 
-            throwingBeforeEach {
-                let attributesProvider = AttributesProvider()
+    private static func makeOomWatcher(
+        urlSession: URLSessionMock = URLSessionMock(),
+        oomMode: BacktraceOomMode = .full,
+        attributesProvider: AttributesProvider? = nil,
+        newFile: URL = URL(fileURLWithPath: "newfile")
+    ) throws -> (oomWatcher: BacktraceOomWatcher, urlSession: URLSessionMock, newFile: URL) {
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
 
-                try "".write(to: newFile, atomically: true, encoding: .utf8)
-                attributesProvider.attachments.append(newFile)
+        let attrsProvider = attributesProvider ?? {
+            let provider = AttributesProvider()
+            try! "".write(to: newFile, atomically: true, encoding: .utf8)
+            provider.attachments.append(newFile)
+            return provider
+        }()
 
-                oomWatcher = BacktraceOomWatcher(repository: repository,
-                                                 crashReporter: crashReporter,
-                                                 attributes: attributesProvider,
-                                                 backtraceApi: backtraceApi,
-                                                 oomMode: .full)
-                BacktraceOomWatcher.clean()
+        let oomWatcher = BacktraceOomWatcher(repository: repository,
+                                              crashReporter: crashReporter,
+                                              attributes: attrsProvider,
+                                              backtraceApi: backtraceApi,
+                                              oomMode: oomMode)
+        BacktraceOomWatcher.clean()
+        urlSession.response = MockConnectionErrorResponse()
 
-                urlSession.response = MockConnectionErrorResponse()
-            }
-
-            context("when enabled") {
-                it("it saves the state with properties set") {
-                    oomWatcher?.start()
-                    oomWatcher?.flushQueue()
-                    let savedState = oomWatcher?._loadPreviousState()
-
-                    expect { savedState?.state }.to(equal(BacktraceOomWatcher.ApplicationState.active))
-                    expect { savedState?.appVersion }.to(equal(BacktraceOomWatcher.appVersion()))
-                    expect { savedState?.osVersion }.to(equal(ProcessInfo.processInfo.operatingSystemVersionString))
-                    expect { savedState?.debugger }.to(equal(DebuggerChecker.isAttached()))
-                    expect { savedState?.memoryWarningReceived }.to(beFalse())
-                    expect { BacktraceOomWatcher.reportAttributes }.to(beNil())
-                    expect { BacktraceOomWatcher.reportAttachments }.to(beNil())
-                }
-                it("application state change results in updated state file") {
-
-                    oomWatcher?.start()
-                    oomWatcher?.appChangedState(BacktraceOomWatcher.ApplicationState.background)
-                    oomWatcher?.flushQueue()
-                    let savedState = oomWatcher?._loadPreviousState()
-
-                    expect { savedState?.state }.to(equal(BacktraceOomWatcher.ApplicationState.background))
-                }
-                it("low memory warning results in updated state file with resource and attributes") {
-                    oomWatcher?.start()
-                    oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.flushQueue()
-                    let savedState = oomWatcher?._loadPreviousState()
-
-                    expect { savedState?.memoryWarningReceived }.to(beTrue())
-                    expect { BacktraceOomWatcher.reportAttributes }.toNot(beNil())
-                    expect { BacktraceOomWatcher.reportAttachments?.first?.path }.to(contain("newfile"))
-                }
-                it("calling handleLowMemory again within quiet times is noop") {
-
-                    // Modify the quiet time so we can check if it re-saved the state after the quiet time expires
-                    oomWatcher?.quietTimeInMillis = 500
-                    oomWatcher?.attributesProvider.attachments.removeAll()
-
-                    oomWatcher?.start()
-                    oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.flushQueue()
-
-                    let shouldNotBeAddedFile = URL(fileURLWithPath: "should-not-be-added")
-                    try "".write(to: shouldNotBeAddedFile, atomically: true, encoding: .utf8)
-
-                    oomWatcher?.attributesProvider.attachments.append(shouldNotBeAddedFile)
-                    oomWatcher?.attributesProvider.attributes["should-not"] = "be-added"
-
-                    // All these should be NOOPs
-                    oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.handleLowMemoryWarning()
-                    
-                    oomWatcher?.flushQueue()
-
-                    expect { BacktraceOomWatcher.reportAttachments }.to(beEmpty())
-                    expect { BacktraceOomWatcher.reportAttributes?["should-not"] }.to(beNil())
-
-                    // after sleeping for the quietTime interval, it should add new attachments and attributes
-                    Thread.sleep(forTimeInterval: 0.5)
-
-                    oomWatcher?.attributesProvider.attachments.removeAll()
-
-                    let shouldBeAddedFile = URL(fileURLWithPath: "should-be-added")
-                    try "".write(to: shouldBeAddedFile, atomically: true, encoding: .utf8)
-                    oomWatcher?.attributesProvider.attachments.append(shouldBeAddedFile)
-                    oomWatcher?.attributesProvider.attributes["should"] = "be-added"
-
-                    oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.flushQueue()
-                    expect { BacktraceOomWatcher.reportAttachments?.first?.path }.to(contain("should-be-added"))
-                    expect { BacktraceOomWatcher.reportAttributes?["should"] }.toNot(beNil())
-                }
-            }
-            
-            context("when oomMode == .none") {
-                it("does not create a state file or send reports") {
-                    oomWatcher = BacktraceOomWatcher(repository: repository,
-                                                     crashReporter: crashReporter,
-                                                     attributes: AttributesProvider(),
-                                                     backtraceApi: backtraceApi,
-                                                     oomMode: .none)
-                    
-                    oomWatcher?.start()
-                    oomWatcher?.flushQueue()
-                    
-                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path)).to(beFalse())
-                }
-            }
-            
-            context("when oomMode == .light") {
-                
-                it("reports exactly once and off the main thread") {
-                    urlSession.response = MockOkResponse()
-                    var willSendCalls = 0
-                    
-                    let attrsProvider = AttributesProvider()
-                    try "".write(to: newFile, atomically: true, encoding: .utf8)
-                    attrsProvider.attachments.append(newFile)
-                    
-                    oomWatcher = BacktraceOomWatcher(repository: repository,
-                                                     crashReporter: crashReporter,
-                                                     attributes: attrsProvider,
-                                                     backtraceApi: backtraceApi,
-                                                     oomMode: .light)
-                    
-                    let delegate = BacktraceClientDelegateMock()
-                    delegate.willSendClosure = { report in
-                        willSendCalls += 1
-                        return report
-                    }
-                    backtraceApi.delegate = delegate
-                    
-                    oomWatcher?.start()
-                    oomWatcher?.state.debugger = false
-                    oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.flushQueue()
-                    oomWatcher?._sendPendingOomReports()
-                    oomWatcher?.flushQueue()
-                    
-                    expect(willSendCalls).to(equal(1))
-                }
-            }
-            
-            context("with sending mocks") {
-                var calledWillSend = 0
-                var delegate = BacktraceClientDelegateMock()
-
-                beforeEach {
-                    urlSession.response = MockOkResponse()
-                    calledWillSend = 0
-                    delegate = BacktraceClientDelegateMock()
-
-                    delegate.willSendClosure = { report in
-                        calledWillSend += 1
-                        expect { report.attachmentPaths.count }.to(equal(1))
-                        expect { report.attachmentPaths.first }.to(contain(newFile.path))
-                        // Oom specific attributes
-                        expect { report.attributes["error.message"] as? String }.to(equal("Out of memory detected."))
-                        expect { report.attributes["error.type"] as? String }.to(equal("Low Memory"))
-                        expect { report.attributes["state"] as? String }.to(equal("active"))
-                        // Random "generic" attribute
-                        expect { report.attributes["guid"] as? String }.toNot(beNil())
-                        return report
-                    }
-                }
-
-                it("results in oom report being sent when oom requirements met") {
-                    oomWatcher?.start()
-
-                    // may be true when running in XCode: override bc otherwise won't send the report
-                    oomWatcher?.state.debugger = false
-
-                    oomWatcher?.handleLowMemoryWarning()
-                    oomWatcher?.flushQueue()
-
-                    backtraceApi.delegate = delegate
-                    oomWatcher?._sendPendingOomReports()
-
-                    expect { calledWillSend }.to(equal(1))
-                 }
-                
-                 it("can handle missing attributes and attachments") {
-                     urlSession.response = MockOkResponse()
-
-                     oomWatcher?.start()
-
-                     // may be true when running in XCode: override bc otherwise won't send the report
-                     oomWatcher?.state.debugger = false
-
-                     oomWatcher?.handleLowMemoryWarning()
-                     oomWatcher?.flushQueue()
-
-                     BacktraceOomWatcher.reportAttributes = nil
-                     BacktraceOomWatcher.reportAttachments = nil
-
-                     let delegate = BacktraceClientDelegateMock()
-                     delegate.willSendClosure = { report in
-                         calledWillSend += 1
-
-                         expect { report.attributes }.to(beEmpty())
-                         expect { report.attachmentPaths }.to(beEmpty())
-
-                         return report
-                     }
-
-                     backtraceApi.delegate = delegate
-                     oomWatcher?._sendPendingOomReports()
-                     
-                     expect { calledWillSend }.to(equal(1))
-                 }
-                 it("results in oom report NOT being sent when oom requirements NOT met: no warning") {
-                     // debugger attached: no report.
-                     oomWatcher?.start()
-                     oomWatcher?.state.debugger = true
-                     oomWatcher?.state.memoryWarningReceived = false
-                     oomWatcher?.handleLowMemoryWarning()
-
-                     backtraceApi.delegate = delegate
-                     oomWatcher?._sendPendingOomReports()
-
-                     expect { calledWillSend }.to(equal(0))
-                 }
-                it("results in oom report NOT being sent when oom requirements NOT met: no report") {
-                    // no memory warning: no report.
-                    oomWatcher?.start()
-                    oomWatcher?.state.debugger = false
-
-                    backtraceApi.delegate = delegate
-                    oomWatcher?._sendPendingOomReports()
-
-                    expect { calledWillSend }.to(equal(0))
-                }
-                it("results in oom report NOT being sent when oom requirements NOT met: other app version") {
-                    // app version different: no report.
-                    oomWatcher?.start()
-                    oomWatcher?.state.debugger = false
-                    oomWatcher?.state.appVersion = "1.2.3"
-                    oomWatcher?.handleLowMemoryWarning()
-
-                    backtraceApi.delegate = delegate
-                    oomWatcher?._sendPendingOomReports()
-
-                    expect { calledWillSend }.to(equal(0))
-                }
-                it("results in oom report NOT being sent when oom requirements NOT met: other OS version") {
-                    // OS version different: no report.
-                    oomWatcher?.start()
-                    oomWatcher?.state.debugger = false
-                    oomWatcher?.state.osVersion = "1.2.3"
-                    oomWatcher?.handleLowMemoryWarning()
-
-                    backtraceApi.delegate = delegate
-                    oomWatcher?._sendPendingOomReports()
-
-                    expect { calledWillSend }.to(equal(0))
-                }
-            }
-        }
+        return (oomWatcher, urlSession, newFile)
     }
 
+    // MARK: - When enabled
+
+    @Test("it saves the state with properties set")
+    func savesStateWithPropertiesSet() throws {
+        let (oomWatcher, _, _) = try BacktraceOomWatcherTests.makeOomWatcher()
+
+        oomWatcher.start()
+        oomWatcher.flushQueue()
+        let savedState = oomWatcher._loadPreviousState()
+
+        #expect(savedState?.state == BacktraceOomWatcher.ApplicationState.active)
+        #expect(savedState?.appVersion == BacktraceOomWatcher.appVersion())
+        #expect(savedState?.osVersion == ProcessInfo.processInfo.operatingSystemVersionString)
+        #expect(savedState?.debugger == DebuggerChecker.isAttached())
+        #expect(savedState?.memoryWarningReceived == false)
+        #expect(BacktraceOomWatcher.reportAttributes == nil)
+        #expect(BacktraceOomWatcher.reportAttachments == nil)
+    }
+
+    @Test("application state change results in updated state file")
+    func applicationStateChangeUpdatesStateFile() throws {
+        let (oomWatcher, _, _) = try BacktraceOomWatcherTests.makeOomWatcher()
+
+        oomWatcher.start()
+        oomWatcher.appChangedState(BacktraceOomWatcher.ApplicationState.background)
+        oomWatcher.flushQueue()
+        let savedState = oomWatcher._loadPreviousState()
+
+        #expect(savedState?.state == BacktraceOomWatcher.ApplicationState.background)
+    }
+
+    @Test("low memory warning results in updated state file with resource and attributes")
+    func lowMemoryWarningUpdatesStateFile() throws {
+        let (oomWatcher, _, _) = try BacktraceOomWatcherTests.makeOomWatcher()
+
+        oomWatcher.start()
+        oomWatcher.handleLowMemoryWarning()
+        oomWatcher.flushQueue()
+        let savedState = oomWatcher._loadPreviousState()
+
+        #expect(savedState?.memoryWarningReceived == true)
+        #expect(BacktraceOomWatcher.reportAttributes != nil)
+        #expect(BacktraceOomWatcher.reportAttachments?.first?.path.contains("newfile") == true)
+    }
+
+    @Test("calling handleLowMemory again within quiet times is noop")
+    func handleLowMemoryQuietTimeIsNoop() throws {
+        let (oomWatcher, _, _) = try BacktraceOomWatcherTests.makeOomWatcher()
+
+        // Modify the quiet time so we can check if it re-saved the state after the quiet time expires
+        oomWatcher.quietTimeInMillis = 500
+        oomWatcher.attributesProvider.attachments.removeAll()
+
+        oomWatcher.start()
+        oomWatcher.handleLowMemoryWarning()
+        oomWatcher.flushQueue()
+
+        let shouldNotBeAddedFile = URL(fileURLWithPath: "should-not-be-added")
+        try "".write(to: shouldNotBeAddedFile, atomically: true, encoding: .utf8)
+
+        oomWatcher.attributesProvider.attachments.append(shouldNotBeAddedFile)
+        oomWatcher.attributesProvider.attributes["should-not"] = "be-added"
+
+        // All these should be NOOPs
+        oomWatcher.handleLowMemoryWarning()
+        oomWatcher.handleLowMemoryWarning()
+        oomWatcher.handleLowMemoryWarning()
+        oomWatcher.handleLowMemoryWarning()
+
+        oomWatcher.flushQueue()
+
+        #expect(BacktraceOomWatcher.reportAttachments?.isEmpty == true)
+        #expect(BacktraceOomWatcher.reportAttributes?["should-not"] == nil)
+
+        // after sleeping for the quietTime interval, it should add new attachments and attributes
+        Thread.sleep(forTimeInterval: 0.5)
+
+        oomWatcher.attributesProvider.attachments.removeAll()
+
+        let shouldBeAddedFile = URL(fileURLWithPath: "should-be-added")
+        try "".write(to: shouldBeAddedFile, atomically: true, encoding: .utf8)
+        oomWatcher.attributesProvider.attachments.append(shouldBeAddedFile)
+        oomWatcher.attributesProvider.attributes["should"] = "be-added"
+
+        oomWatcher.handleLowMemoryWarning()
+        oomWatcher.flushQueue()
+        #expect(BacktraceOomWatcher.reportAttachments?.first?.path.contains("should-be-added") == true)
+        #expect(BacktraceOomWatcher.reportAttributes?["should"] != nil)
+    }
+
+    // MARK: - When oomMode == .none
+
+    @Test("does not create a state file or send reports when oomMode is none")
+    func oomModeNoneDoesNotCreateStateFile() throws {
+        let urlSession = URLSessionMock()
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+
+        let oomWatcher = BacktraceOomWatcher(repository: repository,
+                                              crashReporter: crashReporter,
+                                              attributes: AttributesProvider(),
+                                              backtraceApi: backtraceApi,
+                                              oomMode: .none)
+
+        oomWatcher.start()
+        oomWatcher.flushQueue()
+
+        #expect(!FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+    }
+
+    // MARK: - When oomMode == .light
+
+    @Test("reports exactly once and off the main thread in light mode")
+    func oomModeLightReportsOnce() throws {
+        let urlSession = URLSessionMock()
+        urlSession.response = MockOkResponse()
+        var willSendCalls = 0
+
+        let newFile = URL(fileURLWithPath: "newfile")
+        let attrsProvider = AttributesProvider()
+        try "".write(to: newFile, atomically: true, encoding: .utf8)
+        attrsProvider.attachments.append(newFile)
+
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+
+        let oomWatcher = BacktraceOomWatcher(repository: repository,
+                                              crashReporter: crashReporter,
+                                              attributes: attrsProvider,
+                                              backtraceApi: backtraceApi,
+                                              oomMode: .light)
+
+        let delegate = BacktraceClientDelegateMock()
+        delegate.willSendClosure = { report in
+            willSendCalls += 1
+            return report
+        }
+        backtraceApi.delegate = delegate
+
+        oomWatcher.start()
+        oomWatcher.state.debugger = false
+        oomWatcher.handleLowMemoryWarning()
+        oomWatcher.flushQueue()
+        oomWatcher._sendPendingOomReports()
+        oomWatcher.flushQueue()
+
+        #expect(willSendCalls == 1)
+    }
+
+    // MARK: - With sending mocks: OOM report sent when requirements met
+
+    @Test("results in oom report being sent when oom requirements met")
+    func oomReportSentWhenRequirementsMet() throws {
+        let urlSession = URLSessionMock()
+        urlSession.response = MockOkResponse()
+        let newFile = URL(fileURLWithPath: "newfile")
+        let (oomWatcher, _, _) = try BacktraceOomWatcherTests.makeOomWatcher(urlSession: urlSession, newFile: newFile)
+        urlSession.response = MockOkResponse()
+
+        var calledWillSend = 0
+        let delegate = BacktraceClientDelegateMock()
+
+        delegate.willSendClosure = { report in
+            calledWillSend += 1
+            #expect(report.attachmentPaths.count == 1)
+            #expect(report.attachmentPaths.first?.contains(newFile.path) == true)
+            #expect(report.attributes["error.message"] as? String == "Out of memory detected.")
+            #expect(report.attributes["error.type"] as? String == "Low Memory")
+            #expect(report.attributes["state"] as? String == "active")
+            #expect(report.attributes["guid"] as? String != nil)
+            return report
+        }
+
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+
+        let attrsProvider = AttributesProvider()
+        try "".write(to: newFile, atomically: true, encoding: .utf8)
+        attrsProvider.attachments.append(newFile)
+
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+
+        let oomWatcherSend = BacktraceOomWatcher(repository: repository,
+                                                  crashReporter: crashReporter,
+                                                  attributes: attrsProvider,
+                                                  backtraceApi: backtraceApi,
+                                                  oomMode: .full)
+        BacktraceOomWatcher.clean()
+        urlSession.response = MockOkResponse()
+
+        oomWatcherSend.start()
+
+        // may be true when running in Xcode: override bc otherwise won't send the report
+        oomWatcherSend.state.debugger = false
+
+        oomWatcherSend.handleLowMemoryWarning()
+        oomWatcherSend.flushQueue()
+
+        backtraceApi.delegate = delegate
+        oomWatcherSend._sendPendingOomReports()
+
+        #expect(calledWillSend == 1)
+    }
+
+    @Test("can handle missing attributes and attachments")
+    func canHandleMissingAttributesAndAttachments() throws {
+        let urlSession = URLSessionMock()
+        urlSession.response = MockOkResponse()
+        let newFile = URL(fileURLWithPath: "newfile")
+
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+
+        let attrsProvider = AttributesProvider()
+        try "".write(to: newFile, atomically: true, encoding: .utf8)
+        attrsProvider.attachments.append(newFile)
+
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+
+        let oomWatcher = BacktraceOomWatcher(repository: repository,
+                                              crashReporter: crashReporter,
+                                              attributes: attrsProvider,
+                                              backtraceApi: backtraceApi,
+                                              oomMode: .full)
+        BacktraceOomWatcher.clean()
+        urlSession.response = MockOkResponse()
+
+        oomWatcher.start()
+
+        // may be true when running in Xcode: override bc otherwise won't send the report
+        oomWatcher.state.debugger = false
+
+        oomWatcher.handleLowMemoryWarning()
+        oomWatcher.flushQueue()
+
+        BacktraceOomWatcher.reportAttributes = nil
+        BacktraceOomWatcher.reportAttachments = nil
+
+        var calledWillSend = 0
+        let delegate = BacktraceClientDelegateMock()
+        delegate.willSendClosure = { report in
+            calledWillSend += 1
+
+            #expect(report.attributes.isEmpty)
+            #expect(report.attachmentPaths.isEmpty)
+
+            return report
+        }
+
+        backtraceApi.delegate = delegate
+        oomWatcher._sendPendingOomReports()
+
+        #expect(calledWillSend == 1)
+    }
+
+    @Test("results in oom report NOT being sent when oom requirements NOT met: no warning")
+    func oomReportNotSentNoWarning() throws {
+        let urlSession = URLSessionMock()
+        urlSession.response = MockOkResponse()
+        let newFile = URL(fileURLWithPath: "newfile")
+
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+
+        let attrsProvider = AttributesProvider()
+        try "".write(to: newFile, atomically: true, encoding: .utf8)
+        attrsProvider.attachments.append(newFile)
+
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+
+        let oomWatcher = BacktraceOomWatcher(repository: repository,
+                                              crashReporter: crashReporter,
+                                              attributes: attrsProvider,
+                                              backtraceApi: backtraceApi,
+                                              oomMode: .full)
+        BacktraceOomWatcher.clean()
+        urlSession.response = MockOkResponse()
+
+        var calledWillSend = 0
+        let delegate = BacktraceClientDelegateMock()
+        delegate.willSendClosure = { report in
+            calledWillSend += 1
+            return report
+        }
+
+        // debugger attached: no report.
+        oomWatcher.start()
+        oomWatcher.state.debugger = true
+        oomWatcher.state.memoryWarningReceived = false
+        oomWatcher.handleLowMemoryWarning()
+
+        backtraceApi.delegate = delegate
+        oomWatcher._sendPendingOomReports()
+
+        #expect(calledWillSend == 0)
+    }
+
+    @Test("results in oom report NOT being sent when oom requirements NOT met: no report")
+    func oomReportNotSentNoReport() throws {
+        let urlSession = URLSessionMock()
+        urlSession.response = MockOkResponse()
+        let newFile = URL(fileURLWithPath: "newfile")
+
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+
+        let attrsProvider = AttributesProvider()
+        try "".write(to: newFile, atomically: true, encoding: .utf8)
+        attrsProvider.attachments.append(newFile)
+
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+
+        let oomWatcher = BacktraceOomWatcher(repository: repository,
+                                              crashReporter: crashReporter,
+                                              attributes: attrsProvider,
+                                              backtraceApi: backtraceApi,
+                                              oomMode: .full)
+        BacktraceOomWatcher.clean()
+        urlSession.response = MockOkResponse()
+
+        var calledWillSend = 0
+        let delegate = BacktraceClientDelegateMock()
+        delegate.willSendClosure = { report in
+            calledWillSend += 1
+            return report
+        }
+
+        // no memory warning: no report.
+        oomWatcher.start()
+        oomWatcher.state.debugger = false
+
+        backtraceApi.delegate = delegate
+        oomWatcher._sendPendingOomReports()
+
+        #expect(calledWillSend == 0)
+    }
+
+    @Test("results in oom report NOT being sent when oom requirements NOT met: other app version")
+    func oomReportNotSentOtherAppVersion() throws {
+        let urlSession = URLSessionMock()
+        urlSession.response = MockOkResponse()
+        let newFile = URL(fileURLWithPath: "newfile")
+
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+
+        let attrsProvider = AttributesProvider()
+        try "".write(to: newFile, atomically: true, encoding: .utf8)
+        attrsProvider.attachments.append(newFile)
+
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+
+        let oomWatcher = BacktraceOomWatcher(repository: repository,
+                                              crashReporter: crashReporter,
+                                              attributes: attrsProvider,
+                                              backtraceApi: backtraceApi,
+                                              oomMode: .full)
+        BacktraceOomWatcher.clean()
+        urlSession.response = MockOkResponse()
+
+        var calledWillSend = 0
+        let delegate = BacktraceClientDelegateMock()
+        delegate.willSendClosure = { report in
+            calledWillSend += 1
+            return report
+        }
+
+        // app version different: no report.
+        oomWatcher.start()
+        oomWatcher.state.debugger = false
+        oomWatcher.state.appVersion = "1.2.3"
+        oomWatcher.handleLowMemoryWarning()
+
+        backtraceApi.delegate = delegate
+        oomWatcher._sendPendingOomReports()
+
+        #expect(calledWillSend == 0)
+    }
+
+    @Test("results in oom report NOT being sent when oom requirements NOT met: other OS version")
+    func oomReportNotSentOtherOSVersion() throws {
+        let urlSession = URLSessionMock()
+        urlSession.response = MockOkResponse()
+        let newFile = URL(fileURLWithPath: "newfile")
+
+        let credentials = BacktraceCredentials(endpoint: URL(string: "https://yourteam.backtrace.io")!, token: "")
+        let backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+
+        let attrsProvider = AttributesProvider()
+        try "".write(to: newFile, atomically: true, encoding: .utf8)
+        attrsProvider.attachments.append(newFile)
+
+        let crashReporter = BacktraceCrashReporter()
+        let repository = try! PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+
+        let oomWatcher = BacktraceOomWatcher(repository: repository,
+                                              crashReporter: crashReporter,
+                                              attributes: attrsProvider,
+                                              backtraceApi: backtraceApi,
+                                              oomMode: .full)
+        BacktraceOomWatcher.clean()
+        urlSession.response = MockOkResponse()
+
+        var calledWillSend = 0
+        let delegate = BacktraceClientDelegateMock()
+        delegate.willSendClosure = { report in
+            calledWillSend += 1
+            return report
+        }
+
+        // OS version different: no report.
+        oomWatcher.start()
+        oomWatcher.state.debugger = false
+        oomWatcher.state.osVersion = "1.2.3"
+        oomWatcher.handleLowMemoryWarning()
+
+        backtraceApi.delegate = delegate
+        oomWatcher._sendPendingOomReports()
+
+        #expect(calledWillSend == 0)
+    }
 }

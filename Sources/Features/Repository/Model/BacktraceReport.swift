@@ -1,5 +1,5 @@
 import Foundation
-import CrashReporter
+@preconcurrency import CrashReporter
 
 /// Model represents single crash report which can be send to Backtrace services.
 @objc final public class BacktraceReport: NSObject {
@@ -66,3 +66,5 @@ extension BacktraceReport: PersistentStorable {
 
     
 }
+
+extension BacktraceReport: @unchecked Sendable {}

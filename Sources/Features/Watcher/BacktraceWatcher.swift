@@ -92,3 +92,5 @@ extension BacktraceWatcher {
         }
     }
 }
+
+extension BacktraceWatcher: @unchecked Sendable {}

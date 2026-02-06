@@ -1,7 +1,7 @@
 import Foundation
 
 final class BacktraceFileManager {
-    static let fileManger = FileManager.default
+    nonisolated(unsafe) static let fileManger = FileManager.default
 
     /// Returns size of file in bytes.
     static func sizeOfFile(at url: URL) throws -> Int {

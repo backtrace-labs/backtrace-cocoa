@@ -15,9 +15,11 @@ final class Dispatcher {
 }
 
 extension Dispatcher: Dispatching {
-    func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void) {
+    func dispatch(_ block: @escaping @Sendable () -> Void, completion: @escaping @Sendable () -> Void) {
         let blockOperation = BlockOperation(block: block)
         blockOperation.completionBlock = completion
         workingQueue.addOperation(blockOperation)
     }
 }
+
+extension Dispatcher: @unchecked Sendable {}

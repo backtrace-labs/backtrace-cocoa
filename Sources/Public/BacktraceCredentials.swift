@@ -85,3 +85,5 @@ extension BacktraceCredentials {
         }
     }
 }
+
+extension BacktraceCredentials: @unchecked Sendable {}

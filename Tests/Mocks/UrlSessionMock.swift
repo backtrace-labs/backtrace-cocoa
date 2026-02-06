@@ -1,6 +1,5 @@
 import Foundation
-import XCTest
-import Backtrace
+@testable import Backtrace
 
 typealias VoidClosure = () -> Void
 
@@ -12,10 +11,10 @@ final class URLSessionMock: URLSession, @unchecked Sendable {
     var response: MockResponse?
 
     override func dataTask(with request: URLRequest,
-                           completionHandler: @escaping CompletionHandler) -> URLSessionDataTask {
-        return URLSessionDataTaskMock { [weak self] in
-            guard let self = self else { return }
-            completionHandler(self.response?.data, self.response?.urlResponse, self.response?.error)
+                           completionHandler: @escaping @Sendable (Data?, URLResponse?, (any Swift.Error)?) -> Void) -> URLSessionDataTask {
+        let capturedResponse = self.response
+        return URLSessionDataTaskMock {
+            completionHandler(capturedResponse?.data, capturedResponse?.urlResponse, capturedResponse?.error)
         }
     }
 }

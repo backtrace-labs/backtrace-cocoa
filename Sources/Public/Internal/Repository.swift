@@ -1,6 +1,6 @@
 import Foundation
 
-protocol Repository {
+protocol Repository: Sendable {
     associatedtype Resource
 
     func save(_ resource: Resource) throws

@@ -96,3 +96,5 @@ import Foundation
                   oomMode: detectOOM ? .full : .none)
     }
 }
+
+extension BacktraceClientConfiguration: @unchecked Sendable {}

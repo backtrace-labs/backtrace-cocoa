@@ -214,7 +214,6 @@
 		F21771BE21E341CA0059896E /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CC8ACA21CF8D8400A68CAC /* Dispatcher.swift */; };
 		F21D302B224A18D60013B5D7 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21D302A224A18D50013B5D7 /* Store.swift */; };
 		F21D302C224A18D60013B5D7 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21D302A224A18D50013B5D7 /* Store.swift */; };
-		F21DD39D2255666F00404CC3 /* Quick+Throws.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63692244243500939BC9 /* Quick+Throws.swift */; };
 		F21DD39F2255666F00404CC3 /* WatcherRepositoryMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */; };
 		F21DD3A02255666F00404CC3 /* UrlSessionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F229D789223A56ED008EC851 /* UrlSessionMock.swift */; };
 		F21DD3A12255666F00404CC3 /* DebuggerCheckerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */; };
@@ -287,8 +286,6 @@
 		F2A81B4D23EF1730007C63E4 /* BacktraceApiProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A81B4C23EF1730007C63E4 /* BacktraceApiProtocol.swift */; };
 		F2A81B4E23EF1730007C63E4 /* BacktraceApiProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A81B4C23EF1730007C63E4 /* BacktraceApiProtocol.swift */; };
 		F2A81B4F23EF1730007C63E4 /* BacktraceApiProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A81B4C23EF1730007C63E4 /* BacktraceApiProtocol.swift */; };
-		F2AB636A2244243500939BC9 /* Quick+Throws.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63692244243500939BC9 /* Quick+Throws.swift */; };
-		F2AB636B2244243500939BC9 /* Quick+Throws.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63692244243500939BC9 /* Quick+Throws.swift */; };
 		F2AB636D22442B5100939BC9 /* DebuggerChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */; };
 		F2AB636E22442B5100939BC9 /* DebuggerChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */; };
 		F2AB63752246484100939BC9 /* WatcherRepositoryMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */; };
@@ -555,7 +552,6 @@
 		F2A11C0022553C2A00354640 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F2A11C0222553C2A00354640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F2A81B4C23EF1730007C63E4 /* BacktraceApiProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BacktraceApiProtocol.swift; sourceTree = "<group>"; };
-		F2AB63692244243500939BC9 /* Quick+Throws.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Quick+Throws.swift"; sourceTree = "<group>"; };
 		F2AB636C22442B5100939BC9 /* DebuggerChecker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DebuggerChecker.swift; sourceTree = "<group>"; };
 		F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatcherRepositoryMock.swift; sourceTree = "<group>"; };
 		F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerCheckerMock.swift; sourceTree = "<group>"; };
@@ -1014,7 +1010,6 @@
 		F2AB6370224647F000939BC9 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				F2AB63692244243500939BC9 /* Quick+Throws.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -1280,7 +1275,6 @@
 				28F95BB422525DCC003936E0 /* Sources */,
 				28F95BB522525DCC003936E0 /* Frameworks */,
 				28F95BB622525DCC003936E0 /* Resources */,
-				D6E0CB6162B1347C1AED3F88 /* [CP] Embed Pods Frameworks */,
 				A178BED2963883777DB64868 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
@@ -1323,7 +1317,6 @@
 				F266B81621C77AC800D14417 /* Sources */,
 				F266B81721C77AC800D14417 /* Frameworks */,
 				F266B81821C77AC800D14417 /* Resources */,
-				4F2D646B03E832DF178EA283 /* [CP] Embed Pods Frameworks */,
 				E01DB84538E264ACD7B1E21E /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
@@ -1386,7 +1379,6 @@
 				F2C2FA5521BBD26300934744 /* Sources */,
 				F2C2FA5621BBD26300934744 /* Frameworks */,
 				F2C2FA5721BBD26300934744 /* Resources */,
-				73174F422118BC8CC78B9541 /* [CP] Embed Pods Frameworks */,
 				EC5C14BD9990F84DAFD628D9 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
@@ -1740,23 +1732,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Backtrace-macOS/Pods-Backtrace-macOS-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		4F2D646B03E832DF178EA283 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		57193B24A3BC657561ED91F8 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1833,23 +1808,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		73174F422118BC8CC78B9541 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Backtrace-iOSTests/Pods-Backtrace-iOSTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Backtrace-iOSTests/Pods-Backtrace-iOSTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Backtrace-iOSTests/Pods-Backtrace-iOSTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		7FA4E4FA1D0DFA3B8C72A3C3 /* [CP] Copy Pods Resources */ = {
@@ -1945,23 +1903,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D6E0CB6162B1347C1AED3F88 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		DB1095F691929C1C0B421213 /* [CP] Check Pods Manifest.lock */ = {
@@ -2218,7 +2159,6 @@
 			files = (
 				20DE4B382D48616A0076B3F6 /* NSManagedObjectContextExtensionTests.swift in Sources */,
 				A24A4B7D28B595D9004F5052 /* AttachmentStorageTests.swift in Sources */,
-				F21DD39D2255666F00404CC3 /* Quick+Throws.swift in Sources */,
 				A24A4B7428B595D9004F5052 /* BacktraceApiTests.swift in Sources */,
 				A24A4B7728B595D9004F5052 /* DispatcherTests.swift in Sources */,
 				A24A4B6828B595D9004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
@@ -2330,7 +2270,6 @@
 				A24A4B7628B595D9004F5052 /* DispatcherTests.swift in Sources */,
 				A24A4B6728B595D9004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
 				20B01A542DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */,
-				F2AB636B2244243500939BC9 /* Quick+Throws.swift in Sources */,
 				A24A4B5B28B595D9004F5052 /* BacktraceWatcherTests.swift in Sources */,
 				A24A4B7928B595D9004F5052 /* AttributesTests.swift in Sources */,
 				A24A4B6D28B595D9004F5052 /* AttachmentTests.swift in Sources */,
@@ -2447,7 +2386,6 @@
 				A24A4B7528B595D9004F5052 /* DispatcherTests.swift in Sources */,
 				A24A4B6628B595D9004F5052 /* BacktraceOomWatcherTests.swift in Sources */,
 				20B01A552DEE4DCA00FED98F /* BacktraceReporterThreadSpec.swift in Sources */,
-				F2AB636A2244243500939BC9 /* Quick+Throws.swift in Sources */,
 				A24A4B5A28B595D9004F5052 /* BacktraceWatcherTests.swift in Sources */,
 				A24A4B7828B595D9004F5052 /* AttributesTests.swift in Sources */,
 				A24A4B6C28B595D9004F5052 /* AttachmentTests.swift in Sources */,

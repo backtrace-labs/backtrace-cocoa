@@ -476,3 +476,12 @@ class BacktraceCallNotificationObserver: NSObject, BacktraceNotificationHandlerD
     }
 }
 #endif
+
+extension BacktraceNotificationObserver: @unchecked Sendable {}
+extension BacktraceMemoryNotificationObserver: @unchecked Sendable {}
+extension BacktraceBatteryNotificationObserver: @unchecked Sendable {}
+#if os(iOS) && !targetEnvironment(macCatalyst)
+extension BacktraceOrientationNotificationObserver: @unchecked Sendable {}
+extension BacktraceAppStateNotificationObserver: @unchecked Sendable {}
+extension BacktraceCallNotificationObserver: @unchecked Sendable {}
+#endif

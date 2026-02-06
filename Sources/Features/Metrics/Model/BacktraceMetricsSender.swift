@@ -95,3 +95,5 @@ final class BacktraceMetricsSender {
         return url
     }
 }
+
+extension BacktraceMetricsSender: @unchecked Sendable {}

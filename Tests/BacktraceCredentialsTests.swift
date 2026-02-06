@@ -1,48 +1,64 @@
-import XCTest
-
-import Nimble
-import Quick
+import Testing
 @testable import Backtrace
+import Foundation
 
-final class BacktraceCredentialsTests: QuickSpec {
+@Suite("Backtrace Credentials")
+struct BacktraceCredentialsTests {
 
-    override func spec() {
-        let fakeUniverse = "universe"
-        let fakeToken = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458"
-        let legacyUrl = "https://" + fakeUniverse + ".sp.backtrace.io:6098/post?format=json&token=" + fakeToken
-        let url = "https://submit.backtrace.io/" + fakeUniverse + "/" + fakeToken + "/json"
-        let legacyUrlEndpoint = "https://" + fakeUniverse + ".sp.backtrace.io:6098"
+    let fakeUniverse = "universe"
+    let fakeToken = "aaaaabbbbbccccf82668682e69f59b38e0a853bed941e08e85f4bf5eb2c5458"
 
-        describe("Backtrace Credentials") {
-            context("Given legacy URL endpoint and token") {
-                let credentials = BacktraceCredentials(endpoint: URL(string: legacyUrlEndpoint)!, token: fakeToken)
-                it("Can get Universe name") {
-                    expect { try credentials.getUniverseName() }.to(equal(fakeUniverse))
-                }
-                it("Can get token") {
-                    expect { try credentials.getSubmissionToken() }.to(equal(fakeToken))
-                }
-            }
+    var legacyUrl: String {
+        "https://" + fakeUniverse + ".sp.backtrace.io:6098/post?format=json&token=" + fakeToken
+    }
 
-            context("Given legacy URI") {
-                let credentials = BacktraceCredentials(submissionUrl: URL(string: legacyUrl)!)
-                it("Can get Universe name") {
-                    expect { try credentials.getUniverseName() }.to(equal(fakeUniverse))
-                }
-                it("Can get token") {
-                    expect { try credentials.getSubmissionToken() }.to(equal(fakeToken))
-                }
-            }
+    var url: String {
+        "https://submit.backtrace.io/" + fakeUniverse + "/" + fakeToken + "/json"
+    }
 
-            context("Given URI") {
-                let credentials = BacktraceCredentials(submissionUrl: URL(string: url)!)
-                it("Can get Universe name") {
-                    expect { try credentials.getUniverseName() }.to(equal(fakeUniverse))
-                }
-                it("Can get token") {
-                    expect { try credentials.getSubmissionToken() }.to(equal(fakeToken))
-                }
-            }
-        }
+    var legacyUrlEndpoint: String {
+        "https://" + fakeUniverse + ".sp.backtrace.io:6098"
+    }
+
+    // MARK: - Given legacy URL endpoint and token
+
+    @Test("Can get universe name from legacy URL endpoint and token")
+    func universeNameFromLegacyEndpointAndToken() throws {
+        let credentials = BacktraceCredentials(endpoint: URL(string: legacyUrlEndpoint)!, token: fakeToken)
+        #expect(try credentials.getUniverseName() == fakeUniverse)
+    }
+
+    @Test("Can get token from legacy URL endpoint and token")
+    func tokenFromLegacyEndpointAndToken() throws {
+        let credentials = BacktraceCredentials(endpoint: URL(string: legacyUrlEndpoint)!, token: fakeToken)
+        #expect(try credentials.getSubmissionToken() == fakeToken)
+    }
+
+    // MARK: - Given legacy URI
+
+    @Test("Can get universe name from legacy URI")
+    func universeNameFromLegacyUri() throws {
+        let credentials = BacktraceCredentials(submissionUrl: URL(string: legacyUrl)!)
+        #expect(try credentials.getUniverseName() == fakeUniverse)
+    }
+
+    @Test("Can get token from legacy URI")
+    func tokenFromLegacyUri() throws {
+        let credentials = BacktraceCredentials(submissionUrl: URL(string: legacyUrl)!)
+        #expect(try credentials.getSubmissionToken() == fakeToken)
+    }
+
+    // MARK: - Given URI
+
+    @Test("Can get universe name from URI")
+    func universeNameFromUri() throws {
+        let credentials = BacktraceCredentials(submissionUrl: URL(string: url)!)
+        #expect(try credentials.getUniverseName() == fakeUniverse)
+    }
+
+    @Test("Can get token from URI")
+    func tokenFromUri() throws {
+        let credentials = BacktraceCredentials(submissionUrl: URL(string: url)!)
+        #expect(try credentials.getSubmissionToken() == fakeToken)
     }
 }

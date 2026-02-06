@@ -1,43 +1,31 @@
-import Nimble
-import Quick
-#if SWIFT_PACKAGE
 import Foundation
-#endif
+import Testing
 @testable import Backtrace
 
-final class BacktraceRateLimiterTests: QuickSpec {
-    override func spec() {
-        describe("Rate limiter") {
-            context("given empty sent list") {
-                let rateLimiter = BacktraceRateLimiter(reportsPerMin: 3)
-                it("allows to send new reports") {
-                    expect { rateLimiter.canSend }.to(beTrue())
-                }
-            }
+@Suite struct BacktraceRateLimiterTests {
 
-            context("given list containing not enough elements") {
-                var rateLimiter = BacktraceRateLimiter(reportsPerMin: 3)
+    @Test func emptyListAllowsSendingNewReports() {
+        let rateLimiter = BacktraceRateLimiter(reportsPerMin: 3)
+        #expect(rateLimiter.canSend == true)
+    }
+
+    @Test func notEnoughElementsAllowsSendingNewReports() {
+        let rateLimiter = BacktraceRateLimiter(reportsPerMin: 3)
+        rateLimiter.addRecord()
+        rateLimiter.addRecord()
+        #expect(rateLimiter.canSend == true)
+    }
+
+    @Test func concurrentUsageDoesNotCrash() {
+        let rateLimiter = BacktraceRateLimiter(reportsPerMin: 60)
+        let group = DispatchGroup()
+        for _ in 1...100 {
+            DispatchQueue.global().async(group: group) {
                 rateLimiter.addRecord()
-                rateLimiter.addRecord()
-                it("allows to send new reports") {
-                    expect { rateLimiter.canSend }.to(beTrue())
-                }
             }
-
-            context("is used concurrently") {
-                 var rateLimiter = BacktraceRateLimiter(reportsPerMin: 60)
-                 it("doesn't crash") {
-                     let group = DispatchGroup()
-                     for _ in 1...100 {
-                         DispatchQueue.global().async(group: group) {
-                             rateLimiter.addRecord()
-                         }
-                     }
-                     group.wait()
-
-                     expect { rateLimiter.timestamps.count }.to(equal(100))
-                 }
-             }
         }
+        group.wait()
+
+        #expect(rateLimiter.timestamps.count == 100)
     }
 }

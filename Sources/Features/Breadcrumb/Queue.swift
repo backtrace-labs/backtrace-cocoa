@@ -72,3 +72,5 @@ public class Queue<T>: NSObject {
         return elements.count
     }
 }
+
+extension Queue: @unchecked Sendable where T: Sendable {}

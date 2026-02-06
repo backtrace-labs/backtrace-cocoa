@@ -2,7 +2,7 @@ import Foundation
 import CoreData
 
 /// Describes `PersistentStorable` Core Data
-protocol PersistentStorable {
+protocol PersistentStorable: Sendable {
     associatedtype ManagedObjectType: NSManagedObject
 
     static var entityName: String { get }
@@ -52,8 +52,8 @@ final class PersistentRepository<Resource: PersistentStorable> {
                                                storeDir: NSPersistentContainer.defaultDirectoryURL(),
                                                managedObject: managedObjectModel)
             let dispatch = DispatchSemaphore(value: 0)
-            var loadPersistentStoresError: Error?
-            var url: URL?
+            nonisolated(unsafe) var loadPersistentStoresError: Error?
+            nonisolated(unsafe) var url: URL?
             persistentContainer.loadPersistentStores { (storeDescription, error) in
                 BacktraceLogger.debug("Loaded persistent stores, store description: \(storeDescription)")
                 loadPersistentStoresError = error
@@ -167,6 +167,8 @@ extension PersistentRepository: Repository {
     func get(sortDescriptors: [NSSortDescriptor]? = nil,
              predicate: NSPredicate? = nil,
              fetchLimit: Int? = nil) throws -> [Resource] {
+        nonisolated(unsafe) let sortDescriptors = sortDescriptors
+        nonisolated(unsafe) let predicate = predicate
         return try backgroundContext.performAndWaitThrowing {
             let resources = try _getResourcesLocked(sortDescriptors: sortDescriptors, predicate: predicate, fetchLimit: fetchLimit)
             return try resources.map(Resource.init)
@@ -323,3 +325,5 @@ extension PersistentRepository: Repository {
         try _deleteLocked(oldestResource)
     }
 }
+
+extension PersistentRepository: @unchecked Sendable {}

@@ -1,6 +1,6 @@
 import Foundation
 
-protocol Event: Encodable {
+protocol Event: Encodable, Sendable {
 
     var timestamp: Int64 { get set }
     var attributes: DecodableAttributes { get set }

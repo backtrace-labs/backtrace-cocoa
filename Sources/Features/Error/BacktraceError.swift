@@ -1,6 +1,6 @@
 import Foundation
 
-protocol BacktraceError: Error {
+protocol BacktraceError: Error, Sendable {
     var backtraceStatus: BacktraceReportStatus { get }
 }
 

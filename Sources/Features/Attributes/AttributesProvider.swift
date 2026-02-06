@@ -1,6 +1,6 @@
 import Foundation
 
-protocol AttributesSource {
+protocol AttributesSource: Sendable {
     var immutable: [String: Any?] { get }
     var mutable: [String: Any?] { get }
     var attachments: Attachments { get }
@@ -88,3 +88,5 @@ extension Array where Element == [String: Any?] {
         return Dictionary(keyValuePairs) { (lhs, _) in lhs }
     }
 }
+
+extension AttributesProvider: @unchecked Sendable {}

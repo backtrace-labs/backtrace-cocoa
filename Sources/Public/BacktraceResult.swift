@@ -27,3 +27,5 @@ extension BacktraceResult {
         return message
     }
 }
+
+extension BacktraceResult: @unchecked Sendable {}

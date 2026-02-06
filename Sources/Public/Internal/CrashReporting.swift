@@ -1,6 +1,6 @@
 import Foundation
 
-protocol CrashReporting {
+protocol CrashReporting: Sendable {
     func generateLiveReport(exception: NSException?,
                             attributes: Attributes,
                             attachmentPaths: [String]) throws -> BacktraceReport

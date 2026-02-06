@@ -215,3 +215,5 @@ extension BacktraceReporter {
         self.backtraceOomWatcher.handleLowMemoryWarning()
     }
 }
+
+extension BacktraceReporter: @unchecked Sendable {}

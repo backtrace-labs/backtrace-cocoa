@@ -4,6 +4,7 @@ import Foundation
 
     private var breadcrumbId: Int
     private let backtraceBreadcrumbFile: BacktraceBreadcrumbFile
+    private let lock = NSLock()
 
     init(breadcrumbSettings: BacktraceBreadcrumbSettings) throws {
         self.backtraceBreadcrumbFile = try BacktraceBreadcrumbFile(breadcrumbSettings)
@@ -18,12 +19,15 @@ import Foundation
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType,
                        level: BacktraceBreadcrumbLevel) -> Bool {
-        breadcrumbId += 1
-        BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
+        let currentId = lock.withLock { () -> Int in
+            breadcrumbId += 1
+            BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
+            return breadcrumbId
+        }
 
         let time = Date().millisecondsSince1970
         var breadcrumb: [String: Any] = ["timestamp": time,
-                                         "id": breadcrumbId,
+                                         "id": currentId,
                                          "level": level.description,
                                          "type": type.description,
                                          "message": message]
@@ -35,13 +39,17 @@ import Foundation
     func clear() -> Bool {
         let result = backtraceBreadcrumbFile.clear()
         if result {
-            breadcrumbId = Date().millisecondsSince1970
-            BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
+            lock.withLock {
+                breadcrumbId = Date().millisecondsSince1970
+                BreadcrumbsInfo.currentBreadcrumbsId = breadcrumbId
+            }
         }
         return result
     }
 
     internal var getCurrentBreadcrumbId: Int? {
-        return breadcrumbId
+        return lock.withLock { breadcrumbId }
     }
 }
+
+extension BacktraceBreadcrumbsLogManager: @unchecked Sendable {}

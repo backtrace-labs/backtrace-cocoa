@@ -1,10 +1,10 @@
 import Foundation
 
-protocol DebuggerChecking {
+protocol DebuggerChecking: Sendable {
     static func isAttached() -> Bool
 }
 
-struct DebuggerChecker: DebuggerChecking {
+struct DebuggerChecker: DebuggerChecking, Sendable {
 
     /// Check if the debugger is attached to the current process.
     /// - see more: https://stackoverflow.com/a/4746378/6651241

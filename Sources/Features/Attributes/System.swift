@@ -11,7 +11,7 @@ struct Statistics {
         var count = mach_msg_type_number_t(MemoryLayout<T>.stride / MemoryLayout<natural_t>.stride)
 
         let kern: kern_return_t = withUnsafeMutablePointer(to: &taskInfoType) { (pointer) -> kern_return_t in
-            task_info(mach_task_self_,
+            task_info(currentTaskPort(),
                       task_flavor_t(taskFlavor),
                       pointer.withMemoryRebound(to: Int32.self, capacity: 1) { task_info_t($0) },
                       &count)
@@ -230,7 +230,7 @@ extension ProcessInfo {
         var threads: thread_act_array_t?
         var count = mach_msg_type_number_t()
 
-        let result: kern_return_t = task_threads(mach_task_self_, &threads, &count)
+        let result: kern_return_t = task_threads(currentTaskPort(), &threads, &count)
         guard result == KERN_SUCCESS else {
             throw KernError.code(result)
         }
@@ -239,7 +239,7 @@ extension ProcessInfo {
         }
         defer {
             let vmSize = vm_size_t(count * natural_t(MemoryLayout<thread_t>.size))
-            vm_deallocate(mach_task_self_, vm_address_t(threadsActArray.pointee), vmSize)
+            vm_deallocate(currentTaskPort(), vm_address_t(threadsActArray.pointee), vmSize)
         }
         return UInt(count)
     }

@@ -1,11 +1,11 @@
 import Foundation
 
-protocol BacktraceApiProtocol {
+protocol BacktraceApiProtocol: Sendable {
     func send(_ report: BacktraceReport) throws -> BacktraceResult
     var delegate: BacktraceClientDelegate? { get set }
 }
 
-protocol BacktraceMetricsApiProtocol {
+protocol BacktraceMetricsApiProtocol: Sendable {
     func sendMetrics(_ payload: SummedEventsPayload, url: URL)
     func sendMetrics(_ payload: UniqueEventsPayload, url: URL)
 }

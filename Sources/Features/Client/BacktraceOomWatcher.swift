@@ -1,5 +1,5 @@
 import Foundation
-import CrashReporter
+@preconcurrency import CrashReporter
 import MachO
 
 /// Handles low‑memory warnings and, on the next launch, decides if the previous session ended in an OOM crash.
@@ -17,7 +17,7 @@ final class BacktraceOomWatcher {
     // MARK: Private & internal
     
     private static let oomFileName = "BacktraceOomState.plist"
-    internal static var oomFileURL: URL? = {
+    nonisolated(unsafe) internal static var oomFileURL: URL? = {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
             .first?
             .appendingPathComponent(oomFileName)
@@ -212,7 +212,7 @@ final class BacktraceOomWatcher {
         let cfg = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: [])
         let lightReporter = PLCrashReporter(configuration: cfg)
         let thread = mach_thread_self()
-        defer { mach_port_deallocate(mach_task_self_, thread) }
+        defer { mach_port_deallocate(currentTaskPort(), thread) }
 
         guard let data = try? lightReporter?.generateLiveReport(withThread: thread, exception: nil),
               let report = try? BacktraceReport(report: data,
@@ -294,9 +294,11 @@ final class BacktraceOomWatcher {
         var count = mach_msg_type_number_t(MemoryLayout.size(ofValue: info)) / 4
         let kerr  = withUnsafeMutablePointer(to: &info) {
             $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
-                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+                task_info(currentTaskPort(), task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
             }
         }
         return kerr == KERN_SUCCESS ? UInt64(info.resident_size) : nil
     }
 }
+
+extension BacktraceOomWatcher: @unchecked Sendable {}

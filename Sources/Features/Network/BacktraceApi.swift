@@ -76,3 +76,5 @@ extension BacktraceApi: BacktraceMetricsApiProtocol {
 
     }
 }
+
+extension BacktraceApi: @unchecked Sendable {}

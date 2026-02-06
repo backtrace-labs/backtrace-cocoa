@@ -1,5 +1,4 @@
 import Foundation
-import XCTest
 @testable import Backtrace
 
 enum AttachmentsBookmarkError: Error {

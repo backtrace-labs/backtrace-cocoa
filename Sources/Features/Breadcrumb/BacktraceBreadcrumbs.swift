@@ -29,9 +29,9 @@ import Foundation
         }
     }
 
-    public static let all: [BacktraceBreadcrumbType] = [.manual, .log, .navigation, .http, .system, .user, .configuration]
+    public nonisolated(unsafe) static let all: [BacktraceBreadcrumbType] = [.manual, .log, .navigation, .http, .system, .user, .configuration]
 
-    public static let none: [BacktraceBreadcrumbType] = []
+    public nonisolated(unsafe) static let none: [BacktraceBreadcrumbType] = []
 }
 
 @objc public enum BacktraceBreadcrumbLevel: Int {
@@ -127,3 +127,5 @@ import Foundation
         return breadcrumbsLogManager?.getCurrentBreadcrumbId
     }
 }
+
+extension BacktraceBreadcrumbs: @unchecked Sendable {}
