@@ -65,6 +65,23 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                   attributes: attributes,
                                                   type: .user,
                                                   level: .error)
+
+        // Enable TestFairy features (require concrete BacktraceClient type)
+        if let client = BacktraceClient.shared as? BacktraceClient {
+            // Enable session replay
+            client.enableSessionReplay()
+
+            // Enable log capture (with NSLog capture)
+            let logSettings = BacktraceLogCaptureSettings()
+            logSettings.captureNSLog = true
+            client.enableLogCapture(logSettings)
+
+            // Enable vitals monitoring
+            client.enableVitalsMonitoring()
+
+            // Set feedback trigger to shake gesture
+            client.setFeedbackTrigger(.shake)
+        }
         // Sample throwing method
         do {
             try throwingFunc()

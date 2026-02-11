@@ -17,16 +17,16 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uk6-aK-qdW">
-                                <rect key="frame" x="10" y="10" width="355" height="527"/>
+                                <rect key="frame" x="10" y="10" width="355" height="337"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Lli-SU-JcF">
-                                <rect key="frame" x="10" y="547" width="355" height="110"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="Lli-SU-JcF">
+                                <rect key="frame" x="10" y="357" width="355" height="300"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="eDc-rC-hgp">
-                                        <rect key="frame" x="0.0" y="0.0" width="355" height="30"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="355" height="36"/>
                                         <color key="backgroundColor" red="0.86495327950000001" green="0.49887192250000001" blue="0.45880818369999998" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <state key="normal" title="out of memory report">
                                             <color key="titleColor" red="0.23527315260000001" green="0.23534822459999999" blue="0.2313722074" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
@@ -36,7 +36,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="b24-yr-2O3">
-                                        <rect key="frame" x="0.0" y="40" width="355" height="30"/>
+                                        <rect key="frame" x="0.0" y="42" width="355" height="36"/>
                                         <color key="backgroundColor" red="0.86495327950000001" green="0.49887192250000001" blue="0.45880818369999998" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <state key="normal" title="live report">
                                             <color key="titleColor" red="0.23527315260000001" green="0.23534822459999999" blue="0.2313722074" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
@@ -46,7 +46,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="49v-So-aeo">
-                                        <rect key="frame" x="0.0" y="80" width="355" height="30"/>
+                                        <rect key="frame" x="0.0" y="84" width="355" height="36"/>
                                         <color key="backgroundColor" red="0.86495327950000001" green="0.49887192250000001" blue="0.45880818369999998" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <state key="normal" title="crash">
                                             <color key="titleColor" red="0.23527315260000001" green="0.23534822459999999" blue="0.2313722074" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
@@ -55,10 +55,47 @@
                                             <action selector="crashAppAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="tI2-51-j0T"/>
                                         </connections>
                                     </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fB1-kQ-9nR">
+                                        <rect key="frame" x="0.0" y="126" width="355" height="36"/>
+                                        <color key="backgroundColor" red="0.27058823529999998" green="0.52549019610000002" blue="0.77254901959999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <state key="normal" title="show feedback form">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="showFeedbackAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="aF2-gH-3jK"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gC2-lR-0oS">
+                                        <rect key="frame" x="0.0" y="168" width="355" height="36"/>
+                                        <color key="backgroundColor" red="0.27058823529999998" green="0.52549019610000002" blue="0.77254901959999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <state key="normal" title="log message">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="logMessageAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="bG3-hI-4kL"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hD3-mS-1pT">
+                                        <rect key="frame" x="0.0" y="210" width="355" height="36"/>
+                                        <color key="backgroundColor" red="0.27058823529999998" green="0.52549019610000002" blue="0.77254901959999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <state key="normal" title="hide view from replay">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="toggleViewHidingAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="cH4-iJ-5lM"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iE4-nT-2qU">
+                                        <rect key="frame" x="0.0" y="252" width="355" height="36"/>
+                                        <color key="backgroundColor" red="0.27058823529999998" green="0.52549019610000002" blue="0.77254901959999997" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <state key="normal" title="send report with attachments">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="sendReportWithAttachmentsAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="dI5-jK-6mN"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="110" id="mou-Ln-Lbp"/>
-                                </constraints>
                             </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
