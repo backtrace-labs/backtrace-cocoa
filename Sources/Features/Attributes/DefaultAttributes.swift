@@ -257,6 +257,64 @@ struct ApplicationInfo: AttributesSource {
     }
 }
 
+#if os(iOS) && !targetEnvironment(macCatalyst)
+struct DiskInfo: AttributesSource {
+
+    var mutable: [String: Any?] {
+        let homeDir = NSHomeDirectory()
+        guard let attrs = try? FileManager.default.attributesOfFileSystem(forPath: homeDir) else { return [:] }
+        let totalSpace = attrs[.systemSize] as? Int64 ?? 0
+        let freeSpace = attrs[.systemFreeSize] as? Int64 ?? 0
+        let usedSpace = totalSpace - freeSpace
+        return [
+            "disk.total": totalSpace,
+            "disk.free": freeSpace,
+            "disk.used": usedSpace
+        ]
+    }
+}
+
+struct ThermalInfo: AttributesSource {
+
+    var mutable: [String: Any?] {
+        let state = ProcessInfo.processInfo.thermalState
+        let name: String
+        switch state {
+        case .nominal: name = "Nominal"
+        case .fair: name = "Fair"
+        case .serious: name = "Serious"
+        case .critical: name = "Critical"
+        @unknown default: name = "Unknown"
+        }
+        return ["device.thermalState": name]
+    }
+}
+
+struct SessionMetadataInfo: AttributesSource {
+    private static let sessionStartTime = Date()
+
+    var mutable: [String: Any?] {
+        let duration = Date().timeIntervalSince(SessionMetadataInfo.sessionStartTime)
+        let isForeground: Bool
+        if Thread.isMainThread {
+            isForeground = UIApplication.shared.applicationState != .background
+        } else {
+            isForeground = DispatchQueue.main.sync { UIApplication.shared.applicationState != .background }
+        }
+        return [
+            "session.duration": duration,
+            "session.foreground": isForeground
+        ]
+    }
+
+    var immutable: [String: Any?] {
+        return [
+            "session.startTime": SessionMetadataInfo.sessionStartTime.timeIntervalSince1970
+        ]
+    }
+}
+#endif
+
 struct BreadcrumbsInfo: AttributesSource {
     internal static var currentBreadcrumbsId: Int?
     internal static var breadcrumbFile: URL?

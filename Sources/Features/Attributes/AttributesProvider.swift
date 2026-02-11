@@ -26,7 +26,7 @@ final class AttributesProvider {
 
     init(reportHostName: Bool = false) {
         faultInfo = FaultInfo()
-        attributesSources = [ProcessorInfo(reportHostName: reportHostName),
+        var sources: [AttributesSource] = [ProcessorInfo(reportHostName: reportHostName),
                              Device(),
                              ScreenInfo(),
                              LocaleInfo(),
@@ -35,6 +35,10 @@ final class AttributesProvider {
                              faultInfo,
                              ApplicationInfo(),
                              BreadcrumbsInfo()]
+        #if os(iOS) && !targetEnvironment(macCatalyst)
+        sources.append(contentsOf: [DiskInfo(), ThermalInfo(), SessionMetadataInfo()])
+        #endif
+        attributesSources = sources
     }
 }
 

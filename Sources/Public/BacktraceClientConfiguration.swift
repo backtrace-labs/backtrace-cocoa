@@ -27,6 +27,18 @@ import Foundation
 #if os(iOS) && !targetEnvironment(macCatalyst)
     /// Breadcrumbs settings.
     @objc public var breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
+
+    /// Session replay settings.
+    @objc public var sessionReplaySettings: BacktraceSessionReplaySettings = BacktraceSessionReplaySettings()
+
+    /// User feedback settings.
+    @objc public var feedbackSettings: BacktraceFeedbackSettings = BacktraceFeedbackSettings()
+
+    /// Vitals monitoring settings.
+    @objc public var vitalsSettings: BacktraceVitalsSettings = BacktraceVitalsSettings()
+
+    /// Log capture settings.
+    @objc public var logCaptureSettings: BacktraceLogCaptureSettings = BacktraceLogCaptureSettings()
 #endif
 
     /// Number of records sent in 1 minute. Default `30`.

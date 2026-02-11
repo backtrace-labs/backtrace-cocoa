@@ -1,4 +1,7 @@
 import Foundation
+#if os(iOS) && !targetEnvironment(macCatalyst)
+import UIKit
+#endif
 
 /// Provides the default implementation of `BacktraceClientProtocol` protocol.
 @objc open class BacktraceClient: NSObject {
@@ -15,6 +18,20 @@ import Foundation
 #if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
     /// Breadcrumbs class instance
     @objc private let breadcrumbsInstance: BacktraceBreadcrumbs = BacktraceBreadcrumbs()
+#endif
+
+#if os(iOS) && !targetEnvironment(macCatalyst)
+    /// Session replay screenshot capture engine.
+    private var screenshotCapture: BacktraceScreenshotCapture?
+
+    /// Shake / screenshot detector for feedback form.
+    private let shakeDetector = BacktraceShakeDetector()
+
+    /// Periodic device vitals sampler.
+    private var vitalsMonitor: BacktraceVitalsMonitor?
+
+    /// Application log capture.
+    private var logCapture: BacktraceLogCapture?
 #endif
 
     private let reporter: BacktraceReporter
@@ -264,6 +281,150 @@ extension BacktraceClient: BacktraceBreadcrumbProtocol {
 
     @objc public func clearBreadcrumbs() -> Bool {
         return breadcrumbsInstance.clear()
+    }
+}
+#endif
+
+// MARK: - BacktraceSessionReplayProtocol
+#if os(iOS) && !targetEnvironment(macCatalyst)
+extension BacktraceClient: BacktraceSessionReplayProtocol {
+
+    @objc public func enableSessionReplay() {
+        enableSessionReplay(configuration.sessionReplaySettings)
+    }
+
+    @objc public func enableSessionReplay(_ settings: BacktraceSessionReplaySettings) {
+        settings.enabled = true
+        let capture = BacktraceScreenshotCapture(settings: settings, sessionId: ApplicationInfo.session)
+        capture.start()
+        screenshotCapture = capture
+        BacktraceLogger.debug("Session replay enabled.")
+    }
+
+    @objc public func hideView(_ view: UIView) {
+        screenshotCapture?.hideView(view)
+    }
+
+    @objc public func unhideView(_ view: UIView) {
+        screenshotCapture?.unhideView(view)
+    }
+}
+
+// MARK: - BacktraceFeedbackProtocol
+extension BacktraceClient: BacktraceFeedbackProtocol {
+
+    @objc public func showFeedbackForm() {
+        let settings = configuration.feedbackSettings
+        let screenshot = captureCurrentScreenshot()
+
+        let controller = BacktraceFeedbackController(
+            screenshot: screenshot,
+            settings: settings,
+            onSubmit: { [weak self] feedbackText, email, screenshot in
+                self?.submitFeedbackReport(feedbackText: feedbackText, email: email, screenshot: screenshot)
+            },
+            onCancel: {
+                BacktraceLogger.debug("Feedback form cancelled by user.")
+            }
+        )
+
+        let nav = UINavigationController(rootViewController: controller)
+        nav.modalPresentationStyle = .formSheet
+
+        DispatchQueue.main.async {
+            guard let topVC = self.topViewController() else { return }
+            topVC.present(nav, animated: true)
+        }
+    }
+
+    @objc public func setFeedbackTrigger(_ trigger: BacktraceFeedbackTrigger) {
+        configuration.feedbackSettings.trigger = trigger
+        if trigger != .none {
+            shakeDetector.configure(
+                trigger: trigger,
+                debounceInterval: configuration.feedbackSettings.triggerDebounceSeconds
+            ) { [weak self] in
+                self?.showFeedbackForm()
+            }
+        } else {
+            shakeDetector.teardown()
+        }
+    }
+
+    private func captureCurrentScreenshot() -> UIImage? {
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return nil }
+        let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
+        return renderer.image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+    }
+
+    private func topViewController() -> UIViewController? {
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }),
+              var topVC = window.rootViewController else { return nil }
+        while let presented = topVC.presentedViewController {
+            topVC = presented
+        }
+        return topVC
+    }
+
+    private func submitFeedbackReport(feedbackText: String, email: String?, screenshot: UIImage?) {
+        var attachmentPaths: [String] = []
+
+        // Save screenshot to temp file if available
+        if let screenshot = screenshot, let data = screenshot.jpegData(compressionQuality: 0.8) {
+            let tempDir = FileManager.default.temporaryDirectory
+            let screenshotURL = tempDir.appendingPathComponent("feedback_screenshot_\(UUID().uuidString).jpg")
+            try? data.write(to: screenshotURL)
+            attachmentPaths.append(screenshotURL.path)
+        }
+
+        // Build feedback message
+        var message = "User Feedback: \(feedbackText)"
+        if let email = email, !email.isEmpty {
+            attributes["feedback.email"] = email
+        }
+        attributes["feedback.text"] = feedbackText
+
+        send(message: message, attachmentPaths: attachmentPaths) { result in
+            BacktraceLogger.debug("Feedback report sent: \(result.status)")
+        }
+    }
+}
+
+// MARK: - BacktraceLogCaptureProtocol
+extension BacktraceClient: BacktraceLogCaptureProtocol {
+
+    @objc public func enableLogCapture() {
+        enableLogCapture(configuration.logCaptureSettings)
+    }
+
+    @objc public func enableLogCapture(_ settings: BacktraceLogCaptureSettings) {
+        settings.enabled = true
+        let capture = BacktraceLogCapture(settings: settings, sessionId: ApplicationInfo.session)
+        capture.start()
+        logCapture = capture
+        BacktraceLogger.debug("Log capture enabled.")
+    }
+
+    @objc public func log(_ message: String, level: BacktraceLogLevel) {
+        logCapture?.log(message, level: level)
+    }
+}
+
+// MARK: - BacktraceVitalsProtocol
+extension BacktraceClient: BacktraceVitalsProtocol {
+
+    @objc public func enableVitalsMonitoring() {
+        enableVitalsMonitoring(configuration.vitalsSettings)
+    }
+
+    @objc public func enableVitalsMonitoring(_ settings: BacktraceVitalsSettings) {
+        settings.enabled = true
+        let monitor = BacktraceVitalsMonitor(settings: settings, sessionId: ApplicationInfo.session)
+        monitor.start()
+        vitalsMonitor = monitor
+        BacktraceLogger.debug("Vitals monitoring enabled.")
     }
 }
 #endif

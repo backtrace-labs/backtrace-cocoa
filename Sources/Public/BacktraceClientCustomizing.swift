@@ -1,4 +1,7 @@
 import Foundation
+#if os(iOS) && !targetEnvironment(macCatalyst)
+import UIKit
+#endif
 
 /// Type-alias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
 #if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
@@ -105,6 +108,57 @@ public let defaultMetricsBaseUrlString = "https://events.backtrace.io/api/"
 enum BacktraceUrlParsingError: Error {
     case invalidInput(String)
 }
+
+#if os(iOS) && !targetEnvironment(macCatalyst)
+/// Provides session replay functionality to `BacktraceClient`.
+@objc public protocol BacktraceSessionReplayProtocol {
+
+    /// Enable session replay with default settings.
+    @objc func enableSessionReplay()
+
+    /// Enable session replay with custom settings.
+    @objc func enableSessionReplay(_ settings: BacktraceSessionReplaySettings)
+
+    /// Hide a view from session replay screenshots.
+    @objc func hideView(_ view: UIView)
+
+    /// Unhide a previously hidden view.
+    @objc func unhideView(_ view: UIView)
+}
+
+/// Provides user feedback functionality to `BacktraceClient`.
+@objc public protocol BacktraceFeedbackProtocol {
+
+    /// Show the feedback form modally from the top-most view controller.
+    @objc func showFeedbackForm()
+
+    /// Set the trigger mode for the feedback form.
+    @objc func setFeedbackTrigger(_ trigger: BacktraceFeedbackTrigger)
+}
+
+/// Provides log capture functionality to `BacktraceClient`.
+@objc public protocol BacktraceLogCaptureProtocol {
+
+    /// Enable log capture with default settings.
+    @objc func enableLogCapture()
+
+    /// Enable log capture with custom settings.
+    @objc func enableLogCapture(_ settings: BacktraceLogCaptureSettings)
+
+    /// Log a message at the given level.
+    @objc func log(_ message: String, level: BacktraceLogLevel)
+}
+
+/// Provides vitals monitoring functionality to `BacktraceClient`.
+@objc public protocol BacktraceVitalsProtocol {
+
+    /// Enable vitals monitoring with default settings.
+    @objc func enableVitalsMonitoring()
+
+    /// Enable vitals monitoring with custom settings.
+    @objc func enableVitalsMonitoring(_ settings: BacktraceVitalsSettings)
+}
+#endif
 
 #if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
 /// Provides Breadcrumb adding functionality to `BacktraceClient`.
