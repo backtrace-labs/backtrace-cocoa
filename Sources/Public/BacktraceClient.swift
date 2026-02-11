@@ -380,14 +380,14 @@ extension BacktraceClient: BacktraceFeedbackProtocol {
         }
 
         // Build feedback message
-        var message = "User Feedback: \(feedbackText)"
+        let message = "User Feedback: \(feedbackText)"
         if let email = email, !email.isEmpty {
             attributes["feedback.email"] = email
         }
         attributes["feedback.text"] = feedbackText
 
         send(message: message, attachmentPaths: attachmentPaths) { result in
-            BacktraceLogger.debug("Feedback report sent: \(result.status)")
+            BacktraceLogger.debug("Feedback report sent: \(result.backtraceStatus)")
         }
     }
 }

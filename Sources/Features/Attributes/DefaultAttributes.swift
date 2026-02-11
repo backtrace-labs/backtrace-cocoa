@@ -248,7 +248,7 @@ struct LibInfo: AttributesSource {
 }
 
 struct ApplicationInfo: AttributesSource {
-    private static let session = UUID().uuidString
+    static let session = UUID().uuidString
 
     var immutable: [String: Any?] {
         return ["application.version": Backtrace.applicationVersion,

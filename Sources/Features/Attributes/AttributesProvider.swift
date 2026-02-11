@@ -36,7 +36,7 @@ final class AttributesProvider {
                              ApplicationInfo(),
                              BreadcrumbsInfo()]
         #if os(iOS) && !targetEnvironment(macCatalyst)
-        sources.append(contentsOf: [DiskInfo(), ThermalInfo(), SessionMetadataInfo()])
+        sources.append(contentsOf: [DiskInfo(), ThermalInfo(), SessionMetadataInfo()] as [AttributesSource])
         #endif
         attributesSources = sources
     }
