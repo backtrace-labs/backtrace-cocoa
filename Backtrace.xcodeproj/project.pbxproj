@@ -10,6 +10,7 @@
 		0B6B4CFD25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
 		0B6B4CFE25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
 		0B6B4CFF25CD8331002DA15C /* BacktraceOomWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */; };
+		0BC41C6BCDE9E508A402440A /* BacktraceFeedbackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E3DF6D32F20A8F95D2BC6A /* BacktraceFeedbackController.swift */; };
 		2046B45B2C46FA1100A927DB /* Model.xcdatamodeld in Resources */ = {isa = PBXBuildFile; fileRef = F2AB639A22479A3200939BC9 /* Model.xcdatamodeld */; };
 		2046B45C2C46FA5600A927DB /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
 		2046B45F2C46FCE500A927DB /* BacktraceResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2046B4552C46F97800A927DB /* BacktraceResources.bundle */; };
@@ -24,6 +25,7 @@
 		2062D9C92C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
 		2062D9CA2C457B4500E4CE3C /* Crash+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C42C457B4500E4CE3C /* Crash+CoreDataClass.swift */; };
 		2062D9CB2C457B4500E4CE3C /* Crash+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2062D9C52C457B4500E4CE3C /* Crash+CoreDataProperties.swift */; };
+		209ECAB2A21B97972E92FD09 /* BacktraceScreenshotCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14958B554473C7224F6BC11C /* BacktraceScreenshotCapture.swift */; };
 		20B01A4B2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
 		20B01A4C2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
 		20B01A4D2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B01A4A2DB87D1200FED98F /* CustomDirectoryBacktraceClientTests.swift */; };
@@ -94,11 +96,17 @@
 		28F95BEC225260C9003936E0 /* AttributesStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28966EF92214BBD200E6E891 /* AttributesStorage.swift */; };
 		28F95BED225260D3003936E0 /* AttributesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F259E4E12229C29A00F282C7 /* AttributesProvider.swift */; };
 		28F95BEE225260D5003936E0 /* NetworkReachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2846E1F7222F1DE50035F98C /* NetworkReachability.swift */; };
+		2D114674BF720EC386E30EA1 /* BacktraceFeedbackSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6A9E354BF7801C374093A55 /* BacktraceFeedbackSettings.swift */; };
+		2D5C29062C9D9F9E171F76EE /* BacktraceFeedbackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E3DF6D32F20A8F95D2BC6A /* BacktraceFeedbackController.swift */; };
 		3F1647E6A9031C98AE64D106 /* Pods_Backtrace_iOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E24C54A0B9E7E16E5BF06C3 /* Pods_Backtrace_iOSTests.framework */; };
 		4B947DBB2A055CA3000FAB59 /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B947DBA2A055CA3000FAB59 /* Queue.swift */; };
 		4B947DBC2A055CA3000FAB59 /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B947DBA2A055CA3000FAB59 /* Queue.swift */; };
 		4B947DBE2A055D21000FAB59 /* BreadcrumbRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B947DBD2A055D21000FAB59 /* BreadcrumbRecord.swift */; };
 		4B947DBF2A055D21000FAB59 /* BreadcrumbRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B947DBD2A055D21000FAB59 /* BreadcrumbRecord.swift */; };
+		5745BB1DD054E2143AE67EF0 /* BacktraceShakeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163270666361C3111C1F94A5 /* BacktraceShakeDetector.swift */; };
+		5EE2703D084E7D9C47B76D34 /* BacktraceLogCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E16F6C8A03CBE8C7F25F033 /* BacktraceLogCapture.swift */; };
+		61EF0B4BC755EC4960564CD3 /* BacktraceVitalsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3A68931E64A9776312D434 /* BacktraceVitalsMonitor.swift */; };
+		6816280F504A534CBBFC2CB8 /* BacktraceLogCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E16F6C8A03CBE8C7F25F033 /* BacktraceLogCapture.swift */; };
 		699D594FAA0A457A1E1B680E /* Pods_Example_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C3ED49AF7686C56DC62FD964 /* Pods_Example_iOS.framework */; };
 		6E45A3A7273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
 		6E45A3A8273095E500DB0BAC /* BacktraceMetricsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E45A3A6273095E500DB0BAC /* BacktraceMetricsSettings.swift */; };
@@ -134,6 +142,12 @@
 		6EB713F9276294160075D1C1 /* MetricsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713F7276294160075D1C1 /* MetricsRequest.swift */; };
 		6EB713FA276294160075D1C1 /* MetricsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB713F7276294160075D1C1 /* MetricsRequest.swift */; };
 		7FAAE7DE931EA1D09B8E5201 /* Pods_Backtrace_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81E86641379A966F00E5C7AD /* Pods_Backtrace_iOS.framework */; };
+		81D6CAAD58A7FBDDCD37CD35 /* BacktraceSessionReplaySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2129A2120C5C0A63C86B85D /* BacktraceSessionReplaySettings.swift */; };
+		860C1281A2F83C72A63B7EAE /* BacktraceScreenshotCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14958B554473C7224F6BC11C /* BacktraceScreenshotCapture.swift */; };
+		88EFABA0FF4DDA81A7AF678C /* BacktraceSessionReplaySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2129A2120C5C0A63C86B85D /* BacktraceSessionReplaySettings.swift */; };
+		8982F23B7FF141D6898C0CA3 /* BacktraceVitalsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3A68931E64A9776312D434 /* BacktraceVitalsMonitor.swift */; };
+		9AE5D8E87CF82A9366CCCCA5 /* BacktraceFeedbackSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6A9E354BF7801C374093A55 /* BacktraceFeedbackSettings.swift */; };
+		9BEC6A01E08DAAEA7B73F232 /* BacktraceVitalsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3A68931E64A9776312D434 /* BacktraceVitalsMonitor.swift */; };
 		A24A4B5728B595D9004F5052 /* BacktraceMetricsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B4828B595D8004F5052 /* BacktraceMetricsTest.swift */; };
 		A24A4B5828B595D9004F5052 /* BacktraceMetricsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B4828B595D8004F5052 /* BacktraceMetricsTest.swift */; };
 		A24A4B5928B595D9004F5052 /* BacktraceMetricsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24A4B4828B595D8004F5052 /* BacktraceMetricsTest.swift */; };
@@ -207,6 +221,12 @@
 		B0330E8BC2E1B0AAEBD1F8E8 /* Pods_Backtrace_tvOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CBDCBB15CC88AB4E8411FCA /* Pods_Backtrace_tvOS.framework */; };
 		B290AAEECAF794664EF5EEDE /* Pods_Example_iOS_ObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DF3F21158C0A07D42245AF0 /* Pods_Example_iOS_ObjC.framework */; };
 		B51CBBEDAC975F3164ABF468 /* Pods_Backtrace_macOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64B8BCBBC87D0ED9759B7F78 /* Pods_Backtrace_macOSTests.framework */; };
+		C275D42261365E4FF70B3A1C /* BacktraceShakeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163270666361C3111C1F94A5 /* BacktraceShakeDetector.swift */; };
+		C27B68A55B0BE38DEBED34F7 /* BacktraceScreenshotCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14958B554473C7224F6BC11C /* BacktraceScreenshotCapture.swift */; };
+		C65861C7F45E3FBB31E9A002 /* BacktraceFeedbackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E3DF6D32F20A8F95D2BC6A /* BacktraceFeedbackController.swift */; };
+		C82B14D956B63444B9674CD4 /* BacktraceSessionReplaySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2129A2120C5C0A63C86B85D /* BacktraceSessionReplaySettings.swift */; };
+		E70D4CB4F4F3717D5591810E /* BacktraceShakeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163270666361C3111C1F94A5 /* BacktraceShakeDetector.swift */; };
+		EBF675D6145A116D496C7111 /* BacktraceLogCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E16F6C8A03CBE8C7F25F033 /* BacktraceLogCapture.swift */; };
 		F21211A5222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
 		F21211A6222348AC000B3692 /* BacktraceCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */; };
 		F21211A8222348C2000B3692 /* SignalContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21211A7222348C2000B3692 /* SignalContext.swift */; };
@@ -329,6 +349,7 @@
 		F2D8BE4B21BDA7D0007CFEFA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F2D8BE4A21BDA7D0007CFEFA /* Assets.xcassets */; };
 		F2D8BE4E21BDA7D0007CFEFA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F2D8BE4C21BDA7D0007CFEFA /* Main.storyboard */; };
 		F2D8BE5121BDA7D0007CFEFA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F2D8BE5021BDA7D0007CFEFA /* main.m */; };
+		F5354B9F18191268EE11F3FD /* BacktraceFeedbackSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6A9E354BF7801C374093A55 /* BacktraceFeedbackSettings.swift */; };
 		F7AB6884BFFF556F394C5235 /* Pods_Example_tvOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66796B1390F51B07327A81C7 /* Pods_Example_tvOS.framework */; };
 		FFF1729C63305695EB45953C /* Pods_Backtrace_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5072296132BBA537171DB64 /* Pods_Backtrace_macOS.framework */; };
 /* End PBXBuildFile section */
@@ -423,6 +444,8 @@
 
 /* Begin PBXFileReference section */
 		0B6B4CFC25CD8331002DA15C /* BacktraceOomWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceOomWatcher.swift; sourceTree = "<group>"; };
+		14958B554473C7224F6BC11C /* BacktraceScreenshotCapture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BacktraceScreenshotCapture.swift; sourceTree = "<group>"; };
+		163270666361C3111C1F94A5 /* BacktraceShakeDetector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BacktraceShakeDetector.swift; sourceTree = "<group>"; };
 		1FA3314217075B1EB0B07DB0 /* Pods-Example-macOS-ObjC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-macOS-ObjC.debug.xcconfig"; path = "Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC.debug.xcconfig"; sourceTree = "<group>"; };
 		2046B4552C46F97800A927DB /* BacktraceResources.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BacktraceResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		2050DB9C2C61A09D00C6CCA9 /* Example-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Example-iOS.entitlements"; sourceTree = "<group>"; };
@@ -451,6 +474,7 @@
 		28F95BB822525DCC003936E0 /* Backtrace-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Backtrace-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		28F95BBD22525DCC003936E0 /* Backtrace_tvOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backtrace_tvOSTests.swift; sourceTree = "<group>"; };
 		28F95BBF22525DCC003936E0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2E16F6C8A03CBE8C7F25F033 /* BacktraceLogCapture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BacktraceLogCapture.swift; sourceTree = "<group>"; };
 		2E7B3BE7FBFED5B441CC50FF /* Pods-Backtrace-macOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOSTests.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		305D64A8F9BD339C1ACB3181 /* Pods-Example-iOS-ObjC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-iOS-ObjC.release.xcconfig"; path = "Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC.release.xcconfig"; sourceTree = "<group>"; };
 		4550B7CB1CA77135A47C1356 /* Pods-Backtrace-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOSTests/Pods-Backtrace-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -476,6 +500,7 @@
 		6EB713F7276294160075D1C1 /* MetricsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsRequest.swift; sourceTree = "<group>"; };
 		7768B8A1BAF0EF9BC9331437 /* Pods-Backtrace-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		81E86641379A966F00E5C7AD /* Pods_Backtrace_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		89E3DF6D32F20A8F95D2BC6A /* BacktraceFeedbackController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BacktraceFeedbackController.swift; sourceTree = "<group>"; };
 		9302F4C729851B7A7C12780D /* Pods-Example-iOS-ObjC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-iOS-ObjC.debug.xcconfig"; path = "Target Support Files/Pods-Example-iOS-ObjC/Pods-Example-iOS-ObjC.debug.xcconfig"; sourceTree = "<group>"; };
 		95545D7075F148AB17E6FA85 /* Pods_Example_macOS_ObjC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_macOS_ObjC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9C30E10EEF1CEF0BC686F817 /* Pods-Example-macOS-ObjC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-macOS-ObjC.release.xcconfig"; path = "Target Support Files/Pods-Example-macOS-ObjC/Pods-Example-macOS-ObjC.release.xcconfig"; sourceTree = "<group>"; };
@@ -508,6 +533,7 @@
 		B1448DC7F372ECBC4FC965B8 /* Pods-Backtrace-macOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-macOSTests/Pods-Backtrace-macOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		B73EB0B0EF22A81575E4B2A6 /* Pods-Example-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example-iOS.release.xcconfig"; path = "Target Support Files/Pods-Example-iOS/Pods-Example-iOS.release.xcconfig"; sourceTree = "<group>"; };
 		C3ED49AF7686C56DC62FD964 /* Pods_Example_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6A9E354BF7801C374093A55 /* BacktraceFeedbackSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BacktraceFeedbackSettings.swift; sourceTree = "<group>"; };
 		C9B33E5A0FEF66825E1F7945 /* Pods-Backtrace-iOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOSTests.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-iOSTests/Pods-Backtrace-iOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		D16770278510B65847C3FC13 /* Pods-Backtrace-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.release.xcconfig"; path = "Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.release.xcconfig"; sourceTree = "<group>"; };
 		D5072296132BBA537171DB64 /* Pods_Backtrace_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -516,6 +542,7 @@
 		E80745B2DB8BAE252FD0C466 /* Pods-Backtrace-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-macOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-macOS/Pods-Backtrace-macOS.debug.xcconfig"; sourceTree = "<group>"; };
 		F21211A4222348AC000B3692 /* BacktraceCrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceCrashReporter.swift; sourceTree = "<group>"; };
 		F21211A7222348C2000B3692 /* SignalContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalContext.swift; sourceTree = "<group>"; };
+		F2129A2120C5C0A63C86B85D /* BacktraceSessionReplaySettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BacktraceSessionReplaySettings.swift; sourceTree = "<group>"; };
 		F21D302A224A18D50013B5D7 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		F21DD3B02255EA2A00404CC3 /* test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.txt; sourceTree = "<group>"; };
 		F229D789223A56ED008EC851 /* UrlSessionMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlSessionMock.swift; sourceTree = "<group>"; };
@@ -605,6 +632,7 @@
 		F2D8BE5021BDA7D0007CFEFA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		F2D8BE5221BDA7D0007CFEFA /* Example_macOS_ObjC.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Example_macOS_ObjC.entitlements; sourceTree = "<group>"; };
 		F92D7126629E8ADECA7286BA /* Pods-Backtrace-iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-iOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-iOS/Pods-Backtrace-iOS.debug.xcconfig"; sourceTree = "<group>"; };
+		FA3A68931E64A9776312D434 /* BacktraceVitalsMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BacktraceVitalsMonitor.swift; sourceTree = "<group>"; };
 		FD5B5F236356727422051AA4 /* Pods-Backtrace-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Backtrace-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Backtrace-tvOS/Pods-Backtrace-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		FF0C8F6E9DB6AC6711ED4ECD /* Pods_Backtrace_tvOSTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Backtrace_tvOSTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -700,6 +728,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		039B8AD494E614AFA01AAFD9 /* Logs */ = {
+			isa = PBXGroup;
+			children = (
+				2E16F6C8A03CBE8C7F25F033 /* BacktraceLogCapture.swift */,
+			);
+			path = Logs;
+			sourceTree = "<group>";
+		};
+		0E19BCFEE44BB8624EB1F5B6 /* Feedback */ = {
+			isa = PBXGroup;
+			children = (
+				C6A9E354BF7801C374093A55 /* BacktraceFeedbackSettings.swift */,
+				89E3DF6D32F20A8F95D2BC6A /* BacktraceFeedbackController.swift */,
+				163270666361C3111C1F94A5 /* BacktraceShakeDetector.swift */,
+			);
+			path = Feedback;
+			sourceTree = "<group>";
+		};
 		2050DBC42C66DD1900C6CCA9 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -803,6 +849,14 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		8B1BD4A516B597C7604FB778 /* Vitals */ = {
+			isa = PBXGroup;
+			children = (
+				FA3A68931E64A9776312D434 /* BacktraceVitalsMonitor.swift */,
+			);
+			path = Vitals;
+			sourceTree = "<group>";
+		};
 		AF7833B92613D0E300530A10 /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -810,6 +864,15 @@
 				AFCCCEC126260BC400B83A28 /* AttachmentBookmarkHandler.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		C1806D9638564312032F9102 /* SessionReplay */ = {
+			isa = PBXGroup;
+			children = (
+				F2129A2120C5C0A63C86B85D /* BacktraceSessionReplaySettings.swift */,
+				14958B554473C7224F6BC11C /* BacktraceScreenshotCapture.swift */,
+			);
+			path = SessionReplay;
 			sourceTree = "<group>";
 		};
 		E1CB76ADFD3A1D9326B4E46D /* Pods */ = {
@@ -1062,6 +1125,10 @@
 				F282075621CEA3030017367F /* Repository */,
 				F28F164F21E28833008E4B96 /* Error */,
 				28614F9C220B6C6F00D35EFB /* Attributes */,
+				C1806D9638564312032F9102 /* SessionReplay */,
+				0E19BCFEE44BB8624EB1F5B6 /* Feedback */,
+				039B8AD494E614AFA01AAFD9 /* Logs */,
+				8B1BD4A516B597C7604FB778 /* Vitals */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -2209,6 +2276,13 @@
 				F26EBF3C23F21BC800A64218 /* BacktraceRateLimiter.swift in Sources */,
 				F286353C2283685100F45412 /* Map+KeyPath.swift in Sources */,
 				28F95BEA225260C2003936E0 /* BacktraceError.swift in Sources */,
+				C82B14D956B63444B9674CD4 /* BacktraceSessionReplaySettings.swift in Sources */,
+				C27B68A55B0BE38DEBED34F7 /* BacktraceScreenshotCapture.swift in Sources */,
+				2D114674BF720EC386E30EA1 /* BacktraceFeedbackSettings.swift in Sources */,
+				0BC41C6BCDE9E508A402440A /* BacktraceFeedbackController.swift in Sources */,
+				E70D4CB4F4F3717D5591810E /* BacktraceShakeDetector.swift in Sources */,
+				5EE2703D084E7D9C47B76D34 /* BacktraceLogCapture.swift in Sources */,
+				9BEC6A01E08DAAEA7B73F232 /* BacktraceVitalsMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2316,6 +2390,13 @@
 				F28F165921E2A0DA008E4B96 /* URLSession+Sync.swift in Sources */,
 				F2AB636E22442B5100939BC9 /* DebuggerChecker.swift in Sources */,
 				F286353B2283685100F45412 /* Map+KeyPath.swift in Sources */,
+				88EFABA0FF4DDA81A7AF678C /* BacktraceSessionReplaySettings.swift in Sources */,
+				860C1281A2F83C72A63B7EAE /* BacktraceScreenshotCapture.swift in Sources */,
+				9AE5D8E87CF82A9366CCCCA5 /* BacktraceFeedbackSettings.swift in Sources */,
+				C65861C7F45E3FBB31E9A002 /* BacktraceFeedbackController.swift in Sources */,
+				C275D42261365E4FF70B3A1C /* BacktraceShakeDetector.swift in Sources */,
+				EBF675D6145A116D496C7111 /* BacktraceLogCapture.swift in Sources */,
+				8982F23B7FF141D6898C0CA3 /* BacktraceVitalsMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2433,6 +2514,13 @@
 				F26EBF3823F21AE000A64218 /* BacktraceRateLimiter.swift in Sources */,
 				F2AFB59A22274E5400AAA1D7 /* BacktraceClientCustomizing.swift in Sources */,
 				F282075B21CEA37A0017367F /* Repository.swift in Sources */,
+				81D6CAAD58A7FBDDCD37CD35 /* BacktraceSessionReplaySettings.swift in Sources */,
+				209ECAB2A21B97972E92FD09 /* BacktraceScreenshotCapture.swift in Sources */,
+				F5354B9F18191268EE11F3FD /* BacktraceFeedbackSettings.swift in Sources */,
+				2D5C29062C9D9F9E171F76EE /* BacktraceFeedbackController.swift in Sources */,
+				5745BB1DD054E2143AE67EF0 /* BacktraceShakeDetector.swift in Sources */,
+				6816280F504A534CBBFC2CB8 /* BacktraceLogCapture.swift in Sources */,
+				61EF0B4BC755EC4960564CD3 /* BacktraceVitalsMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
