@@ -33,6 +33,9 @@ type_body_length:
   - 300 # warning
   - 400 # error
 # or they can set both explicitly
+function_body_length:
+  warning: 100
+  error: 200
 file_length:
   warning: 500
   error: 1200
