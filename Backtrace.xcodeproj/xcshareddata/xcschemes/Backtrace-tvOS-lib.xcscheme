@@ -41,10 +41,10 @@
       <CodeCoverageTargets>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "C4DA5D25C396B92131F7C247CFFF86D3"
+            BlueprintIdentifier = "28F95BAF22525DCC003936E0"
             BuildableName = "Backtrace.framework"
             BlueprintName = "Backtrace-tvOS"
-            ReferencedContainer = "container:Pods/Pods.xcodeproj">
+            ReferencedContainer = "container:Backtrace.xcodeproj">
          </BuildableReference>
       </CodeCoverageTargets>
       <Testables>
