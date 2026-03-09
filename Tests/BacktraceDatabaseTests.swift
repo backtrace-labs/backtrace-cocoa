@@ -54,24 +54,28 @@ final class BacktraceDatabaseTests: QuickSpec {
                 
                 throwingIt("supports concurrent read/write operations") {
                     try repository.clear()
-                    
+
+                    // Pre-generate reports serially (PLCrashReporter is not reliably thread-safe)
+                    let reports = try (1...5).map { _ in
+                        try crashReporter.generateLiveReport(attributes: [:])
+                    }
+
                     let writeGroup = DispatchGroup()
                     let readGroup = DispatchGroup()
-                    
+
                     // concurrent writes
-                    for _ in 1...5 {
+                    for report in reports {
                         writeGroup.enter()
                         DispatchQueue.global().async {
                             defer { writeGroup.leave() }
                             do {
-                                let report = try crashReporter.generateLiveReport(attributes: [:])
                                 try repository.save(report)
                             } catch {
                                 fail("Failed to save concurrently: \(error)")
                             }
                         }
                     }
-                    
+
                     // concurrent reads
                     for _ in 1...5 {
                         readGroup.enter()
@@ -84,7 +88,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                             }
                         }
                     }
-                    
+
                     writeGroup.wait()
                     readGroup.wait()
                     expect(try? repository.countResources()).to(equal(5))
