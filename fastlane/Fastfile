@@ -52,6 +52,8 @@ lane :common_tests do |options|
     scheme: options[:scheme],
     clean: true,
     code_coverage: true,
+    result_bundle: true,
+    output_directory: "fastlane/test_output/#{options[:scheme]}",
     open_report: true,
     disable_slide_to_type: options[:disable_slide_to_type],
     disable_concurrent_testing: true
