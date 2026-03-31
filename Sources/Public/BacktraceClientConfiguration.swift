@@ -29,6 +29,11 @@ import Foundation
     @objc public var breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
 #endif
 
+    /// Session recording, feedback, and log capture settings.
+    /// Set to a `BacktraceSessionSettings` instance to enable session features.
+    /// Leave `nil` (default) to disable all session features with zero overhead.
+    @objc public var sessionSettings: BacktraceSessionSettings?
+
     /// Number of records sent in 1 minute. Default `30`.
     @objc public var reportsPerMin: Int = 30
 

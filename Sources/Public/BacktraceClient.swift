@@ -17,9 +17,13 @@ import Foundation
     @objc private let breadcrumbsInstance: BacktraceBreadcrumbs = BacktraceBreadcrumbs()
 #endif
 
+    /// Session recording class instance
+    @objc private let sessionsInstance: BacktraceSessions
+
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
+    private let networkClient: BacktraceNetworkClient
 
     /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
     /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
@@ -83,6 +87,10 @@ import Foundation
         self.configuration = configuration
         self.reportingPolicy = ReportingPolicy(configuration: configuration, debuggerChecker: debugger)
         self.metricsInstance = BacktraceMetrics(api: api)
+        self.networkClient = api.networkClient
+        self.sessionsInstance = BacktraceSessions(
+            settings: configuration.sessionSettings ?? BacktraceSessionSettings()
+        )
 
         super.init()
         try startCrashReporter()
@@ -221,6 +229,26 @@ extension BacktraceClient: BacktraceMetricsProtocol {
 }
 
 // MARK: - BacktraceBreadcrumbProtocol
+// MARK: - BacktraceSessionProtocol
+extension BacktraceClient: BacktraceSessionProtocol {
+    @objc public var sessions: BacktraceSessions {
+        return self.sessionsInstance
+    }
+
+    @objc public func enableSessions() {
+        guard configuration.sessionSettings != nil else {
+            BacktraceLogger.warning("Cannot enable sessions: sessionSettings is nil on configuration.")
+            return
+        }
+        sessionsInstance.start(networkClient: networkClient)
+    }
+
+    @objc public func enableSessions(_ settings: BacktraceSessionSettings) {
+        let updatedSessions = BacktraceSessions(settings: settings)
+        updatedSessions.start(networkClient: networkClient)
+    }
+}
+
 #if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
 extension BacktraceClient: BacktraceBreadcrumbProtocol {
     @objc public var breadcrumbs: BacktraceBreadcrumbs {

@@ -3,10 +3,10 @@ import Foundation
 /// Type-alias of `BacktraceClient` type. Custom Backtrace client have to implement all of these protocols.
 #if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
-    BacktraceLogging & BacktraceMetricsProtocol & BacktraceBreadcrumbProtocol
+    BacktraceLogging & BacktraceMetricsProtocol & BacktraceBreadcrumbProtocol & BacktraceSessionProtocol
 #else
 public typealias BacktraceClientProtocol = BacktraceReporting & BacktraceClientCustomizing &
-    BacktraceLogging & BacktraceMetricsProtocol
+    BacktraceLogging & BacktraceMetricsProtocol & BacktraceSessionProtocol
 #endif
 
 /// Type-alias of passing attributes to library.
