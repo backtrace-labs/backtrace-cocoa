@@ -1,6 +1,7 @@
 name: Run tests
 
 on:
+  workflow_call:
   workflow_dispatch:
   push:
     branches: [master, release]
@@ -13,20 +14,65 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ios, mac, tvos]
+        include:
+          - platform: ios
+            scheme: Backtrace-iOS-lib
+          - platform: mac
+            scheme: Backtrace-macOS-lib
+          - platform: tvos
+            scheme: Backtrace-tvOS-lib
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: sh scripts/install.sh
-      - name: Run test
+      - name: Run tests
         run: fastlane ${{ matrix.platform }} tests
+
+      - name: Extract coverage summary
+        if: always()
+        run: |
+          XCRESULT_PATH="fastlane/test_output/${{ matrix.scheme }}/${{ matrix.scheme }}.xcresult"
+          if [ -e "$XCRESULT_PATH" ]; then
+            scripts/coverage.sh "$XCRESULT_PATH" \
+              --json-output "coverage-${{ matrix.platform }}.json" \
+              --markdown-output "coverage-${{ matrix.platform }}.md"
+          else
+            echo "Warning: xcresult not found at $XCRESULT_PATH"
+            find fastlane/test_output -name "*.xcresult" -type d 2>/dev/null || true
+          fi
+
+      - name: Add coverage to job summary
+        if: always()
+        run: |
+          if [ -f "coverage-${{ matrix.platform }}.md" ]; then
+            echo "### Code Coverage: ${{ matrix.platform }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            cat "coverage-${{ matrix.platform }}.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload xcresult bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult-${{ matrix.platform }}
+          path: fastlane/test_output/${{ matrix.scheme }}/${{ matrix.scheme }}.xcresult
+          retention-days: 30
+
+      - name: Upload coverage JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-json-${{ matrix.platform }}
+          path: coverage-${{ matrix.platform }}.json
+          if-no-files-found: ignore
+          retention-days: 90
 
   pod-lint:
     runs-on: macos-14
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run pod lib lint
