@@ -9,18 +9,21 @@ where BacktraceRepository.Resource == BacktraceReport {
     let repository: BacktraceRepository
     var timer: DispatchSourceTimer?
     let queue: DispatchQueue
+    let networkAvailabilityCheck: () -> Bool
 
     init(settings: BacktraceDatabaseSettings,
          networkClient: BacktraceNetworkClient,
          credentials: BacktraceCredentials,
          repository: BacktraceRepository,
-         dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background)) {
+         dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background),
+         networkAvailabilityCheck: (() -> Bool)? = nil) {
 
         self.settings = settings
         self.repository = repository
         self.networkClient = networkClient
         self.queue = dispatchQueue
         self.credentials = credentials
+        self.networkAvailabilityCheck = networkAvailabilityCheck ?? networkClient.isNetworkAvailable
     }
 
     func enable() {
@@ -36,7 +39,7 @@ where BacktraceRepository.Resource == BacktraceReport {
     }
 
     internal func batchRetry() {
-        guard networkClient.isNetworkAvailable() else { return }
+        guard networkAvailabilityCheck() else { return }
         guard let reports = try? reportsFromRepository(limit: 10), !reports.isEmpty else { return }
         BacktraceLogger.debug("Resending reporting. Batch size: \(reports.count)")
 

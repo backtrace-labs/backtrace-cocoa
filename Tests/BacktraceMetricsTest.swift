@@ -37,8 +37,14 @@ final class BacktraceMetricsTests: QuickSpec {
                 
                 it("can add and store summed event") {
                     metrics?.enable(settings: BacktraceMetricsSettings())
-                    
-                    metrics?.clearSummedEvents()
+
+                    // Enabling metrics sends and clears startup summed events asynchronously.
+                    // Wait for that work to finish before exercising a newly added event.
+                    expect { metrics?.getSummedEvents().count }.toEventually(
+                        equal(0),
+                        timeout: .seconds(5),
+                        pollInterval: .milliseconds(10)
+                    )
                     
                     metrics?.addSummedEvent(name: summedEventName)
                     
@@ -52,10 +58,10 @@ final class BacktraceMetricsTests: QuickSpec {
                 }
                 
                 it("can add and store application launch event") {
-                    
-                    metrics?.enable(settings: BacktraceMetricsSettings())
-                    
-                    guard let summedEvents = metrics?.getSummedEvents() as? [SummedEvent] else { return }
+                    // BacktraceMetrics.enable sends and clears this event asynchronously, so
+                    // verify its creation at the container boundary without racing the sender.
+                    let container = BacktraceMetricsContainer(settings: BacktraceMetricsSettings())
+                    let summedEvents = container.getSummedEventsPayload().events
                     
                     let filteredEvents = summedEvents.filter { event in
                         return event.name == applicationLaunchEventName

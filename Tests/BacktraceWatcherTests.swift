@@ -42,15 +42,19 @@ final class BacktraceWatcherTests: QuickSpec {
                     throwingIt("still performs the one-shot startup replay") {
                         dbSettings.retryBehaviour = .none
                         try repository.clear()
+                        let replayQueue = DispatchQueue(label: "backtrace.watcher.startup-replay.tests")
                         let watcher = BacktraceWatcher(settings: dbSettings,
                                                        networkClient: networkClient,
                                                        credentials: credentials,
-                                                       repository: repository)
+                                                       repository: repository,
+                                                       dispatchQueue: replayQueue,
+                                                       networkAvailabilityCheck: { true })
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
 
                         watcher.replayAsync()
+                        replayQueue.sync {}
 
-                        expect { try watcher.repository.countResources() }.toEventually(equal(0))
+                        expect(try watcher.repository.countResources()).to(equal(0))
                     }
                 }
             }

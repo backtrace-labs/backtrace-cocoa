@@ -188,16 +188,23 @@ final class BacktraceDatabaseTests: QuickSpec {
                 }
 
                 throwingIt("can add 100 new reports (async)") {
-                    try? repository.clear()
+                    try repository.clear()
+                    let liveReport = try crashReporter.generateLiveReport(attributes: [:])
                     for _ in 1...100 {
                         let group = DispatchGroup()
-                        let report = try? crashReporter.generateLiveReport(attributes: [:])
+                        let report = try BacktraceReport(report: liveReport.reportData,
+                                                         attributes: [:],
+                                                         attachmentPaths: [])
                         DispatchQueue.global().async(group: group) {
-                            try? repository.save(report!)
+                            do {
+                                try repository.save(report)
+                            } catch {
+                                fail("Failed to save asynchronously: \(error)")
+                            }
                         }
                         group.wait()
                     }
-                    expect { try? repository.countResources() }.toEventually(equal(100))
+                    expect(try repository.countResources()).to(equal(100))
                 }
                 
                 throwingIt("supports concurrent read/write operations") {
