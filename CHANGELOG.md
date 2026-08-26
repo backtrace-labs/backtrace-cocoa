@@ -1,5 +1,14 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.1.1
+- Adds a private, symbol-prefixed PLCrashReporter configuration and isolated payload path for the Backtrace Unity macOS bundle.
+- Persists pending native crashes transactionally before purging PLCrashReporter and replays them from the retry repository.
+- Uses each PLCrashReport's embedded UUID, with a deterministic payload-digest fallback, and idempotent upserts to prevent duplicate rows across interrupted launches.
+- Copies retry attachments and attributes into repository-owned storage and reconciles interrupted or orphaned generations.
+- Persists throttled, rejected, and OOM reports for retry instead of dropping non-successful submissions.
+- Resolves the Core Data model from both flat frameworks and nested resource bundles with startup diagnostics.
+- Allows logging destinations to be installed before repository and crash-reporter initialization.
+
 ## Version 2.1.0
 - Adds OSInfo conditional import UIKit & guards UIDevice to unblock non-UIKit builds (#160)
 - Updates Target Platforms (#161)
