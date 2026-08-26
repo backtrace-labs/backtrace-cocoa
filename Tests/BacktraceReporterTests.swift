@@ -4,6 +4,7 @@ import Nimble
 import Quick
 @testable import Backtrace
 
+// swiftlint:disable:next type_body_length
 final class BacktraceReporterTests: QuickSpec {
     // swiftlint:disable function_body_length force_try
     override func spec() {

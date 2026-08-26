@@ -168,8 +168,8 @@ final class BacktraceOomWatcher {
     }
 
     // MARK: Private – only run on `queue`
-    // swiftlint:disable:next identifier_name
     @discardableResult
+    // swiftlint:disable:next identifier_name
     internal func _sendPendingOomReports() -> Bool {
         guard let url = Self.oomFileURL,
               FileManager.default.fileExists(atPath: url.path),

@@ -7,6 +7,7 @@ import Foundation
 
 final class BacktraceDatabaseTests: QuickSpec {
 
+    // swiftlint:disable:next function_body_length
     override func spec() {
         describe("Crash reporter") {
             throwingContext("given all dependencies and empty database") {
