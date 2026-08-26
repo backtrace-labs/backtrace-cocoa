@@ -31,10 +31,12 @@ final class BacktraceClientTests: QuickSpec {
                     let dbSettings = BacktraceDatabaseSettings()
                     let reportsPerMin = 3
                     let configuration = BacktraceClientConfiguration(credentials: credentials, dbSettings: dbSettings,
-                                                                     reportsPerMin: reportsPerMin)
+                                                                     reportsPerMin: reportsPerMin,
+                                                                     oomMode: .none)
                     expect(configuration.credentials).to(be(credentials))
                     expect(configuration.reportsPerMin).to(equal(reportsPerMin))
                     expect(configuration.dbSettings).to(be(dbSettings))
+                    expect(configuration.loggingDestinations).to(beNil())
                 }
 
                 it("can create instance of BacktraceClient") {

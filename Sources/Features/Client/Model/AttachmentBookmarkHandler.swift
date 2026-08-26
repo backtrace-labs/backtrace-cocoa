@@ -24,16 +24,19 @@ enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
         var attachments = Attachments()
         for bookmark in bookmarks {
             var stale = Bool(false)
-            guard let fileUrl = try? URL(resolvingBookmarkData: bookmark.value,
-                                         options: URL.BookmarkResolutionOptions(),
-                                         relativeTo: nil,
-                                         bookmarkDataIsStale: &stale) else {
-                BacktraceLogger.error("Could not resolve file URL from bookmark")
-                continue
+            let fileUrl: URL
+            do {
+                fileUrl = try URL(resolvingBookmarkData: bookmark.value,
+                                  options: URL.BookmarkResolutionOptions(),
+                                  relativeTo: nil,
+                                  bookmarkDataIsStale: &stale)
+            } catch {
+                BacktraceLogger.error("Could not resolve file URL from bookmark: \(error)")
+                throw AttachmentsStorageError.invalidBookmark
             }
-            if stale {
-                BacktraceLogger.error("Bookmark data is stale. This should not happen")
-                continue
+            guard !stale else {
+                BacktraceLogger.error("Bookmark data is stale. Refusing to partially restore attachments.")
+                throw AttachmentsStorageError.invalidBookmark
             }
             attachments.append(fileUrl)
         }

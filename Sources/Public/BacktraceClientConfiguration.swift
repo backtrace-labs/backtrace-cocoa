@@ -32,6 +32,12 @@ import Foundation
     /// Number of records sent in 1 minute. Default `30`.
     @objc public var reportsPerMin: Int = 30
 
+    /// Logging destinations installed before repository and crash reporter startup.
+    ///
+    /// Leave `nil` to preserve destinations installed through `BacktraceLogger.setDestinations(_:)`.
+    /// Set an empty collection to explicitly disable logging.
+    @objc public var loggingDestinations: Set<BacktraceBaseDestination>?
+
     /// Flag indicating if the Backtrace client should report reports when the debugger is attached. Default `false`.
     @objc public var allowsAttachingDebugger: Bool = false
     

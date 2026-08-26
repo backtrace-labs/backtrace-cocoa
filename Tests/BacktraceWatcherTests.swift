@@ -38,6 +38,20 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        repository: repository)
                         expect(watcher.timer).to(beNil())
                     }
+
+                    throwingIt("still performs the one-shot startup replay") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       networkClient: networkClient,
+                                                       credentials: credentials,
+                                                       repository: repository)
+                        try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
+
+                        watcher.replayAsync()
+
+                        expect { try watcher.repository.countResources() }.toEventually(equal(0))
+                    }
                 }
             }
 

@@ -1,5 +1,10 @@
 import Foundation
+
+#if BACKTRACE_UNITY_PREFIXED_PLCRASHREPORTER
+import BTUnityCrashReporter
+#else
 import CrashReporter
+#endif
 import MachO
 
 /// Handles low‑memory warnings and, on the next launch, decides if the previous session ended in an OOM crash.
@@ -28,7 +33,7 @@ final class BacktraceOomWatcher {
     private let crashReporter: CrashReporting
     private(set) var attributesProvider: AttributesProvider
     private let backtraceApi: BacktraceApi
-    private let repository: PersistentRepository<BacktraceReport>
+    let repository: PersistentRepository<BacktraceReport>
     private let oomMode: BacktraceOomMode
 
     // MARK: Concurrency
@@ -103,8 +108,6 @@ final class BacktraceOomWatcher {
         }
     }
 
-    deinit { Self.clean() }
-
     // MARK: Public API (non-blocking)
 
     func start() {
@@ -112,8 +115,9 @@ final class BacktraceOomWatcher {
         
         queue.async { [weak self] in
             guard let self = self else { return }
-            self._sendPendingOomReports()
-            self._saveState()
+            if self._sendPendingOomReports() {
+                self._saveState()
+            }
         }
     }
 
@@ -165,16 +169,23 @@ final class BacktraceOomWatcher {
 
     // MARK: Private – only run on `queue`
     // swiftlint:disable:next identifier_name
-    internal func _sendPendingOomReports() {
-        defer { Self.clean() }
-
+    @discardableResult
+    internal func _sendPendingOomReports() -> Bool {
         guard let url = Self.oomFileURL,
               FileManager.default.fileExists(atPath: url.path),
-              let previousState = _loadPreviousState() else { return }
+              let previousState = _loadPreviousState() else { return true }
 
-        guard _shouldReportOom(previousState) else { return }
+        guard _shouldReportOom(previousState) else {
+            Self.clean()
+            return true
+        }
 
-        _reportOom()
+        guard _reportOom() else {
+            BacktraceLogger.error("Unable to submit or persist pending OOM report; retaining its state")
+            return false
+        }
+        Self.clean()
+        return true
     }
 
     private func _shouldReportOom(_ prev: ApplicationInfo) -> Bool {
@@ -186,20 +197,20 @@ final class BacktraceOomWatcher {
         return true
     }
 
-    private func _reportOom() {
+    private func _reportOom() -> Bool {
         // oomMode to use [.light, .full]
         // never called if oomMode == .none.
         switch oomMode {
         case .light:
-            if _sendLightweightOom() { return }
+            if _sendLightweightOom() { return true }
             BacktraceLogger.warning("Lightweight OOM capture failed – retrying with full report.")
             // fall back on .full if .light fails
             fallthrough
         case .full:
-            _sendFullOom()
+            return _sendFullOom()
             // edge case (watcher not created in `.none`)
         case .none:
-            return
+            return true
         }
     }
 
@@ -220,35 +231,43 @@ final class BacktraceOomWatcher {
                                                 attachmentPaths: Self.reportAttachments?.map(\.path) ?? []) else {
             return false
         }
-        do {
-            _ = try backtraceApi.send(report)
-        } catch {
-            BacktraceLogger.error(error)
-            try? repository.save(report)
-        }
-        return true
+        return sendOrPersist(report)
     }
 
     /// Full path: legacy behaviour (all threads, symbolicated).
-    private func _sendFullOom() {
+    private func _sendFullOom() -> Bool {
         guard let live = try? crashReporter.generateLiveReport(exception: nil,
                                                                attributes: [:],
                                                                attachmentPaths: [])
         else {
             BacktraceLogger.warning("Unable to construct full OOM crash report.")
-            return
+            return false
         }
         
         guard let report = try? BacktraceReport(report: live.reportData,
                                                 attributes: Self.reportAttributes ?? [:],
                                                 attachmentPaths: Self.reportAttachments?.map(\.path) ?? []) else {
-            return
+            return false
         }
+        return sendOrPersist(report)
+    }
+
+    private func sendOrPersist(_ report: BacktraceReport) -> Bool {
+        var reportToPersist = report
         do {
-            _ = try backtraceApi.send(report)
+            let result = try backtraceApi.send(report)
+            guard result.backtraceStatus != .ok else { return true }
+            reportToPersist = result.report ?? report
         } catch {
             BacktraceLogger.error(error)
-            try? repository.save(report)
+        }
+
+        do {
+            try repository.save(reportToPersist)
+            return true
+        } catch {
+            BacktraceLogger.error("Unable to persist OOM report \(reportToPersist.identifier): \(error)")
+            return false
         }
     }
 

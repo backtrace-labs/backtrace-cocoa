@@ -1,8 +1,10 @@
 import Foundation
 import CoreData
 
+private final class BacktraceResourceBundleToken: NSObject {}
+
 /// Describes `PersistentStorable` Core Data
-protocol PersistentStorable {
+protocol PersistentStorable: AnyObject {
     associatedtype ManagedObjectType: NSManagedObject
 
     static var entityName: String { get }
@@ -11,7 +13,7 @@ protocol PersistentStorable {
     var attachmentPaths: [String] { get set }
     var attributes: Attributes { get }
 
-    init(managedObject: ManagedObjectType) throws
+    init(managedObject: ManagedObjectType, metadataDirectoryUrl: URL?) throws
 }
 
 /// Persists `PersistentStorable` objects using Core Data
@@ -21,6 +23,8 @@ final class PersistentRepository<Resource: PersistentStorable> {
     let backgroundContext: NSManagedObjectContext
     let settings: BacktraceDatabaseSettings
     let url: URL
+    let attachmentStore: RepositoryAttachmentStore
+    let metadataDirectoryUrl: URL
     
     /// Creates a new `PersistentRepository`
     /// - Parameter settings: BacktraceDatabaseSettings
@@ -28,19 +32,11 @@ final class PersistentRepository<Resource: PersistentStorable> {
     init(settings: BacktraceDatabaseSettings) throws {
         self.settings = settings
         let momdName = "Model"
-#if SWIFT_PACKAGE
-        guard let modelURL = Bundle.module.url(forResource: momdName, withExtension: "momd") else {
+        guard let modelURL = Self.resolveModelUrl(modelName: momdName) else {
             throw RepositoryError
                 .persistentRepositoryInitError(details: "Couldn't find model url for name: \(momdName)")
         }
-#else
-        guard let bundleURL = Bundle(for: type(of: self)).url(forResource: "BacktraceResources", withExtension: "bundle"),
-        let resourcesBundle = Bundle(url: bundleURL),
-        let modelURL = resourcesBundle.url(forResource: momdName, withExtension: "momd") else {
-            throw RepositoryError
-                .persistentRepositoryInitError(details: "Couldn't find model url for name: \(momdName)")
-        }
-#endif
+        BacktraceLogger.debug("Resolved Core Data model at: \(modelURL.path)")
         guard let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
             // swiftlint:disable line_length
             throw RepositoryError.persistentRepositoryInitError(details: "Couldn't create `NSManagedObjectModel` using model file at url: \(modelURL)")
@@ -82,6 +78,47 @@ final class PersistentRepository<Resource: PersistentStorable> {
             url = storeURL
         }
         try BacktraceFileManager.excludeFromBackup(url)
+        self.attachmentStore = try RepositoryAttachmentStore(databaseUrl: url)
+        self.metadataDirectoryUrl = url.deletingLastPathComponent()
+            .appendingPathComponent("BacktraceReportMetadata", isDirectory: true)
+            .standardizedFileURL
+        try FileManager.default.createDirectory(at: metadataDirectoryUrl,
+                                                withIntermediateDirectories: true,
+                                                attributes: [.protectionKey: FileProtectionType.none])
+        try? BacktraceFileManager.excludeFromBackup(metadataDirectoryUrl)
+        try reconcileStorage()
+    }
+
+    static func resolveModelUrl(modelName: String = "Model") -> URL? {
+#if SWIFT_PACKAGE
+        let moduleUrl = Bundle.module.url(forResource: modelName, withExtension: "momd")
+        BacktraceLogger.debug("Core Data model candidate (SwiftPM direct): \(moduleUrl?.path ?? "missing")")
+        return moduleUrl
+#else
+        let frameworkBundle = Bundle(for: BacktraceResourceBundleToken.self)
+        var bundles = [frameworkBundle]
+        if frameworkBundle.bundleURL != Bundle.main.bundleURL {
+            bundles.append(Bundle.main)
+        }
+
+        for bundle in bundles {
+            let directUrl = bundle.url(forResource: modelName, withExtension: "momd")
+            BacktraceLogger.debug("Core Data model candidate (direct, \(bundle.bundleURL.path)): \(directUrl?.path ?? "missing")")
+            if let directUrl = directUrl { return directUrl }
+        }
+
+        for bundle in bundles {
+            let nestedBundleUrl = bundle.url(forResource: "BacktraceResources", withExtension: "bundle")
+            let nestedUrl = nestedBundleUrl
+                .flatMap { Bundle(url: $0) }?
+                .url(forResource: modelName, withExtension: "momd")
+            BacktraceLogger.debug("Core Data model candidate (nested, \(bundle.bundleURL.path)): \(nestedUrl?.path ?? "missing")")
+            if let nestedUrl = nestedUrl { return nestedUrl }
+        }
+
+        BacktraceLogger.error("Unable to resolve \(modelName).momd from direct or BacktraceResources.bundle locations")
+        return nil
+#endif
     }
 
     
@@ -118,33 +155,120 @@ extension PersistentRepository: Repository {
     ///   - `RepositoryError.canNotCreateEntityDescription` if the entity cannot be found
     ///   - Any Core Data error that occurs during the save
     func save(_ resource: Resource) throws {
-        try backgroundContext.performAndWaitThrowing {
-            try _removeOldestRecordIfNeededLocked()
-            
-            guard let entity = NSEntityDescription.entity(forEntityName: Resource.entityName, in: backgroundContext) else {
-                throw RepositoryError.canNotCreateEntityDescription
-            }
-            let newManagedObject = NSManagedObject(entity: entity, insertInto: backgroundContext)
-            newManagedObject.setValue(resource.identifier.uuidString, forKey: "hashProperty")
-            newManagedObject.setValue(resource.reportData, forKey: "reportData")
-            newManagedObject.setValue(Date(), forKey: "dateAdded")
-            newManagedObject.setValue(0, forKey: "retryCount")
-            newManagedObject.setValue(resource.attachmentPaths, forKey: "attachmentPaths")
-            try backgroundContext.save()
+        try save(resource, requiresCompleteAttachments: false)
+    }
+
+    /// Durably saves a pending crash before its PLCrashReporter source may be purged.
+    ///
+    /// Unlike ordinary retry persistence, this rejects a first ingestion when any declared attachment cannot be copied.
+    /// An idempotent repeat may reuse a complete repository-owned generation that was committed by an earlier ingestion of the same report identifier.
+    func savePending(_ resource: Resource) throws {
+        try save(resource, requiresCompleteAttachments: true)
+    }
+
+    private func save(_ resource: Resource, requiresCompleteAttachments: Bool) throws {
+        let existingAttachmentPaths = try backgroundContext.performAndWaitThrowing {
+            let predicate = NSPredicate(format: "hashProperty == %@", resource.identifier.uuidString)
+            return try _getResourcesLocked(predicate: predicate, fetchLimit: 1).first?
+                .value(forKey: "attachmentPaths") as? [String] ?? []
         }
-        // File storage outside the Core Data backgroundContext (optional concurrency).
-        try AttributesStorage.store(resource.attributes, fileName: resource.identifier.uuidString)
+        let attributesConfig = try AttributesStorage.AttributesConfig(
+            fileName: resource.identifier.uuidString,
+            directoryUrl: metadataDirectoryUrl
+        )
+        let previousAttributesData: Data?
+        if FileManager.default.fileExists(atPath: attributesConfig.fileUrl.path) {
+            previousAttributesData = try Data(contentsOf: attributesConfig.fileUrl)
+        } else {
+            previousAttributesData = nil
+        }
+        let candidateAttachments = try attachmentStore.store(resource.attachmentPaths,
+                                                              reportIdentifier: resource.identifier)
+        let durableExistingAttachmentPaths = existingAttachmentPaths.filter { path in
+            let url = URL(fileURLWithPath: path).standardizedFileURL
+            return attachmentStore.contains(url) && FileManager.default.fileExists(atPath: url.path)
+        }
+        let shouldPreserveExistingAttachments = !durableExistingAttachmentPaths.isEmpty &&
+            (resource.attachmentPaths.isEmpty || !candidateAttachments.isComplete)
+        let storedAttachments: RepositoryAttachmentStore.StoredAttachments
+        if shouldPreserveExistingAttachments {
+            attachmentStore.rollback(candidateAttachments)
+            storedAttachments = RepositoryAttachmentStore.StoredAttachments(
+                paths: durableExistingAttachmentPaths,
+                generationUrl: nil,
+                isComplete: true
+            )
+        } else {
+            storedAttachments = candidateAttachments
+        }
+
+        guard !requiresCompleteAttachments || storedAttachments.isComplete else {
+            attachmentStore.rollback(storedAttachments)
+            throw RepositoryAttachmentStoreError.incompleteAttachmentStaging
+        }
+
+        var persistedAttributes = (try? AttributesStorage.retrieve(
+            fileName: resource.identifier.uuidString,
+            directoryUrl: metadataDirectoryUrl
+        )) ?? [:]
+        persistedAttributes += resource.attributes
+        do {
+            try AttributesStorage.store(persistedAttributes,
+                                        fileName: resource.identifier.uuidString,
+                                        directoryUrl: metadataDirectoryUrl)
+        } catch {
+            attachmentStore.rollback(storedAttachments)
+            restoreAttributes(previousAttributesData, config: attributesConfig)
+            throw error
+        }
+
+        let evictedIdentifiers: [UUID]
+        do {
+            evictedIdentifiers = try backgroundContext.performAndWaitThrowing {
+                let predicate = NSPredicate(format: "hashProperty == %@", resource.identifier.uuidString)
+                let existingObject = try _getResourcesLocked(predicate: predicate, fetchLimit: 1).first
+                var identifiersToClean = [UUID]()
+
+                let managedObject: NSManagedObject
+                if let existingObject = existingObject {
+                    managedObject = existingObject
+                } else {
+                    identifiersToClean = try _removeOldestRecordIfNeededLocked()
+                    guard let entity = NSEntityDescription.entity(forEntityName: Resource.entityName,
+                                                                  in: backgroundContext) else {
+                        throw RepositoryError.canNotCreateEntityDescription
+                    }
+                    managedObject = NSManagedObject(entity: entity, insertInto: backgroundContext)
+                    managedObject.setValue(resource.identifier.uuidString, forKey: "hashProperty")
+                    managedObject.setValue(Date(), forKey: "dateAdded")
+                    managedObject.setValue(0, forKey: "retryCount")
+                }
+
+                managedObject.setValue(resource.reportData, forKey: "reportData")
+                managedObject.setValue(storedAttachments.paths, forKey: "attachmentPaths")
+                try backgroundContext.save()
+                return identifiersToClean
+            }
+        } catch {
+            attachmentStore.rollback(storedAttachments)
+            restoreAttributes(previousAttributesData, config: attributesConfig)
+            throw error
+        }
+
+        resource.attachmentPaths = storedAttachments.paths
+        cleanupResources(identifiers: evictedIdentifiers)
     }
     
     /// Deletes a resource from Core Data
     /// - Parameter resource: Resource to delete
     /// - Throws: Any error from fetching or deleting the records
     func delete(_ resource: Resource) throws {
-        try backgroundContext.performAndWaitThrowing {
+        let deletedIdentifiers = try backgroundContext.performAndWaitThrowing {
             let predicate = NSPredicate(format: "hashProperty==%@", resource.identifier.uuidString)
             let fetchRequestResults = try _getResourcesLocked(predicate: predicate, fetchLimit: 100)
-            try _deleteLocked(fetchRequestResults)
+            return try _deleteLocked(fetchRequestResults)
         }
+        cleanupResources(identifiers: deletedIdentifiers)
     }
     
     /// Fetches all stored resources from the database
@@ -153,7 +277,8 @@ extension PersistentRepository: Repository {
     func getAll() throws -> [Resource] {
         return try backgroundContext.performAndWaitThrowing {
             let resources = try _getResourcesLocked()
-            return try resources.map(Resource.init)
+            return try resources.map { try Resource(managedObject: $0,
+                                                    metadataDirectoryUrl: metadataDirectoryUrl) }
         }
     }
     
@@ -169,7 +294,8 @@ extension PersistentRepository: Repository {
              fetchLimit: Int? = nil) throws -> [Resource] {
         return try backgroundContext.performAndWaitThrowing {
             let resources = try _getResourcesLocked(sortDescriptors: sortDescriptors, predicate: predicate, fetchLimit: fetchLimit)
-            return try resources.map(Resource.init)
+            return try resources.map { try Resource(managedObject: $0,
+                                                    metadataDirectoryUrl: metadataDirectoryUrl) }
         }
     }
     
@@ -181,7 +307,8 @@ extension PersistentRepository: Repository {
         return try backgroundContext.performAndWaitThrowing {
             let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: false)]
             let latest = try _getResourcesLocked(sortDescriptors: sortDescriptors, fetchLimit: count)
-            return try latest.map(Resource.init)
+            return try latest.map { try Resource(managedObject: $0,
+                                                 metadataDirectoryUrl: metadataDirectoryUrl) }
         }
     }
     
@@ -193,7 +320,8 @@ extension PersistentRepository: Repository {
         return try backgroundContext.performAndWaitThrowing {
             let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
             let latest = try _getResourcesLocked(sortDescriptors: sortDescriptors, fetchLimit: count)
-            return try latest.map(Resource.init)
+            return try latest.map { try Resource(managedObject: $0,
+                                                 metadataDirectoryUrl: metadataDirectoryUrl) }
         }
     }
     
@@ -205,7 +333,7 @@ extension PersistentRepository: Repository {
     ///     - `RepositoryError.resourceNotFound` if the resource cannot be fetched
     ///     - Any error from saving or deleting in Core Data
     func incrementRetryCount(_ resource: Resource, limit: Int) throws {
-        try backgroundContext.performAndWaitThrowing {
+        let deletedIdentifiers = try backgroundContext.performAndWaitThrowing {
             let predicate = NSPredicate(format: "hashProperty==%@", resource.identifier.uuidString)
             let fetchRequestResults = try _getResourcesLocked(predicate: predicate, fetchLimit: 1)
             
@@ -215,24 +343,27 @@ extension PersistentRepository: Repository {
             }
             // if exceeds limit, remove from db, otherwise just increment retryCount property
             if currentRetryCount >= limit {
-                try _deleteLocked([fetchedResult])
+                return try _deleteLocked([fetchedResult])
             } else {
                 // increment number of retires
                 fetchedResult.setValue(currentRetryCount + 1, forKey: "retryCount")
                 // update report data (could be modified)
                 fetchedResult.setValue(resource.reportData, forKey: "reportData")
                 try backgroundContext.save()
+                return []
             }
         }
+        cleanupResources(identifiers: deletedIdentifiers)
     }
     
     /// Deletes all stored resources
     /// - Throws: Any error from fetching or deleting the records
     func clear() throws {
-        try backgroundContext.performAndWaitThrowing {
+        let deletedIdentifiers = try backgroundContext.performAndWaitThrowing {
             let managedObjects = try _getResourcesLocked()
-            try _deleteLocked(managedObjects)
+            return try _deleteLocked(managedObjects)
         }
+        cleanupResources(identifiers: deletedIdentifiers)
     }
     
     ///  Returns the total count of resources in the database
@@ -273,14 +404,15 @@ extension PersistentRepository: Repository {
     ///
     /// - Parameter managedObjects: Managed objects to delete
     /// - Throws: Any error from `save()`.
-    private func _deleteLocked(_ managedObjects: [Resource.ManagedObjectType]) throws {
+    private func _deleteLocked(_ managedObjects: [Resource.ManagedObjectType]) throws -> [UUID] {
+        let identifiers = managedObjects.compactMap {
+            ($0.value(forKey: "hashProperty") as? String).flatMap(UUID.init(uuidString:))
+        }
         managedObjects.forEach {
-            if let fileName = $0.value(forKey: "hashProperty") as? String, let uuid = UUID(uuidString: fileName) {
-                try? AttributesStorage.remove(fileName: uuid.uuidString)
-            }
             backgroundContext.delete($0)
         }
         try backgroundContext.save()
+        return identifiers
     }
     
     /// Counts the total number of resources in the store
@@ -296,11 +428,12 @@ extension PersistentRepository: Repository {
     /// Removes the oldest record if the maximum number of records or total database size is exceeded
     /// Must be called only within a `performAndWaitThrowing` block
     /// - Throws: Any error from counting, removing records, or checking file size
-    private func _removeOldestRecordIfNeededLocked() throws {
+    private func _removeOldestRecordIfNeededLocked() throws -> [UUID] {
+        var removedIdentifiers = [UUID]()
         // check number of records
         if settings.maxRecordCount != BacktraceDatabaseSettings.unlimited {
             while try _countResourcesLocked() + 1 > settings.maxRecordCount {
-                try _removeOldestRecordLocked()
+                removedIdentifiers += try _removeOldestRecordLocked()
             }
         }
         
@@ -309,17 +442,91 @@ extension PersistentRepository: Repository {
             while try BacktraceFileManager.sizeOfFile(at: url) > settings.maxDatabaseSizeInBytes {
                 let size = try BacktraceFileManager.sizeOfFile(at: url)
                 BacktraceLogger.debug("Database size before removing last record: \(size)")
-                try _removeOldestRecordLocked()
+                removedIdentifiers += try _removeOldestRecordLocked()
             }
         }
+        return removedIdentifiers
     }
     
     /// Removes the single oldest record (by `dateAdded`
     /// Must be called only within a `performAndWaitThrowing` block
     /// - Throws: Any error from fetching or deleting the record
-    private func _removeOldestRecordLocked() throws {
+    private func _removeOldestRecordLocked() throws -> [UUID] {
         let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
         let oldestResource = try _getResourcesLocked(sortDescriptors: sortDescriptors, fetchLimit: 1)
-        try _deleteLocked(oldestResource)
+        return try _deleteLocked(oldestResource)
+    }
+
+    func reconcileStorage() throws {
+        let storageSnapshot: (attachmentPaths: [String], identifiers: Set<UUID>) =
+            try backgroundContext.performAndWaitThrowing {
+                let storedResources = try _getResourcesLocked()
+                let attachmentPaths = storedResources.flatMap {
+                    ($0.value(forKey: "attachmentPaths") as? [String]) ?? []
+                }
+                let identifiers = Set(storedResources.compactMap {
+                    ($0.value(forKey: "hashProperty") as? String).flatMap(UUID.init(uuidString:))
+                })
+                return (attachmentPaths, identifiers)
+            }
+        try attachmentStore.reconcile(referencedAttachmentPaths: storageSnapshot.attachmentPaths)
+        try reconcileMetadataStorage(reportIdentifiers: storageSnapshot.identifiers)
+    }
+
+    private func cleanupResources(identifiers: [UUID]) {
+        for identifier in Set(identifiers) {
+            do {
+                try AttributesStorage.remove(fileName: identifier.uuidString,
+                                             directoryUrl: metadataDirectoryUrl)
+                // Remove the pre-2.1.1 cache-backed sidecar after a repository row is deleted.
+                try? AttributesStorage.remove(fileName: identifier.uuidString)
+            } catch {
+                BacktraceLogger.warning("Unable to remove persisted attributes for \(identifier): \(error)")
+            }
+            do {
+                try attachmentStore.removeAttachments(for: identifier)
+            } catch {
+                BacktraceLogger.warning("Unable to remove persisted attachments for \(identifier): \(error)")
+            }
+        }
+    }
+
+    private func reconcileMetadataStorage(reportIdentifiers: Set<UUID>) throws {
+        for identifier in reportIdentifiers {
+            let repositoryConfig = try AttributesStorage.AttributesConfig(
+                fileName: identifier.uuidString,
+                directoryUrl: metadataDirectoryUrl
+            )
+            guard !FileManager.default.fileExists(atPath: repositoryConfig.fileUrl.path),
+                  let legacyAttributes = try? AttributesStorage.retrieve(fileName: identifier.uuidString) else {
+                continue
+            }
+            try AttributesStorage.store(legacyAttributes,
+                                        fileName: identifier.uuidString,
+                                        directoryUrl: metadataDirectoryUrl)
+            try? AttributesStorage.remove(fileName: identifier.uuidString)
+        }
+
+        let files = try FileManager.default.contentsOfDirectory(at: metadataDirectoryUrl,
+                                                                includingPropertiesForKeys: nil,
+                                                                options: [.skipsHiddenFiles])
+        for fileUrl in files where fileUrl.pathExtension == "plist" {
+            guard let identifier = UUID(uuidString: fileUrl.deletingPathExtension().lastPathComponent),
+                  !reportIdentifiers.contains(identifier) else { continue }
+            try FileManager.default.removeItem(at: fileUrl)
+        }
+    }
+
+    private func restoreAttributes(_ data: Data?, config: AttributesStorage.AttributesConfig) {
+        do {
+            if let data = data {
+                try data.write(to: config.fileUrl, options: .atomic)
+            } else {
+                try AttributesStorage.remove(fileName: config.fileUrl.deletingPathExtension().lastPathComponent,
+                                             directoryUrl: metadataDirectoryUrl)
+            }
+        } catch {
+            BacktraceLogger.error("Unable to roll back attributes at \(config.fileUrl.path): \(error)")
+        }
     }
 }

@@ -1,5 +1,10 @@
 import Foundation
+
+#if BACKTRACE_UNITY_PREFIXED_PLCRASHREPORTER
+import BTUnityCrashReporter
+#else
 import CrashReporter
+#endif
 
 /// Model represents single crash report which can be send to Backtrace services.
 @objc final public class BacktraceReport: NSObject {
@@ -16,18 +21,30 @@ import CrashReporter
     /// `Attributes` attached to the report.
     @objc public var attributes: Attributes
 
-    init(report: Data, attributes: Attributes, attachmentPaths: [String]) throws {
+    init(report: Data,
+         attributes: Attributes,
+         attachmentPaths: [String],
+         identifier: UUID = UUID()) throws {
         self.plCrashReport = try PLCrashReport(data: report)
         reportData = report
-        identifier = UUID()
+        self.identifier = identifier
         self.attachmentPaths = attachmentPaths
         self.attributes = attributes
         super.init()
         
         self.extendCrashAttributes()
     }
+
+    convenience init(pendingReport report: Data,
+                     attributes: Attributes,
+                     attachmentPaths: [String]) throws {
+        try self.init(report: report,
+                      attributes: attributes,
+                      attachmentPaths: attachmentPaths,
+                      identifier: BacktraceReportIdentifier.pendingReportIdentifier(for: report))
+    }
     
-    init(managedObject: Crash) throws {
+    init(managedObject: Crash, metadataDirectoryUrl: URL?) throws {
         guard let reportData = managedObject.reportData,
             let identifierString = managedObject.hashProperty,
             let attachmentPaths = managedObject.attachmentPaths,
@@ -38,7 +55,10 @@ import CrashReporter
         self.plCrashReport = try PLCrashReport(data: reportData)
         self.identifier = identifier
         self.attachmentPaths = attachmentPaths
-        self.attributes = (try? AttributesStorage.retrieve(fileName: identifier.uuidString)) ?? [:]
+        self.attributes = (try? AttributesStorage.retrieve(fileName: identifier.uuidString,
+                                                           directoryUrl: metadataDirectoryUrl))
+            ?? (try? AttributesStorage.retrieve(fileName: identifier.uuidString))
+            ?? [:]
         
         super.init()
         

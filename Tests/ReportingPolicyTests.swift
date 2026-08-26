@@ -13,7 +13,8 @@ final class ReportingPolicyTests: QuickSpec {
 
                 context("policy allows debugger attachment") {
                     let configuration = BacktraceClientConfiguration(credentials: credentials,
-                                                                     allowsAttachingDebugger: true)
+                                                                     allowsAttachingDebugger: true,
+                                                                     oomMode: .none)
                     context("the debugger is attached") {
                         it("can report") {
                             expect(ReportingPolicy(configuration: configuration,
@@ -33,7 +34,8 @@ final class ReportingPolicyTests: QuickSpec {
 
                 context("policy disallows debugger attachment") {
                     let configuration = BacktraceClientConfiguration(credentials: credentials,
-                                                                     allowsAttachingDebugger: false)
+                                                                     allowsAttachingDebugger: false,
+                                                                     oomMode: .none)
                     context("the debugger is attached") {
                         it("cannot report") {
                             expect(ReportingPolicy(configuration: configuration,

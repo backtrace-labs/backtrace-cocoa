@@ -40,6 +40,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                                                  attributes: attributesProvider,
                                                  backtraceApi: backtraceApi,
                                                  oomMode: .full)
+                try repository.clear()
                 BacktraceOomWatcher.clean()
 
                 urlSession.response = MockConnectionErrorResponse()
@@ -208,6 +209,20 @@ class BacktraceOomWatcherTests: QuickSpec {
 
                     expect { calledWillSend }.to(equal(1))
                  }
+
+                it("persists an OOM report when the server rejects its initial submission") {
+                    urlSession.response = Mock403Response()
+                    oomWatcher?.start()
+                    oomWatcher?.state.debugger = false
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.flushQueue()
+
+                    expect(oomWatcher?._sendPendingOomReports()).to(beTrue())
+
+                    expect(try repository.countResources()).to(equal(1))
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beFalse())
+                }
                 
                  it("can handle missing attributes and attachments") {
                      urlSession.response = MockOkResponse()

@@ -15,18 +15,15 @@ protocol ReportMetadataStorage {
 enum ReportMetadataStorageImpl: ReportMetadataStorage {
     static func storeToFile(_ dictionary: [String: Any], config: Config) throws {
         if !FileManager.default.fileExists(atPath: config.directoryUrl.path) {
-            try FileManager.default.createDirectory(atPath: config.directoryUrl.path,
-                                                    withIntermediateDirectories: false,
+            try FileManager.default.createDirectory(at: config.directoryUrl,
+                                                    withIntermediateDirectories: true,
                                                     attributes: [.protectionKey: FileProtectionType.none])
         }
 
-        if #available(iOS 11.0, tvOS 11.0, macOS 10.13, *) {
-            try (dictionary as NSDictionary).write(to: config.fileUrl)
-        } else {
-            guard (dictionary as NSDictionary).write(to: config.fileUrl, atomically: true) else {
-                throw FileError.fileNotWritten
-            }
-        }
+        let data = try PropertyListSerialization.data(fromPropertyList: dictionary,
+                                                      format: .binary,
+                                                      options: 0)
+        try data.write(to: config.fileUrl, options: .atomic)
     }
 
     static func retrieveFromFile(config: Config) throws -> [String: Any] {
@@ -43,14 +40,14 @@ enum ReportMetadataStorageImpl: ReportMetadataStorage {
             }
             nsDictionary = dictionaryFromFile
         }
-        let dictionary = nsDictionary as? [String: Any] ?? [String: Any]()
+        guard let dictionary = nsDictionary as? [String: Any] else {
+            throw FileError.invalidPropertyList
+        }
         return dictionary
     }
 
     static func removeFile(config: Config) throws {
-        guard FileManager.default.fileExists(atPath: config.fileUrl.path) else {
-            throw FileError.fileNotExists
-        }
+        guard FileManager.default.fileExists(atPath: config.fileUrl.path) else { return }
         try FileManager.default.removeItem(at: config.fileUrl)
     }
 }

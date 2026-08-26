@@ -28,6 +28,13 @@ where BacktraceRepository.Resource == BacktraceReport {
         configureTimer(with: DispatchWorkItem(block: timerEventHandler))
     }
 
+    func replayAsync() {
+        // Always make one best-effort startup submission. `retryBehaviour` controls only whether subsequent timer-based retries are scheduled.
+        queue.async { [weak self] in
+            self?.batchRetry()
+        }
+    }
+
     internal func batchRetry() {
         guard networkClient.isNetworkAvailable() else { return }
         guard let reports = try? reportsFromRepository(limit: 10), !reports.isEmpty else { return }

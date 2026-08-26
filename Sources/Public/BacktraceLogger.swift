@@ -38,7 +38,8 @@ import Foundation
     /// Replaces the logging destinations.
     ///
     /// - Parameter loggingDestinations: Logging destinations.
-    class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
+    @objc(setDestinations:)
+    public class func setDestinations(_ destinations: Set<BacktraceBaseDestination>) {
         self.destinations = destinations
     }
     // swiftlint:disable line_length

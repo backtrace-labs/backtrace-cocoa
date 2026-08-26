@@ -25,6 +25,153 @@ final class BacktraceDatabaseTests: QuickSpec {
                     }
                 }
 
+                throwingIt("uses the embedded PLCrashReporter UUID for a pending payload") {
+                    let liveReport = try crashReporter.generateLiveReport(attributes: [:])
+                    let first = try BacktraceReport(pendingReport: liveReport.reportData,
+                                                    attributes: [:],
+                                                    attachmentPaths: [])
+                    let second = try BacktraceReport(pendingReport: liveReport.reportData,
+                                                     attributes: [:],
+                                                     attachmentPaths: [])
+
+                    expect(first.identifier).to(equal(second.identifier))
+                    expect(first.identifier)
+                        .to(equal(BacktraceReportIdentifier.embeddedIdentifier(for: liveReport.reportData)))
+                }
+
+                it("derives a deterministic digest identifier when a report has no embedded UUID") {
+                    let payload = Data("legacy-plcrash-payload".utf8)
+                    let first = BacktraceReportIdentifier.pendingReportIdentifier(
+                        embeddedIdentifier: nil,
+                        reportData: payload
+                    )
+                    let second = BacktraceReportIdentifier.pendingReportIdentifier(
+                        embeddedIdentifier: nil,
+                        reportData: payload
+                    )
+
+                    expect(first).to(equal(second))
+                    expect(first).to(equal(BacktraceReportIdentifier.digestIdentifier(for: payload)))
+                }
+
+                throwingIt("upserts a report by identifier") {
+                    try repository.clear()
+                    let liveReport = try crashReporter.generateLiveReport(attributes: [:])
+                    let identifier = BacktraceReportIdentifier.pendingReportIdentifier(for: liveReport.reportData)
+                    let first = try BacktraceReport(report: liveReport.reportData,
+                                                    attributes: ["generation": "first"],
+                                                    attachmentPaths: [],
+                                                    identifier: identifier)
+                    let second = try BacktraceReport(report: liveReport.reportData,
+                                                     attributes: ["generation": "second"],
+                                                     attachmentPaths: [],
+                                                     identifier: identifier)
+
+                    try repository.save(first)
+                    try repository.save(second)
+
+                    expect(try repository.countResources()).to(equal(1))
+                    expect(try repository.getLatest().first?.attributes["generation"] as? String)
+                        .to(equal("second"))
+                }
+
+                throwingIt("copies attachments into immutable repository storage") {
+                    try repository.clear()
+                    let sourceDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-attachment-\(UUID().uuidString)", isDirectory: true)
+                    try FileManager.default.createDirectory(at: sourceDirectory,
+                                                            withIntermediateDirectories: true)
+                    defer { try? FileManager.default.removeItem(at: sourceDirectory) }
+
+                    let firstSource = sourceDirectory.appendingPathComponent("first.txt")
+                    let secondSource = sourceDirectory.appendingPathComponent("second.txt")
+                    try Data("first".utf8).write(to: firstSource)
+                    try Data("second".utf8).write(to: secondSource)
+
+                    let liveReport = try crashReporter.generateLiveReport(attributes: [:])
+                    let identifier = BacktraceReportIdentifier.pendingReportIdentifier(for: liveReport.reportData)
+                    let first = try BacktraceReport(report: liveReport.reportData,
+                                                    attributes: [:],
+                                                    attachmentPaths: [firstSource.path],
+                                                    identifier: identifier)
+                    try repository.save(first)
+                    let firstOwnedPath = try repository.getLatest().first!.attachmentPaths.first!
+
+                    expect(repository.attachmentStore.contains(URL(fileURLWithPath: firstOwnedPath))).to(beTrue())
+                    try FileManager.default.removeItem(at: firstSource)
+                    expect(try Data(contentsOf: URL(fileURLWithPath: firstOwnedPath)))
+                        .to(equal(Data("first".utf8)))
+
+                    let second = try BacktraceReport(report: liveReport.reportData,
+                                                     attributes: [:],
+                                                     attachmentPaths: [secondSource.path],
+                                                     identifier: identifier)
+                    try repository.save(second)
+                    let secondOwnedPath = try repository.getLatest().first!.attachmentPaths.first!
+                    expect(secondOwnedPath).notTo(equal(firstOwnedPath))
+                    expect(FileManager.default.fileExists(atPath: firstOwnedPath)).to(beTrue())
+
+                    try repository.reconcileStorage()
+                    expect(FileManager.default.fileExists(atPath: firstOwnedPath)).to(beFalse())
+                    expect(FileManager.default.fileExists(atPath: secondOwnedPath)).to(beTrue())
+                }
+
+                throwingIt("preserves durable pending data when repeat sources disappear") {
+                    try repository.clear()
+                    let sourceDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-repeat-\(UUID().uuidString)", isDirectory: true)
+                    try FileManager.default.createDirectory(at: sourceDirectory,
+                                                            withIntermediateDirectories: true)
+                    defer { try? FileManager.default.removeItem(at: sourceDirectory) }
+
+                    let source = sourceDirectory.appendingPathComponent("pending.txt")
+                    try Data("pending".utf8).write(to: source)
+                    let liveReport = try crashReporter.generateLiveReport(attributes: [:])
+                    let identifier = BacktraceReportIdentifier.pendingReportIdentifier(for: liveReport.reportData)
+                    let first = try BacktraceReport(report: liveReport.reportData,
+                                                    attributes: ["durable": "value"],
+                                                    attachmentPaths: [source.path],
+                                                    identifier: identifier)
+                    try repository.save(first)
+                    let ownedPath = try repository.getLatest().first!.attachmentPaths.first!
+                    try FileManager.default.removeItem(at: source)
+
+                    let repeated = try BacktraceReport(report: liveReport.reportData,
+                                                       attributes: [:],
+                                                       attachmentPaths: [source.path],
+                                                       identifier: identifier)
+                    try repository.save(repeated)
+
+                    let stored = try repository.getLatest().first!
+                    expect(stored.attachmentPaths).to(equal([ownedPath]))
+                    expect(FileManager.default.fileExists(atPath: ownedPath)).to(beTrue())
+                    expect(stored.attributes["durable"] as? String).to(equal("value"))
+                }
+
+                throwingIt("removes repository symlinks without following them") {
+                    let externalDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-external-\(UUID().uuidString)", isDirectory: true)
+                    try FileManager.default.createDirectory(at: externalDirectory,
+                                                            withIntermediateDirectories: true)
+                    defer { try? FileManager.default.removeItem(at: externalDirectory) }
+                    let sentinel = externalDirectory.appendingPathComponent("sentinel.txt")
+                    try Data("do-not-delete".utf8).write(to: sentinel)
+
+                    let escapedDirectory = repository.attachmentStore.rootUrl
+                        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+                    try FileManager.default.createSymbolicLink(at: escapedDirectory,
+                                                               withDestinationURL: externalDirectory)
+
+                    try repository.reconcileStorage()
+
+                    expect(FileManager.default.fileExists(atPath: escapedDirectory.path)).to(beFalse())
+                    expect(FileManager.default.fileExists(atPath: sentinel.path)).to(beTrue())
+                }
+
+                throwingIt("resolves the packaged Core Data model") {
+                    expect(PersistentRepository<BacktraceReport>.resolveModelUrl()).toNot(beNil())
+                }
+
                 throwingIt("can add new report and remove it") {
                     try repository.clear()
                     let report = try crashReporter.generateLiveReport(attributes: [:])

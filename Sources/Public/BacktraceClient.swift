@@ -50,6 +50,9 @@ import Foundation
     /// - Parameter configuration: `BacktraceClient`s configuration.
     /// - Throws: throws an error in case of failure.
     @objc public convenience init(configuration: BacktraceClientConfiguration) throws {
+        if let loggingDestinations = configuration.loggingDestinations {
+            BacktraceLogger.setDestinations(loggingDestinations)
+        }
         let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
@@ -65,6 +68,9 @@ import Foundation
     /// - Parameter crashReporter: Instance of the crash reporter to inject.
     /// - Throws: throws an error in case of failure.
     @objc public convenience init(configuration: BacktraceClientConfiguration, crashReporter: BacktraceCrashReporter) throws {
+        if let loggingDestinations = configuration.loggingDestinations {
+            BacktraceLogger.setDestinations(loggingDestinations)
+        }
         let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
         let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
@@ -174,18 +180,10 @@ extension BacktraceClient: BacktraceReporting {
             return
         }
 
+        // A pending PLCrashReporter payload must be durably handed to the retry repository before the current session enables capture. Enabling first can overwrite the only copy of the old report.
+        try reporter.handlePendingCrashes()
         try reporter.enableCrashReporter()
-        
-        dispatcher.dispatch({ [weak self] in
-            guard let self = self else { return }
-            do {
-                try self.reporter.handlePendingCrashes()
-            } catch {
-                BacktraceLogger.error(error)
-            }
-            }, completion: {
-                BacktraceLogger.debug("Started error reporter.")
-        })
+        BacktraceLogger.debug("Started error reporter.")
 
         if self.configuration.oomMode != .none {
             dispatcher.dispatch({ [weak self] in
@@ -207,7 +205,7 @@ extension BacktraceClient: BacktraceLogging {
             return BacktraceLogger.destinations
         }
         set {
-            BacktraceLogger.destinations = newValue
+            BacktraceLogger.setDestinations(newValue)
         }
     }
 }

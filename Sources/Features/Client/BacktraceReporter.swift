@@ -10,7 +10,7 @@ final class BacktraceReporter {
 
     let reporter: CrashReporting
     private(set) var api: BacktraceApi
-    private let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
+    let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
     private(set) var attributesProvider: SignalContext
     private(set) var backtraceOomWatcher: BacktraceOomWatcher
     private let oomMode: BacktraceOomMode
@@ -25,12 +25,13 @@ final class BacktraceReporter {
         self.reporter = reporter
         self.api = api
         self.oomMode = oomMode
+        let repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
+        self.repository = repository
         self.watcher =
             BacktraceWatcher(settings: dbSettings,
                              networkClient: BacktraceNetworkClient(urlSession: urlSession),
                              credentials: credentials,
-                             repository: try PersistentRepository<BacktraceReport>(settings: dbSettings))
-        self.repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
+                             repository: repository)
         let attributesProvider = AttributesProvider(reportHostName: dbSettings.reportHostName)
         self.attributesProvider = attributesProvider
         self.backtraceOomWatcher = BacktraceOomWatcher(
@@ -48,20 +49,26 @@ extension BacktraceReporter {
     func enableCrashReporter() throws {
         try reporter.enableCrashReporting()
         watcher.enable()
+        watcher.replayAsync()
     }
 
     func handlePendingCrashes() throws {
-        // always try to remove pending crash report from disk
-        defer { try? reporter.purgePendingCrashReport() }
-
-        // try to send pending crash report
         guard reporter.hasPendingCrashes() else {
-            BacktraceLogger.debug("There are no pending crash crashes to send.")
+            BacktraceLogger.debug("There are no pending crashes to ingest.")
             return
         }
-        BacktraceLogger.debug("There is a pending crash report to send.")
+        BacktraceLogger.debug("There is a pending crash report to persist.")
         let resource = try reporter.pendingCrashReport()
-        _ = send(resource: resource)
+        try repository.savePending(resource)
+        BacktraceLogger.debug("Persisted pending crash report: \(resource.identifier)")
+
+        do {
+            try reporter.purgePendingCrashReport()
+        } catch {
+            // Persistence already succeeded. Leave the deterministic row available for replay and let a
+            // later startup repeat the same identifier-based upsert if the source remains pending.
+            BacktraceLogger.warning("Persisted pending crash but could not purge its source: \(error)")
+        }
     }
 }
 
@@ -101,11 +108,23 @@ extension BacktraceReporter: BacktraceClientCustomizing {
 extension BacktraceReporter {
     func send(resource: BacktraceReport) -> BacktraceResult {
         do {
-            return try api.send(resource)
+            let result = try api.send(resource)
+            if result.backtraceStatus != .ok {
+                persistForRetry(result.report ?? resource)
+            }
+            return result
         } catch {
             BacktraceLogger.error(error)
-            try? repository.save(resource)
+            persistForRetry(resource)
             return BacktraceResult(error.backtraceStatus)
+        }
+    }
+
+    private func persistForRetry(_ resource: BacktraceReport) {
+        do {
+            try repository.save(resource)
+        } catch {
+            BacktraceLogger.error("Unable to persist report \(resource.identifier) for retry: \(error)")
         }
     }
 

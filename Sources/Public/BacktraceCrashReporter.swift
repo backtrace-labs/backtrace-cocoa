@@ -1,13 +1,54 @@
 import Foundation
+
+#if BACKTRACE_UNITY_PREFIXED_PLCRASHREPORTER
+import BTUnityCrashReporter
+#else
 import CrashReporter
+#endif
 import Darwin
 
+private final class BacktraceCrashSignalContext {
+    let attributesProvider: SignalContext
+
+    init(attributesProvider: SignalContext) {
+        self.attributesProvider = attributesProvider
+    }
+}
+
+/// Loads the crash-time sidecars as one pending-ingestion unit.
+///
+/// A missing sidecar is valid because a crash can occur before any attributes or attachments are registered.
+/// Once a sidecar exists, however, every read, property-list parse, and bookmark decode must succeed.
+/// Returning a partial value would allow the PLCrashReporter source to be purged while silently losing metadata that was present at crash time.
+struct BacktracePendingCrashMetadata {
+    let attributes: Attributes
+    let attachmentPaths: [String]
+
+    static func load(fileName: String) throws -> BacktracePendingCrashMetadata {
+        let attributes: Attributes
+        do {
+            attributes = try AttributesStorage.retrieve(fileName: fileName)
+        } catch FileError.fileNotExists {
+            attributes = [:]
+        }
+
+        let attachmentPaths: [String]
+        do {
+            attachmentPaths = try AttachmentsStorage.retrieve(fileName: fileName).map(\.path)
+        } catch FileError.fileNotExists {
+            attachmentPaths = []
+        }
+
+        return BacktracePendingCrashMetadata(attributes: attributes,
+                                             attachmentPaths: attachmentPaths)
+    }
+}
 
 /// A wrapper around `PLCrashReporter`.
 @objc public class BacktraceCrashReporter: NSObject {
     private let reporter: PLCrashReporter
     static private let crashName = "live_report"
-    private let copiedFileAttachments: [URL]
+    private var retainedSignalContext: BacktraceCrashSignalContext?
 
     /// Creates an instance of a crash reporter.
     /// - Parameter config: A `PLCrashReporterConfig` configuration to use.
@@ -19,7 +60,6 @@ import Darwin
     /// - Parameter reporter: An instance of `PLCrashReporter` to use.
     @objc public init(reporter: PLCrashReporter) {
         self.reporter = reporter
-        self.copiedFileAttachments = BacktraceCrashReporter.copyFileAttachmentsFromPendingCrashes()
         super.init()
     }
 }
@@ -30,20 +70,28 @@ extension BacktraceCrashReporter: CrashReporting {
             _ uContext: UnsafeMutablePointer<ucontext_t>?,
             _ context: UnsafeMutableRawPointer?) -> Void = { signalInfoPointer, _, context in
                 BacktraceOomWatcher.clean()
-                guard let attributesProvider = context?.assumingMemoryBound(to: SignalContext.self).pointee,
+                guard let context = context else { return }
+                let signalContext = Unmanaged<BacktraceCrashSignalContext>
+                    .fromOpaque(context)
+                    .takeUnretainedValue()
+                let attributesProvider = signalContext.attributesProvider
+                guard
                     let signalInfo = signalInfoPointer?.pointee else {
                     return
                 }
             
                 attributesProvider.set(faultMessage: "\(String(cString: strsignal(signalInfo.si_signo)))")
 
-                try? AttributesStorage.store(attributesProvider.dynamicAttributes, fileName: BacktraceCrashReporter.crashName)
-                try? AttachmentsStorage.store(attributesProvider.allAttachments, fileName: BacktraceCrashReporter.crashName)
+                try? AttributesStorage.store(attributesProvider.dynamicAttributes,
+                                             fileName: BacktraceCrashReporter.crashName)
+                try? AttachmentsStorage.store(attributesProvider.allAttachments,
+                                              fileName: BacktraceCrashReporter.crashName)
         }
 
-        var callbacks = withUnsafeMutableBytes(of: &mutableContext) { rawMutablePointer in
-            PLCrashReporterCallbacks(version: 0, context: rawMutablePointer.baseAddress, handleSignal: handler)
-        }
+        let signalContext = BacktraceCrashSignalContext(attributesProvider: mutableContext)
+        retainedSignalContext = signalContext
+        let contextPointer = Unmanaged.passUnretained(signalContext).toOpaque()
+        var callbacks = PLCrashReporterCallbacks(version: 0, context: contextPointer, handleSignal: handler)
         reporter.setCrash(&callbacks)
     }
 
@@ -75,46 +123,14 @@ extension BacktraceCrashReporter: CrashReporting {
     // This function retrieves, constructs, and sends the pending crash report
     func pendingCrashReport() throws -> BacktraceReport {
         let reportData = try reporter.loadPendingCrashReportDataAndReturnError()
-        
-        let attributes = (try? AttributesStorage.retrieve(fileName: BacktraceCrashReporter.crashName)) ?? [:]
-        let attachmentPaths = copiedFileAttachments.map(\.path)
-        return try BacktraceReport(report: reportData, attributes: attributes, attachmentPaths: attachmentPaths)
+        let metadata = try BacktracePendingCrashMetadata.load(fileName: BacktraceCrashReporter.crashName)
+        return try BacktraceReport(pendingReport: reportData,
+                                   attributes: metadata.attributes,
+                                   attachmentPaths: metadata.attachmentPaths)
     }
     
     func setCustomData(data: Data) {
         self.reporter.customData = data
-    }
-
-    // This function is called to copy stored file attachments
-    // from pending crashes so that they are not overwritten by the
-    // new app session
-    static func copyFileAttachmentsFromPendingCrashes() -> [URL] {
-        guard let directoryUrl = try? AttachmentsStorage.AttachmentsConfig(fileName: "").directoryUrl else {
-            BacktraceLogger.error("Could not get cache directory URL")
-            return [URL]()
-        }
-        let attachments = (try? AttachmentsStorage.retrieve(fileName: BacktraceCrashReporter.crashName)) ?? []
-        var copiedFileAttachments = [URL]()
-        for attachment in attachments {
-            let fileManager = FileManager.default
-            let fileName = attachment.lastPathComponent
-            let copiedAttachmentPath = directoryUrl.appendingPathComponent(fileName)
-            do {
-                if !fileManager.fileExists(atPath: attachment.path) {
-                    BacktraceLogger.error("File attachment from previous session does not exist")
-                    continue
-                }
-                if fileManager.fileExists(atPath: copiedAttachmentPath.path) {
-                    try fileManager.removeItem(atPath: copiedAttachmentPath.path)
-                }
-                try fileManager.copyItem(at: attachment, to: copiedAttachmentPath)
-                copiedFileAttachments.append(copiedAttachmentPath)
-            } catch {
-                BacktraceLogger.error("Could not copy bookmarked attachment file from previous session. Error: \(error)")
-                continue
-            }
-        }
-        return copiedFileAttachments
     }
 
     func hasPendingCrashes() -> Bool {
@@ -122,18 +138,18 @@ extension BacktraceCrashReporter: CrashReporting {
     }
 
     func purgePendingCrashReport() throws {
-        try AttributesStorage.remove(fileName: BacktraceCrashReporter.crashName)
-        try AttachmentsStorage.remove(fileName: BacktraceCrashReporter.crashName)
-        try deleteCopiedFileAttachments()
+        // Keep metadata available if PLCrashReporter itself cannot purge. A later launch can then repeat the deterministic repository upsert without losing attributes or attachment ownership evidence.
         try reporter.purgePendingCrashReportAndReturnError()
-    }
 
-    func deleteCopiedFileAttachments() throws {
-        let fileManager = FileManager.default
-        for attachment in copiedFileAttachments {
-            if fileManager.fileExists(atPath: attachment.path) {
-                try fileManager.removeItem(atPath: attachment.path)
-            }
+        do {
+            try AttributesStorage.remove(fileName: BacktraceCrashReporter.crashName)
+        } catch {
+            BacktraceLogger.warning("Purged pending crash payload but could not remove its attributes: \(error)")
+        }
+        do {
+            try AttachmentsStorage.remove(fileName: BacktraceCrashReporter.crashName)
+        } catch {
+            BacktraceLogger.warning("Purged pending crash payload but could not remove its attachment bookmarks: \(error)")
         }
     }
 }
