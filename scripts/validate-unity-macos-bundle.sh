@@ -18,6 +18,11 @@ for tool in awk codesign diff ditto dwarfdump file find grep lipo nm otool \
 done
 
 readonly OUTPUT_ROOT="$(cd "$1" && pwd -P)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+readonly UNITY_MACOS_CONFIG="$SCRIPT_DIR/unity-macos-config.sh"
+[[ -f "$UNITY_MACOS_CONFIG" ]] || fail "required validator input is missing: $UNITY_MACOS_CONFIG"
+# shellcheck source=unity-macos-config.sh
+source "$UNITY_MACOS_CONFIG"
 readonly BUNDLE="$OUTPUT_ROOT/BacktraceMacUnity.bundle"
 readonly BINARY="$BUNDLE/Contents/MacOS/BacktraceMacUnity"
 readonly INFO_PLIST="$BUNDLE/Contents/Info.plist"
@@ -59,7 +64,8 @@ readonly BUILD_PLATFORMS="$(xcrun vtool -show-build "$BINARY" |
 [[ "$BUILD_PLATFORMS" == "MACOS" ]] || fail "unexpected build platform: $BUILD_PLATFORMS"
 readonly MINIMUM_VERSIONS="$(xcrun vtool -show-build "$BINARY" |
   awk '$1 == "minos" { print $2 }' | LC_ALL=C sort -u)"
-[[ "$MINIMUM_VERSIONS" == "12.4" ]] || fail "unexpected minimum macOS version: $MINIMUM_VERSIONS"
+[[ "$MINIMUM_VERSIONS" == "$BTUNITY_MACOS_DEPLOYMENT_TARGET" ]] ||
+  fail "unexpected minimum macOS version: $MINIMUM_VERSIONS"
 
 while IFS= read -r dependency; do
   case "$dependency" in
@@ -71,6 +77,7 @@ done < <(otool -L "$BINARY" | awk '/^\t/ {print $1}')
 readonly GLOBAL_SYMBOLS="$(nm -gU "$BINARY")"
 for symbol in \
   _BacktraceUnityBridgeVersion \
+  _SetBacktraceLogLevel \
   _StartBacktraceIntegrationV3 \
   _StartBacktraceIntegrationV2 \
   _StartBacktraceIntegration \
@@ -97,10 +104,25 @@ grep -Fq 'io.backtrace.unity.legacy.' <<<"$BINARY_STRINGS" ||
   fail "bundle does not contain a per-application legacy storage fallback"
 grep -Fxq 'BacktraceUnityExceptionContract:all-c-exports-contained-v1' <<<"$BINARY_STRINGS" ||
   fail "bundle does not declare the C-export exception-containment contract"
+grep -Fxq 'BacktraceUnityLifecycleContract:process-lifetime-handler-v1' <<<"$BINARY_STRINGS" ||
+  fail "bundle does not declare the process-lifetime crash-handler contract"
+grep -Fxq 'BacktraceUnityLoggingContract:warning-default-explicit-setter-silent-none-v2' <<<"$BINARY_STRINGS" ||
+  fail "bundle does not declare the native logging contract"
 
-python3 - "$BINARY" <<'PY'
+(
+readonly RUNTIME_TEST_ROOT="$(mktemp -d "${TMPDIR:-/private/tmp}/btunity-runtime.XXXXXX")"
+cleanup_runtime_test() {
+  rm -rf "$RUNTIME_TEST_ROOT"
+}
+trap cleanup_runtime_test EXIT
+mkdir -p "$RUNTIME_TEST_ROOT/home" "$RUNTIME_TEST_ROOT/plcrash"
+CFFIXED_USER_HOME="$RUNTIME_TEST_ROOT/home" python3 - \
+  "$BINARY" \
+  "$RUNTIME_TEST_ROOT/plcrash" <<'PY'
 import ctypes
+import os
 import sys
+from pathlib import Path
 
 library = ctypes.CDLL(sys.argv[1])
 version = library.BacktraceUnityBridgeVersion
@@ -109,7 +131,117 @@ version.restype = ctypes.c_int32
 actual = version()
 if actual != 3:
     raise SystemExit(f"error: expected bridge ABI version 3, found {actual}")
+
+set_log_level = library.SetBacktraceLogLevel
+set_log_level.argtypes = [ctypes.c_int32]
+set_log_level.restype = ctypes.c_int32
+if set_log_level(99) != 2:
+    raise SystemExit("error: bridge did not reject an invalid log level")
+
+char_pointer = ctypes.POINTER(ctypes.c_char_p)
+start = library.StartBacktraceIntegrationV3
+start.argtypes = [
+    ctypes.c_char_p,
+    char_pointer,
+    char_pointer,
+    ctypes.c_int32,
+    ctypes.c_bool,
+    char_pointer,
+    ctypes.c_int32,
+    ctypes.c_bool,
+    ctypes.c_int32,
+    ctypes.c_char_p,
+]
+start.restype = ctypes.c_int32
+
+# Level `none` must silence both BacktraceLogger destinations and bridge-owned
+# NSLog/fprintf fallbacks. Trigger a deterministic invalid-arguments diagnostic.
+read_fd, write_fd = os.pipe()
+saved_stderr = os.dup(2)
+os.dup2(write_fd, 2)
+os.close(write_fd)
+try:
+    if set_log_level(4) != 0:
+        raise SystemExit("error: bridge rejected the none log level")
+    silent_result = start(None, None, None, 0, False, None, 0, False, 0, sys.argv[2].encode())
+    ctypes.CDLL(None).fflush(None)
+finally:
+    os.dup2(saved_stderr, 2)
+    os.close(saved_stderr)
+silent_output = os.read(read_fd, 1024 * 1024)
+os.close(read_fd)
+if silent_result != 2:
+    raise SystemExit(f"error: silent logging smoke test returned {silent_result}, expected 2")
+if b"[Backtrace]" in silent_output:
+    raise SystemExit("error: Backtrace bridge emitted output at log level none")
+if set_log_level(1) != 0:
+    raise SystemExit("error: bridge rejected the warning log level")
+
+submission_url = b"https://submit.backtrace.io/example/redacted-token/plcrash"
+blocked_storage_path = Path(sys.argv[2]).with_name("blocked-plcrash-path")
+blocked_storage_path.write_text("not a directory", encoding="utf-8")
+storage_failure_arguments = (
+    submission_url,
+    None,
+    None,
+    0,
+    False,
+    None,
+    0,
+    False,
+    0,
+    str(blocked_storage_path).encode(),
+)
+storage_failure_result = start(*storage_failure_arguments)
+if storage_failure_result != 3:
+    raise SystemExit(
+        "error: invalid storage smoke test must fail before handler installation; "
+        f"found {storage_failure_result}"
+    )
+
+# A failure before PLCrashReporter enable must not latch the process-wide handler state.
+# The valid start below is the behavioral replacement for a source-only Boolean truth table.
+arguments = (
+    submission_url,
+    None,
+    None,
+    0,
+    False,
+    None,
+    0,
+    False,
+    0,
+    sys.argv[2].encode(),
+)
+first_result = start(*arguments)
+if first_result != 0:
+    raise SystemExit(f"error: lifecycle smoke-test start failed: {first_result}")
+
+disable = library.Disable
+disable.argtypes = []
+disable.restype = None
+disable()
+
+get_attributes = library.GetAttributes
+get_attributes.argtypes = [
+    ctypes.POINTER(ctypes.c_void_p),
+    ctypes.POINTER(ctypes.c_int32),
+]
+get_attributes.restype = None
+entries = ctypes.c_void_p()
+entry_count = ctypes.c_int32(-1)
+get_attributes(ctypes.byref(entries), ctypes.byref(entry_count))
+if entries.value is not None or entry_count.value != 0:
+    raise SystemExit("error: Disable did not deactivate managed bridge operations")
+
+second_result = start(*arguments)
+if second_result != 1:
+    raise SystemExit(
+        "error: Start/Disable/Start must retain the process-lifetime handler "
+        f"and return alreadyInitialized; found {second_result}"
+    )
 PY
+)
 
 plutil -lint "$INFO_PLIST" >/dev/null
 plutil -lint "$PRIVACY_MANIFEST" >/dev/null
@@ -122,7 +254,8 @@ readonly PLIST_MINIMUM="$(plutil -extract LSMinimumSystemVersion raw -o - "$INFO
 [[ "$BUNDLE_EXECUTABLE" == "BacktraceMacUnity" ]] ||
   fail "unexpected bundle executable: $BUNDLE_EXECUTABLE"
 [[ "$BUNDLE_TYPE" == "BNDL" ]] || fail "unexpected package type: $BUNDLE_TYPE"
-[[ "$PLIST_MINIMUM" == "12.4" ]] || fail "unexpected plist deployment target: $PLIST_MINIMUM"
+[[ "$PLIST_MINIMUM" == "$BTUNITY_MACOS_DEPLOYMENT_TARGET" ]] ||
+  fail "unexpected plist deployment target: $PLIST_MINIMUM"
 
 python3 - "$PRIVACY_MANIFEST" <<'PY'
 import plistlib
@@ -207,19 +340,25 @@ trap cleanup_manifest EXIT
 readonly BUNDLE_SHA256="$(shasum -a 256 "$GENERATED_MANIFEST" | awk '{print $1}')"
 readonly BINARY_SHA256="$(shasum -a 256 "$BINARY" | awk '{print $1}')"
 
-python3 - "$PROVENANCE" "$BUNDLE_SHA256" "$BINARY_SHA256" "$BINARY_UUIDS" <<'PY'
+python3 - \
+  "$PROVENANCE" \
+  "$BUNDLE_SHA256" \
+  "$BINARY_SHA256" \
+  "$BINARY_UUIDS" \
+  "$BTUNITY_MACOS_DEPLOYMENT_TARGET" \
+  "${BTUNITY_REQUIRE_CLEAN_SOURCE:-0}" <<'PY'
 import json
 from pathlib import Path
 import sys
 
-path, bundle_sha, binary_sha, uuid_lines = sys.argv[1:]
+path, bundle_sha, binary_sha, uuid_lines, deployment_target, require_clean = sys.argv[1:]
 with Path(path).open(encoding="utf-8") as stream:
     value = json.load(stream)
 expected = {
     "schema_version": 1,
     "artifact": "BacktraceMacUnity.bundle",
     "architectures": ["arm64", "x86_64"],
-    "deployment_target": "12.4",
+    "deployment_target": deployment_target,
     "bundle_identifier": "io.backtrace.unity.macos",
     "bridge_abi_version": 3,
     "bundle_sha256": bundle_sha,
@@ -228,6 +367,8 @@ expected = {
 for key, expected_value in expected.items():
     if value.get(key) != expected_value:
         raise SystemExit(f"error: provenance {key} mismatch: {value.get(key)!r}")
+if require_clean == "1" and value.get("backtrace_cocoa", {}).get("dirty") is not False:
+    raise SystemExit("error: release validation requires clean Backtrace Cocoa source provenance")
 if value.get("plcrashreporter", {}).get("upstream_tag") != "1.12.0":
     raise SystemExit("error: provenance has an unexpected PLCrashReporter tag")
 if value.get("plcrashreporter", {}).get("prefix") != "BTUnity":
@@ -237,6 +378,10 @@ if bridge.get("storage_contract") != "all-entry-points-isolated-v1":
     raise SystemExit("error: provenance has an unexpected Unity bridge storage contract")
 if bridge.get("exception_contract") != "all-c-exports-contained-v1":
     raise SystemExit("error: provenance has an unexpected Unity bridge exception contract")
+if bridge.get("lifecycle_contract") != "process-lifetime-handler-v1":
+    raise SystemExit("error: provenance has an unexpected Unity bridge lifecycle contract")
+if bridge.get("logging_contract") != "warning-default-explicit-setter-silent-none-v2":
+    raise SystemExit("error: provenance has an unexpected Unity bridge logging contract")
 if not __import__("re").fullmatch(r"[0-9a-f]{64}", bridge.get("source_sha256", "")):
     raise SystemExit("error: provenance has an invalid Unity bridge source hash")
 expected_uuids = sorted(line.split()[0] for line in uuid_lines.splitlines())
