@@ -81,6 +81,19 @@ final class BacktraceBreadcrumbTests: QuickSpec {
                     expect { breadcrumbs.addBreadcrumb("Breadcrumb submit test") }.to(beFalse())
                     expect { self.readBreadcrumbText() }.toNot(contain("Breadcrumb submit test"))
                 }
+
+                it("permanently stops collection for a retained native bridge client") {
+                    let shutdownBreadcrumbs = BacktraceBreadcrumbs()
+                    shutdownBreadcrumbs.enableBreadcrumbs()
+
+                    shutdownBreadcrumbs.shutdownForNativeBridge()
+                    shutdownBreadcrumbs.shutdownForNativeBridge()
+                    shutdownBreadcrumbs.enableBreadcrumbs()
+
+                    expect(shutdownBreadcrumbs.isShutdown).to(beTrue())
+                    expect(shutdownBreadcrumbs.isBreadcrumbsEnabled).to(beFalse())
+                    expect(shutdownBreadcrumbs.addBreadcrumb("ignored after native shutdown")).to(beFalse())
+                }
             }
             context("breadcrumbs are enabled") {
                 it("fails to add breadcrumb for lower breadcrumb level") {
@@ -243,6 +256,22 @@ final class BacktraceBreadcrumbTests: QuickSpec {
 
                     expect { backtraceObserverMock1.startObservingCalled }.to(beTrue())
                     expect { backtraceObserverMock2.startObservingCalled }.to(beTrue())
+                }
+
+                it("notification stopObserving called for each observer") {
+                    let backtraceObserverMock1 = BacktraceObserverMock()
+                    let backtraceObserverMock2 = BacktraceObserverMock()
+                    let observer = BacktraceNotificationObserver(
+                        breadcrumbs: backtraceBreadcrumbs,
+                        handlerDelegates: [backtraceObserverMock1, backtraceObserverMock2])
+                    observer.enableNotificationObserver()
+
+                    observer.disableNotificationObserver()
+
+                    expect(backtraceObserverMock1.stopObservingCalled).to(beTrue())
+                    expect(backtraceObserverMock2.stopObservingCalled).to(beTrue())
+                    expect(backtraceObserverMock1.delegate).to(beNil())
+                    expect(backtraceObserverMock2.delegate).to(beNil())
                 }
             }
 #if os(iOS) && !targetEnvironment(macCatalyst)

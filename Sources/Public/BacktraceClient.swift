@@ -20,6 +20,14 @@ import Foundation
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
+    private enum LifecycleState {
+        case active
+        case shuttingDown
+        case shutDown
+    }
+    private let lifecycleCondition = NSCondition()
+    private var lifecycleState = LifecycleState.active
+    private let shutdownThreadKey = "io.backtrace.client.shutdown.\(UUID().uuidString)"
 
     /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
     /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
@@ -91,7 +99,57 @@ import Foundation
         self.metricsInstance = BacktraceMetrics(api: api)
 
         super.init()
+        if let delegate = configuration.delegate {
+            api.delegate = delegate
+            reporter.delegate = delegate
+        }
         try startCrashReporter()
+    }
+
+    internal var isShutdown: Bool {
+        lifecycleCondition.lock()
+        defer { lifecycleCondition.unlock() }
+        return lifecycleState != .active
+    }
+
+    /// Stops non-fatal SDK work while preserving the process-wide native crash handler.
+    /// Intended for native wrappers whose underlying crash reporter cannot be uninstalled.
+    @objc internal func shutdownForNativeBridge() {
+        lifecycleCondition.lock()
+        switch lifecycleState {
+        case .active:
+            lifecycleState = .shuttingDown
+            lifecycleCondition.unlock()
+        case .shuttingDown:
+            if Thread.current.threadDictionary[shutdownThreadKey] != nil {
+                lifecycleCondition.unlock()
+                return
+            }
+            while lifecycleState == .shuttingDown {
+                lifecycleCondition.wait()
+            }
+            lifecycleCondition.unlock()
+            return
+        case .shutDown:
+            lifecycleCondition.unlock()
+            return
+        }
+
+        Thread.current.threadDictionary[shutdownThreadKey] = true
+        defer {
+            Thread.current.threadDictionary.removeObject(forKey: shutdownThreadKey)
+            lifecycleCondition.lock()
+            lifecycleState = .shutDown
+            lifecycleCondition.broadcast()
+            lifecycleCondition.unlock()
+        }
+
+        dispatcher.shutdown()
+        metricsInstance.shutdownForNativeBridge()
+#if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
+        breadcrumbsInstance.shutdownForNativeBridge()
+#endif
+        reporter.shutdown()
     }
 }
 
@@ -155,6 +213,10 @@ extension BacktraceClient: BacktraceReporting {
 
     private func reportCrash(faultMessage: String? = nil, exception: NSException? = nil, attachmentPaths: [String] = [],
                              completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        guard !isShutdown else {
+            completion(BacktraceResult(.unknownError))
+            return
+        }
         guard reportingPolicy.allowsReporting else {
             completion(BacktraceResult(.debuggerAttached))
             return
@@ -169,8 +231,14 @@ extension BacktraceClient: BacktraceReporting {
 
         dispatcher.dispatch({ [weak self] in
             guard let self = self else { return }
-            completion(self.reporter.send(resource: resource))
-        }, completion: {
+            guard !self.isShutdown else {
+                return
+            }
+            let result = self.reporter.send(resource: resource)
+            guard !self.isShutdown else { return }
+            completion(result)
+        }, completion: { [weak self] in
+            guard let self = self, !self.isShutdown else { return }
             BacktraceLogger.debug("Finished sending an error report.")
         })
     }
@@ -187,9 +255,10 @@ extension BacktraceClient: BacktraceReporting {
 
         if self.configuration.oomMode != .none {
             dispatcher.dispatch({ [weak self] in
-                guard let self = self else { return }
+                guard let self = self, !self.isShutdown else { return }
                 self.reporter.enableOomWatcher()
-                }, completion: {
+                }, completion: { [weak self] in
+                    guard let self = self, !self.isShutdown else { return }
                     BacktraceLogger.debug("Started OOM Watcher.")
             })
         }
