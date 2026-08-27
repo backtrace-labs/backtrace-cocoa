@@ -190,8 +190,9 @@ class BacktraceOomWatcherTests: QuickSpec {
                     let hangingApi = BacktraceApi(credentials: credentials,
                                                   session: session,
                                                   reportsPerMin: 30)
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
                     let pendingWatcher = BacktraceOomWatcher(repository: repository,
-                                                             crashReporter: crashReporter,
+                                                             crashReporter: OomCrashReportingStub(report: report),
                                                              attributes: AttributesProvider(),
                                                              backtraceApi: hangingApi,
                                                              oomMode: .full)
@@ -448,4 +449,25 @@ class BacktraceOomWatcherTests: QuickSpec {
         }
     }
 
+}
+
+private final class OomCrashReportingStub: CrashReporting {
+    private let report: BacktraceReport
+
+    init(report: BacktraceReport) {
+        self.report = report
+    }
+
+    func generateLiveReport(exception: NSException?,
+                            attributes: Attributes,
+                            attachmentPaths: [String]) throws -> BacktraceReport {
+        return report
+    }
+
+    func pendingCrashReport() throws -> BacktraceReport { return report }
+    func purgePendingCrashReport() throws {}
+    func hasPendingCrashes() -> Bool { return false }
+    func enableCrashReporting() throws {}
+    func signalContext(_ mutableContext: inout SignalContext) {}
+    func setCustomData(data: Data) {}
 }

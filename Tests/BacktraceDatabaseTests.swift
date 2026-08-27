@@ -6,6 +6,8 @@ import XCTest
 import Foundation
 #endif
 
+// Keep these repository scenarios in one spec so they share a serial on-disk lifecycle.
+// swiftlint:disable:next type_body_length
 final class BacktraceDatabaseTests: QuickSpec {
 
     // swiftlint:disable:next function_body_length

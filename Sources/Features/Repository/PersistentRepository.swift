@@ -54,7 +54,7 @@ final class PersistentRepository<Resource: PersistentStorable> {
     private var deadLetterDirectoryUrl: URL {
         return metadataDirectoryUrl.appendingPathComponent("DeadLetters", isDirectory: true)
     }
-    
+
     /// Creates a new `PersistentRepository`
     /// - Parameter settings: BacktraceDatabaseSettings
     /// - Throws: `RepositoryError`
@@ -155,6 +155,12 @@ final class PersistentRepository<Resource: PersistentStorable> {
                 details: "Retry repository file storage is unavailable (\(String(describing: type(of: error))))."
             )
         }
+        performStartupReconciliation(startupReconciliation)
+    }
+
+    private func performStartupReconciliation(
+        _ startupReconciliation: ((PersistentRepository<Resource>) throws -> Void)?
+    ) {
         if let startupReconciliation = startupReconciliation {
             do {
                 try startupReconciliation(self)
