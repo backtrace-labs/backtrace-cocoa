@@ -8,6 +8,42 @@ extension Error {
     var backtraceStatus: BacktraceReportStatus {
         return .unknownError
     }
+
+    /// Delivery policy for failures thrown before an HTTP response is available.
+    ///
+    /// Invalid submission URL configuration cannot recover through repository replay.
+    /// Network failures without a response remain retryable because connectivity may recover later.
+    var backtraceSubmissionDisposition: BacktraceSubmissionDisposition {
+        if let httpError = self as? HttpError {
+            switch httpError {
+            case .malformedUrl:
+                return .permanentFailure
+            case .unknownError:
+                return .retryable
+            }
+        }
+
+        if let networkError = self as? NetworkError {
+            switch networkError {
+            case .connectionError(let underlyingError):
+                return underlyingError.backtraceSubmissionDisposition
+            }
+        }
+
+        let error = self as NSError
+        guard error.domain == NSURLErrorDomain else {
+            return .retryable
+        }
+
+        switch error.code {
+        case NSURLErrorBadURL,
+             NSURLErrorUnsupportedURL,
+             NSURLErrorAppTransportSecurityRequiresSecureConnection:
+            return .permanentFailure
+        default:
+            return .retryable
+        }
+    }
 }
 
 enum NetworkError: BacktraceError {
@@ -22,6 +58,7 @@ enum HttpError: BacktraceError {
 enum RepositoryError: BacktraceError {
     case resourceNotFound
     case resourceAlreadyExists
+    case repositoryShutdown
     case persistentRepositoryInitError(details: String)
     case canNotCreateEntityDescription
 }
@@ -67,7 +104,7 @@ extension NetworkError {
 extension HttpError {
     var localizedDescription: String {
         switch self {
-        case .malformedUrl(let url): return "Provided URL cannot be parsed: \(url)."
+        case .malformedUrl: return "Provided URL cannot be parsed."
         case .unknownError: return "Unknown error occurred."
         }
     }
@@ -80,6 +117,8 @@ extension RepositoryError {
             return "Previously saved resource cannot be found."
         case .resourceAlreadyExists:
             return "Resource already exists in the database."
+        case .repositoryShutdown:
+            return "Repository activity has been stopped."
         case .persistentRepositoryInitError(let details):
             return "An unexpected error occurred while trying to instantiate database: \(details)."
         case .canNotCreateEntityDescription:

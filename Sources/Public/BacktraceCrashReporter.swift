@@ -15,33 +15,82 @@ private final class BacktraceCrashSignalContext {
     }
 }
 
-/// Loads the crash-time sidecars as one pending-ingestion unit.
-///
-/// A missing sidecar is valid because a crash can occur before any attributes or attachments are registered.
-/// Once a sidecar exists, however, every read, property-list parse, and bookmark decode must succeed.
-/// Returning a partial value would allow the PLCrashReporter source to be purged while silently losing metadata that was present at crash time.
+/// Loads optional crash-time sidecars without making them a prerequisite for crash ingestion.
 struct BacktracePendingCrashMetadata {
+    static let attributesErrorKey = "backtrace.pending.attributes.error"
+    static let invalidAttributeValuesKey = "backtrace.pending.attributes.invalid_values"
+    static let invalidBookmarksKey = "backtrace.pending.attachments.invalid_bookmarks"
+    static let missingAttachmentsKey = "backtrace.pending.attachments.missing_files"
+    static let sidecarPreservationErrorKey = "backtrace.pending.sidecars.preservation_error"
+    static let deadLetterMissingSidecarsKey = "backtrace.pending.dead_letter.sidecars.missing"
+    static let deadLetterSidecarCopyFailuresKey = "backtrace.pending.dead_letter.sidecars.copy_failures"
+
     let attributes: Attributes
     let attachmentPaths: [String]
+    let rawSidecarPaths: [String]
+    let diagnostics: Attributes
 
-    static func load(fileName: String) throws -> BacktracePendingCrashMetadata {
-        let attributes: Attributes
+    static func load(fileName: String) -> BacktracePendingCrashMetadata {
+        var attributes = Attributes()
+        var diagnostics = Attributes()
+        var rawSidecarPaths = [String]()
+
         do {
+            let config = try AttributesStorage.AttributesConfig(fileName: fileName)
+            if FileManager.default.fileExists(atPath: config.fileUrl.path) {
+                rawSidecarPaths.append(config.fileUrl.path)
+            }
             attributes = try AttributesStorage.retrieve(fileName: fileName)
         } catch FileError.fileNotExists {
-            attributes = [:]
+            // A crash may occur before the first attributes sidecar is written.
+        } catch {
+            diagnostics[attributesErrorKey] = String(describing: type(of: error))
+            BacktraceLogger.warning("Pending crash attributes could not be decoded; ingesting the crash without them.")
         }
 
-        let attachmentPaths: [String]
+        var attachmentPaths = [String]()
         do {
-            attachmentPaths = try AttachmentsStorage.retrieve(fileName: fileName).map(\.path)
+            let config = try AttachmentsStorage.AttachmentsConfig(fileName: fileName)
+            if FileManager.default.fileExists(atPath: config.fileUrl.path) {
+                rawSidecarPaths.append(config.fileUrl.path)
+            }
+            let dictionary = try ReportMetadataStorageImpl.retrieveFromFile(config: config)
+            guard let bookmarks = dictionary as? Bookmarks else {
+                throw AttachmentsStorageError.invalidDictionary
+            }
+            let recovery = AttachmentBookmarkHandlerImpl.recoverAttachmentUrls(bookmarks)
+            var missingAttachmentCount = 0
+            for attachment in recovery.attachments {
+                if FileManager.default.fileExists(atPath: attachment.path) {
+                    attachmentPaths.append(attachment.path)
+                } else {
+                    missingAttachmentCount += 1
+                }
+            }
+            if recovery.invalidBookmarkCount > 0 {
+                diagnostics[invalidBookmarksKey] = recovery.invalidBookmarkCount
+            }
+            if missingAttachmentCount > 0 {
+                diagnostics[missingAttachmentsKey] = missingAttachmentCount
+            }
         } catch FileError.fileNotExists {
-            attachmentPaths = []
+            // Attachments are optional.
+        } catch {
+            diagnostics[invalidBookmarksKey] = -1
+            BacktraceLogger.warning("Pending crash attachment bookmarks could not be decoded; ingesting the crash without them.")
         }
+
+        attributes += diagnostics
 
         return BacktracePendingCrashMetadata(attributes: attributes,
-                                             attachmentPaths: attachmentPaths)
+                                             attachmentPaths: attachmentPaths,
+                                             rawSidecarPaths: rawSidecarPaths,
+                                             diagnostics: diagnostics)
     }
+}
+
+enum BacktracePendingCrashError: Error {
+    case invalidPayload(data: Data, rawSidecarPaths: [String], diagnostics: Attributes, underlying: Error)
 }
 
 /// A wrapper around `PLCrashReporter`.
@@ -49,6 +98,16 @@ struct BacktracePendingCrashMetadata {
     private let reporter: PLCrashReporter
     static private let crashName = "live_report"
     private var retainedSignalContext: BacktraceCrashSignalContext?
+    private let installationStateLock = NSLock()
+    private var installationWasAttempted = false
+
+    /// Indicates that PLCrashReporter handler installation was entered for this instance.
+    /// Native wrappers use this to distinguish retryable pre-enable initialization failures from a potentially partial process-wide handler installation.
+    @objc public var handlerInstallationAttempted: Bool {
+        installationStateLock.lock()
+        defer { installationStateLock.unlock() }
+        return installationWasAttempted
+    }
 
     /// Creates an instance of a crash reporter.
     /// - Parameter config: A `PLCrashReporterConfig` configuration to use.
@@ -117,16 +176,28 @@ extension BacktraceCrashReporter: CrashReporting {
     }
 
     func enableCrashReporting() throws {
+        installationStateLock.lock()
+        installationWasAttempted = true
+        installationStateLock.unlock()
         try reporter.enableAndReturnError()
     }
 
     // This function retrieves, constructs, and sends the pending crash report
     func pendingCrashReport() throws -> BacktraceReport {
         let reportData = try reporter.loadPendingCrashReportDataAndReturnError()
-        let metadata = try BacktracePendingCrashMetadata.load(fileName: BacktraceCrashReporter.crashName)
-        return try BacktraceReport(pendingReport: reportData,
-                                   attributes: metadata.attributes,
-                                   attachmentPaths: metadata.attachmentPaths)
+        let metadata = BacktracePendingCrashMetadata.load(fileName: BacktraceCrashReporter.crashName)
+        do {
+            let report = try BacktraceReport(pendingReport: reportData,
+                                             attributes: metadata.attributes,
+                                             attachmentPaths: metadata.attachmentPaths)
+            report.pendingMetadataFilePaths = metadata.rawSidecarPaths
+            return report
+        } catch {
+            throw BacktracePendingCrashError.invalidPayload(data: reportData,
+                                                            rawSidecarPaths: metadata.rawSidecarPaths,
+                                                            diagnostics: metadata.diagnostics,
+                                                            underlying: error)
+        }
     }
     
     func setCustomData(data: Data) {
@@ -144,12 +215,12 @@ extension BacktraceCrashReporter: CrashReporting {
         do {
             try AttributesStorage.remove(fileName: BacktraceCrashReporter.crashName)
         } catch {
-            BacktraceLogger.warning("Purged pending crash payload but could not remove its attributes: \(error)")
+            BacktraceLogger.warning("Purged pending crash payload but could not remove its attributes sidecar.")
         }
         do {
             try AttachmentsStorage.remove(fileName: BacktraceCrashReporter.crashName)
         } catch {
-            BacktraceLogger.warning("Purged pending crash payload but could not remove its attachment bookmarks: \(error)")
+            BacktraceLogger.warning("Purged pending crash payload but could not remove its attachment-bookmark sidecar.")
         }
     }
 }

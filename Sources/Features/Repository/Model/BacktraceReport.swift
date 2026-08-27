@@ -21,6 +21,9 @@ import CrashReporter
     /// `Attributes` attached to the report.
     @objc public var attributes: Attributes
 
+    /// Raw crash-time metadata sidecars retained for diagnostics but never submitted as attachments.
+    var pendingMetadataFilePaths = [String]()
+
     init(report: Data,
          attributes: Attributes,
          attachmentPaths: [String],

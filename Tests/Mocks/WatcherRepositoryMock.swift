@@ -11,6 +11,8 @@ final class WatcherRepositoryMock<Resource: BacktraceReport> {
         }
     }
     var storage: [StoredResource] = []
+    var deleteError: Error?
+    private(set) var terminalIdentifiers = Set<UUID>()
 
     func retryCount(for resource: Resource) -> Int {
         if let idx = storage.firstIndex(where: { $0.resource == resource }) {
@@ -26,10 +28,18 @@ extension WatcherRepositoryMock: Repository {
         storage.append(StoredResource(resource))
     }
 
+    func markTerminalForDeletion(_ resource: Resource) throws {
+        terminalIdentifiers.insert(resource.identifier)
+    }
+
     func delete(_ resource: Resource) throws {
+        if let deleteError = deleteError {
+            throw deleteError
+        }
         if let idx = storage.firstIndex(where: { $0.resource == resource }) {
             storage.remove(at: idx)
         }
+        terminalIdentifiers.remove(resource.identifier)
     }
 
     func getAll() throws -> [Resource] {
@@ -47,11 +57,11 @@ extension WatcherRepositoryMock: Repository {
     }
 
     func getLatest(count: Int) throws -> [Resource] {
-        return Array(storage.map { $0.resource }.prefix(count))
+        return Array(eligibleResources.prefix(count))
     }
 
     func getOldest(count: Int) throws -> [Resource] {
-        return Array(storage.map { $0.resource }.suffix(count))
+        return Array(eligibleResources.suffix(count))
     }
 
     func countResources() throws -> Int {
@@ -60,5 +70,11 @@ extension WatcherRepositoryMock: Repository {
 
     func clear() throws {
         storage.removeAll()
+        terminalIdentifiers.removeAll()
+        deleteError = nil
+    }
+
+    private var eligibleResources: [Resource] {
+        return storage.map(\.resource).filter { !terminalIdentifiers.contains($0.identifier) }
     }
 }

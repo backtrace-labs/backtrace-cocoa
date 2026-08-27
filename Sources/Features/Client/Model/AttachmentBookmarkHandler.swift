@@ -6,6 +6,11 @@ protocol AttachmentBookmarkHandler {
 }
 
 enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
+    struct RecoveryResult {
+        let attachments: Attachments
+        let invalidBookmarkCount: Int
+    }
+
     static func convertAttachmentUrlsToBookmarks(_ attachments: Attachments) throws -> Bookmarks {
         var attachmentsBookmarksDict = Bookmarks()
         for attachment in attachments {
@@ -13,7 +18,7 @@ enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
                 let bookmark = try attachment.bookmarkData(options: .minimalBookmark)
                 attachmentsBookmarksDict[attachment.path] = bookmark
             } catch {
-                BacktraceLogger.error("Could not bookmark attachment file URL. Error: \(error)")
+                BacktraceLogger.error("Could not bookmark an attachment file URL.")
                 continue
             }
         }
@@ -31,7 +36,7 @@ enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
                                   relativeTo: nil,
                                   bookmarkDataIsStale: &stale)
             } catch {
-                BacktraceLogger.error("Could not resolve file URL from bookmark: \(error)")
+                BacktraceLogger.error("Could not resolve an attachment file URL from its bookmark.")
                 throw AttachmentsStorageError.invalidBookmark
             }
             guard !stale else {
@@ -41,5 +46,33 @@ enum AttachmentBookmarkHandlerImpl: AttachmentBookmarkHandler {
             attachments.append(fileUrl)
         }
         return attachments
+    }
+
+    /// Recovers every independently valid bookmark from a crash-time sidecar.
+    ///
+    /// Pending crash attachments are optional enrichment. One damaged or stale bookmark must not prevent the crash payload itself from reaching durable storage.
+    static func recoverAttachmentUrls(_ bookmarks: Bookmarks) -> RecoveryResult {
+        var attachments = Attachments()
+        var invalidBookmarkCount = 0
+
+        for bookmark in bookmarks {
+            var stale = false
+            do {
+                let fileUrl = try URL(resolvingBookmarkData: bookmark.value,
+                                      options: URL.BookmarkResolutionOptions(),
+                                      relativeTo: nil,
+                                      bookmarkDataIsStale: &stale)
+                guard !stale else {
+                    invalidBookmarkCount += 1
+                    continue
+                }
+                attachments.append(fileUrl)
+            } catch {
+                invalidBookmarkCount += 1
+            }
+        }
+
+        return RecoveryResult(attachments: attachments,
+                              invalidBookmarkCount: invalidBookmarkCount)
     }
 }
