@@ -63,7 +63,8 @@ final class BacktraceClientTests: QuickSpec {
                     try reporter.repository.save(pendingReport)
                     let startupDelegate = BacktraceClientDelegateSpy()
                     let configuration = BacktraceClientConfiguration(credentials: credentials,
-                                                                     dbSettings: dbSettings)
+                                                                     dbSettings: dbSettings,
+                                                                     oomMode: .none)
                     configuration.delegate = startupDelegate
 
                     let client = try BacktraceClient(configuration: configuration,
@@ -168,7 +169,7 @@ final class BacktraceClientTests: QuickSpec {
                     expect(reporter.isShutdown).to(beTrue())
                 }
 
-                it("returns promptly and cancels an in-flight manual report without a late completion") {
+                it("returns promptly, persists an in-flight cancellation, and completes exactly once") {
                     let session = HangingURLSession()
                     let api = BacktraceApi(credentials: credentials, session: session, reportsPerMin: 30)
                     let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
@@ -187,7 +188,14 @@ final class BacktraceClientTests: QuickSpec {
                                                      api: api)
                     DynamicDebuggerCheckerMock.setAttached(false)
                     let completionCalled = DispatchSemaphore(value: 0)
-                    client.send(message: "stalled report") { _ in completionCalled.signal() }
+                    let completionLock = NSLock()
+                    var completionResult: BacktraceResult?
+                    client.send(message: "stalled report") { result in
+                        completionLock.lock()
+                        completionResult = result
+                        completionLock.unlock()
+                        completionCalled.signal()
+                    }
 
                     expect(session.started.wait(timeout: .now() + .seconds(2))).to(equal(.success))
                     let shutdownReturned = DispatchSemaphore(value: 0)
@@ -198,8 +206,13 @@ final class BacktraceClientTests: QuickSpec {
                     expect(shutdownReturned.wait(timeout: .now() + .seconds(2))).to(equal(.success))
 
                     expect(session.cancelled.wait(timeout: .now() + .seconds(2))).to(equal(.success))
-                    expect(completionCalled.wait(timeout: .now() + .milliseconds(250))).to(equal(.timedOut))
-                    expect(try reporter.repository.countResources()).to(equal(0))
+                    expect(completionCalled.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(completionCalled.wait(timeout: .now() + .milliseconds(100))).to(equal(.timedOut))
+                    completionLock.lock()
+                    let result = completionResult
+                    completionLock.unlock()
+                    expect(result?.backtraceStatus).to(equal(.unknownError))
+                    expect(try reporter.repository.countResources()).to(equal(1))
                 }
 
                 it("modifies the default values") {

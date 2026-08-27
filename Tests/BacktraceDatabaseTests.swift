@@ -1,9 +1,64 @@
 import Nimble
 import Quick
 import XCTest
+import CoreData
 @testable import Backtrace
 #if SWIFT_PACKAGE
 import Foundation
+#endif
+
+private enum RepositoryFileTestError: Error {
+    case subprocessLeaseUnavailable
+}
+
+#if os(macOS)
+/// Holds the same POSIX record lock used by the repository from a separate process.
+private final class RepositoryFileLockProcess {
+    private let process = Process()
+    private let input = Pipe()
+    private let output = Pipe()
+
+    init(lockUrl: URL) {
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
+        process.arguments = [
+            "-c",
+            """
+            import fcntl, os, sys
+            descriptor = os.open(sys.argv[1], os.O_CREAT | os.O_RDWR, 0o600)
+            fcntl.lockf(descriptor, fcntl.LOCK_EX)
+            print("locked", flush=True)
+            sys.stdin.readline()
+            """,
+            lockUrl.path
+        ]
+        process.standardInput = input
+        process.standardOutput = output
+    }
+
+    var terminationStatus: Int32 {
+        return process.terminationStatus
+    }
+
+    func start() throws {
+        try process.run()
+        let readyData = output.fileHandleForReading.readData(ofLength: 7)
+        guard String(data: readyData, encoding: .utf8) == "locked\n" else {
+            process.waitUntilExit()
+            throw RepositoryFileTestError.subprocessLeaseUnavailable
+        }
+    }
+
+    func stop() {
+        guard process.isRunning else { return }
+        try? input.fileHandleForWriting.write(contentsOf: Data("release\n".utf8))
+        input.fileHandleForWriting.closeFile()
+        process.waitUntilExit()
+    }
+
+    deinit {
+        stop()
+    }
+}
 #endif
 
 // Keep these repository scenarios in one spec so they share a serial on-disk lifecycle.
@@ -277,7 +332,34 @@ final class BacktraceDatabaseTests: QuickSpec {
                 }
 
                 throwingIt("resolves the packaged Core Data model") {
-                    expect(PersistentRepository<BacktraceReport>.resolveModelUrl()).toNot(beNil())
+                    let modelUrl = try XCTUnwrap(
+                        PersistentRepository<BacktraceReport>.resolveModelUrl()
+                    )
+                    expect(FileManager.default.fileExists(
+                        atPath: modelUrl.appendingPathComponent("ModelV2.mom").path
+                    )).to(beTrue())
+                }
+
+                throwingIt("skips an unrelated generic model without the V2 schema") {
+                    let candidateRoot = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-model-candidates-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: candidateRoot) }
+                    let unrelatedUrl = candidateRoot.appendingPathComponent("Unrelated.momd",
+                                                                            isDirectory: true)
+                    let compatibleUrl = candidateRoot.appendingPathComponent("Backtrace.momd",
+                                                                             isDirectory: true)
+                    try FileManager.default.createDirectory(at: unrelatedUrl,
+                                                            withIntermediateDirectories: true)
+                    try FileManager.default.createDirectory(at: compatibleUrl,
+                                                            withIntermediateDirectories: true)
+                    try Data().write(to: compatibleUrl.appendingPathComponent("ModelV2.mom"))
+
+                    let resolved = PersistentRepository<BacktraceReport>.selectCompatibleModelUrl(
+                        [unrelatedUrl, compatibleUrl]
+                    )
+
+                    expect(resolved).to(equal(compatibleUrl))
                 }
 
                 throwingIt("can add new report and remove it") {
@@ -531,7 +613,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                                                    reports[3].identifier))
                 }
 
-                throwingIt("keeps awaiting pending reports visible for inspection but out of replay fetches") {
+                throwingIt("separates a pending report's initial attempt from ordinary retry") {
                     try repository.clear()
                     let pending = try BacktraceReport(pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
                                                       attributes: [:],
@@ -543,9 +625,30 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(try repository.getAll().map(\.identifier)).to(contain(pending.identifier))
                     expect(try repository.getLatest()).to(beEmpty())
                     expect(try repository.getOldest()).to(beEmpty())
+                    expect(try repository.getInitialSubmission(count: 1)).to(beEmpty())
+                    expect(try repository.persistedOrigin(for: pending)).to(equal(.nativeCrash))
 
-                    try repository.markReadyForSubmission(pending)
+                    try repository.markReadyForInitialSubmission(pending)
+                    expect(try repository.getLatest()).to(beEmpty())
+                    expect(try repository.getInitialSubmission(count: 1).map(\.identifier))
+                        .to(equal([pending.identifier]))
+                    expect(try repository.claimInitialSubmission(pending)).to(beTrue())
+                    expect(try repository.claimInitialSubmission(pending)).to(beFalse())
+                    expect(try repository.persistedState(for: pending)).to(equal(.initialSubmissionInFlight))
+
+                    try repository.markReadyForRetry(pending)
+                    expect(try repository.getInitialSubmission(count: 1)).to(beEmpty())
                     expect(try repository.getLatest().map(\.identifier)).to(equal([pending.identifier]))
+                }
+
+                throwingIt("persists the origin of an out-of-memory retry") {
+                    try repository.clear()
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+
+                    try repository.save(report, origin: .outOfMemory)
+
+                    expect(try repository.persistedOrigin(for: report)).to(equal(.outOfMemory))
+                    expect(try repository.persistedState(for: report)).to(equal(.readyForRetry))
                 }
 
                 throwingIt("keeps terminal rows out of replay until deferred cleanup succeeds") {
@@ -565,20 +668,527 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(try repository.countResources()).to(equal(0))
                 }
 
-                throwingIt("recovers corrupt eligibility state using current source knowledge") {
+                throwingIt("ignores a corrupt legacy state sidecar after row state is durable") {
                     try repository.clear()
-                    let pending = try BacktraceReport(pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
-                                                      attributes: [:],
-                                                      attachmentPaths: [])
-                    try repository.savePending(pending)
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try repository.save(report)
+                    try repository.markTerminalForDeletion(report)
                     let stateUrl = repository.metadataDirectoryUrl
                         .appendingPathComponent("report-states.plist", isDirectory: false)
                     try Data("corrupt eligibility state".utf8).write(to: stateUrl, options: .atomic)
 
-                    try repository.markAwaitingReportsReady()
+                    expect(try repository.getLatest()).to(beEmpty())
+                    expect(try repository.persistedState(for: report)).to(equal(.terminalAwaitingDeletion))
+                }
 
-                    expect(try repository.getLatest().map(\.identifier)).to(equal([pending.identifier]))
-                    expect(try repository.persistedState(for: pending)).to(equal(.readyForSubmission))
+                throwingIt("migrates a real v1 store without losing retry rows or attachments") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-model-migration-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    try FileManager.default.createDirectory(at: storeDirectoryUrl,
+                                                            withIntermediateDirectories: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+
+                    let attachmentUrl = storeDirectoryUrl.appendingPathComponent("legacy-attachment.txt")
+                    try Data("legacy attachment".utf8).write(to: attachmentUrl)
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    let storeUrl = storeDirectoryUrl.appendingPathComponent("Model.sqlite")
+                    let modelDirectoryUrl = try XCTUnwrap(
+                        PersistentRepository<BacktraceReport>.resolveModelUrl()
+                    )
+                    let legacyModelUrl = modelDirectoryUrl.appendingPathComponent("Model.mom")
+                    let legacyModel = try XCTUnwrap(NSManagedObjectModel(contentsOf: legacyModelUrl))
+
+                    do {
+                        let coordinator = NSPersistentStoreCoordinator(managedObjectModel: legacyModel)
+                        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+                        context.persistentStoreCoordinator = coordinator
+                        let store = try coordinator.addPersistentStore(ofType: NSSQLiteStoreType,
+                                                                        configurationName: nil,
+                                                                        at: storeUrl,
+                                                                        options: nil)
+                        try context.performAndWaitThrowing {
+                            let entity = try XCTUnwrap(NSEntityDescription.entity(forEntityName: "Crash",
+                                                                                  in: context))
+                            let legacyRow = NSManagedObject(entity: entity, insertInto: context)
+                            legacyRow.setValue(report.identifier.uuidString, forKey: "hashProperty")
+                            legacyRow.setValue(report.reportData, forKey: "reportData")
+                            legacyRow.setValue([attachmentUrl.path], forKey: "attachmentPaths")
+                            legacyRow.setValue(Date(), forKey: "dateAdded")
+                            legacyRow.setValue(2, forKey: "retryCount")
+                            try context.save()
+                        }
+                        try coordinator.remove(store)
+                    }
+
+                    let migratedRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let migrated = try XCTUnwrap(migratedRepository.getLatest().first)
+
+                    expect(migrated.identifier).to(equal(report.identifier))
+                    expect(migrated.attachmentPaths).to(equal([attachmentUrl.path]))
+                    expect(FileManager.default.fileExists(atPath: attachmentUrl.path)).to(beTrue())
+                    expect(try migratedRepository.persistedState(for: migrated)).to(equal(.readyForRetry))
+                    expect(try migratedRepository.persistedOrigin(for: migrated)).to(equal(.live))
+                }
+
+                throwingIt("serializes claims made by two repository instances") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-shared-repository-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try firstRepository.save(report)
+
+                    let claims = try [firstRepository, secondRepository].map {
+                        try $0.claimRetrySubmission(report)
+                    }
+
+                    expect(claims.filter { $0 }).to(haveCount(1))
+                    expect(try secondRepository.persistedState(for: report)).to(equal(.retryInFlight))
+                    try secondRepository.resetInFlightReports()
+                    expect(try firstRepository.persistedState(for: report)).to(equal(.readyForRetry))
+                }
+
+                throwingIt("does not rewind a live claim when a second repository performs startup recovery") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-once-per-process-recovery-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    try firstRepository.recoverStaleInFlightReportsOncePerProcess()
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try firstRepository.save(report)
+                    expect(try firstRepository.claimRetrySubmission(report)).to(beTrue())
+
+                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    try secondRepository.recoverStaleInFlightReportsOncePerProcess()
+
+                    expect(try secondRepository.persistedState(for: report)).to(equal(.retryInFlight))
+                    expect(try secondRepository.claimRetrySubmission(report)).to(beFalse())
+                }
+
+                throwingIt("does not recover an in-flight row owned by a live foreign process") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-live-foreign-owner-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let foreignOwner = UUID().uuidString
+                    let foreignRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerToken: foreignOwner
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try foreignRepository.save(report)
+                    expect(try foreignRepository.claimRetrySubmission(report)).to(beTrue())
+
+                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerToken: UUID().uuidString,
+                        deliveryOwnerIsAlive: { $0 == foreignOwner }
+                    )
+                    try recoveringRepository.recoverStaleInFlightReportsOncePerProcess()
+
+                    expect(try recoveringRepository.persistedState(for: report)).to(equal(.retryInFlight))
+                    expect(try recoveringRepository.persistedDeliveryOwner(for: report)).to(equal(foreignOwner))
+                }
+
+                throwingIt("recovers a foreign claim when its lease expires after startup") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-expired-owner-after-startup-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let foreignOwner = UUID().uuidString
+                    let foreignRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerToken: foreignOwner
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try foreignRepository.save(report)
+                    expect(try foreignRepository.claimRetrySubmission(report)).to(beTrue())
+
+                    var foreignOwnerIsAlive = true
+                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerToken: UUID().uuidString,
+                        deliveryOwnerIsAlive: { owner in
+                            owner == foreignOwner && foreignOwnerIsAlive
+                        }
+                    )
+                    try recoveringRepository.recoverStaleInFlightReportsOncePerProcess()
+                    expect(try recoveringRepository.getOldest(count: 1)).to(beEmpty())
+                    expect(try recoveringRepository.persistedState(for: report)).to(equal(.retryInFlight))
+
+                    foreignOwnerIsAlive = false
+                    expect(try recoveringRepository.getOldest(count: 1).map(\.identifier))
+                        .to(equal([report.identifier]))
+                    expect(try recoveringRepository.persistedState(for: report)).to(equal(.readyForRetry))
+                    expect(try recoveringRepository.persistedDeliveryOwner(for: report)).to(beNil())
+                }
+
+#if os(macOS)
+                throwingIt("uses a cross-process lease to protect and later recover an active claim") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-subprocess-owner-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    let foreignOwner = UUID().uuidString
+                    let leaseDirectoryUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportLocks", isDirectory: true)
+                        .appendingPathComponent("Leases", isDirectory: true)
+                    let leaseUrl = leaseDirectoryUrl
+                        .appendingPathComponent("\(foreignOwner).lock", isDirectory: false)
+                    let leaseProcess = RepositoryFileLockProcess(lockUrl: leaseUrl)
+                    var sourceRepository: PersistentRepository<BacktraceReport>?
+                    var recoveringRepository: PersistentRepository<BacktraceReport>?
+                    defer {
+                        leaseProcess.stop()
+                        recoveringRepository = nil
+                        sourceRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+
+                    sourceRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerToken: foreignOwner
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try sourceRepository?.save(report)
+                    expect(try sourceRepository?.claimRetrySubmission(report)).to(beTrue())
+
+                    try FileManager.default.createDirectory(at: leaseDirectoryUrl,
+                                                            withIntermediateDirectories: true)
+                    try leaseProcess.start()
+
+                    recoveringRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    try recoveringRepository?.recoverStaleInFlightReportsOncePerProcess()
+                    expect(try recoveringRepository?.getOldest(count: 1)).to(beEmpty())
+                    expect(try recoveringRepository?.persistedState(for: report)).to(equal(.retryInFlight))
+
+                    leaseProcess.stop()
+                    expect(leaseProcess.terminationStatus).to(equal(0))
+
+                    expect(try recoveringRepository?.getOldest(count: 1).map(\.identifier))
+                        .to(equal([report.identifier]))
+                    expect(try recoveringRepository?.persistedState(for: report)).to(equal(.readyForRetry))
+                    expect(try recoveringRepository?.persistedDeliveryOwner(for: report)).to(beNil())
+                }
+
+                throwingIt("serializes process lease creation with the database lock") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-serialized-lease-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    try FileManager.default.createDirectory(at: storeDirectoryUrl,
+                                                            withIntermediateDirectories: true)
+                    let databaseUrl = storeDirectoryUrl.appendingPathComponent("Model.sqlite")
+                    let databaseLockUrl = databaseUrl.appendingPathExtension("backtrace.lock")
+                    let leaseDirectoryUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportLocks", isDirectory: true)
+                        .appendingPathComponent("Leases", isDirectory: true)
+                    let databaseLockProcess = RepositoryFileLockProcess(lockUrl: databaseLockUrl)
+                    let initializationFinished = DispatchSemaphore(value: 0)
+                    let resultLock = NSLock()
+                    var initializedRepository: PersistentRepository<BacktraceReport>?
+                    var initializationError: Error?
+                    var initializationWasJoined = false
+                    defer {
+                        databaseLockProcess.stop()
+                        if !initializationWasJoined {
+                            _ = initializationFinished.wait(timeout: .now() + 5)
+                        }
+                        initializedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+
+                    try databaseLockProcess.start()
+                    DispatchQueue.global().async {
+                        do {
+                            let repository = try PersistentRepository<BacktraceReport>(
+                                settings: BacktraceDatabaseSettings(),
+                                startupReconciliation: { _ in },
+                                storeDirectoryUrl: storeDirectoryUrl
+                            )
+                            resultLock.lock()
+                            initializedRepository = repository
+                            resultLock.unlock()
+                        } catch {
+                            resultLock.lock()
+                            initializationError = error
+                            resultLock.unlock()
+                        }
+                        initializationFinished.signal()
+                    }
+
+                    expect(initializationFinished.wait(timeout: .now() + .milliseconds(250)))
+                        .to(equal(.timedOut))
+                    expect(FileManager.default.fileExists(atPath: leaseDirectoryUrl.path)).to(beFalse())
+
+                    databaseLockProcess.stop()
+                    let initializationResult = initializationFinished.wait(timeout: .now() + 5)
+                    expect(initializationResult).to(equal(.success))
+                    initializationWasJoined = initializationResult == .success
+                    resultLock.lock()
+                    let repositoryWasInitialized = initializedRepository != nil
+                    let capturedError = initializationError
+                    resultLock.unlock()
+                    expect(repositoryWasInitialized).to(beTrue())
+                    expect(capturedError).to(beNil())
+                    let leaseFiles = try FileManager.default.contentsOfDirectory(at: leaseDirectoryUrl,
+                                                                                 includingPropertiesForKeys: nil)
+                    expect(leaseFiles.filter { $0.pathExtension == "lock" }).to(haveCount(1))
+                }
+
+                throwingIt("fails closed when a foreign owner lease cannot be opened") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-owner-open-failure-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let foreignOwner = UUID().uuidString
+                    let sourceRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerToken: foreignOwner
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try sourceRepository.save(report)
+                    expect(try sourceRepository.claimRetrySubmission(report)).to(beTrue())
+
+                    let ownerLeaseUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportLocks", isDirectory: true)
+                        .appendingPathComponent("Leases", isDirectory: true)
+                        .appendingPathComponent("\(foreignOwner).lock", isDirectory: true)
+                    try FileManager.default.createDirectory(at: ownerLeaseUrl,
+                                                            withIntermediateDirectories: true)
+                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    try recoveringRepository.recoverStaleInFlightReportsOncePerProcess()
+
+                    expect(try recoveringRepository.persistedState(for: report)).to(equal(.retryInFlight))
+                    expect(try recoveringRepository.persistedDeliveryOwner(for: report)).to(equal(foreignOwner))
+                }
+#endif
+
+                throwingIt("recovers an in-flight row after its foreign process lease expires") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-dead-foreign-owner-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let foreignRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerToken: UUID().uuidString
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try foreignRepository.save(report)
+                    expect(try foreignRepository.claimRetrySubmission(report)).to(beTrue())
+
+                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerToken: UUID().uuidString,
+                        deliveryOwnerIsAlive: { _ in false }
+                    )
+                    try recoveringRepository.recoverStaleInFlightReportsOncePerProcess()
+
+                    expect(try recoveringRepository.persistedState(for: report)).to(equal(.readyForRetry))
+                    expect(try recoveringRepository.persistedDeliveryOwner(for: report)).to(beNil())
+                }
+
+                throwingIt("retries once-per-process recovery after its transaction fails") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-failed-stale-recovery-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let sourceRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try sourceRepository.save(report)
+                    expect(try sourceRepository.claimRetrySubmission(report)).to(beTrue())
+
+                    let failingRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        contextSave: { _ in throw FileError.fileNotWritten },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerIsAlive: { _ in false }
+                    )
+                    expect {
+                        try failingRepository.recoverStaleInFlightReportsOncePerProcess()
+                    }.to(throwError())
+                    expect(try sourceRepository.persistedState(for: report)).to(equal(.retryInFlight))
+
+                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl,
+                        deliveryOwnerIsAlive: { _ in false }
+                    )
+                    try recoveringRepository.recoverStaleInFlightReportsOncePerProcess()
+                    expect(try recoveringRepository.persistedState(for: report)).to(equal(.readyForRetry))
+                }
+
+                throwingIt("accounts retry completion before another repository can claim the row") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-atomic-retry-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try firstRepository.save(report)
+                    expect(try firstRepository.claimRetrySubmission(report)).to(beTrue())
+
+                    try firstRepository.markReadyForRetry(report, incrementRetryCountWithLimit: 3)
+
+                    expect(try secondRepository.claimRetrySubmission(report)).to(beTrue())
+                    try secondRepository.markReadyForRetry(report, incrementRetryCountWithLimit: 0)
+                    expect(try firstRepository.countResources()).to(equal(0))
+                    expect(try firstRepository.claimRetrySubmission(report)).to(beFalse())
+                }
+
+                throwingIt("keeps an unresolved legacy sidecar fail-closed") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-corrupt-state-migration-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    try FileManager.default.createDirectory(at: storeDirectoryUrl,
+                                                            withIntermediateDirectories: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    let storeUrl = storeDirectoryUrl.appendingPathComponent("Model.sqlite")
+                    let modelDirectoryUrl = try XCTUnwrap(
+                        PersistentRepository<BacktraceReport>.resolveModelUrl()
+                    )
+                    let legacyModel = try XCTUnwrap(NSManagedObjectModel(
+                        contentsOf: modelDirectoryUrl.appendingPathComponent("Model.mom")
+                    ))
+
+                    do {
+                        let coordinator = NSPersistentStoreCoordinator(managedObjectModel: legacyModel)
+                        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+                        context.persistentStoreCoordinator = coordinator
+                        let store = try coordinator.addPersistentStore(ofType: NSSQLiteStoreType,
+                                                                        configurationName: nil,
+                                                                        at: storeUrl,
+                                                                        options: nil)
+                        try context.performAndWaitThrowing {
+                            let entity = try XCTUnwrap(NSEntityDescription.entity(forEntityName: "Crash",
+                                                                                  in: context))
+                            let legacyRow = NSManagedObject(entity: entity, insertInto: context)
+                            legacyRow.setValue(report.identifier.uuidString, forKey: "hashProperty")
+                            legacyRow.setValue(report.reportData, forKey: "reportData")
+                            legacyRow.setValue([], forKey: "attachmentPaths")
+                            legacyRow.setValue(Date(), forKey: "dateAdded")
+                            legacyRow.setValue(0, forKey: "retryCount")
+                            try context.save()
+                        }
+                        try coordinator.remove(store)
+                    }
+
+                    let metadataDirectoryUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportMetadata", isDirectory: true)
+                    try FileManager.default.createDirectory(at: metadataDirectoryUrl,
+                                                            withIntermediateDirectories: true)
+                    try Data("not a plist".utf8).write(
+                        to: metadataDirectoryUrl.appendingPathComponent("report-states.plist"),
+                        options: .atomic
+                    )
+                    let migratedRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let migrated = try XCTUnwrap(migratedRepository.getAll().first)
+
+                    expect(try migratedRepository.persistedState(for: migrated))
+                        .to(equal(.unresolvedLegacyState))
+                    expect(try migratedRepository.getLatest()).to(beEmpty())
+                    expect(try migratedRepository.getInitialSubmission(count: 1)).to(beEmpty())
+                }
+
+                throwingIt("does not reactivate an in-flight row when terminal marking and deletion both fail") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-terminal-failure-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    let saveLock = NSLock()
+                    var shouldFail = false
+                    let failingRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        contextSave: { context in
+                            saveLock.lock()
+                            defer { saveLock.unlock() }
+                            if shouldFail {
+                                throw FileError.fileNotWritten
+                            }
+                            try context.save()
+                        },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try failingRepository.save(report)
+                    expect(try failingRepository.claimRetrySubmission(report)).to(beTrue())
+
+                    saveLock.lock()
+                    shouldFail = true
+                    saveLock.unlock()
+                    expect { try failingRepository.markTerminalForDeletion(report) }.to(throwError())
+                    expect { try failingRepository.delete(report) }.to(throwError())
+
+                    expect(try failingRepository.persistedState(for: report)).to(equal(.retryInFlight))
+                    expect(try failingRepository.getLatest()).to(beEmpty())
+                    expect(try failingRepository.getInitialSubmission(count: 1)).to(beEmpty())
                 }
 
                 throwingIt("keeps the repository operational when startup orphan cleanup fails") {

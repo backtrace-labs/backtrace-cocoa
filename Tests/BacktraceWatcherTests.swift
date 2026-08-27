@@ -62,6 +62,97 @@ final class BacktraceWatcherTests: QuickSpec {
                         expect(try watcher.repository.countResources()).to(equal(1))
                         expect(urlSession.requestCount).to(equal(0))
                     }
+
+                    throwingIt("makes one initial native-crash attempt and removes an accepted row") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        urlSession.response = MockOkResponse()
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: api,
+                                                       repository: repository,
+                                                       networkAvailabilityCheck: { true })
+                        let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                        repository.storeInitial(pending)
+
+                        watcher.batchInitialSubmission()
+                        watcher.batchRetry()
+
+                        expect(urlSession.requestCount).to(equal(1))
+                        expect(try repository.countResources()).to(equal(0))
+                    }
+
+                    throwingIt("makes one initial native-crash attempt but does not replay a transient failure") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        urlSession.response = MockHttpResponse(statusCode: 503)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: api,
+                                                       repository: repository,
+                                                       networkAvailabilityCheck: { true })
+                        let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                        repository.storeInitial(pending)
+
+                        watcher.batchInitialSubmission()
+                        watcher.batchRetry()
+
+                        expect(urlSession.requestCount).to(equal(1))
+                        expect(try repository.countResources()).to(equal(1))
+                        expect(repository.storage.first?.state).to(equal(.readyForRetry))
+                    }
+
+                    throwingIt("attempts once when reachability is false and transport is offline") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        urlSession.response = MockUrlErrorResponse(.notConnectedToInternet)
+                        let initialQueue = DispatchQueue(label: "backtrace.watcher.none-offline-initial.tests")
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: api,
+                                                       repository: repository,
+                                                       dispatchQueue: initialQueue,
+                                                       networkAvailabilityCheck: { false })
+                        let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                        repository.storeInitial(pending)
+
+                        watcher.submitInitialAsync()
+                        initialQueue.sync {}
+                        watcher.batchRetry()
+
+                        expect(urlSession.requestCount).to(equal(1))
+                        expect(try repository.countResources()).to(equal(1))
+                        expect(repository.storage.first?.state).to(equal(.readyForRetry))
+                        expect(repository.retryCount(for: pending)).to(equal(0))
+                    }
+
+                    throwingIt("leaves an unstarted initial row ready for the next process") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        let replayQueue = DispatchQueue(label: "backtrace.watcher.initial-shutdown.tests")
+                        let queueEntered = DispatchSemaphore(value: 0)
+                        let releaseQueue = DispatchSemaphore(value: 0)
+                        replayQueue.async {
+                            queueEntered.signal()
+                            releaseQueue.wait()
+                        }
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: api,
+                                                       repository: repository,
+                                                       dispatchQueue: replayQueue,
+                                                       networkAvailabilityCheck: { true })
+                        let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                        repository.storeInitial(pending)
+
+                        expect(queueEntered.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                        watcher.submitInitialAsync()
+                        watcher.shutdown()
+                        watcher.submissionCoordinator.prepareForShutdown()
+                        api.shutdown()
+                        watcher.submissionCoordinator.finishShutdown(whenQuiesced: {})
+                        releaseQueue.signal()
+                        replayQueue.sync {}
+
+                        expect(urlSession.requestCount).to(equal(0))
+                        expect(repository.storage.first?.state).to(equal(.readyForInitialSubmission))
+                    }
                 }
             }
 
@@ -123,8 +214,10 @@ final class BacktraceWatcherTests: QuickSpec {
                     let shutdownReturned = DispatchSemaphore(value: 0)
                     DispatchQueue.global().async {
                         watcher.prepareForShutdown()
+                        watcher.submissionCoordinator.prepareForShutdown()
                         hangingApi.shutdown()
                         watcher.finishShutdown()
+                        watcher.submissionCoordinator.finishShutdown(whenQuiesced: {})
                         shutdownReturned.signal()
                     }
                     expect(shutdownReturned.wait(timeout: .now() + .seconds(2))).to(equal(.success))
@@ -133,6 +226,53 @@ final class BacktraceWatcherTests: QuickSpec {
                     replayQueue.sync {}
                     expect(try repository.countResources()).to(equal(1))
                     expect(repository.retryCount(for: report)).to(equal(0))
+                }
+
+                throwingIt("does not retry a transient initial failure in the same timer cycle") {
+                    try repository.clear()
+                    urlSession.response = MockHttpResponse(statusCode: 503)
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   api: api,
+                                                   repository: repository,
+                                                   networkAvailabilityCheck: { true })
+                    let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                    repository.storeInitial(pending)
+
+                    watcher.timerEventHandler()
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(repository.storage.first?.state).to(equal(.readyForRetry))
+
+                    urlSession.response = MockOkResponse()
+                    watcher.timerEventHandler()
+
+                    expect(urlSession.requestCount).to(equal(2))
+                    expect(try repository.countResources()).to(equal(0))
+                }
+
+                throwingIt("picks up an initial row on a later interval after startup was offline") {
+                    try repository.clear()
+                    var networkAvailable = false
+                    let watcherQueue = DispatchQueue(label: "backtrace.watcher.offline-initial.tests")
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   api: api,
+                                                   repository: repository,
+                                                   dispatchQueue: watcherQueue,
+                                                   networkAvailabilityCheck: { networkAvailable })
+                    let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                    repository.storeInitial(pending)
+
+                    watcher.submitInitialAsync()
+                    watcherQueue.sync {}
+
+                    expect(urlSession.requestCount).to(equal(0))
+                    expect(repository.storage.first?.state).to(equal(.readyForInitialSubmission))
+
+                    networkAvailable = true
+                    watcher.timerEventHandler()
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(try repository.countResources()).to(equal(0))
                 }
             }
 
@@ -353,6 +493,26 @@ final class BacktraceWatcherTests: QuickSpec {
                         watcher.batchRetry()
                         expect(watcher.repository.retryCount(for: report)).to(equal(1))
                     }
+
+                    throwingIt("retries a failed initial native-crash attempt when interval replay is enabled") {
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: api,
+                                                       repository: repository,
+                                                       networkAvailabilityCheck: { true })
+                        let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                        repository.storeInitial(pending)
+                        urlSession.response = MockHttpResponse(statusCode: 503)
+
+                        watcher.batchInitialSubmission()
+                        expect(urlSession.requestCount).to(equal(1))
+                        expect(repository.storage.first?.state).to(equal(.readyForRetry))
+
+                        urlSession.response = MockOkResponse()
+                        watcher.batchRetry()
+
+                        expect(urlSession.requestCount).to(equal(2))
+                        expect(try repository.countResources()).to(equal(0))
+                    }
                 }
 
                 context("given a full shared rate window") {
@@ -383,6 +543,174 @@ final class BacktraceWatcherTests: QuickSpec {
                     }
                 }
             }
+
+            describe("Submission finalization races") {
+                for statusCode in [200, 403] {
+                    throwingIt("finalizes HTTP \(statusCode) before shutdown quiesces the repository") {
+                        let raceRepository = WatcherRepositoryMock<BacktraceReport>()
+                        let raceSession = URLSessionMock()
+                        raceSession.response = MockHttpResponse(statusCode: statusCode)
+                        let raceApi = BacktraceApi(credentials: credentials,
+                                                   session: raceSession,
+                                                   reportsPerMin: 30)
+                        let barrier = SubmissionFinalizationBarrier()
+                        let coordinator = BacktraceSubmissionCoordinator(
+                            api: raceApi,
+                            repository: raceRepository,
+                            retryLimit: dbSettings.retryLimit,
+                            beforeFinalization: barrier.pause)
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       submissionCoordinator: coordinator,
+                                                       repository: raceRepository,
+                                                       networkAvailabilityCheck: { true })
+                        let report = try BacktraceWatcherTests.backtraceReport(for: ["status": statusCode])
+                        try raceRepository.save(report)
+                        let sendFinished = DispatchSemaphore(value: 0)
+                        DispatchQueue.global().async {
+                            watcher.batchRetry()
+                            sendFinished.signal()
+                        }
+
+                        expect(barrier.reached.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                        watcher.prepareForShutdown()
+                        coordinator.prepareForShutdown()
+                        raceApi.shutdown()
+                        watcher.finishShutdown()
+                        let quiesced = DispatchSemaphore(value: 0)
+                        coordinator.finishShutdown { quiesced.signal() }
+                        barrier.release.signal()
+
+                        expect(sendFinished.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                        expect(quiesced.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                        expect(raceSession.requestCount).to(equal(1))
+                        expect(try raceRepository.countResources()).to(equal(0))
+                    }
+                }
+
+                throwingIt("durably retains HTTP 503 when shutdown races finalization") {
+                    let raceRepository = WatcherRepositoryMock<BacktraceReport>()
+                    let raceSession = URLSessionMock()
+                    raceSession.response = MockHttpResponse(statusCode: 503)
+                    let raceApi = BacktraceApi(credentials: credentials,
+                                               session: raceSession,
+                                               reportsPerMin: 30)
+                    let barrier = SubmissionFinalizationBarrier()
+                    let coordinator = BacktraceSubmissionCoordinator(
+                        api: raceApi,
+                        repository: raceRepository,
+                        retryLimit: dbSettings.retryLimit,
+                        beforeFinalization: barrier.pause)
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   submissionCoordinator: coordinator,
+                                                   repository: raceRepository,
+                                                   networkAvailabilityCheck: { true })
+                    let report = try BacktraceWatcherTests.backtraceReport(for: ["status": 503])
+                    try raceRepository.save(report)
+                    let sendFinished = DispatchSemaphore(value: 0)
+                    DispatchQueue.global().async {
+                        watcher.batchRetry()
+                        sendFinished.signal()
+                    }
+
+                    expect(barrier.reached.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    watcher.prepareForShutdown()
+                    coordinator.prepareForShutdown()
+                    raceApi.shutdown()
+                    watcher.finishShutdown()
+                    coordinator.finishShutdown(whenQuiesced: {})
+                    barrier.release.signal()
+                    expect(sendFinished.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+
+                    expect(raceSession.requestCount).to(equal(1))
+                    expect(try raceRepository.countResources()).to(equal(1))
+                    expect(raceRepository.storage.first?.state).to(equal(.readyForRetry))
+                    expect(raceRepository.retryCount(for: report)).to(equal(1))
+                }
+
+                throwingIt("commits a rate-limited row before shutdown and its delegate callback") {
+                    let raceRepository = WatcherRepositoryMock<BacktraceReport>()
+                    let raceSession = URLSessionMock()
+                    raceSession.response = MockOkResponse()
+                    let limitedApi = BacktraceApi(credentials: credentials,
+                                                  session: raceSession,
+                                                  reportsPerMin: 1)
+                    _ = try limitedApi.send(BacktraceWatcherTests.backtraceReport(for: ["fills": true]))
+                    let delegate = BacktraceClientDelegateMock()
+                    let callback = DispatchSemaphore(value: 0)
+                    delegate.didReachLimitClosure = { _ in
+                        expect(raceRepository.storage.first?.state).to(equal(.readyForRetry))
+                        expect(raceRepository.retryCount(for: raceRepository.storage[0].resource)).to(equal(0))
+                        callback.signal()
+                    }
+                    limitedApi.delegate = delegate
+                    let barrier = SubmissionFinalizationBarrier()
+                    let coordinator = BacktraceSubmissionCoordinator(
+                        api: limitedApi,
+                        repository: raceRepository,
+                        retryLimit: dbSettings.retryLimit,
+                        beforeFinalization: barrier.pause)
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   submissionCoordinator: coordinator,
+                                                   repository: raceRepository,
+                                                   networkAvailabilityCheck: { true })
+                    let report = try BacktraceWatcherTests.backtraceReport(for: ["limited": true])
+                    try raceRepository.save(report)
+                    let sendFinished = DispatchSemaphore(value: 0)
+                    DispatchQueue.global().async {
+                        watcher.batchRetry()
+                        sendFinished.signal()
+                    }
+
+                    expect(barrier.reached.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    watcher.prepareForShutdown()
+                    coordinator.prepareForShutdown()
+                    limitedApi.shutdown()
+                    watcher.finishShutdown()
+                    coordinator.finishShutdown(whenQuiesced: {})
+                    barrier.release.signal()
+                    expect(sendFinished.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(callback.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+
+                    expect(raceSession.requestCount).to(equal(1))
+                    expect(raceRepository.storage.first?.state).to(equal(.readyForRetry))
+                    expect(raceRepository.retryCount(for: report)).to(equal(0))
+                }
+
+                throwingIt("invokes a reentrant server delegate only after terminal deletion") {
+                    let raceRepository = WatcherRepositoryMock<BacktraceReport>()
+                    let raceSession = URLSessionMock()
+                    raceSession.response = MockOkResponse()
+                    let raceApi = BacktraceApi(credentials: credentials,
+                                               session: raceSession,
+                                               reportsPerMin: 30)
+                    let coordinator = BacktraceSubmissionCoordinator(api: raceApi,
+                                                                     repository: raceRepository,
+                                                                     retryLimit: dbSettings.retryLimit)
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   submissionCoordinator: coordinator,
+                                                   repository: raceRepository,
+                                                   networkAvailabilityCheck: { true })
+                    let delegate = BacktraceClientDelegateMock()
+                    let callback = DispatchSemaphore(value: 0)
+                    delegate.serverDidRespondClosure = { _ in
+                        expect(try? raceRepository.countResources()).to(equal(0))
+                        watcher.prepareForShutdown()
+                        coordinator.prepareForShutdown()
+                        raceApi.shutdown()
+                        watcher.finishShutdown()
+                        coordinator.finishShutdown(whenQuiesced: {})
+                        callback.signal()
+                    }
+                    raceApi.delegate = delegate
+                    try raceRepository.save(BacktraceWatcherTests.backtraceReport(for: ["reentrant": true]))
+
+                    watcher.batchRetry()
+
+                    expect(callback.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(raceSession.requestCount).to(equal(1))
+                    expect(try raceRepository.countResources()).to(equal(0))
+                }
+            }
         }
         // swiftlint:enable function_body_length
     }
@@ -397,5 +725,16 @@ final class BacktraceWatcherTests: QuickSpec {
         return try BacktraceReport(pendingReport: liveReport.reportData,
                                    attributes: ["pending": true],
                                    attachmentPaths: [])
+    }
+}
+
+private final class SubmissionFinalizationBarrier {
+    let reached = DispatchSemaphore(value: 0)
+    let release = DispatchSemaphore(value: 0)
+
+    func pause(_ outcome: BacktraceSubmissionOutcome) {
+        _ = outcome
+        reached.signal()
+        release.wait()
     }
 }

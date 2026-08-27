@@ -373,9 +373,9 @@ final class BacktraceReporterTests: QuickSpec {
                     crashReporting.purgeError = nil
                     try pendingReporter.handlePendingCrashes()
                     expect(try pendingReporter.repository.persistedState(for: pending))
-                        .to(equal(.readyForSubmission))
-                    replay.batchRetry()
-                    replay.batchRetry()
+                        .to(equal(.readyForInitialSubmission))
+                    replay.batchInitialSubmission()
+                    replay.batchInitialSubmission()
 
                     expect(urlSession.requestCount).to(equal(1))
                     expect(try pendingReporter.repository.countResources()).to(equal(0))
@@ -397,7 +397,7 @@ final class BacktraceReporterTests: QuickSpec {
 
                     expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
                     expect(crashReporting.events).to(equal(["load", "purge"]))
-                    let persisted = try pendingReporter.repository.getLatest().first
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
                     expect(persisted?.attributes["not-a-property-list"]).to(beNil())
                     expect(persisted?.attributes[BacktracePendingCrashMetadata.invalidAttributeValuesKey] as? Int)
                         .to(equal(1))
@@ -449,7 +449,7 @@ final class BacktraceReporterTests: QuickSpec {
 
                     expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
                     expect(crashReporting.events).to(equal(["load", "purge"]))
-                    let persisted = try pendingReporter.repository.getLatest().first
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
                     expect(persisted).toNot(beNil())
                     expect(persisted?.attachmentPaths).to(beEmpty())
                     expect(persisted?.attributes[BacktracePendingCrashMetadata.missingAttachmentsKey] as? Int)
@@ -527,7 +527,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect(crashReporting.events).to(equal(["load", "purge"]))
                     expect(crashReporting.hasPendingCrashes()).to(beFalse())
                     expect(FileManager.default.fileExists(atPath: config.fileUrl.path)).to(beTrue())
-                    let persisted = try pendingReporter.repository.getLatest().first
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
                     expect(persisted?.attributes[BacktracePendingCrashMetadata.attributesErrorKey] as? String)
                         .toNot(beNil())
                     let ownedSidecarDirectory = pendingReporter.repository.metadataDirectoryUrl
@@ -589,7 +589,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect(crashReporting.events).to(equal(["load", "purge"]))
                     expect(crashReporting.hasPendingCrashes()).to(beFalse())
                     expect(FileManager.default.fileExists(atPath: config.fileUrl.path)).to(beTrue())
-                    let persisted = try pendingReporter.repository.getLatest().first
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
                     expect(persisted?.attachmentPaths.count).to(equal(1))
                     expect(persisted?.attributes[BacktracePendingCrashMetadata.invalidBookmarksKey] as? Int)
                         .to(equal(1))

@@ -310,6 +310,40 @@ final class BacktraceApiTests: QuickSpec {
                     expect(session.requestCount).to(equal(1))
                 }
             }
+
+            context("when shutdown begins after an HTTP response is received") {
+                throwingIt("returns and reports the completed HTTP response") {
+                    let responseReceived = DispatchSemaphore(value: 0)
+                    let releaseResponse = DispatchSemaphore(value: 0)
+                    urlSession.response = MockOkResponse()
+                    let api = BacktraceApi(credentials: credentials,
+                                           session: urlSession,
+                                           reportsPerMin: 30,
+                                           afterTransportCompletion: {
+                                               responseReceived.signal()
+                                               releaseResponse.wait()
+                                           })
+                    let responseDelegate = BacktraceClientDelegateSpy()
+                    api.delegate = responseDelegate
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    let finished = DispatchSemaphore(value: 0)
+                    var result: BacktraceResult?
+                    DispatchQueue.global().async {
+                        result = try? api.send(report)
+                        finished.signal()
+                    }
+
+                    expect(responseReceived.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    api.shutdown()
+                    releaseResponse.signal()
+
+                    expect(finished.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(result?.backtraceStatus).to(equal(.ok))
+                    expect(responseDelegate.calledServerDidRespond).to(beTrue())
+                    expect(responseDelegate.calledConnectionDidFail).to(beFalse())
+                    expect(urlSession.requestCount).to(equal(1))
+                }
+            }
         }
     }
     // swiftlint:enable function_body_length

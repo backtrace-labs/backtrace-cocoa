@@ -5,9 +5,15 @@ final class WatcherRepositoryMock<Resource: BacktraceReport> {
     class StoredResource {
         let resource: Resource
         var retryCount: Int = 0
+        var state: PersistedReportState
+        var origin: PersistedReportOrigin
 
-        init(_ resource: Resource) {
+        init(_ resource: Resource,
+             state: PersistedReportState = .readyForRetry,
+             origin: PersistedReportOrigin = .live) {
             self.resource = resource
+            self.state = state
+            self.origin = origin
         }
     }
     var storage: [StoredResource] = []
@@ -28,8 +34,79 @@ extension WatcherRepositoryMock: Repository {
         storage.append(StoredResource(resource))
     }
 
+    func save(_ resource: Resource, origin: PersistedReportOrigin) throws {
+        storage.append(StoredResource(resource, origin: origin))
+    }
+
+    func storeInitial(_ resource: Resource) {
+        storage.append(StoredResource(resource,
+                                      state: .readyForInitialSubmission,
+                                      origin: .nativeCrash))
+    }
+
+    func getInitialSubmission(count: Int) throws -> [Resource] {
+        return Array(storage.filter { $0.state == .readyForInitialSubmission }
+            .prefix(count)
+            .map(\.resource))
+    }
+
+    func claimInitialSubmission(_ resource: Resource) throws -> Bool {
+        return transition(resource,
+                          from: .readyForInitialSubmission,
+                          to: .initialSubmissionInFlight)
+    }
+
+    func claimRetrySubmission(_ resource: Resource) throws -> Bool {
+        return transition(resource, from: .readyForRetry, to: .retryInFlight)
+    }
+
+    func markReadyForInitialSubmission(_ resource: Resource) throws {
+        _ = transition(resource,
+                       from: .initialSubmissionInFlight,
+                       to: .readyForInitialSubmission)
+    }
+
+    func markReadyForRetry(_ resource: Resource) throws {
+        guard let stored = storage.first(where: { $0.resource == resource }) else { return }
+        stored.state = .readyForRetry
+    }
+
+    func markReadyForRetry(_ resource: Resource,
+                           incrementRetryCountWithLimit limit: Int) throws {
+        guard let index = storage.firstIndex(where: { $0.resource == resource }),
+              storage[index].state == .retryInFlight else { return }
+        if storage[index].retryCount >= limit {
+            if let deleteError = deleteError {
+                throw deleteError
+            }
+            terminalIdentifiers.remove(resource.identifier)
+            storage.remove(at: index)
+            return
+        }
+        storage[index].retryCount += 1
+        storage[index].state = .readyForRetry
+    }
+
+    func resetInFlightReports() throws {
+        storage.forEach {
+            switch $0.state {
+            case .initialSubmissionInFlight:
+                $0.state = .readyForInitialSubmission
+            case .retryInFlight:
+                $0.state = .readyForRetry
+            default:
+                break
+            }
+        }
+    }
+
+    func recoverStaleInFlightReportsOncePerProcess() throws {
+        try resetInFlightReports()
+    }
+
     func markTerminalForDeletion(_ resource: Resource) throws {
         terminalIdentifiers.insert(resource.identifier)
+        storage.first(where: { $0.resource == resource })?.state = .terminalAwaitingDeletion
     }
 
     func delete(_ resource: Resource) throws {
@@ -75,6 +152,16 @@ extension WatcherRepositoryMock: Repository {
     }
 
     private var eligibleResources: [Resource] {
-        return storage.map(\.resource).filter { !terminalIdentifiers.contains($0.identifier) }
+        return storage.filter { $0.state == .readyForRetry }.map(\.resource)
+    }
+
+    @discardableResult
+    private func transition(_ resource: Resource,
+                            from: PersistedReportState,
+                            to: PersistedReportState) -> Bool {
+        guard let stored = storage.first(where: { $0.resource == resource }),
+              stored.state == from else { return false }
+        stored.state = to
+        return true
     }
 }
