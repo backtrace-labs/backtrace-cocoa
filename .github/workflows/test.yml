@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     runs-on: macos-14
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -48,6 +49,7 @@ jobs:
       - name: Verify pinned Xcode and clean source
         run: |
           test "$(xcodebuild -version | head -n 1)" = "Xcode 15.4"
+          test "$(uname -m)" = "arm64"
           test -z "$(git status --porcelain)"
 
       - name: Test Unity build tooling

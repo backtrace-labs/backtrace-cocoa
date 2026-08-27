@@ -21,6 +21,9 @@ extension Dispatcher: Dispatching {
         lifecycleLock.lock()
         guard !shutdownRequested else {
             lifecycleLock.unlock()
+            // Rejected operations still complete their lifecycle.
+            // Public report submission uses this callback to deliver exactly one cancellation result when Disable wins the admission race.
+            completion()
             return
         }
         let blockOperation = BlockOperation(block: block)

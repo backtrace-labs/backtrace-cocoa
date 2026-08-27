@@ -23,8 +23,8 @@ usage() {
   exit 64
 }
 
-for tool in awk codesign ditto dsymutil dwarfdump find git lipo nm otool plutil \
-  python3 shasum sort swift sw_vers xattr xcodebuild xcrun; do
+for tool in awk chmod codesign ditto dsymutil dwarfdump find git lipo nm otool plutil \
+  python3 shasum sort swift sw_vers uname xattr xcodebuild xcrun; do
   command -v "$tool" >/dev/null 2>&1 || fail "required tool is unavailable: $tool"
 done
 
@@ -140,8 +140,10 @@ required = [
     'BTUnityLegacyIdentifierPrefix = @"io.backtrace.unity.legacy."',
     'BTUnityExceptionContractMarker =',
     'BacktraceUnityExceptionContract:all-c-exports-contained-v1',
-    'BacktraceUnityLifecycleContract:process-lifetime-handler-v1',
-    'BacktraceUnityLoggingContract:warning-default-explicit-setter-silent-none-v2',
+    'BacktraceUnityLifecycleContract:process-lifetime-handler-distinct-disabled-v2',
+    'BacktraceUnityLoggingContract:warning-default-explicit-setter-silent-none-redacted-v3',
+    'BTUnityInitializationResultAlreadyInitializedActive = 1',
+    'BTUnityInitializationResultProcessLifetimeDisabled = 7',
     'BTUnityConfiguredLogLevel = BacktraceLogLevelWarning',
     'BTUnityManagedInterfaceEnabled = NO',
     'BTUnityHandlerInstallationAttempted = NO',
@@ -169,6 +171,7 @@ if default_initializer.search(source):
 def exported_body(signature: str) -> str:
     return declaration_body(source, f"BT_EXPORT {signature}", f"Unity export {signature}")
 
+v3 = exported_body("int32_t StartBacktraceIntegrationV3(")
 v2 = exported_body("int32_t StartBacktraceIntegrationV2(")
 v1 = exported_body("void StartBacktraceIntegration(")
 for name, body in (("V2", v2), ("V1", v1)):
@@ -192,6 +195,43 @@ if "BTUnityHandlerInstallationAttempted = YES" in internal_body:
     raise SystemExit("error: Unity bridge latches the process handler before PLCrashReporter enable is entered")
 if internal_body.count("BTRecordHandlerInstallationState(crashReporter)") < 2:
     raise SystemExit("error: Unity bridge does not record installation state on success/error and exception paths")
+for value in (
+    "BTUnityManagedInterfaceEnabled",
+    "BTUnityInitializationResultAlreadyInitializedActive",
+    "BTUnityInitializationResultProcessLifetimeDisabled",
+    "preserveLegacyAlreadyInitializedResult",
+    "restart the process",
+):
+    if value not in internal_body:
+        raise SystemExit(f"error: Unity bridge initialization-state contract is missing: {value}")
+
+v2_disabled_mapping = (
+    "result == BTUnityInitializationResultProcessLifetimeDisabled"
+    "\n                ? BTUnityInitializationResultAlreadyInitializedActive"
+)
+if v2_disabled_mapping not in v2:
+    raise SystemExit("error: Unity V2 bridge no longer preserves its legacy already-initialized result")
+
+legacy_shared_mapping = (
+    "preserveLegacyAlreadyInitializedResult"
+    "\n                        ? BTUnityInitializationResultAlreadyInitializedActive"
+    "\n                        : BTUnityInitializationResultClientInitializationFailed"
+)
+if legacy_shared_mapping not in internal_body:
+    raise SystemExit("error: Unity bridge no longer isolates the legacy shared-client result mapping")
+
+for name, body, compatibility_value in (
+    ("V3", v3, "false"),
+    ("V2", v2, "true"),
+    ("V1", v1, "true"),
+):
+    if not re.search(
+        rf"BTStartIntegration\s*\([\s\S]*?,\s*{compatibility_value}\s*\)",
+        body,
+    ):
+        raise SystemExit(
+            f"error: Unity {name} bridge does not pass the required shared-client compatibility mode"
+        )
 
 state_helper = declaration_body(
     source,
@@ -259,15 +299,17 @@ reporter_shutdown = declaration_body(
 shutdown_phases = (
     "watcher.prepareForShutdown()",
     "backtraceOomWatcher.prepareForShutdown()",
-    "repository.prepareForNativeBridgeShutdown()",
+    "submissionCoordinator.prepareForShutdown()",
     "api.shutdown()",
-    "repository.finishNativeBridgeShutdown()",
     "watcher.finishShutdown()",
     "backtraceOomWatcher.finishShutdown()",
+    "submissionCoordinator.finishShutdown",
+    "repository.prepareForNativeBridgeShutdown()",
+    "repository.finishNativeBridgeShutdown()",
 )
 phase_offsets = [reporter_shutdown.find(phase) for phase in shutdown_phases]
 if any(offset < 0 for offset in phase_offsets) or phase_offsets != sorted(phase_offsets):
-    raise SystemExit("error: native shutdown does not latch producers before transport cancellation")
+    raise SystemExit("error: native shutdown does not quiesce submissions before transport cancellation and deferred repository closure")
 for value in (
     "var sessionIdentifier: String? = UUID().uuidString",
     "markerState.sessionIdentifier == currentSessionIdentifier",
@@ -283,8 +325,38 @@ for value in (
 ):
     if value not in repository_source:
         raise SystemExit(f"error: retained repository shutdown contract is missing: {value}")
-if "storageError.localizedDescription" in source:
-    raise SystemExit("error: Unity bridge storage logging can disclose a filesystem path")
+sanitizer_body = declaration_body(
+    source,
+    "static NSString *BTSanitizeBridgeLogText(",
+    "BTSanitizeBridgeLogText",
+)
+for value in ("<redacted-url>", "<redacted-path>", "<redacted-credential>"):
+    if value not in sanitizer_body:
+        raise SystemExit(f"error: Unity bridge log sanitizer is missing: {value}")
+log_body = declaration_body(
+    source,
+    "static void BTLogBridgeMessage(",
+    "BTLogBridgeMessage",
+)
+if "BTSanitizeBridgeLogText(message)" not in log_body:
+    raise SystemExit("error: Unity bridge does not sanitize bridge-owned log messages")
+exception_log_body = declaration_body(
+    source,
+    "static void BTLogCaughtException(",
+    "BTLogCaughtException",
+)
+for value in ("BTSanitizeBridgeLogText(exception.name", "BTSanitizedExternalDetail(exception.reason)"):
+    if value not in exception_log_body:
+        raise SystemExit(f"error: Unity bridge exception logging is not sanitized: {value}")
+error_detail_body = declaration_body(
+    source,
+    "static NSString *BTInitializationErrorDetail(",
+    "BTInitializationErrorDetail",
+)
+if "BTSanitizedExternalDetail(error.localizedDescription)" not in error_detail_body:
+    raise SystemExit("error: Unity bridge initialization errors are not sanitized")
+if source.count("NSLog(") != 1 or "NSLog(" not in log_body:
+    raise SystemExit("error: Unity bridge bypasses its centralized sanitized NSLog path")
 if "BTUnityConfiguredLogLevel != BacktraceLogLevelNone" not in source:
     raise SystemExit("error: Unity bridge does not make log level none fully silent")
 for value in ("destinationsLock", "storedDestinations", "let destinationsSnapshot = destinations"):
@@ -371,8 +443,24 @@ python3 "$PRIVACY_MERGER" \
   "$COCOA_PRIVACY_MANIFEST" \
   "$PRIVATE_RUNTIME/PrivacyInfo.xcprivacy"
 
+readonly STAGED_NOTICES="$STAGED_BUNDLE/Contents/Resources/ThirdPartyNotices"
+[[ -f "$PRIVATE_RUNTIME/ThirdPartyNotices/PLCrashReporter-LICENSE.txt" ]] ||
+  fail "the PLCrashReporter license attribution is missing"
+[[ -f "$PRIVATE_RUNTIME/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt" ]] ||
+  fail "the PLCrashReporter third-party attribution is missing"
+mkdir -p "$STAGED_NOTICES"
+ditto "$PRIVATE_RUNTIME/ThirdPartyNotices/PLCrashReporter-LICENSE.txt" \
+  "$STAGED_NOTICES/PLCrashReporter-LICENSE.txt"
+ditto "$PRIVATE_RUNTIME/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt" \
+  "$STAGED_NOTICES/PLCrashReporter-ThirdPartyNotices.txt"
+chmod 0644 \
+  "$STAGED_NOTICES/PLCrashReporter-LICENSE.txt" \
+  "$STAGED_NOTICES/PLCrashReporter-ThirdPartyNotices.txt"
+
 [[ -f "$STAGED_BUNDLE/Contents/Resources/Model.momd/Model.mom" ]] ||
-  fail "the direct Core Data model resource is missing"
+  fail "the legacy Core Data model resource is missing"
+[[ -f "$STAGED_BUNDLE/Contents/Resources/Model.momd/ModelV2.mom" ]] ||
+  fail "the current Core Data model resource is missing"
 
 # Strip extended attributes before the final signing pass. No bundle content may change afterward.
 xattr -cr "$STAGED_BUNDLE"
@@ -430,6 +518,7 @@ readonly XCODE_VERSION="$(xcodebuild -version | tr '\n' ';' | sed 's/;$//')"
 readonly SWIFT_VERSION="$(swift --version | head -1)"
 readonly MACOS_VERSION="$(sw_vers -productVersion)"
 readonly MACOS_BUILD="$(sw_vers -buildVersion)"
+readonly HOST_ARCHITECTURE="$(uname -m)"
 readonly CDHASH="$(codesign -dvvv "$STAGED_BUNDLE" 2>&1 | awk -F= '$1 == "CDHash" {print $2; exit}')"
 
 python3 - \
@@ -445,6 +534,7 @@ python3 - \
   "$SWIFT_VERSION" \
   "$MACOS_VERSION" \
   "$MACOS_BUILD" \
+  "$HOST_ARCHITECTURE" \
   "$BUNDLE_SHA256" \
   "$BINARY_SHA256" \
   "$SIGNING_IDENTITY" \
@@ -471,6 +561,7 @@ import sys
     swift_version,
     macos_version,
     macos_build,
+    host_architecture,
     bundle_sha,
     binary_sha,
     signing_identity,
@@ -482,6 +573,22 @@ import sys
 
 with Path(plcrash_path).open(encoding="utf-8") as stream:
     plcrash = json.load(stream)
+
+third_party_notices = []
+for notice in plcrash.get("license_attribution", {}).get("files", []):
+    private_path = Path(notice["path"])
+    if private_path.parent != Path("ThirdPartyNotices"):
+        raise SystemExit(f"error: unexpected PLCrashReporter notice path: {private_path}")
+    third_party_notices.append(
+        {
+            "component": "PLCrashReporter",
+            "path": (
+                "BacktraceMacUnity.bundle/Contents/Resources/ThirdPartyNotices/"
+                + private_path.name
+            ),
+            "sha256": notice["sha256"],
+        }
+    )
 
 uuid_pattern = re.compile(r"UUID: ([0-9A-F-]+) \(([^)]+)\)")
 binary_uuids = [
@@ -510,8 +617,18 @@ value = {
     "plcrashreporter": plcrash,
     "unity_bridge": {
         "exception_contract": "all-c-exports-contained-v1",
-        "lifecycle_contract": "process-lifetime-handler-v1",
-        "logging_contract": "warning-default-explicit-setter-silent-none-v2",
+        "initialization_results": {
+            "success": 0,
+            "already_initialized_active": 1,
+            "invalid_arguments": 2,
+            "storage_initialization_failed": 3,
+            "invalid_submission_url": 4,
+            "client_initialization_failed": 5,
+            "unexpected_failure": 6,
+            "process_lifetime_disabled": 7,
+        },
+        "lifecycle_contract": "process-lifetime-handler-distinct-disabled-v2",
+        "logging_contract": "warning-default-explicit-setter-silent-none-redacted-v3",
         "source_sha256": bridge_source_sha,
         "storage_contract": "all-entry-points-isolated-v1",
     },
@@ -520,6 +637,7 @@ value = {
         "swift": swift_version,
         "macos": macos_version,
         "macos_build": macos_build,
+        "host_architecture": host_architecture,
     },
     "architectures": ["arm64", "x86_64"],
     "deployment_target": deployment_target,
@@ -531,6 +649,7 @@ value = {
     "binary_uuids": binary_uuids,
     "dsym_uuids": dsym_uuids,
     "signing": {"requested_identity": signing_identity, "cdhash": cdhash},
+    "third_party_notices": third_party_notices,
     "build_command": "scripts/build-unity-macos-bundle.sh OUTPUT_DIRECTORY",
 }
 Path(output).write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
