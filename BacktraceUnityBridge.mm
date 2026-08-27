@@ -23,9 +23,9 @@
 #import "Backtrace-Swift.h"
 #endif
 
-// `shutdownForNativeBridge` is an Objective-C runtime entry point intentionally kept out of
-// Backtrace Cocoa's public Swift API. Release generated headers omit internal Swift declarations,
-// so the private Unity bridge declares the selector it alone is allowed to call.
+// `shutdownForNativeBridge` is an Objective-C runtime entry point intentionally kept out of Backtrace Cocoa's public Swift API.
+// Release generated headers omit internal Swift declarations,
+// the private Unity bridge declares the selector it alone is allowed to call.
 @interface BacktraceClient (BacktraceUnityBridgeLifecycle)
 - (void)shutdownForNativeBridge;
 @end
@@ -45,12 +45,13 @@ typedef struct {
 
 typedef NS_ENUM(int32_t, BTUnityInitializationResult) {
     BTUnityInitializationResultSuccess = 0,
-    BTUnityInitializationResultAlreadyInitialized = 1,
+    BTUnityInitializationResultAlreadyInitializedActive = 1,
     BTUnityInitializationResultInvalidArguments = 2,
     BTUnityInitializationResultStorageInitializationFailed = 3,
     BTUnityInitializationResultInvalidSubmissionUrl = 4,
     BTUnityInitializationResultClientInitializationFailed = 5,
     BTUnityInitializationResultUnexpectedFailure = 6,
+    BTUnityInitializationResultProcessLifetimeDisabled = 7,
 };
 
 @interface BTUnityRuntimeState : NSObject
@@ -77,10 +78,9 @@ typedef NS_ENUM(int32_t, BTUnityInitializationResult) {
 
 @end
 
-// PLCrashReporter does not provide an API to uninstall its process-wide fatal handler. Keep
-// the client, reporter, and callback context alive until process exit even after managed code
-// calls Disable(). A later Start must remain already-initialized rather than installing a
-// second reporter over process-global state.
+// PLCrashReporter does not provide an API to uninstall its process-wide fatal handler.
+// Keep the client, reporter, and callback context alive until process exit even after managed code calls Disable().
+// A later Start must remain already-initialized rather than installing a second reporter over process-global state.
 static BTUnityRuntimeState *BTUnityRuntime = nil;
 static NSMutableArray<BacktraceCrashReporter *> *BTUnityCrashReporterOwners = nil;
 static BacktraceLogLevel BTUnityConfiguredLogLevel = BacktraceLogLevelWarning;
@@ -95,9 +95,9 @@ static NSString *const BTUnityStorageErrorDomain = @"io.backtrace.unity.macos.st
 static NSString *const BTUnityExceptionContractMarker =
     @"BacktraceUnityExceptionContract:all-c-exports-contained-v1";
 static const char BTUnityLifecycleContractMarker[] __attribute__((used, retain)) =
-    "BacktraceUnityLifecycleContract:process-lifetime-handler-v1";
+    "BacktraceUnityLifecycleContract:process-lifetime-handler-distinct-disabled-v2";
 static const char BTUnityLoggingContractMarker[] __attribute__((used, retain)) =
-    "BacktraceUnityLoggingContract:warning-default-explicit-setter-silent-none-v2";
+    "BacktraceUnityLoggingContract:warning-default-explicit-setter-silent-none-redacted-v3";
 
 static BOOL BTShouldLog(BacktraceLogLevel messageLevel) {
     @synchronized([BacktraceClient class]) {
@@ -106,11 +106,64 @@ static BOOL BTShouldLog(BacktraceLogLevel messageLevel) {
     }
 }
 
+static NSString *BTReplaceBridgeLogMatches(NSString *value,
+                                           NSString *pattern,
+                                           NSString *replacement) {
+    NSError *expressionError = nil;
+    NSRegularExpression *expression =
+        [NSRegularExpression regularExpressionWithPattern:pattern
+                                                   options:NSRegularExpressionCaseInsensitive |
+                                                           NSRegularExpressionAnchorsMatchLines
+                                                     error:&expressionError];
+    if (expression == nil || expressionError != nil) {
+        return nil;
+    }
+    return [expression stringByReplacingMatchesInString:value
+                                                 options:0
+                                                   range:NSMakeRange(0, value.length)
+                                            withTemplate:replacement];
+}
+
+// Bridge diagnostics are copied into Unity player logs, so treat every URL, filesystem path, and credential-shaped suffix as sensitive.
+// A match consumes the rest of its line instead of attempting to preserve a possibly encoded token or a path containing spaces.
+static NSString *BTSanitizeBridgeLogText(NSString *message) {
+    @try {
+        NSString *sanitized = message ?: @"";
+        NSArray<NSArray<NSString *> *> *rules = @[
+            @[@"\\b(?:https?|file)://[^\\r\\n]*", @"<redacted-url>"],
+            @[@"(^|[\\s(\\[{:;=\\\"'“])~?/[^\\r\\n]*", @"$1<redacted-path>"],
+            @[@"\\b(?:token|api[_-]?key|authorization|password|secret)\\s*[:=][^\\r\\n]*",
+              @"<redacted-credential>"],
+        ];
+        for (NSArray<NSString *> *rule in rules) {
+            sanitized = BTReplaceBridgeLogMatches(sanitized, rule[0], rule[1]);
+            if (sanitized == nil) {
+                return @"<redacted-diagnostic>";
+            }
+        }
+        return sanitized;
+    } @catch (__unused NSException *exception) {
+        return @"<redacted-diagnostic>";
+    }
+}
+
+// NSError descriptions and exception reasons are owned by Foundation or another caller and can contain arbitrary values.
+// Preserve their stable category separately and never copy the uncontrolled detail into a player log.
+static NSString *BTSanitizedExternalDetail(NSString *detail) {
+    return detail.length > 0 ? @"<redacted-detail>" : @"";
+}
+
 static void BTLogBridgeMessage(BacktraceLogLevel level, NSString *message) {
     if (!BTShouldLog(level)) {
         return;
     }
-    NSLog(@"[Backtrace] %@", message ?: @"");
+    @try {
+        NSLog(@"[Backtrace] %@", BTSanitizeBridgeLogText(message));
+    } @catch (__unused NSException *exception) {
+        if (BTShouldLog(level)) {
+            fprintf(stderr, "[Backtrace] <redacted-diagnostic>\n");
+        }
+    }
 }
 
 static void BTLogCaughtException(const char *operation, NSException *exception) {
@@ -118,10 +171,15 @@ static void BTLogCaughtException(const char *operation, NSException *exception) 
         return;
     }
     @try {
-        NSLog(@"[Backtrace] %@ caught an exception in %s: %@",
-              BTUnityExceptionContractMarker,
-              operation,
-              exception.name ?: @"NSException");
+        NSString *exceptionName = BTSanitizeBridgeLogText(exception.name ?: @"NSException");
+        NSString *exceptionReason = BTSanitizedExternalDetail(exception.reason);
+        BTLogBridgeMessage(
+            BacktraceLogLevelError,
+            [NSString stringWithFormat:@"%@ caught an exception in %s: %@ %@",
+                                       BTUnityExceptionContractMarker,
+                                       operation,
+                                       exceptionName,
+                                       exceptionReason]);
     } @catch (NSException *loggingException) {
         (void)loggingException;
         if (BTShouldLog(BacktraceLogLevelError)) {
@@ -186,6 +244,17 @@ static NSError *BTStorageError(NSInteger code, NSString *description) {
     return [NSError errorWithDomain:BTUnityStorageErrorDomain
                                code:code
                            userInfo:@{NSLocalizedDescriptionKey: description}];
+}
+
+static NSString *BTInitializationErrorDetail(NSString *summary, NSError *error) {
+    if (error == nil) {
+        return summary;
+    }
+    return [NSString stringWithFormat:@"%@ (%@:%ld %@)",
+                                      summary,
+                                      BTSanitizeBridgeLogText(error.domain),
+                                      (long)error.code,
+                                      BTSanitizedExternalDetail(error.localizedDescription)];
 }
 
 static BOOL BTValidBundleIdentifier(NSString *value) {
@@ -325,8 +394,8 @@ static const char *BTInitializationResultName(BTUnityInitializationResult result
     switch (result) {
         case BTUnityInitializationResultSuccess:
             return "success";
-        case BTUnityInitializationResultAlreadyInitialized:
-            return "alreadyInitialized";
+        case BTUnityInitializationResultAlreadyInitializedActive:
+            return "alreadyInitializedActive";
         case BTUnityInitializationResultInvalidArguments:
             return "invalidArguments";
         case BTUnityInitializationResultStorageInitializationFailed:
@@ -337,6 +406,8 @@ static const char *BTInitializationResultName(BTUnityInitializationResult result
             return "clientInitializationFailed";
         case BTUnityInitializationResultUnexpectedFailure:
             return "unexpectedFailure";
+        case BTUnityInitializationResultProcessLifetimeDisabled:
+            return "processLifetimeDisabled";
     }
     return "unknown";
 }
@@ -344,7 +415,8 @@ static const char *BTInitializationResultName(BTUnityInitializationResult result
 static void BTLogInitializationResult(BTUnityInitializationResult result, NSString *detail) {
     const BacktraceLogLevel level = result == BTUnityInitializationResultSuccess
         ? BacktraceLogLevelInfo
-        : (result == BTUnityInitializationResultAlreadyInitialized
+        : (result == BTUnityInitializationResultAlreadyInitializedActive ||
+           result == BTUnityInitializationResultProcessLifetimeDisabled
             ? BacktraceLogLevelWarning
             : BacktraceLogLevelError);
     NSString *message = nil;
@@ -391,8 +463,8 @@ static void BTRecordHandlerInstallationState(BacktraceCrashReporter *crashReport
         return;
     }
 
-    // Initialization failed before PLCrashReporter enable was entered, so there is no
-    // process-wide callback to retain and a later Start may safely retry.
+    // Initialization failed before PLCrashReporter enable was entered,
+    // there is no process-wide callback to retain and a later Start may safely retry.
     [BTUnityCrashReporterOwners removeObjectIdenticalTo:crashReporter];
 }
 
@@ -458,16 +530,39 @@ static BTUnityInitializationResult BTStartIntegration(
     int32_t attachmentCount,
     bool enableClientSideUnwinding,
     int32_t reportsPerMinute,
-    NSString *crashReportBasePath) {
+    NSString *crashReportBasePath,
+    bool preserveLegacyAlreadyInitializedResult) {
     @try {
         @autoreleasepool {
             @synchronized([BacktraceClient class]) {
             (void)BTUnityLifecycleContractMarker;
-            if (BTUnityRuntime != nil ||
-                BTUnityHandlerInstallationAttempted ||
-                BacktraceClient.shared != nil) {
-                BTLogInitializationResult(BTUnityInitializationResultAlreadyInitialized, nil);
-                return BTUnityInitializationResultAlreadyInitialized;
+            if (BTUnityRuntime != nil) {
+                if (BTUnityManagedInterfaceEnabled) {
+                    BTLogInitializationResult(
+                        BTUnityInitializationResultAlreadyInitializedActive,
+                        @"The existing native integration remains operational.");
+                    return BTUnityInitializationResultAlreadyInitializedActive;
+                }
+                BTLogInitializationResult(
+                    BTUnityInitializationResultProcessLifetimeDisabled,
+                    @"Native integration was disabled for this process; restart the process before starting it again.");
+                return BTUnityInitializationResultProcessLifetimeDisabled;
+            }
+            if (BTUnityHandlerInstallationAttempted) {
+                BTLogInitializationResult(
+                    BTUnityInitializationResultProcessLifetimeDisabled,
+                    @"The process-wide crash handler cannot be safely installed again; restart the process before retrying.");
+                return BTUnityInitializationResultProcessLifetimeDisabled;
+            }
+            if (BacktraceClient.shared != nil) {
+                const BTUnityInitializationResult sharedClientResult =
+                    preserveLegacyAlreadyInitializedResult
+                        ? BTUnityInitializationResultAlreadyInitializedActive
+                        : BTUnityInitializationResultClientInitializationFailed;
+                BTLogInitializationResult(
+                    sharedClientResult,
+                    @"Another Backtrace client already owns the process-wide shared client state.");
+                return sharedClientResult;
             }
 
             if (submissionUrl == NULL || reportsPerMinute < 0 ||
@@ -492,8 +587,10 @@ static BTUnityInitializationResult BTStartIntegration(
             NSError *storageError = nil;
             NSString *reportBasePath = BTPrepareCrashReportBasePath(crashReportBasePath, &storageError);
             if (reportBasePath == nil) {
-                BTLogInitializationResult(BTUnityInitializationResultStorageInitializationFailed,
-                                          @"Unable to prepare isolated native crash storage.");
+                BTLogInitializationResult(
+                    BTUnityInitializationResultStorageInitializationFailed,
+                    BTInitializationErrorDetail(
+                        @"Unable to prepare isolated native crash storage.", storageError));
                 return BTUnityInitializationResultStorageInitializationFailed;
             }
 
@@ -549,16 +646,16 @@ static BTUnityInitializationResult BTStartIntegration(
                 if (client == nil || clientError != nil) {
                     BTLogInitializationResult(
                         BTUnityInitializationResultClientInitializationFailed,
-                        @"BacktraceClient initialization failed. See Cocoa diagnostics for the error category.");
+                        BTInitializationErrorDetail(
+                            @"BacktraceClient initialization failed.", clientError));
                     return BTUnityInitializationResultClientInitializationFailed;
                 }
 
                 client.attributes = BTBuildAttributes(attributeKeys, attributeValues, attributeCount);
                 client.attachments = BTBuildAttachments(attachments, attachmentCount);
 
-                // Publish process-lifetime state only after every fallible initialization step
-                // succeeds. The runtime must outlive Disable() because PLCrashReporter cannot
-                // unregister the fatal handler or its unretained callback context.
+                // Publish process-lifetime state only after every fallible initialization step succeeds.
+                // The runtime must outlive Disable() because PLCrashReporter cannot unregister the fatal handler or its unretained callback context.
                 BTUnityRuntime = [[BTUnityRuntimeState alloc] initWithClient:client
                                                                crashReporter:crashReporter];
                 BTUnityManagedInterfaceEnabled = YES;
@@ -647,7 +744,8 @@ BT_EXPORT int32_t StartBacktraceIntegrationV3(
                                       reportsPerMinute,
                                       crashReportBasePath == NULL
                                           ? nil
-                                          : BTString(crashReportBasePath));
+                                          : BTString(crashReportBasePath),
+                                      false);
         }
     } @catch (NSException *exception) {
         BTLogCaughtException("StartBacktraceIntegrationV3", exception);
@@ -670,20 +768,28 @@ BT_EXPORT int32_t StartBacktraceIntegrationV2(
             NSError *storageError = nil;
             NSString *basePath = BTLegacyCrashReportBasePath(&storageError);
             if (basePath == nil) {
-                BTLogInitializationResult(BTUnityInitializationResultStorageInitializationFailed,
-                                          @"Unable to derive isolated native crash storage.");
+                BTLogInitializationResult(
+                    BTUnityInitializationResultStorageInitializationFailed,
+                    BTInitializationErrorDetail(
+                        @"Unable to derive isolated native crash storage.", storageError));
                 return BTUnityInitializationResultStorageInitializationFailed;
             }
-            return BTStartIntegration(submissionUrl,
-                                      attributeKeys,
-                                      attributeValues,
-                                      attributeCount,
-                                      enableOom,
-                                      attachments,
-                                      attachmentCount,
-                                      enableClientSideUnwinding,
-                                      reportsPerMinute,
-                                      basePath);
+            BTUnityInitializationResult result = BTStartIntegration(submissionUrl,
+                                                                    attributeKeys,
+                                                                    attributeValues,
+                                                                    attributeCount,
+                                                                    enableOom,
+                                                                    attachments,
+                                                                    attachmentCount,
+                                                                    enableClientSideUnwinding,
+                                                                    reportsPerMinute,
+                                                                    basePath,
+                                                                    true);
+            // V2 shipped with one already-initialized value.
+            // Preserve that compatibility while V3 exposes the operational distinction to managed Unity code.
+            return result == BTUnityInitializationResultProcessLifetimeDisabled
+                ? BTUnityInitializationResultAlreadyInitializedActive
+                : result;
         }
     } @catch (NSException *exception) {
         BTLogCaughtException("StartBacktraceIntegrationV2", exception);
@@ -705,8 +811,10 @@ BT_EXPORT void StartBacktraceIntegration(
             NSError *storageError = nil;
             NSString *basePath = BTLegacyCrashReportBasePath(&storageError);
             if (basePath == nil) {
-                BTLogInitializationResult(BTUnityInitializationResultStorageInitializationFailed,
-                                          @"Unable to derive isolated native crash storage.");
+                BTLogInitializationResult(
+                    BTUnityInitializationResultStorageInitializationFailed,
+                    BTInitializationErrorDetail(
+                        @"Unable to derive isolated native crash storage.", storageError));
                 return;
             }
             (void)BTStartIntegration(submissionUrl,
@@ -718,7 +826,8 @@ BT_EXPORT void StartBacktraceIntegration(
                                      attachmentCount,
                                      enableClientSideUnwinding,
                                      30,
-                                     basePath);
+                                     basePath,
+                                     true);
         }
     } @catch (NSException *exception) {
         BTLogCaughtException("StartBacktraceIntegration", exception);
@@ -846,8 +955,8 @@ BT_EXPORT void Disable(void) {
         @autoreleasepool {
             BacktraceClient *client = nil;
             @synchronized([BacktraceClient class]) {
-                // Atomically detach managed operations, but do not wait on Cocoa queues while
-                // holding the class monitor. A transport can be stalled indefinitely.
+                // Atomically detach managed operations, but do not wait on Cocoa queues while holding the class monitor.
+                // A transport can be stalled indefinitely.
                 BTUnityManagedInterfaceEnabled = NO;
                 client = BTUnityRuntime.client;
                 if (BTUnityRuntime != nil &&
@@ -856,9 +965,8 @@ BT_EXPORT void Disable(void) {
                 }
             }
 
-            // Stop non-fatal Cocoa activity outside the bridge monitor. The process-wide
-            // PLCrashReporter handler and callback owner intentionally remain alive because
-            // PLCrashReporter has no safe uninstall operation.
+            // Stop non-fatal Cocoa activity outside the bridge monitor.
+            // The process-wide PLCrashReporter handler and callback owner intentionally remain alive because PLCrashReporter has no safe uninstall operation.
             [client shutdownForNativeBridge];
         }
     } @catch (NSException *exception) {
