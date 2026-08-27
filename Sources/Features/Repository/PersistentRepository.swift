@@ -2,6 +2,9 @@ import Foundation
 import CoreData
 import Darwin
 
+// This repository intentionally keeps its Core Data, file-ownership, and reconciliation transactions together so their lock ordering can be reviewed as one unit.
+// swiftlint:disable file_length
+
 private final class BacktraceResourceBundleToken: NSObject {}
 
 private let maximumPendingCrashDeadLetters = 10
@@ -268,6 +271,9 @@ final class PersistentRepository<Resource: PersistentStorable> {
         return metadataDirectoryUrl.appendingPathComponent("DeadLetters", isDirectory: true)
     }
 
+    // Keep initialization and its migration transaction together;
+    // splitting the body would obscure the ordering between directory setup, the process lock, and Core Data loading.
+    // swiftlint:disable function_body_length
     /// Creates a new `PersistentRepository`
     /// - Parameter settings: BacktraceDatabaseSettings
     /// - Throws: `RepositoryError`
@@ -440,6 +446,7 @@ final class PersistentRepository<Resource: PersistentStorable> {
         }
         performStartupReconciliation(startupReconciliation)
     }
+    // swiftlint:enable function_body_length
 
     /// Imports the legacy global state sidecar once, then makes the Core Data row the sole delivery-state authority.
     /// A corrupt sidecar is fail-closed because it cannot distinguish a retryable row from a terminal row whose file cleanup was deferred.
@@ -636,6 +643,8 @@ extension PersistentRepository: Repository {
         }
     }
 
+    // The save transaction keeps its file rollback and Core Data rollback paths adjacent.
+    // swiftlint:disable:next function_body_length
     private func _save(_ resource: Resource,
                        isPendingCrash: Bool,
                        origin: PersistedReportOrigin,

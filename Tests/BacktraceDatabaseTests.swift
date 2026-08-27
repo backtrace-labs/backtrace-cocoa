@@ -7,6 +7,9 @@ import CoreData
 import Foundation
 #endif
 
+// Repository migration, file ownership, and cross-process cases share one serial on-disk spec.
+// swiftlint:disable file_length
+
 private enum RepositoryFileTestError: Error {
     case subprocessLeaseUnavailable
 }

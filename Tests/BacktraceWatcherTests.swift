@@ -4,6 +4,8 @@ import Nimble
 import Quick
 @testable import Backtrace
 
+// Initial delivery, retry, and shutdown race cases intentionally exercise one shared watcher fixture.
+// swiftlint:disable:next type_body_length
 final class BacktraceWatcherTests: QuickSpec {
     // swiftlint:disable function_body_length
     override func spec() {
