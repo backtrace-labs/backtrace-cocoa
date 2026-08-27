@@ -40,6 +40,10 @@ final class BacktraceOomWatcher {
 
     /// Serial queue for all heavy or file‑system work to keep launch fast and avoid races.
     internal let queue: DispatchQueue
+    private let lifecycleLock = NSLock()
+    private let stateIOLock = NSRecursiveLock()
+    private var shutdownRequested = false
+    private let currentSessionIdentifier: String
 
     // MARK: Application State (persisted across launches)
 
@@ -50,12 +54,15 @@ final class BacktraceOomWatcher {
         var osVersion: String       = ProcessInfo.processInfo.operatingSystemVersionString
         var memoryWarningReceived   = false
         var memoryWarningTimestamp: Int?
+        /// Identifies the process session that owns this marker.
+        /// Older marker files decode this as `nil`, which deliberately prevents a new client from deleting them during Disable.
+        var sessionIdentifier: String? = UUID().uuidString
     }
 
     internal enum ApplicationState: String, Codable { case active, inactive, background }
 
     /// In‑memory copy of the current session’s state (serialised to disk on mutation).
-    internal var state = ApplicationInfo()
+    internal var state: ApplicationInfo
 
     // MARK: Static helpers to store attributes/attachments between sessions
 
@@ -68,7 +75,9 @@ final class BacktraceOomWatcher {
                 } else {
                     try AttributesStorage.remove(fileName: "oom_report")
                 }
-            } catch { BacktraceLogger.error(error) }
+            } catch {
+                BacktraceLogger.error("Unable to update stored OOM report attributes")
+            }
         }
     }
 
@@ -81,7 +90,9 @@ final class BacktraceOomWatcher {
                 } else {
                     try AttachmentsStorage.remove(fileName: "oom_report")
                 }
-            } catch { BacktraceLogger.error(error) }
+            } catch {
+                BacktraceLogger.error("Unable to update stored OOM report attachments")
+            }
         }
     }
 
@@ -100,6 +111,9 @@ final class BacktraceOomWatcher {
         self.backtraceApi     = backtraceApi
         self.oomMode          = oomMode
         self.queue            = DispatchQueue(label: "com.backtrace.oom", qos: qos)
+        let sessionIdentifier = UUID().uuidString
+        self.currentSessionIdentifier = sessionIdentifier
+        self.state = ApplicationInfo(sessionIdentifier: sessionIdentifier)
 
         // If the default cache location was not resolved, store next to the DB.
         if Self.oomFileURL == nil {
@@ -110,11 +124,17 @@ final class BacktraceOomWatcher {
 
     // MARK: Public API (non-blocking)
 
+    internal var isShutdown: Bool {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        return shutdownRequested
+    }
+
     func start() {
-        guard oomMode != .none else { return }
+        guard oomMode != .none, !isShutdown else { return }
         
         queue.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self, !self.isShutdown else { return }
             if self._sendPendingOomReports() {
                 self._saveState()
             }
@@ -122,8 +142,9 @@ final class BacktraceOomWatcher {
     }
 
     func appChangedState(_ newState: ApplicationState) {
+        guard !isShutdown else { return }
         queue.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self, !self.isShutdown else { return }
             self.state.state = newState
             self._saveState()
         }
@@ -131,14 +152,17 @@ final class BacktraceOomWatcher {
 
     /// A normal termination wipes the OOM marker
     func handleTermination() {
-        queue.async {
+        guard !isShutdown else { return }
+        queue.async { [weak self] in
+            guard let self = self, !self.isShutdown else { return }
             Self.clean()
         }
     }
 
     func handleLowMemoryWarning() {
+        guard !isShutdown else { return }
         queue.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self, !self.isShutdown else { return }
             let now = Date().millisecondsSince1970
             // ignore if within quiet window
             if let last = self.state.memoryWarningTimestamp,
@@ -160,9 +184,11 @@ final class BacktraceOomWatcher {
                 attrs["memory.footprint.bytes"] = footprint
             }
             
+            self.stateIOLock.lock()
+            defer { self.stateIOLock.unlock() }
+            guard !self.isShutdown else { return }
             Self.reportAttributes = attrs
             Self.reportAttachments = self.attributesProvider.allAttachments
-            
             self._saveState()
         }
     }
@@ -171,21 +197,22 @@ final class BacktraceOomWatcher {
     @discardableResult
     // swiftlint:disable:next identifier_name
     internal func _sendPendingOomReports() -> Bool {
+        guard !isShutdown else { return false }
         guard let url = Self.oomFileURL,
               FileManager.default.fileExists(atPath: url.path),
               let previousState = _loadPreviousState() else { return true }
+        guard !isShutdown else { return false }
 
         guard _shouldReportOom(previousState) else {
-            Self.clean()
-            return true
+            return cleanPendingStateIfActive()
         }
 
         guard _reportOom() else {
+            guard !isShutdown else { return false }
             BacktraceLogger.error("Unable to submit or persist pending OOM report; retaining its state")
             return false
         }
-        Self.clean()
-        return true
+        return cleanPendingStateIfActive()
     }
 
     private func _shouldReportOom(_ prev: ApplicationInfo) -> Bool {
@@ -253,20 +280,38 @@ final class BacktraceOomWatcher {
     }
 
     private func sendOrPersist(_ report: BacktraceReport) -> Bool {
+        guard !isShutdown else { return false }
         var reportToPersist = report
         do {
             let result = try backtraceApi.send(report)
-            guard result.backtraceStatus != .ok else { return true }
-            reportToPersist = result.report ?? report
+            guard !isShutdown else { return false }
+            switch result.submissionDisposition {
+            case .accepted:
+                return true
+            case .permanentFailure:
+                BacktraceLogger.error("OOM report \(report.identifier) was permanently rejected and will not be retried")
+                return true
+            case .rateLimited, .retryable:
+                reportToPersist = result.report ?? report
+            }
         } catch {
-            BacktraceLogger.error(error)
+            guard !isShutdown else { return false }
+            if error.backtraceSubmissionDisposition == .permanentFailure {
+                BacktraceLogger.error(
+                    "OOM report \(report.identifier) has a permanent submission configuration error " +
+                    "and will not be retried")
+                return true
+            }
+            BacktraceLogger.error("OOM report \(report.identifier) submission failed")
         }
 
+        guard !isShutdown else { return false }
         do {
             try repository.save(reportToPersist)
             return true
         } catch {
-            BacktraceLogger.error("Unable to persist OOM report \(reportToPersist.identifier): \(error)")
+            guard !isShutdown else { return false }
+            BacktraceLogger.error("Unable to persist OOM report \(reportToPersist.identifier) for retry")
             return false
         }
     }
@@ -280,6 +325,9 @@ final class BacktraceOomWatcher {
     }
 
     private func _saveState() {
+        stateIOLock.lock()
+        defer { stateIOLock.unlock() }
+        guard !isShutdown else { return }
         guard let url = Self.oomFileURL,
               let data = try? PropertyListEncoder().encode(state) else { return }
         if FileManager.default.fileExists(atPath: url.path) {
@@ -298,10 +346,55 @@ final class BacktraceOomWatcher {
         reportAttachments = nil
     }
 
+    /// Makes queued and in-flight OOM continuations observe shutdown before transport cancellation can unblock them.
+    /// This phase never waits for the OOM queue.
+    internal func prepareForShutdown() {
+        lifecycleLock.lock()
+        shutdownRequested = true
+        lifecycleLock.unlock()
+    }
+
+    /// Removes only this process session's marker.
+    /// A previous-session marker is preserved so a Disable racing startup OOM replay cannot lose a report that has not yet been submitted or durably persisted.
+    internal func finishShutdown() {
+        stateIOLock.lock()
+        cleanCurrentSessionStateLocked()
+        stateIOLock.unlock()
+    }
+
+    /// Stops queued OOM submission and state work without waiting for a possibly blocked queue.
+    internal func shutdown() {
+        prepareForShutdown()
+        finishShutdown()
+    }
+
+    private func cleanCurrentSessionState() {
+        stateIOLock.lock()
+        cleanCurrentSessionStateLocked()
+        stateIOLock.unlock()
+    }
+
+    private func cleanCurrentSessionStateLocked() {
+        guard let markerURL = Self.oomFileURL,
+              let markerData = try? Data(contentsOf: markerURL),
+              let markerState = try? PropertyListDecoder().decode(ApplicationInfo.self, from: markerData),
+              markerState.sessionIdentifier == currentSessionIdentifier else {
+            return
+        }
+        Self.clean()
+    }
+
+    private func cleanPendingStateIfActive() -> Bool {
+        stateIOLock.lock()
+        defer { stateIOLock.unlock() }
+        guard !isShutdown else { return false }
+        Self.clean()
+        return true
+    }
+
     internal static func appVersion() -> String {
         let dict = Bundle.main.infoDictionary
-        // appVersion is also known as the marketing version as shown on the app store
-        // buildVersion is usually the build number
+        // appVersion is also known as the marketing version as shown on the app store buildVersion is usually the build number
         let app  = dict?["CFBundleShortVersionString"] as? String ?? ""
         let build = dict?["CFBundleVersion"]           as? String ?? ""
         return app + "-" + build

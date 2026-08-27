@@ -6,6 +6,7 @@ import Foundation
 @testable import Backtrace
 
 final class BacktraceRateLimiterTests: QuickSpec {
+    // swiftlint:disable:next function_body_length
     override func spec() {
         describe("Rate limiter") {
             context("given empty sent list") {
@@ -16,26 +17,65 @@ final class BacktraceRateLimiterTests: QuickSpec {
             }
 
             context("given list containing not enough elements") {
-                var rateLimiter = BacktraceRateLimiter(reportsPerMin: 3)
-                rateLimiter.addRecord()
-                rateLimiter.addRecord()
+                let rateLimiter = BacktraceRateLimiter(reportsPerMin: 3)
+                _ = rateLimiter.acquire()
+                _ = rateLimiter.acquire()
                 it("allows to send new reports") {
                     expect { rateLimiter.canSend }.to(beTrue())
                 }
             }
 
+            context("given an unlimited configuration") {
+                let rateLimiter = BacktraceRateLimiter(reportsPerMin: 0)
+
+                it("allows every submission without retaining timestamps") {
+                    for _ in 0..<1_000 {
+                        expect(rateLimiter.acquire()).to(beTrue())
+                    }
+
+                    expect(rateLimiter.canSend).to(beTrue())
+                    expect(rateLimiter.timestamps).to(beEmpty())
+                }
+            }
+
+            context("given an invalid negative configuration") {
+                let rateLimiter = BacktraceRateLimiter(reportsPerMin: -1)
+
+                it("rejects submissions without retaining timestamps") {
+                    expect(rateLimiter.canSend).to(beFalse())
+                    expect(rateLimiter.acquire()).to(beFalse())
+                    expect(rateLimiter.timestamps).to(beEmpty())
+                }
+            }
+
+            context("given expired records") {
+                var now = 1_000.0
+                let rateLimiter = BacktraceRateLimiter(timestamps: [900, 950, 999],
+                                                       reportsPerMin: 3,
+                                                       currentTime: { now })
+
+                it("prunes the expired window before reserving capacity") {
+                    expect(rateLimiter.acquire()).to(beTrue())
+                    expect(rateLimiter.timestamps).to(equal([950, 999, 1_000]))
+
+                    now = 1_061
+                    expect(rateLimiter.acquire()).to(beTrue())
+                    expect(rateLimiter.timestamps).to(equal([1_061]))
+                }
+            }
+
             context("is used concurrently") {
-                 var rateLimiter = BacktraceRateLimiter(reportsPerMin: 60)
-                 it("doesn't crash") {
+                 let rateLimiter = BacktraceRateLimiter(reportsPerMin: 60)
+                 it("atomically bounds reservations") {
                      let group = DispatchGroup()
                      for _ in 1...100 {
                          DispatchQueue.global().async(group: group) {
-                             rateLimiter.addRecord()
+                             _ = rateLimiter.acquire()
                          }
                      }
                      group.wait()
 
-                     expect { rateLimiter.timestamps.count }.to(equal(100))
+                     expect { rateLimiter.timestamps.count }.to(equal(60))
                  }
              }
         }

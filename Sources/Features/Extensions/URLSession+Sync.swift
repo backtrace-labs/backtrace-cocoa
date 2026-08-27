@@ -8,15 +8,19 @@ extension URLSession {
     }
 
     // NOTE: DON'T CALL FROM MAIN THREAD
-    func sync(_ urlRequest: URLRequest) -> Response {
+    func sync(_ urlRequest: URLRequest,
+              taskCreated: ((URLSessionDataTask) -> Void)? = nil,
+              taskCompleted: (() -> Void)? = nil) -> Response {
         let semaphore = DispatchSemaphore(value: 0)
         var response: Response = Response(nil, nil, Error.failedToReceiveResponse)
 
         let task = dataTask(with: urlRequest,
                             completionHandler: { (responseData, responseUrl, responseError) in
             response = Response(responseData, responseUrl as? HTTPURLResponse, responseError)
+            taskCompleted?()
             semaphore.signal()
         })
+        taskCreated?(task)
         task.resume()
 
         if Thread.isMainThread {

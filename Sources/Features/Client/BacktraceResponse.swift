@@ -2,12 +2,14 @@ import Foundation
 
 struct BacktraceHttpResponse: CustomStringConvertible {
     let isSuccess: Bool
+    let statusCode: Int
     let description: String
 
     init(httpResponse: HTTPURLResponse, responseData: Data?) {
         self.isSuccess = httpResponse.isSuccess
+        self.statusCode = httpResponse.statusCode
         self.description = """
-        \(httpResponse)
+        HTTP \(httpResponse.statusCode)
         \(responseData.jsonBody)
         """
     }
@@ -26,7 +28,20 @@ private extension Optional where Wrapped == Data {
 
 extension BacktraceHttpResponse {
     func result(report: BacktraceReport) -> BacktraceResult {
-        return BacktraceResult(isSuccess ? .ok : .serverError, report: report, message: description)
+        return BacktraceResult(isSuccess ? .ok : .serverError,
+                               report: report,
+                               message: description,
+                               submissionDisposition: submissionDisposition)
+    }
+
+    private var submissionDisposition: BacktraceSubmissionDisposition {
+        if isSuccess {
+            return .accepted
+        }
+        if [408, 425, 429].contains(statusCode) || (500...599).contains(statusCode) {
+            return .retryable
+        }
+        return .permanentFailure
     }
 }
 
