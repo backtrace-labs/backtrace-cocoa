@@ -1,5 +1,22 @@
 import Foundation
 
+private final class BacktraceCompletionGate {
+    private let lock = NSLock()
+    private var completion: ((BacktraceResult) -> Void)?
+
+    init(_ completion: @escaping (BacktraceResult) -> Void) {
+        self.completion = completion
+    }
+
+    func callAsFunction(_ result: BacktraceResult) {
+        lock.lock()
+        let callback = completion
+        completion = nil
+        lock.unlock()
+        callback?(result)
+    }
+}
+
 /// Provides the default implementation of `BacktraceClientProtocol` protocol.
 @objc open class BacktraceClient: NSObject {
 
@@ -213,33 +230,41 @@ extension BacktraceClient: BacktraceReporting {
 
     private func reportCrash(faultMessage: String? = nil, exception: NSException? = nil, attachmentPaths: [String] = [],
                              completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        let completionGate = BacktraceCompletionGate(completion)
         guard !isShutdown else {
-            completion(BacktraceResult(.unknownError))
+            completionGate(BacktraceResult(.unknownError))
             return
         }
         guard reportingPolicy.allowsReporting else {
-            completion(BacktraceResult(.debuggerAttached))
+            completionGate(BacktraceResult(.debuggerAttached))
             return
         }
 
         guard let resource = try? reporter.generate(exception: exception,
                                                     attachmentPaths: attachmentPaths,
                                                     faultMessage: faultMessage) else {
-            completion(BacktraceResult(.unknownError))
+            completionGate(BacktraceResult(.unknownError))
             return
         }
 
         dispatcher.dispatch({ [weak self] in
-            guard let self = self else { return }
+            guard let self = self else {
+                completionGate(BacktraceResult(.unknownError, report: resource))
+                return
+            }
             guard !self.isShutdown else {
+                completionGate(BacktraceResult(.unknownError, report: resource))
                 return
             }
             let result = self.reporter.send(resource: resource)
-            guard !self.isShutdown else { return }
-            completion(result)
+            completionGate(result)
         }, completion: { [weak self] in
-            guard let self = self, !self.isShutdown else { return }
-            BacktraceLogger.debug("Finished sending an error report.")
+            // OperationQueue invokes its completion block for operations cancelled before they start.
+            // The once-only gate therefore also supplies cancellation completion without duplicating a result from an operation that did run.
+            completionGate(BacktraceResult(.unknownError, report: resource))
+            if let self = self, !self.isShutdown {
+                BacktraceLogger.debug("Finished sending an error report.")
+            }
         })
     }
 

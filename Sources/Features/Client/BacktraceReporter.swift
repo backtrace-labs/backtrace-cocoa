@@ -18,6 +18,7 @@ final class BacktraceReporter {
 
     let reporter: CrashReporting
     private(set) var api: BacktraceApi
+    let submissionCoordinator: BacktraceSubmissionCoordinator<PersistentRepository<BacktraceReport>>
     let watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>
     private(set) var attributesProvider: SignalContext
     private(set) var backtraceOomWatcher: BacktraceOomWatcher
@@ -38,10 +39,17 @@ final class BacktraceReporter {
         self.api = api
         self.oomMode = oomMode
         let repository = try PersistentRepository<BacktraceReport>(settings: dbSettings)
+        // Recover claims left by the previous process only once.
+        // A second live client sharing the database must not rewind work currently owned by the first client.
+        try repository.recoverStaleInFlightReportsOncePerProcess()
         self.repository = repository
+        let submissionCoordinator = BacktraceSubmissionCoordinator(api: api,
+                                                                    repository: repository,
+                                                                    retryLimit: dbSettings.retryLimit)
+        self.submissionCoordinator = submissionCoordinator
         self.watcher =
             BacktraceWatcher(settings: dbSettings,
-                             api: api,
+                             submissionCoordinator: submissionCoordinator,
                              repository: repository,
                              networkAvailabilityCheck: networkAvailabilityCheck)
         let attributesProvider = AttributesProvider(reportHostName: dbSettings.reportHostName)
@@ -50,7 +58,7 @@ final class BacktraceReporter {
             repository: self.repository,
             crashReporter: self.reporter,
             attributes: attributesProvider,
-            backtraceApi: self.api,
+            submissionCoordinator: submissionCoordinator,
             oomMode: oomMode)
         self.reporter.signalContext(&self.attributesProvider)
     }
@@ -71,7 +79,10 @@ extension BacktraceReporter {
     func enableCrashReporter() throws {
         try reporter.enableCrashReporting()
         watcher.enable()
+        // Replay rows that were already retryable before this launch first.
+        // Scheduling newly discovered initial rows afterward prevents a transient first attempt from being picked up again by the same startup replay cycle.
         watcher.replayAsync()
+        watcher.submitInitialAsync()
     }
 
     func handlePendingCrashes() throws {
@@ -123,7 +134,7 @@ extension BacktraceReporter {
         }
 
         do {
-            try repository.markReadyForSubmission(resource)
+            try repository.markReadyForInitialSubmission(resource)
         } catch {
             // A later launch with no matching source promotes the row. Failing closed prevents duplicates.
             BacktraceLogger.warning("Purged a pending crash source but could not mark its row ready.")
@@ -169,42 +180,7 @@ extension BacktraceReporter {
         guard !isShutdown else {
             return BacktraceResult(.unknownError, report: resource)
         }
-        do {
-            let result = try api.send(resource)
-            if result.submissionDisposition == .retryable || result.submissionDisposition == .rateLimited {
-                persistForRetry(result.report ?? resource)
-            } else if result.submissionDisposition == .permanentFailure {
-                BacktraceLogger.error("Report \(resource.identifier) was permanently rejected and will not be retried")
-            }
-            return result
-        } catch {
-            guard !isShutdown else {
-                return BacktraceResult(.unknownError,
-                                       report: resource,
-                                       submissionDisposition: .retryable)
-            }
-            let disposition = error.backtraceSubmissionDisposition
-            if disposition == .permanentFailure {
-                BacktraceLogger.error(
-                    "Report \(resource.identifier) has a permanent submission configuration error " +
-                    "and will not be retried")
-            } else {
-                BacktraceLogger.error("Submission for report \(resource.identifier) failed")
-                persistForRetry(resource)
-            }
-            return BacktraceResult(error.backtraceStatus,
-                                   submissionDisposition: disposition)
-        }
-    }
-
-    private func persistForRetry(_ resource: BacktraceReport) {
-        guard !isShutdown else { return }
-        do {
-            try repository.save(resource)
-        } catch {
-            guard !isShutdown else { return }
-            BacktraceLogger.error("Unable to persist report \(resource.identifier) for retry")
-        }
+        return submissionCoordinator.submit(resource, origin: .live).result
     }
 
     func send(exception: NSException? = nil, attachmentPaths: [String] = [],
@@ -325,7 +301,8 @@ extension BacktraceReporter {
     }
 
     /// Stops all non-fatal background SDK activity while leaving the crash reporter and its process-wide callback context alive.
-    /// Safe to call repeatedly and non-blocking.
+    /// Safe to call repeatedly.
+    /// It does not wait on network transport, but a concurrent shutdown caller and currently admitted local repository transactions may drain before returning.
     internal func shutdown() {
         lifecycleCondition.lock()
         switch lifecycleState {
@@ -365,14 +342,17 @@ extension BacktraceReporter {
             lifecycleCondition.unlock()
         }
 
-        // First latch producer state so transport cancellation cannot unblock an in-flight request into repository mutation.
-        // Then cancel network work before tearing down the remaining timer and owned OOM state. No phase drains a transport-blocked queue.
+        // Stop producers and coordinator admission first.
+        // Cancellation then releases unfinished transports, while submissions with a received response remain allowed to finalize repository state before repository maintenance is closed.
         watcher.prepareForShutdown()
         backtraceOomWatcher.prepareForShutdown()
-        repository.prepareForNativeBridgeShutdown()
+        submissionCoordinator.prepareForShutdown()
         api.shutdown()
-        repository.finishNativeBridgeShutdown()
         watcher.finishShutdown()
         backtraceOomWatcher.finishShutdown()
+        submissionCoordinator.finishShutdown { [repository] in
+            repository.prepareForNativeBridgeShutdown()
+            repository.finishNativeBridgeShutdown()
+        }
     }
 }

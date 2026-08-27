@@ -6,9 +6,12 @@ final class BacktraceNetworkClient {
     private let lifecycleLock = NSLock()
     private var activeTasks: [UUID: URLSessionDataTask] = [:]
     private var shutdownRequested = false
+    private let afterTransportCompletion: (() -> Void)?
 
-    init(urlSession: URLSession) {
+    init(urlSession: URLSession,
+         afterTransportCompletion: (() -> Void)? = nil) {
         self.urlSession = urlSession
+        self.afterTransportCompletion = afterTransportCompletion
     }
 
     func send(request: URLRequest) throws -> BacktraceHttpResponse {
@@ -28,22 +31,25 @@ final class BacktraceNetworkClient {
             taskCompleted: { [weak self] in
                 self?.removeTask(identifier: taskIdentifier)
             })
+        afterTransportCompletion?()
+
+        // Once URLSession has produced an HTTP response, that response is authoritative even when shutdown races the synchronous caller.
+        // Discarding it here would prevent the submission coordinator from recording an accepted or permanently rejected report before the repository is quiesced.
+        if let urlResponse = response.urlResponse {
+            return BacktraceHttpResponse(httpResponse: urlResponse, responseData: response.responseData)
+        }
 
         lifecycleLock.lock()
         let wasShutdown = shutdownRequested
         lifecycleLock.unlock()
-        guard !wasShutdown else {
-            throw URLError(.cancelled)
+        if wasShutdown {
+            throw NetworkError.cancelled
         }
 
         if let responseError = response.responseError {
             throw NetworkError.connectionError(responseError)
         }
-        guard let urlResponse = response.urlResponse else {
-            throw HttpError.unknownError
-        }
-        // check result
-        return BacktraceHttpResponse(httpResponse: urlResponse, responseData: response.responseData)
+        throw HttpError.unknownError
     }
 
     func isNetworkAvailable() -> Bool {
@@ -57,7 +63,7 @@ final class BacktraceNetworkClient {
     }
 
     /// Prevents new requests and cancels every URLSession task owned by this SDK client.
-    /// Cancellation is deliberately non-blocking: task completions release any synchronous callers without making native bridge shutdown wait on the transport.
+    /// Cancellation is deliberately non-blocking: task completions release synchronous callers without making native bridge shutdown wait on the transport.
     internal func shutdown() {
         lifecycleLock.lock()
         guard !shutdownRequested else {

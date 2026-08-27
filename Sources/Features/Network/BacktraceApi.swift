@@ -1,5 +1,12 @@
 import Foundation
 
+/// A classified submission outcome delivered before any post-response delegate callback.
+/// The durable submission coordinator uses this boundary to commit repository state before code can re-enter the SDK and request shutdown.
+enum BacktraceSubmissionOutcome {
+    case result(BacktraceResult)
+    case failure(Error, report: BacktraceReport)
+}
+
 final class BacktraceApi {
     weak var delegate: BacktraceClientDelegate?
 
@@ -11,8 +18,10 @@ final class BacktraceApi {
 
     init(credentials: BacktraceCredentials,
          session: URLSession = URLSession(configuration: .ephemeral),
-         reportsPerMin: Int) {
-        self.networkClient = BacktraceNetworkClient(urlSession: session)
+         reportsPerMin: Int,
+         afterTransportCompletion: (() -> Void)? = nil) {
+        self.networkClient = BacktraceNetworkClient(urlSession: session,
+                                                    afterTransportCompletion: afterTransportCompletion)
         self.backtraceRateLimiter = BacktraceRateLimiter(reportsPerMin: reportsPerMin)
         self.credentials = credentials
     }
@@ -38,10 +47,30 @@ final class BacktraceApi {
 extension BacktraceApi: BacktraceApiProtocol {
 
     func send(_ report: BacktraceReport) throws -> BacktraceResult {
-        guard !isShutdown else {
-            throw URLError(.cancelled)
+        return try send(report, finalize: { _ in })
+    }
+
+    /// Runs one delegate-aware, rate-limited transport attempt.
+    /// `finalize` is invoked exactly once after the outcome is classified and before:
+    /// `serverDidRespond`, `connectionDidFail`, or `didReachLimit` is delivered.
+    internal func send(_ originalReport: BacktraceReport,
+                       finalize: (BacktraceSubmissionOutcome) -> Void) throws -> BacktraceResult {
+        var report = originalReport
+
+        func finishFailure(_ error: Error) throws -> Never {
+            finalize(.failure(error, report: report))
+            // Shutdown cancellation is an SDK lifecycle event, not a customer connection
+            // failure. The public completion still receives an unknown/cancelled result.
+            if !(isShutdown && error.isBacktraceCancellation) {
+                BacktraceLogger.error("Submission for report \(report.identifier) failed")
+                delegate?.connectionDidFail?(error)
+            }
+            throw error
         }
-        var report = report
+
+        guard !isShutdown else {
+            try finishFailure(NetworkError.cancelled)
+        }
 
         // check if can send
         guard backtraceRateLimiter.acquire() else {
@@ -49,9 +78,7 @@ extension BacktraceApi: BacktraceApiProtocol {
             let result = BacktraceResult(.limitReached,
                                          report: report,
                                          submissionDisposition: .rateLimited)
-            guard !isShutdown else {
-                throw URLError(.cancelled)
-            }
+            finalize(.result(result))
             delegate?.didReachLimit?(result)
             return result
         }
@@ -59,11 +86,11 @@ extension BacktraceApi: BacktraceApiProtocol {
         // modify report before sending
         BacktraceLogger.debug("Preparing report \(report.identifier) for submission")
         guard !isShutdown else {
-            throw URLError(.cancelled)
+            try finishFailure(NetworkError.cancelled)
         }
         report = delegate?.willSend?(report) ?? report
         guard !isShutdown else {
-            throw URLError(.cancelled)
+            try finishFailure(NetworkError.cancelled)
         }
         do {
             // create request
@@ -73,31 +100,25 @@ extension BacktraceApi: BacktraceApiProtocol {
             // modify request before sending
             urlRequest = delegate?.willSendRequest?(urlRequest) ?? urlRequest
             guard !isShutdown else {
-                throw URLError(.cancelled)
+                throw NetworkError.cancelled
             }
             BacktraceLogger.debug("Submitting report \(report.identifier)")
 
             // send request
             guard !isShutdown else {
-                throw URLError(.cancelled)
+                throw NetworkError.cancelled
             }
             let httpResponse = try networkClient.send(request: urlRequest)
 
-            // get result
-            guard !isShutdown else {
-                throw URLError(.cancelled)
-            }
+            // A received HTTP response remains authoritative during shutdown.
+            // Finalize the durable state before customer delegate code can call Disable reentrantly.
             BacktraceLogger.debug("Received HTTP \(httpResponse.statusCode) for report \(report.identifier)")
             let result = httpResponse.result(report: report)
+            finalize(.result(result))
             delegate?.serverDidRespond?(result)
             return result
         } catch {
-            guard !isShutdown else {
-                throw URLError(.cancelled)
-            }
-            BacktraceLogger.error("Submission for report \(report.identifier) failed")
-            delegate?.connectionDidFail?(error)
-            throw error
+            try finishFailure(error)
         }
     }
 }

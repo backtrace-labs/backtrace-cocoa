@@ -27,6 +27,8 @@ extension Error {
             switch networkError {
             case .connectionError(let underlyingError):
                 return underlyingError.backtraceSubmissionDisposition
+            case .cancelled:
+                return .retryable
             }
         }
 
@@ -48,6 +50,7 @@ extension Error {
 
 enum NetworkError: BacktraceError {
     case connectionError(Error)
+    case cancelled
 }
 
 enum HttpError: BacktraceError {
@@ -97,7 +100,27 @@ extension NetworkError {
         switch self {
         case .connectionError(let error):
             return error.localizedDescription
+        case .cancelled:
+            return "Submission was cancelled."
         }
+    }
+}
+
+extension Error {
+    /// Whether a submission stopped because SDK shutdown cancelled transport before an HTTP response was available.
+    /// A completed HTTP response is never represented as cancellation.
+    var isBacktraceCancellation: Bool {
+        if let networkError = self as? NetworkError {
+            switch networkError {
+            case .cancelled:
+                return true
+            case .connectionError(let underlyingError):
+                return underlyingError.isBacktraceCancellation
+            }
+        }
+
+        let error = self as NSError
+        return error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled
     }
 }
 

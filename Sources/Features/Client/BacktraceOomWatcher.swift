@@ -32,7 +32,7 @@ final class BacktraceOomWatcher {
     
     private let crashReporter: CrashReporting
     private(set) var attributesProvider: AttributesProvider
-    private let backtraceApi: BacktraceApi
+    let submissionCoordinator: BacktraceSubmissionCoordinator<PersistentRepository<BacktraceReport>>
     let repository: PersistentRepository<BacktraceReport>
     private let oomMode: BacktraceOomMode
 
@@ -101,14 +101,14 @@ final class BacktraceOomWatcher {
     init(repository: PersistentRepository<BacktraceReport>,
          crashReporter: CrashReporting,
          attributes: AttributesProvider,
-         backtraceApi: BacktraceApi,
+         submissionCoordinator: BacktraceSubmissionCoordinator<PersistentRepository<BacktraceReport>>,
          oomMode: BacktraceOomMode,
          qos: DispatchQoS = .utility) {
 
         self.repository       = repository
         self.crashReporter    = crashReporter
         self.attributesProvider = attributes
-        self.backtraceApi     = backtraceApi
+        self.submissionCoordinator = submissionCoordinator
         self.oomMode          = oomMode
         self.queue            = DispatchQueue(label: "com.backtrace.oom", qos: qos)
         let sessionIdentifier = UUID().uuidString
@@ -120,6 +120,23 @@ final class BacktraceOomWatcher {
             Self.oomFileURL = repository.url.deletingLastPathComponent()
                                 .appendingPathComponent(Self.oomFileName)
         }
+    }
+
+    convenience init(repository: PersistentRepository<BacktraceReport>,
+                     crashReporter: CrashReporting,
+                     attributes: AttributesProvider,
+                     backtraceApi: BacktraceApi,
+                     oomMode: BacktraceOomMode,
+                     qos: DispatchQoS = .utility) {
+        let coordinator = BacktraceSubmissionCoordinator(api: backtraceApi,
+                                                         repository: repository,
+                                                         retryLimit: repository.settings.retryLimit)
+        self.init(repository: repository,
+                  crashReporter: crashReporter,
+                  attributes: attributes,
+                  submissionCoordinator: coordinator,
+                  oomMode: oomMode,
+                  qos: qos)
     }
 
     // MARK: Public API (non-blocking)
@@ -208,11 +225,12 @@ final class BacktraceOomWatcher {
         }
 
         guard _reportOom() else {
-            guard !isShutdown else { return false }
             BacktraceLogger.error("Unable to submit or persist pending OOM report; retaining its state")
             return false
         }
-        return cleanPendingStateIfActive()
+        // A terminal server response or durable repository handoff owns this report now.
+        // Clean the previous-session marker even when Disable raced after transport completion.
+        return cleanPendingStateAfterDurableSubmission()
     }
 
     private func _shouldReportOom(_ prev: ApplicationInfo) -> Bool {
@@ -281,39 +299,7 @@ final class BacktraceOomWatcher {
 
     private func sendOrPersist(_ report: BacktraceReport) -> Bool {
         guard !isShutdown else { return false }
-        var reportToPersist = report
-        do {
-            let result = try backtraceApi.send(report)
-            guard !isShutdown else { return false }
-            switch result.submissionDisposition {
-            case .accepted:
-                return true
-            case .permanentFailure:
-                BacktraceLogger.error("OOM report \(report.identifier) was permanently rejected and will not be retried")
-                return true
-            case .rateLimited, .retryable:
-                reportToPersist = result.report ?? report
-            }
-        } catch {
-            guard !isShutdown else { return false }
-            if error.backtraceSubmissionDisposition == .permanentFailure {
-                BacktraceLogger.error(
-                    "OOM report \(report.identifier) has a permanent submission configuration error " +
-                    "and will not be retried")
-                return true
-            }
-            BacktraceLogger.error("OOM report \(report.identifier) submission failed")
-        }
-
-        guard !isShutdown else { return false }
-        do {
-            try repository.save(reportToPersist)
-            return true
-        } catch {
-            guard !isShutdown else { return false }
-            BacktraceLogger.error("Unable to persist OOM report \(reportToPersist.identifier) for retry")
-            return false
-        }
+        return submissionCoordinator.submit(report, origin: .outOfMemory).isDurable
     }
 
     // MARK: State persistence
@@ -388,6 +374,13 @@ final class BacktraceOomWatcher {
         stateIOLock.lock()
         defer { stateIOLock.unlock() }
         guard !isShutdown else { return false }
+        Self.clean()
+        return true
+    }
+
+    private func cleanPendingStateAfterDurableSubmission() -> Bool {
+        stateIOLock.lock()
+        defer { stateIOLock.unlock() }
         Self.clean()
         return true
     }

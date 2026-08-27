@@ -11,8 +11,16 @@ extension Crash {
     @NSManaged public var attachmentPaths: [String]?
     @objc(dateAdded)
     @NSManaged public var dateAdded: Date?
+    @objc(deliveryOwner)
+    @NSManaged public var deliveryOwner: String?
+    @objc(deliveryStateRaw)
+    @NSManaged public var deliveryStateRaw: NSNumber?
     @objc(hashProperty)
     @NSManaged public var hashProperty: String?
+    @objc(lastAttemptAt)
+    @NSManaged public var lastAttemptAt: Date?
+    @objc(originRaw)
+    @NSManaged public var originRaw: NSNumber?
     @objc(reportData)
     @NSManaged public var reportData: Data?
     @objc(retryCount)

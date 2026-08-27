@@ -4,7 +4,8 @@ final class BacktraceWatcher<BacktraceRepository: Repository>
 where BacktraceRepository.Resource == BacktraceReport {
 
     let settings: BacktraceDatabaseSettings
-    let api: BacktraceApi
+    let submissionCoordinator: BacktraceSubmissionCoordinator<BacktraceRepository>
+    var api: BacktraceApi { submissionCoordinator.api }
     let repository: BacktraceRepository
     var timer: DispatchSourceTimer?
     let queue: DispatchQueue
@@ -13,16 +14,33 @@ where BacktraceRepository.Resource == BacktraceReport {
     private var shutdownRequested = false
 
     init(settings: BacktraceDatabaseSettings,
-         api: BacktraceApi,
+         submissionCoordinator: BacktraceSubmissionCoordinator<BacktraceRepository>,
          repository: BacktraceRepository,
          dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background),
          networkAvailabilityCheck: (() -> Bool)? = nil) {
 
         self.settings = settings
         self.repository = repository
-        self.api = api
+        self.submissionCoordinator = submissionCoordinator
         self.queue = dispatchQueue
-        self.networkAvailabilityCheck = networkAvailabilityCheck ?? api.networkClient.isNetworkAvailable
+        self.networkAvailabilityCheck = networkAvailabilityCheck ??
+            submissionCoordinator.api.networkClient.isNetworkAvailable
+    }
+
+    /// Source-compatible convenience for tests and internal callers that do not share a coordinator with live/OOM submission.
+    convenience init(settings: BacktraceDatabaseSettings,
+                     api: BacktraceApi,
+                     repository: BacktraceRepository,
+                     dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background),
+                     networkAvailabilityCheck: (() -> Bool)? = nil) {
+        let coordinator = BacktraceSubmissionCoordinator(api: api,
+                                                         repository: repository,
+                                                         retryLimit: settings.retryLimit)
+        self.init(settings: settings,
+                  submissionCoordinator: coordinator,
+                  repository: repository,
+                  dispatchQueue: dispatchQueue,
+                  networkAvailabilityCheck: networkAvailabilityCheck)
     }
 
     internal var isShutdown: Bool {
@@ -43,6 +61,34 @@ where BacktraceRepository.Resource == BacktraceReport {
         }
     }
 
+    /// Schedules exactly one initial attempt for newly ingested native crashes, independently from ordinary repository retry policy.
+    func submitInitialAsync() {
+        guard !isShutdown else { return }
+        // With retries disabled this is the process's only opportunity to submit a newly ingested native crash.
+        // Reachability is advisory, so let the transport make that one decision.
+        // Interval mode keeps its offline deferral because the timer will revisit the row later.
+        let bypassesReachabilityPreflight = settings.retryBehaviour == .none
+        queue.async { [weak self] in
+            self?.batchInitialSubmission(bypassesReachabilityPreflight: bypassesReachabilityPreflight)
+        }
+    }
+
+    internal func batchInitialSubmission(bypassesReachabilityPreflight: Bool = false) {
+        guard !isShutdown else { return }
+        guard bypassesReachabilityPreflight || networkAvailabilityCheck() else { return }
+        guard let reports = try? repository.getInitialSubmission(count: 10),
+              !reports.isEmpty else { return }
+
+        for report in reports {
+            guard !isShutdown else { return }
+            let receipt = submissionCoordinator.submit(report, origin: .pendingNativeCrash)
+            guard receipt.attempted else { continue }
+            if receipt.result.submissionDisposition == .rateLimited {
+                return
+            }
+        }
+    }
+
     internal func batchRetry() {
         guard !isShutdown else { return }
         guard settings.retryBehaviour == .interval else { return }
@@ -52,78 +98,12 @@ where BacktraceRepository.Resource == BacktraceReport {
 
         for report in reports {
             guard !isShutdown else { return }
-            let result: BacktraceResult
-            do {
-                result = try api.send(report)
-            } catch {
-                guard !isShutdown else { return }
-                handleSubmissionFailure(error, for: report)
-                continue
+            let receipt = submissionCoordinator.submit(report, origin: .repositoryRetry)
+            guard receipt.attempted else { continue }
+            if receipt.result.submissionDisposition == .rateLimited {
+                // Every remaining report shares this limiter, so avoid duplicate limit callbacks.
+                return
             }
-            guard !isShutdown else { return }
-            guard handleSubmissionResult(result, for: report) else { return }
-        }
-    }
-
-    private func handleSubmissionResult(_ result: BacktraceResult,
-                                        for report: BacktraceReport) -> Bool {
-        guard !isShutdown else { return false }
-        switch result.submissionDisposition {
-        case .accepted:
-            finishTerminalReport(report)
-        case .rateLimited:
-            // Every remaining report shares this limiter, so avoid duplicate limit callbacks.
-            return false
-        case .retryable:
-            do {
-                try repository.incrementRetryCount(report, limit: settings.retryLimit)
-            } catch {
-                guard !isShutdown else { return false }
-                BacktraceLogger.error("Unable to update retry state for report \(report.identifier)")
-            }
-        case .permanentFailure:
-            BacktraceLogger.error(
-                "Report \(report.identifier) was permanently rejected and will not be retried")
-            finishTerminalReport(report)
-        }
-        return true
-    }
-
-    private func finishTerminalReport(_ report: BacktraceReport) {
-        guard !isShutdown else { return }
-        do {
-            try repository.markTerminalForDeletion(report)
-        } catch {
-            guard !isShutdown else { return }
-            BacktraceLogger.error("Unable to persist terminal state for report \(report.identifier)")
-            do {
-                try repository.delete(report)
-            } catch {
-                guard !isShutdown else { return }
-                BacktraceLogger.error("Unable to remove terminal report \(report.identifier)")
-            }
-            return
-        }
-
-        guard !isShutdown else { return }
-        do {
-            try repository.delete(report)
-        } catch {
-            guard !isShutdown else { return }
-            BacktraceLogger.warning("Deferred cleanup of terminal report \(report.identifier)")
-        }
-    }
-
-    private func handleSubmissionFailure(_ error: Error, for report: BacktraceReport) {
-        guard !isShutdown else { return }
-        if error.backtraceSubmissionDisposition == .permanentFailure {
-            BacktraceLogger.error(
-                "Report \(report.identifier) has a permanent submission configuration error " +
-                "and will not be retried")
-            finishTerminalReport(report)
-        } else {
-            BacktraceLogger.error("Retry submission for report \(report.identifier) failed")
-            try? repository.incrementRetryCount(report, limit: settings.retryLimit)
         }
     }
 
@@ -151,7 +131,11 @@ extension BacktraceWatcher {
     }
 
     internal func timerEventHandler() {
+        // Retry rows that predate this tick first, then attempt newly discovered native rows.
+        // If an initial attempt becomes retryable, it waits for the next interval instead of
+        // being submitted twice in one timer cycle.
         batchRetry()
+        batchInitialSubmission()
     }
 
     internal func resetTimer() {
