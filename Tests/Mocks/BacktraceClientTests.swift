@@ -40,8 +40,26 @@ final class BacktraceClientTests: QuickSpec {
                     expect(configuration.delegate).to(beNil())
                 }
 
-                it("can create instance of BacktraceClient") {
-                    expect { try BacktraceClient(credentials: credentials) }.notTo(throwError())
+                throwingIt("can create an inactive BacktraceClient without installing a crash handler") {
+                    let configuration = BacktraceClientConfiguration(credentials: credentials)
+                    let api = BacktraceApi(credentials: credentials,
+                                           reportsPerMin: configuration.reportsPerMin)
+                    let crashReporter = BacktraceCrashReporter()
+                    let reporter = try BacktraceReporter(reporter: crashReporter,
+                                                         api: api,
+                                                         dbSettings: configuration.dbSettings,
+                                                         credentials: credentials,
+                                                         oomMode: configuration.oomMode)
+
+                    let client = try BacktraceClient(configuration: configuration,
+                                                     debugger: AttachedDebuggerCheckerMock.self,
+                                                     reporter: reporter,
+                                                     dispatcher: Dispatcher(),
+                                                     api: api)
+
+                    expect(client.configuration).to(beIdenticalTo(configuration))
+                    expect(crashReporter.handlerInstallationAttempted).to(beFalse())
+                    client.shutdownForNativeBridge()
                 }
 
                 it("installs the configured delegate before startup repository replay") {
@@ -73,11 +91,15 @@ final class BacktraceClientTests: QuickSpec {
                                                      dispatcher: Dispatcher(),
                                                      api: api)
 
-                    expect(startupDelegate.calledWillSend).toEventually(beTrue(), timeout: .seconds(2))
+                    // Drain the exact serial queue used by startup replay instead of relying on
+                    // a wall-clock timeout for a background-QoS queue on constrained simulators.
+                    reporter.watcher.queue.sync {}
+
+                    expect(startupDelegate.calledWillSend).to(beTrue())
                     expect(startupDelegate.calledWillSendRequest).to(beTrue())
                     expect(startupDelegate.calledServerDidRespond).to(beTrue())
                     expect(session.requestCount).to(equal(1))
-                    expect { try reporter.repository.countResources() }.toEventually(equal(0), timeout: .seconds(2))
+                    expect(try reporter.repository.countResources()).to(equal(0))
                     expect(crashReporting.enableCalls).to(equal(1))
                     client.shutdownForNativeBridge()
                 }
@@ -178,13 +200,14 @@ final class BacktraceClientTests: QuickSpec {
                                                          credentials: credentials,
                                                          oomMode: .none)
                     try reporter.repository.clear()
+                    let dispatcher = UserInitiatedTestDispatcher()
                     DynamicDebuggerCheckerMock.setAttached(true)
                     defer { DynamicDebuggerCheckerMock.setAttached(true) }
                     let client = try BacktraceClient(configuration: BacktraceClientConfiguration(
                                                         credentials: credentials),
                                                      debugger: DynamicDebuggerCheckerMock.self,
                                                      reporter: reporter,
-                                                     dispatcher: Dispatcher(),
+                                                     dispatcher: dispatcher,
                                                      api: api)
                     DynamicDebuggerCheckerMock.setAttached(false)
                     let completionCalled = DispatchSemaphore(value: 0)
@@ -295,6 +318,22 @@ private final class ShutdownDispatchingSpy: Dispatching {
     func shutdown() {
         shutdownCalls += 1
     }
+}
+
+/// Runs the in-flight cancellation fixture independently from the SDK's intentionally
+/// background-priority dispatcher, which can be deferred by constrained simulators.
+private final class UserInitiatedTestDispatcher: Dispatching {
+    private let queue = DispatchQueue(label: "backtrace.client.in-flight-cancellation.tests",
+                                      qos: .userInitiated)
+
+    func dispatch(_ block: @escaping () -> Void, completion: @escaping () -> Void) {
+        queue.async {
+            block()
+            completion()
+        }
+    }
+
+    func shutdown() {}
 }
 
 private final class BlockingShutdownDispatchingSpy: Dispatching {

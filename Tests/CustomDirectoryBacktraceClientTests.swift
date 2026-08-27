@@ -44,13 +44,14 @@ final class CustomDirectoryBacktraceClientTests: QuickSpec {
                 expect(attributesConfig.directoryUrl).notTo(equal(customDir))
             }
             
-            it("initializes BacktraceClient with BacktraceCrashReporte") {
-                let reporter = BacktraceCrashReporter(config: basePathConfig)
-                var client: BacktraceClient!
-                expect {client = try BacktraceClient(configuration: backtraceClientConfiguration,crashReporter: reporter)}.toNot(throwError())
-                
-                BacktraceClient.shared = client
-                expect(BacktraceClient.shared).to(be(client))
+            throwingIt("initializes BacktraceClient with a custom-path crash reporter") {
+                let crashReporter = BacktraceCrashReporter(config: basePathConfig)
+                let client = try BacktraceClient(configuration: backtraceClientConfiguration,
+                                                 crashReporter: crashReporter)
+
+                expect(client.configuration).to(beIdenticalTo(backtraceClientConfiguration))
+                expect(crashReporter.handlerInstallationAttempted).to(beTrue())
+                client.shutdownForNativeBridge()
             }
             
             describe("enabled reporter behavior") {
