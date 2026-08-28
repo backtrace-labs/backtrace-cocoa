@@ -17,10 +17,6 @@ extension Crash {
     @NSManaged public var deliveryStateRaw: NSNumber?
     @objc(hashProperty)
     @NSManaged public var hashProperty: String?
-    @objc(lastAttemptAt)
-    @NSManaged public var lastAttemptAt: Date?
-    @objc(originRaw)
-    @NSManaged public var originRaw: NSNumber?
     @objc(reportData)
     @NSManaged public var reportData: Data?
     @objc(retryCount)

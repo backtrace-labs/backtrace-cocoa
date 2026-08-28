@@ -488,14 +488,7 @@ final class PersistentRepository<Resource: PersistentStorable> {
                         let legacyValue = identifier.flatMap { legacyStates?[$0] }
                         let migrated = migratedLegacyState(legacyValue,
                                                            sidecarWasReadable: legacyStates != nil)
-                        setDeliveryStateLocked(migrated.state, on: managedObject)
-                        managedObject.setValue(NSNumber(value: migrated.origin.rawValue), forKey: "originRaw")
-                    }
-
-                    // A partially written V2 row must not retain an unknown origin indefinitely.
-                    for managedObject in managedObjects where managedObject.value(forKey: "originRaw") == nil {
-                        managedObject.setValue(NSNumber(value: PersistedReportOrigin.live.rawValue),
-                                               forKey: "originRaw")
+                        setDeliveryStateLocked(migrated, on: managedObject)
                     }
                     if backgroundContext.hasChanges {
                         try backgroundContext.save()
@@ -518,25 +511,22 @@ final class PersistentRepository<Resource: PersistentStorable> {
     }
 
     private func migratedLegacyState(_ value: String?,
-                                     sidecarWasReadable: Bool) -> (
-        state: PersistedReportState,
-        origin: PersistedReportOrigin
-    ) {
+                                     sidecarWasReadable: Bool) -> PersistedReportState {
         guard sidecarWasReadable else {
-            return (.unresolvedLegacyState, .live)
+            return .unresolvedLegacyState
         }
         switch value {
         case "awaitingSourcePurge":
-            return (.awaitingSourcePurge, .nativeCrash)
+            return .awaitingSourcePurge
         case "readyForSubmission":
-            return (.readyForInitialSubmission, .nativeCrash)
+            return .readyForInitialSubmission
         case "terminalAwaitingDeletion":
-            return (.terminalAwaitingDeletion, .live)
+            return .terminalAwaitingDeletion
         case nil:
             // SDK versions predating the temporary sidecar stored ordinary retry rows without state.
-            return (.readyForRetry, .live)
+            return .readyForRetry
         default:
-            return (.unresolvedLegacyState, .live)
+            return .unresolvedLegacyState
         }
     }
 
@@ -614,16 +604,10 @@ extension PersistentRepository: Repository {
     ///   - `RepositoryError.canNotCreateEntityDescription` if the entity cannot be found
     ///   - Any Core Data error that occurs during the save
     func save(_ resource: Resource) throws {
-        try save(resource, origin: .live)
-    }
-
-    /// Persists an already-attempted report for retry while retaining where the report originated.
-    func save(_ resource: Resource, origin: PersistedReportOrigin) throws {
         try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
             try _save(resource,
                       isPendingCrash: false,
-                      origin: origin,
                       initialState: .readyForRetry)
         }
     }
@@ -638,7 +622,6 @@ extension PersistentRepository: Repository {
             preservePendingMetadataFilesLocked(resource)
             try _save(resource,
                       isPendingCrash: true,
-                      origin: .nativeCrash,
                       initialState: .awaitingSourcePurge)
         }
     }
@@ -647,7 +630,6 @@ extension PersistentRepository: Repository {
     // swiftlint:disable:next function_body_length
     private func _save(_ resource: Resource,
                        isPendingCrash: Bool,
-                       origin: PersistedReportOrigin,
                        initialState: PersistedReportState) throws {
         let existingAttachmentPaths = try backgroundContext.performAndWaitThrowing {
             let predicate = NSPredicate(format: "hashProperty == %@", resource.identifier.uuidString)
@@ -740,7 +722,6 @@ extension PersistentRepository: Repository {
                     if existingObject == nil || deliveryStateLocked(managedObject) != .terminalAwaitingDeletion {
                         setDeliveryStateLocked(initialState, on: managedObject)
                         setDeliveryOwnerLocked(nil, on: managedObject)
-                        managedObject.setValue(NSNumber(value: origin.rawValue), forKey: "originRaw")
                     }
                     try contextSave(backgroundContext)
                     return identifiersToClean
@@ -765,8 +746,7 @@ extension PersistentRepository: Repository {
     func markReadyForInitialSubmission(_ resource: Resource) throws {
         try transition(resource,
                        from: [.awaitingSourcePurge, .initialSubmissionInFlight],
-                       to: .readyForInitialSubmission,
-                       updatesAttemptDate: false)
+                       to: .readyForInitialSubmission)
     }
 
     /// A process may terminate after source purge but before the eligibility transition is written.
@@ -799,21 +779,6 @@ extension PersistentRepository: Repository {
                     throw RepositoryError.resourceNotFound
                 }
                 return deliveryStateLocked(managedObject)
-            }
-        }
-    }
-
-    func persistedOrigin(for resource: Resource) throws -> PersistedReportOrigin {
-        return try withTransaction {
-            try backgroundContext.performAndWaitThrowing {
-                guard let managedObject = try managedObjectLocked(for: resource) else {
-                    throw RepositoryError.resourceNotFound
-                }
-                guard let value = managedObject.value(forKey: "originRaw") as? NSNumber,
-                      let origin = PersistedReportOrigin(rawValue: value.int16Value) else {
-                    return .live
-                }
-                return origin
             }
         }
     }
@@ -861,8 +826,7 @@ extension PersistentRepository: Repository {
     func markReadyForRetry(_ resource: Resource) throws {
         try transition(resource,
                        from: [.initialSubmissionInFlight, .retryInFlight],
-                       to: .readyForRetry,
-                       updatesAttemptDate: true)
+                       to: .readyForRetry)
     }
 
     /// Completes a retry attempt and applies retry-limit accounting in the same store transaction.
@@ -888,7 +852,6 @@ extension PersistentRepository: Repository {
                     setDeliveryOwnerLocked(nil, on: managedObject)
                     managedObject.setValue(currentRetryCount + 1, forKey: "retryCount")
                     managedObject.setValue(resource.reportData, forKey: "reportData")
-                    managedObject.setValue(Date(), forKey: "lastAttemptAt")
                     try _saveContextLocked()
                     return []
                 } catch {
@@ -904,8 +867,7 @@ extension PersistentRepository: Repository {
     func markTerminalForDeletion(_ resource: Resource) throws {
         try transition(resource,
                        from: nil,
-                       to: .terminalAwaitingDeletion,
-                       updatesAttemptDate: true)
+                       to: .terminalAwaitingDeletion)
     }
 
     /// Recovers claims abandoned by a previous process exactly once for this database in the current process.
@@ -1164,7 +1126,6 @@ extension PersistentRepository: Repository {
                 do {
                     setDeliveryStateLocked(inFlightState, on: managedObject)
                     setDeliveryOwnerLocked(deliveryOwnerToken, on: managedObject)
-                    managedObject.setValue(Date(), forKey: "lastAttemptAt")
                     try contextSave(backgroundContext)
                     return true
                 } catch {
@@ -1177,8 +1138,7 @@ extension PersistentRepository: Repository {
 
     private func transition(_ resource: Resource,
                             from expectedStates: Set<PersistedReportState>?,
-                            to targetState: PersistedReportState,
-                            updatesAttemptDate: Bool) throws {
+                            to targetState: PersistedReportState) throws {
         try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
             try backgroundContext.performAndWaitThrowing {
@@ -1191,9 +1151,6 @@ extension PersistentRepository: Repository {
                 do {
                     setDeliveryStateLocked(targetState, on: managedObject)
                     setDeliveryOwnerLocked(nil, on: managedObject)
-                    if updatesAttemptDate {
-                        managedObject.setValue(Date(), forKey: "lastAttemptAt")
-                    }
                     try contextSave(backgroundContext)
                 } catch {
                     backgroundContext.rollback()

@@ -1,16 +1,9 @@
 import Foundation
 
-enum PersistedReportOrigin: Int16 {
-    case live = 0
-    case nativeCrash = 1
-    case outOfMemory = 2
-}
-
 protocol Repository {
     associatedtype Resource
 
     func save(_ resource: Resource) throws
-    func save(_ resource: Resource, origin: PersistedReportOrigin) throws
     func getInitialSubmission(count: Int) throws -> [Resource]
     func claimInitialSubmission(_ resource: Resource) throws -> Bool
     func claimRetrySubmission(_ resource: Resource) throws -> Bool
@@ -28,10 +21,4 @@ protocol Repository {
     func getOldest(count: Int) throws -> [Resource]
     func countResources() throws -> Int
     func clear() throws
-}
-
-extension Repository {
-    func save(_ resource: Resource, origin: PersistedReportOrigin) throws {
-        try save(resource)
-    }
 }

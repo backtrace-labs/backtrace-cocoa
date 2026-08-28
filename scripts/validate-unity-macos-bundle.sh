@@ -493,6 +493,38 @@ plutil -lint "$PRIVACY_MANIFEST" >/dev/null
 readonly CURRENT_MODEL_VERSION="$(plutil -extract NSManagedObjectModel_CurrentVersionName raw -o - "$MODEL_VERSION")"
 [[ "$CURRENT_MODEL_VERSION" == "ModelV2" ]] ||
   fail "unexpected current Core Data model version: $CURRENT_MODEL_VERSION"
+swift - "$LEGACY_MODEL" "$CURRENT_MODEL" <<'SWIFT'
+import CoreData
+import Foundation
+
+guard CommandLine.arguments.count == 3,
+      let legacyModel = NSManagedObjectModel(contentsOf: URL(fileURLWithPath: CommandLine.arguments[1])),
+      let currentModel = NSManagedObjectModel(contentsOf: URL(fileURLWithPath: CommandLine.arguments[2])),
+      let legacyCrash = legacyModel.entitiesByName["Crash"],
+      let currentCrash = currentModel.entitiesByName["Crash"] else {
+    fatalError("error: unable to load compiled retry-database models")
+}
+
+let legacyAttributes = Set(legacyCrash.attributesByName.keys)
+let currentAttributes = Set(currentCrash.attributesByName.keys)
+let expectedLegacy: Set<String> = [
+    "attachmentPaths", "dateAdded", "hashProperty", "reportData", "retryCount"
+]
+let expectedCurrent = expectedLegacy.union(["deliveryOwner", "deliveryStateRaw"])
+guard legacyAttributes == expectedLegacy else {
+    fatalError("error: unexpected legacy retry-database schema: \(legacyAttributes.sorted())")
+}
+guard currentAttributes == expectedCurrent else {
+    fatalError("error: unexpected current retry-database schema: \(currentAttributes.sorted())")
+}
+
+do {
+    _ = try NSMappingModel.inferredMappingModel(forSourceModel: legacyModel,
+                                                destinationModel: currentModel)
+} catch {
+    fatalError("error: ModelV1 to ModelV2 lightweight migration is unavailable")
+}
+SWIFT
 readonly BUNDLE_IDENTIFIER="$(plutil -extract CFBundleIdentifier raw -o - "$INFO_PLIST")"
 readonly BUNDLE_EXECUTABLE="$(plutil -extract CFBundleExecutable raw -o - "$INFO_PLIST")"
 readonly BUNDLE_TYPE="$(plutil -extract CFBundlePackageType raw -o - "$INFO_PLIST")"

@@ -338,9 +338,19 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let modelUrl = try XCTUnwrap(
                         PersistentRepository<BacktraceReport>.resolveModelUrl()
                     )
-                    expect(FileManager.default.fileExists(
-                        atPath: modelUrl.appendingPathComponent("ModelV2.mom").path
-                    )).to(beTrue())
+                    let modelV2Url = modelUrl.appendingPathComponent("ModelV2.mom")
+                    let modelV2 = try XCTUnwrap(NSManagedObjectModel(contentsOf: modelV2Url))
+                    let crashEntity = try XCTUnwrap(modelV2.entitiesByName["Crash"])
+
+                    expect(Set(crashEntity.attributesByName.keys)).to(equal(Set([
+                        "attachmentPaths",
+                        "dateAdded",
+                        "deliveryOwner",
+                        "deliveryStateRaw",
+                        "hashProperty",
+                        "reportData",
+                        "retryCount"
+                    ])))
                 }
 
                 throwingIt("skips an unrelated generic model without the V2 schema") {
@@ -629,7 +639,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(try repository.getLatest()).to(beEmpty())
                     expect(try repository.getOldest()).to(beEmpty())
                     expect(try repository.getInitialSubmission(count: 1)).to(beEmpty())
-                    expect(try repository.persistedOrigin(for: pending)).to(equal(.nativeCrash))
 
                     try repository.markReadyForInitialSubmission(pending)
                     expect(try repository.getLatest()).to(beEmpty())
@@ -642,16 +651,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try repository.markReadyForRetry(pending)
                     expect(try repository.getInitialSubmission(count: 1)).to(beEmpty())
                     expect(try repository.getLatest().map(\.identifier)).to(equal([pending.identifier]))
-                }
-
-                throwingIt("persists the origin of an out-of-memory retry") {
-                    try repository.clear()
-                    let report = try crashReporter.generateLiveReport(attributes: [:])
-
-                    try repository.save(report, origin: .outOfMemory)
-
-                    expect(try repository.persistedOrigin(for: report)).to(equal(.outOfMemory))
-                    expect(try repository.persistedState(for: report)).to(equal(.readyForRetry))
                 }
 
                 throwingIt("keeps terminal rows out of replay until deferred cleanup succeeds") {
@@ -695,6 +694,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let attachmentUrl = storeDirectoryUrl.appendingPathComponent("legacy-attachment.txt")
                     try Data("legacy attachment".utf8).write(to: attachmentUrl)
                     let report = try crashReporter.generateLiveReport(attributes: [:])
+                    let pending = try crashReporter.generateLiveReport(attributes: ["pending": true])
                     let storeUrl = storeDirectoryUrl.appendingPathComponent("Model.sqlite")
                     let modelDirectoryUrl = try XCTUnwrap(
                         PersistentRepository<BacktraceReport>.resolveModelUrl()
@@ -719,10 +719,30 @@ final class BacktraceDatabaseTests: QuickSpec {
                             legacyRow.setValue([attachmentUrl.path], forKey: "attachmentPaths")
                             legacyRow.setValue(Date(), forKey: "dateAdded")
                             legacyRow.setValue(2, forKey: "retryCount")
+
+                            let pendingRow = NSManagedObject(entity: entity, insertInto: context)
+                            pendingRow.setValue(pending.identifier.uuidString, forKey: "hashProperty")
+                            pendingRow.setValue(pending.reportData, forKey: "reportData")
+                            pendingRow.setValue([], forKey: "attachmentPaths")
+                            pendingRow.setValue(Date(), forKey: "dateAdded")
+                            pendingRow.setValue(0, forKey: "retryCount")
                             try context.save()
                         }
                         try coordinator.remove(store)
                     }
+
+                    let metadataDirectoryUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportMetadata", isDirectory: true)
+                    try FileManager.default.createDirectory(at: metadataDirectoryUrl,
+                                                            withIntermediateDirectories: true)
+                    let legacyStates = [pending.identifier.uuidString: "readyForSubmission"]
+                    let legacyStateData = try PropertyListSerialization.data(fromPropertyList: legacyStates,
+                                                                              format: .binary,
+                                                                              options: 0)
+                    try legacyStateData.write(
+                        to: metadataDirectoryUrl.appendingPathComponent("report-states.plist"),
+                        options: .atomic
+                    )
 
                     let migratedRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
@@ -735,7 +755,12 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(migrated.attachmentPaths).to(equal([attachmentUrl.path]))
                     expect(FileManager.default.fileExists(atPath: attachmentUrl.path)).to(beTrue())
                     expect(try migratedRepository.persistedState(for: migrated)).to(equal(.readyForRetry))
-                    expect(try migratedRepository.persistedOrigin(for: migrated)).to(equal(.live))
+                    let migratedPending = try XCTUnwrap(
+                        migratedRepository.getInitialSubmission(count: 1).first
+                    )
+                    expect(migratedPending.identifier).to(equal(pending.identifier))
+                    expect(try migratedRepository.persistedState(for: migratedPending))
+                        .to(equal(.readyForInitialSubmission))
                 }
 
                 throwingIt("serializes claims made by two repository instances") {

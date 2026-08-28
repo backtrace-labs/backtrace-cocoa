@@ -6,14 +6,11 @@ final class WatcherRepositoryMock<Resource: BacktraceReport> {
         let resource: Resource
         var retryCount: Int = 0
         var state: PersistedReportState
-        var origin: PersistedReportOrigin
 
         init(_ resource: Resource,
-             state: PersistedReportState = .readyForRetry,
-             origin: PersistedReportOrigin = .live) {
+             state: PersistedReportState = .readyForRetry) {
             self.resource = resource
             self.state = state
-            self.origin = origin
         }
     }
     var storage: [StoredResource] = []
@@ -34,14 +31,9 @@ extension WatcherRepositoryMock: Repository {
         storage.append(StoredResource(resource))
     }
 
-    func save(_ resource: Resource, origin: PersistedReportOrigin) throws {
-        storage.append(StoredResource(resource, origin: origin))
-    }
-
     func storeInitial(_ resource: Resource) {
         storage.append(StoredResource(resource,
-                                      state: .readyForInitialSubmission,
-                                      origin: .nativeCrash))
+                                      state: .readyForInitialSubmission))
     }
 
     func getInitialSubmission(count: Int) throws -> [Resource] {

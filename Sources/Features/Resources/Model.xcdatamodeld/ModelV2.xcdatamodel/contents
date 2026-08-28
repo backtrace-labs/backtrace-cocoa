@@ -6,8 +6,6 @@
         <attribute name="deliveryOwner" optional="YES" attributeType="String"/>
         <attribute name="deliveryStateRaw" optional="YES" attributeType="Integer 16" usesScalarValueType="NO"/>
         <attribute name="hashProperty" optional="YES" attributeType="String"/>
-        <attribute name="lastAttemptAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="originRaw" optional="YES" attributeType="Integer 16" usesScalarValueType="NO"/>
         <attribute name="reportData" optional="YES" attributeType="Binary"/>
         <attribute name="retryCount" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
