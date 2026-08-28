@@ -44,6 +44,10 @@ protocol BacktraceNotificationObserverDelegate: AnyObject {
         handlerDelegates.forEach({ $0.startObserving(self) })
     }
 
+    func disableNotificationObserver() {
+        handlerDelegates.forEach({ $0.stopObserving() })
+    }
+
     func addBreadcrumb(_ message: String,
                        attributes: [String: String]?,
                        type: BacktraceBreadcrumbType,
@@ -60,6 +64,14 @@ protocol BacktraceNotificationHandlerDelegate: AnyObject {
     var delegate: BacktraceNotificationObserverDelegate? { get set }
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate)
+    func stopObserving()
+}
+
+extension BacktraceNotificationHandlerDelegate {
+    func stopObserving() {
+        NotificationCenter.default.removeObserver(self)
+        delegate = nil
+    }
 }
 
 #if os(iOS)
@@ -78,6 +90,11 @@ class BacktraceOrientationNotificationObserver: NSObject, BacktraceNotificationH
                                                selector: #selector(notifyOrientationChange),
                                                name: UIDevice.orientationDidChangeNotification,
                                                object: nil)
+    }
+
+    func stopObserving() {
+        NotificationCenter.default.removeObserver(self)
+        delegate = nil
     }
 
     func isDirty() -> Bool {
@@ -125,14 +142,23 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
     var lastMemoryPressureEvent: DispatchSource.MemoryPressureEvent?
 
     private var source: DispatchSourceMemoryPressure?
+    private let lifecycleLock = NSLock()
 
     var memoryPressureEvent: DispatchSource.MemoryPressureEvent? {
+        lifecycleLock.lock()
+        let source = self.source
+        lifecycleLock.unlock()
         return source?.data
     }
 
     lazy var memoryPressureEventHandler: DispatchSourceProtocol.DispatchSourceHandler = { [weak self] in
         guard let self = self else { return }
-        if let event = self.memoryPressureEvent, self.source?.isCancelled == false {
+        let event = self.memoryPressureEvent
+        self.lifecycleLock.lock()
+        let source = self.source
+        let delegate = self.delegate
+        self.lifecycleLock.unlock()
+        if let event = event, source?.isCancelled == false, delegate != nil {
             let message = self.getMemoryWarningText(event)
             let level = self.getMemoryWarningLevel(event)
             self.addBreadcrumb(message, level: level)
@@ -140,10 +166,12 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
     }
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
-        self.delegate = delegate
         if let source: DispatchSourceMemoryPressure =
             DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: DispatchQueue.main) as? DispatchSource {
+            lifecycleLock.lock()
+            self.delegate = delegate
             self.source = source
+            lifecycleLock.unlock()
             source.setEventHandler(handler: memoryPressureEventHandler)
             source.setRegistrationHandler(handler: memoryPressureEventHandler)
             if #available(iOS 11.0, macOS 10.12, *) {
@@ -154,7 +182,22 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
         }
     }
 
+    func stopObserving() {
+        lifecycleLock.lock()
+        let source = self.source
+        self.source = nil
+        delegate = nil
+        lifecycleLock.unlock()
+        source?.setEventHandler {}
+        source?.setRegistrationHandler {}
+        source?.cancel()
+    }
+
     func isDirty() -> Bool {
+        let memoryPressureEvent = self.memoryPressureEvent
+        lifecycleLock.lock()
+        let lastMemoryPressureEvent = self.lastMemoryPressureEvent
+        lifecycleLock.unlock()
         if let lastMemoryPressureEvent = lastMemoryPressureEvent {
             return lastMemoryPressureEvent.rawValue != memoryPressureEvent?.rawValue
          }
@@ -162,14 +205,20 @@ class BacktraceMemoryNotificationObserver: NSObject, BacktraceNotificationHandle
     }
 
     func addBreadcrumb(_ message: String, level: BacktraceBreadcrumbLevel) {
-        if isDirty() {
-            if let result = delegate?.addBreadcrumb(message,
-                                                    attributes: nil,
-                                                    type: .system,
-                                                    level: level),
-               result {
-                lastMemoryPressureEvent = memoryPressureEvent
-            }
+        let event = memoryPressureEvent
+        lifecycleLock.lock()
+        let delegate = self.delegate
+        let isDirty = lastMemoryPressureEvent?.rawValue != event?.rawValue
+        lifecycleLock.unlock()
+        guard isDirty else { return }
+        if let result = delegate?.addBreadcrumb(message,
+                                                attributes: nil,
+                                                type: .system,
+                                                level: level),
+           result {
+            lifecycleLock.lock()
+            lastMemoryPressureEvent = event
+            lifecycleLock.unlock()
         }
     }
 
@@ -217,8 +266,12 @@ func powerSourceObserver(context: UnsafeMutableRawPointer?) {
 class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandlerDelegate {
 
     weak var delegate: BacktraceNotificationObserverDelegate?
+    private let lifecycleLock = NSRecursiveLock()
 
     func addBreadcrumb(_ message: String) -> Bool? {
+        lifecycleLock.lock()
+        let delegate = self.delegate
+        lifecycleLock.unlock()
         return delegate?.addBreadcrumb(message,
                                        attributes: nil,
                                        type: .system,
@@ -227,6 +280,7 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     
 #if os(OSX)
     var loop: CFRunLoopSource?
+    private var loopRunLoop: CFRunLoop?
 
     private var powerSourceInfo: [String: Any]? {
         let psInfo = IOPSCopyPowerSourcesInfo().takeUnretainedValue()
@@ -249,6 +303,8 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
         self.delegate = delegate
         stopLoopSourceIfExist()
         let opaque = Unmanaged.passUnretained(self).toOpaque()
@@ -257,7 +313,21 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
             powerSourceObserver,
                 context
         ).takeRetainedValue() as CFRunLoopSource
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), loop, CFRunLoopMode.commonModes)
+        let currentRunLoop = CFRunLoopGetCurrent()
+        loopRunLoop = currentRunLoop
+        CFRunLoopAddSource(currentRunLoop, loop, CFRunLoopMode.commonModes)
+    }
+
+
+    func stopObserving() {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+#if os(OSX)
+        stopLoopSourceIfExist()
+#elseif os(iOS)
+        NotificationCenter.default.removeObserver(self)
+#endif
+        delegate = nil
     }
 
     func isDirty() -> Bool {
@@ -278,9 +348,15 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     }
 
     func stopLoopSourceIfExist() {
-        if let loop = loop, CFRunLoopContainsSource(CFRunLoopGetCurrent(), loop, CFRunLoopMode.commonModes) {
-            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), loop, CFRunLoopMode.commonModes)
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        if let loop = loop,
+           let loopRunLoop = loopRunLoop,
+           CFRunLoopContainsSource(loopRunLoop, loop, CFRunLoopMode.commonModes) {
+            CFRunLoopRemoveSource(loopRunLoop, loop, CFRunLoopMode.commonModes)
         }
+        loop = nil
+        loopRunLoop = nil
     }
 
     deinit {
@@ -293,6 +369,8 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
     var batteryLevel: Float { UIDevice.current.batteryLevel }
 
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
         self.delegate = delegate
         UIDevice.current.isBatteryMonitoringEnabled = true
         NotificationCenter.default.addObserver(self,
@@ -303,6 +381,13 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
                                                selector: #selector(notifyBatteryStatusChange),
                                                name: UIDevice.batteryLevelDidChangeNotification,
                                                object: nil)
+    }
+
+    func stopObserving() {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        NotificationCenter.default.removeObserver(self)
+        delegate = nil
     }
 
     func isDirty() -> Bool {
@@ -339,7 +424,11 @@ class BacktraceBatteryNotificationObserver: NSObject, BacktraceNotificationHandl
         NotificationCenter.default.removeObserver(self)
     }
 #elseif os(tvOS)
-    func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {}
+    func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
+        lifecycleLock.lock()
+        self.delegate = delegate
+        lifecycleLock.unlock()
+    }
 #endif
 }
 
@@ -364,6 +453,11 @@ class BacktraceAppStateNotificationObserver: NSObject, BacktraceNotificationHand
     func startObserving(_ delegate: BacktraceNotificationObserverDelegate) {
         self.delegate = delegate
         observeApplicationStateChange()
+    }
+
+    func stopObserving() {
+        NotificationCenter.default.removeObserver(self)
+        delegate = nil
     }
 
     func isDirty() -> Bool {
@@ -425,6 +519,11 @@ class BacktraceCallNotificationObserver: NSObject, BacktraceNotificationHandlerD
         self.delegate = delegate
         callObserver = CXCallObserver()
         callObserver?.setDelegate(self, queue: nil)
+    }
+
+    func stopObserving() {
+        callObserver = nil
+        delegate = nil
     }
 
     var isOutgoingCall: Bool {

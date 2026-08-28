@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D17E10000000000000000101 /* BacktraceSubmissionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17E10000000000000000002 /* BacktraceSubmissionCoordinator.swift */; };
+		D17E10000000000000000102 /* BacktraceSubmissionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17E10000000000000000002 /* BacktraceSubmissionCoordinator.swift */; };
+		D17E10000000000000000103 /* BacktraceSubmissionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17E10000000000000000002 /* BacktraceSubmissionCoordinator.swift */; };
+		D17E10000000000000000104 /* BacktraceSubmissionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17E10000000000000000002 /* BacktraceSubmissionCoordinator.swift */; };
+		D17E10000000000000000201 /* BacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17E10000000000000000003 /* BacktraceClientTests.swift */; };
+		D17E10000000000000000202 /* BacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17E10000000000000000003 /* BacktraceClientTests.swift */; };
+		D17E10000000000000000203 /* BacktraceClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17E10000000000000000003 /* BacktraceClientTests.swift */; };
 		B7B000000000000000000101 /* BacktraceReportIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F000000000000000000001 /* BacktraceReportIdentifier.swift */; };
 		B7B000000000000000000102 /* BacktraceReportIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F000000000000000000001 /* BacktraceReportIdentifier.swift */; };
 		B7B000000000000000000103 /* BacktraceReportIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F000000000000000000001 /* BacktraceReportIdentifier.swift */; };
@@ -656,6 +663,9 @@
 		F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerCheckerMock.swift; sourceTree = "<group>"; };
 		F2AB63802246E16400939BC9 /* ReportingPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportingPolicy.swift; sourceTree = "<group>"; };
 		F2AB639B22479A3200939BC9 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
+		D17E10000000000000000001 /* ModelV2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ModelV2.xcdatamodel; sourceTree = "<group>"; };
+		D17E10000000000000000002 /* BacktraceSubmissionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceSubmissionCoordinator.swift; sourceTree = "<group>"; };
+		D17E10000000000000000003 /* BacktraceClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClientTests.swift; sourceTree = "<group>"; };
 		F2AFB5902225E5D000AAA1D7 /* Foundation+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Foundation+Extensions.swift"; sourceTree = "<group>"; };
 		F2AFB5932225E9D400AAA1D7 /* Annotations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotations.swift; sourceTree = "<group>"; };
 		F2AFB59922274E5400AAA1D7 /* BacktraceClientCustomizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktraceClientCustomizing.swift; sourceTree = "<group>"; };
@@ -1040,6 +1050,7 @@
 			isa = PBXGroup;
 			children = (
 				F2D8BE3921BD78A9007CFEFA /* BacktraceApi.swift */,
+				D17E10000000000000000002 /* BacktraceSubmissionCoordinator.swift */,
 				F28F165021E2A08F008E4B96 /* HttpMethod.swift */,
 				28AC773E220A2A2900FED661 /* MultipartRequest.swift */,
 				F26EBF3723F21AE000A64218 /* BacktraceRateLimiter.swift */,
@@ -1111,6 +1122,7 @@
 		F2AB636F224647DE00939BC9 /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
+				D17E10000000000000000003 /* BacktraceClientTests.swift */,
 				F2AB63742246484100939BC9 /* WatcherRepositoryMock.swift */,
 				F229D789223A56ED008EC851 /* UrlSessionMock.swift */,
 				F2AB637D22464FD500939BC9 /* DebuggerCheckerMock.swift */,
@@ -2291,6 +2303,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				205E77DE2F15A3AA0065E445 /* BacktraceNotificationObserver.swift in Sources */,
+				D17E10000000000000000104 /* BacktraceSubmissionCoordinator.swift in Sources */,
 				205E77DF2F15A3AA0065E445 /* BacktraceApi.swift in Sources */,
 				205E77E02F15A3AA0065E445 /* CrashReporting.swift in Sources */,
 				205E77E12F15A3AA0065E445 /* BacktraceResponse.swift in Sources */,
@@ -2369,6 +2382,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D17E10000000000000000103 /* BacktraceSubmissionCoordinator.swift in Sources */,
 				B7B000000000000000000103 /* BacktraceReportIdentifier.swift in Sources */,
 				B7B000000000000000000203 /* RepositoryAttachmentStore.swift in Sources */,
 				B7B000000000000000000303 /* PLCrashReporterNamespace.swift in Sources */,
@@ -2439,6 +2453,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D17E10000000000000000203 /* BacktraceClientTests.swift in Sources */,
 				20DE4B382D48616A0076B3F6 /* NSManagedObjectContextExtensionTests.swift in Sources */,
 				A24A4B7D28B595D9004F5052 /* AttachmentStorageTests.swift in Sources */,
 				F21DD39D2255666F00404CC3 /* Quick+Throws.swift in Sources */,
@@ -2471,6 +2486,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D17E10000000000000000102 /* BacktraceSubmissionCoordinator.swift in Sources */,
 				B7B000000000000000000102 /* BacktraceReportIdentifier.swift in Sources */,
 				B7B000000000000000000202 /* RepositoryAttachmentStore.swift in Sources */,
 				B7B000000000000000000302 /* PLCrashReporterNamespace.swift in Sources */,
@@ -2549,6 +2565,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D17E10000000000000000202 /* BacktraceClientTests.swift in Sources */,
 				A24A4B7C28B595D9004F5052 /* AttachmentStorageTests.swift in Sources */,
 				F2AB637F22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */,
 				A24A4B7328B595D9004F5052 /* BacktraceApiTests.swift in Sources */,
@@ -2592,6 +2609,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D17E10000000000000000101 /* BacktraceSubmissionCoordinator.swift in Sources */,
 				B7B000000000000000000101 /* BacktraceReportIdentifier.swift in Sources */,
 				B7B000000000000000000201 /* RepositoryAttachmentStore.swift in Sources */,
 				B7B000000000000000000301 /* PLCrashReporterNamespace.swift in Sources */,
@@ -2669,6 +2687,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D17E10000000000000000201 /* BacktraceClientTests.swift in Sources */,
 				A24A4B7B28B595D9004F5052 /* AttachmentStorageTests.swift in Sources */,
 				F2AB637E22464FD500939BC9 /* DebuggerCheckerMock.swift in Sources */,
 				A24A4B7228B595D9004F5052 /* BacktraceApiTests.swift in Sources */,
@@ -3025,7 +3044,7 @@
 				INFOPLIST_FILE = "Backtrace-bundle.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACH_O_TYPE = mh_bundle;
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 2.1.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = (
@@ -3091,7 +3110,7 @@
 				INFOPLIST_FILE = "Backtrace-bundle.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACH_O_TYPE = mh_bundle;
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 2.1.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = (
@@ -4862,8 +4881,9 @@
 			isa = XCVersionGroup;
 			children = (
 				F2AB639B22479A3200939BC9 /* Model.xcdatamodel */,
+				D17E10000000000000000001 /* ModelV2.xcdatamodel */,
 			);
-			currentVersion = F2AB639B22479A3200939BC9 /* Model.xcdatamodel */;
+			currentVersion = D17E10000000000000000001 /* ModelV2.xcdatamodel */;
 			path = Model.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

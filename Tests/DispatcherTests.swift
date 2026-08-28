@@ -19,6 +19,22 @@ final class DispatcherTests: QuickSpec {
                         expect(dispatched).to(beTrue())
                     })
                 }
+
+                it("completes without running work when dispatch races after shutdown") {
+                    let stoppedDispatcher = Dispatcher()
+                    let completionCalled = DispatchSemaphore(value: 0)
+                    var rejectedWorkRan = false
+                    stoppedDispatcher.shutdown()
+
+                    stoppedDispatcher.dispatch({
+                        rejectedWorkRan = true
+                    }, completion: {
+                        completionCalled.signal()
+                    })
+
+                    expect(completionCalled.wait(timeout: .now() + .seconds(1))).to(equal(.success))
+                    expect(rejectedWorkRan).to(beFalse())
+                }
             }
         }
     }

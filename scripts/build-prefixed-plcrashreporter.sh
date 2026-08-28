@@ -39,7 +39,7 @@ done
   exit 64
 }
 
-for tool in ditto git lipo nm plutil python3 shasum xcodebuild; do
+for tool in chmod ditto git grep lipo nm plutil python3 shasum xcodebuild; do
   command -v "$tool" >/dev/null 2>&1 || fail "required tool is unavailable: $tool"
 done
 
@@ -50,6 +50,15 @@ readonly OUTPUT_ROOT="$(cd "$OUTPUT" && pwd -P)"
 
 readonly PROJECT="$SOURCE_ROOT/CrashReporter.xcodeproj"
 [[ -f "$PROJECT/project.pbxproj" ]] || fail "missing PLCrashReporter Xcode project: $PROJECT"
+readonly LICENSE_FILE="$SOURCE_ROOT/LICENSE"
+readonly THIRD_PARTY_NOTICES_FILE="$SOURCE_ROOT/ThirdPartyNotices.txt"
+[[ -f "$LICENSE_FILE" ]] || fail "missing PLCrashReporter license: $LICENSE_FILE"
+[[ -f "$THIRD_PARTY_NOTICES_FILE" ]] ||
+  fail "missing PLCrashReporter third-party notices: $THIRD_PARTY_NOTICES_FILE"
+grep -Fq 'Copyright (c) Microsoft Corporation.' "$LICENSE_FILE" ||
+  fail "PLCrashReporter license does not contain the expected copyright attribution"
+grep -Fq 'Protobuf-c NOTICES AND INFORMATION' "$THIRD_PARTY_NOTICES_FILE" ||
+  fail "PLCrashReporter third-party notices do not contain the expected protobuf-c attribution"
 
 readonly SOURCE_REVISION="$(git -C "$SOURCE_ROOT" rev-parse HEAD)"
 readonly SOURCE_TAG="$(git -C "$SOURCE_ROOT" describe --tags --exact-match 2>/dev/null || true)"
@@ -114,6 +123,13 @@ mkdir -p "$OUTPUT_ROOT/include"
 ditto "$HEADERS" "$OUTPUT_ROOT/include"
 ditto "$STATIC_BINARY" "$OUTPUT_ROOT/libBTUnityCrashReporter.a"
 ditto "$PRIVACY_MANIFEST" "$OUTPUT_ROOT/PrivacyInfo.xcprivacy"
+mkdir -p "$OUTPUT_ROOT/ThirdPartyNotices"
+ditto "$LICENSE_FILE" "$OUTPUT_ROOT/ThirdPartyNotices/PLCrashReporter-LICENSE.txt"
+ditto "$THIRD_PARTY_NOTICES_FILE" \
+  "$OUTPUT_ROOT/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt"
+chmod 0644 \
+  "$OUTPUT_ROOT/ThirdPartyNotices/PLCrashReporter-LICENSE.txt" \
+  "$OUTPUT_ROOT/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt"
 
 python3 - "$OUTPUT_ROOT/include/BTUnityCrashReporter.h" <<'PY'
 from pathlib import Path
@@ -148,6 +164,8 @@ PY
 git -C "$SOURCE_ROOT" archive --format=tar "$SOURCE_REVISION" > "$WORK_ROOT/source.tar"
 readonly SOURCE_ARCHIVE_SHA256="$(shasum -a 256 "$WORK_ROOT/source.tar" | awk '{print $1}')"
 readonly LIBRARY_SHA256="$(shasum -a 256 "$OUTPUT_ROOT/libBTUnityCrashReporter.a" | awk '{print $1}')"
+readonly LICENSE_SHA256="$(shasum -a 256 "$OUTPUT_ROOT/ThirdPartyNotices/PLCrashReporter-LICENSE.txt" | awk '{print $1}')"
+readonly THIRD_PARTY_NOTICES_SHA256="$(shasum -a 256 "$OUTPUT_ROOT/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt" | awk '{print $1}')"
 
 python3 - \
   "$OUTPUT_ROOT/plcrashreporter-provenance.json" \
@@ -155,12 +173,23 @@ python3 - \
   "$SOURCE_REVISION" \
   "$SOURCE_ARCHIVE_SHA256" \
   "$PREFIX" \
-  "$LIBRARY_SHA256" <<'PY'
+  "$LIBRARY_SHA256" \
+  "$LICENSE_SHA256" \
+  "$THIRD_PARTY_NOTICES_SHA256" <<'PY'
 import json
 from pathlib import Path
 import sys
 
-output, tag, revision, archive_sha, prefix, library_sha = sys.argv[1:]
+(
+    output,
+    tag,
+    revision,
+    archive_sha,
+    prefix,
+    library_sha,
+    license_sha,
+    third_party_notices_sha,
+) = sys.argv[1:]
 value = {
     "upstream_tag": tag,
     "source_revision": revision,
@@ -168,9 +197,22 @@ value = {
     "prefix": prefix,
     "architectures": ["arm64", "x86_64"],
     "library_sha256": library_sha,
+    "license_attribution": {
+        "files": [
+            {
+                "path": "ThirdPartyNotices/PLCrashReporter-LICENSE.txt",
+                "sha256": license_sha,
+            },
+            {
+                "path": "ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt",
+                "sha256": third_party_notices_sha,
+            },
+        ],
+    },
 }
 Path(output).write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 PY
 
 echo "Built prefixed PLCrashReporter $SOURCE_TAG ($SOURCE_REVISION)"
 echo "  $OUTPUT_ROOT/libBTUnityCrashReporter.a"
+echo "  $OUTPUT_ROOT/ThirdPartyNotices"

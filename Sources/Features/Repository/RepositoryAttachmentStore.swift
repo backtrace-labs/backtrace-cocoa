@@ -2,7 +2,7 @@ import Foundation
 
 enum RepositoryAttachmentStoreError: Error {
     case unsafePath(URL)
-    case incompleteAttachmentStaging
+    case cleanupDeferred
 }
 
 /// Owns immutable attachment copies referenced by retry database rows.
@@ -20,9 +20,20 @@ final class RepositoryAttachmentStore {
     let rootUrl: URL
     let stagingRootUrl: URL
     private let fileManager: FileManager
+    private let copyItem: (URL, URL) throws -> Void
+    private let regularFileResourceValues: (URL) throws -> URLResourceValues
 
-    init(databaseUrl: URL, fileManager: FileManager = .default) throws {
+    init(databaseUrl: URL,
+         fileManager: FileManager = .default,
+         copyItem: ((URL, URL) throws -> Void)? = nil,
+         regularFileResourceValues: ((URL) throws -> URLResourceValues)? = nil) throws {
         self.fileManager = fileManager
+        self.copyItem = copyItem ?? { sourceUrl, destinationUrl in
+            try fileManager.copyItem(at: sourceUrl, to: destinationUrl)
+        }
+        self.regularFileResourceValues = regularFileResourceValues ?? { sourceUrl in
+            try sourceUrl.resourceValues(forKeys: [.isRegularFileKey])
+        }
         self.rootUrl = databaseUrl.deletingLastPathComponent()
             .appendingPathComponent("BacktraceAttachments", isDirectory: true)
             .standardizedFileURL
@@ -37,12 +48,10 @@ final class RepositoryAttachmentStore {
         try? BacktraceFileManager.excludeFromBackup(rootUrl)
     }
 
-    func store(_ attachmentPaths: [String], reportIdentifier: UUID) throws -> StoredAttachments {
-        var uniquePaths = [String]()
-        var seenPaths = Set<String>()
-        for path in attachmentPaths where seenPaths.insert(path).inserted {
-            uniquePaths.append(path)
-        }
+    func store(_ attachmentPaths: [String],
+               reportIdentifier: UUID,
+               skipsUnreadableSources: Bool = false) throws -> StoredAttachments {
+        let uniquePaths = unique(attachmentPaths)
 
         guard !uniquePaths.isEmpty else {
             return StoredAttachments(paths: [], generationUrl: nil, isComplete: true)
@@ -58,33 +67,12 @@ final class RepositoryAttachmentStore {
 
         do {
             for (index, path) in uniquePaths.enumerated() {
-                let sourceUrl = URL(fileURLWithPath: path).standardizedFileURL
-                if contains(sourceUrl) {
-                    guard fileManager.fileExists(atPath: sourceUrl.path) else {
-                        BacktraceLogger.warning("Skipping missing repository attachment: \(sourceUrl.path)")
-                        continue
-                    }
-                    storedPaths.append(sourceUrl.resolvingSymlinksInPath().standardizedFileURL.path)
-                    continue
-                }
-
-                guard fileManager.fileExists(atPath: sourceUrl.path) else {
-                    BacktraceLogger.warning("Skipping missing attachment during persistence: \(sourceUrl.path)")
-                    continue
-                }
-
-                let resolvedSourceUrl = sourceUrl.resolvingSymlinksInPath()
-                let resourceValues = try resolvedSourceUrl.resourceValues(forKeys: [.isRegularFileKey])
-                guard resourceValues.isRegularFile == true else {
-                    BacktraceLogger.warning("Skipping non-file attachment during persistence: \(sourceUrl.path)")
-                    continue
-                }
-
-                let fileName = "\(index)-\(resolvedSourceUrl.lastPathComponent)"
-                let destinationUrl = transactionUrl.appendingPathComponent(fileName, isDirectory: false)
-                try fileManager.copyItem(at: resolvedSourceUrl, to: destinationUrl)
-                storedPaths.append(destinationUrl.path)
-                copiedFileCount += 1
+                guard let staged = try stage(path,
+                                             index: index,
+                                             transactionUrl: transactionUrl,
+                                             skipsUnreadableSources: skipsUnreadableSources) else { continue }
+                storedPaths.append(staged.path)
+                copiedFileCount += staged.wasCopied ? 1 : 0
             }
 
             guard copiedFileCount > 0 else {
@@ -137,14 +125,22 @@ final class RepositoryAttachmentStore {
         try fileManager.removeItem(at: reportDirectoryUrl)
     }
 
+    // Reconciliation deliberately walks and validates both repository hierarchy levels in one pass so unsafe paths are never handed to a helper without the surrounding containment state.
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     func reconcile(referencedAttachmentPaths: [String]) throws {
+        var cleanupWasDeferred = false
         try rejectSymbolicLink(rootUrl)
         try createDirectoryIfNeeded(rootUrl)
 
         if fileManager.fileExists(atPath: stagingRootUrl.path) {
             try rejectSymbolicLink(stagingRootUrl)
             try requireContained(stagingRootUrl)
-            try fileManager.removeItem(at: stagingRootUrl)
+            do {
+                try fileManager.removeItem(at: stagingRootUrl)
+            } catch {
+                BacktraceLogger.warning("Deferred cleanup of stale attachment staging data.")
+                throw RepositoryAttachmentStoreError.cleanupDeferred
+            }
         }
         try createDirectoryIfNeeded(stagingRootUrl)
         try rejectSymbolicLink(stagingRootUrl)
@@ -167,7 +163,12 @@ final class RepositoryAttachmentStore {
             guard values.isSymbolicLink != true,
                   contains(reportDirectoryUrl),
                   values.isDirectory == true else {
-                try fileManager.removeItem(at: reportDirectoryUrl)
+                do {
+                    try fileManager.removeItem(at: reportDirectoryUrl)
+                } catch {
+                    BacktraceLogger.warning("Deferred cleanup of an unsafe attachment repository entry.")
+                    cleanupWasDeferred = true
+                }
                 continue
             }
 
@@ -184,7 +185,12 @@ final class RepositoryAttachmentStore {
                 guard values.isSymbolicLink != true,
                       values.isDirectory == true,
                       contains(generationUrl) else {
-                    try fileManager.removeItem(at: generationUrl)
+                    do {
+                        try fileManager.removeItem(at: generationUrl)
+                    } catch {
+                        BacktraceLogger.warning("Deferred cleanup of an unsafe attachment generation.")
+                        cleanupWasDeferred = true
+                    }
                     continue
                 }
                 let resolvedGenerationUrl = generationUrl.resolvingSymlinksInPath().standardizedFileURL
@@ -194,10 +200,18 @@ final class RepositoryAttachmentStore {
                     return resolvedUrl.path == resolvedGenerationUrl.path || resolvedUrl.path.hasPrefix(generationPath)
                 }
                 if !isReferenced {
-                    try fileManager.removeItem(at: generationUrl)
+                    do {
+                        try fileManager.removeItem(at: generationUrl)
+                    } catch {
+                        BacktraceLogger.warning("Deferred cleanup of an orphan attachment generation.")
+                        cleanupWasDeferred = true
+                    }
                 }
             }
             removeDirectoryIfEmpty(reportDirectoryUrl)
+        }
+        if cleanupWasDeferred {
+            throw RepositoryAttachmentStoreError.cleanupDeferred
         }
     }
 
@@ -232,6 +246,95 @@ final class RepositoryAttachmentStore {
         try fileManager.createDirectory(at: url,
                                         withIntermediateDirectories: true,
                                         attributes: [.protectionKey: FileProtectionType.none])
+    }
+
+    private func unique(_ paths: [String]) -> [String] {
+        var seenPaths = Set<String>()
+        return paths.filter { seenPaths.insert($0).inserted }
+    }
+
+    private func stage(_ path: String,
+                       index: Int,
+                       transactionUrl: URL,
+                       skipsUnreadableSources: Bool) throws -> (path: String, wasCopied: Bool)? {
+        let sourceUrl = URL(fileURLWithPath: path).standardizedFileURL
+        if contains(sourceUrl) {
+            return repositoryOwnedAttachment(sourceUrl)
+        }
+
+        guard fileManager.fileExists(atPath: sourceUrl.path) else {
+            BacktraceLogger.warning("Skipping a missing attachment during persistence.")
+            return nil
+        }
+
+        let resolvedSourceUrl = sourceUrl.resolvingSymlinksInPath()
+        guard try validateSource(resolvedSourceUrl,
+                                 skipsUnreadableSources: skipsUnreadableSources) else { return nil }
+        return try copySource(resolvedSourceUrl,
+                              index: index,
+                              transactionUrl: transactionUrl,
+                              skipsUnreadableSources: skipsUnreadableSources)
+    }
+
+    private func repositoryOwnedAttachment(_ sourceUrl: URL) -> (path: String, wasCopied: Bool)? {
+        guard fileManager.fileExists(atPath: sourceUrl.path) else {
+            BacktraceLogger.warning("Skipping a missing repository-owned attachment.")
+            return nil
+        }
+        return (sourceUrl.resolvingSymlinksInPath().standardizedFileURL.path, false)
+    }
+
+    private func validateSource(_ sourceUrl: URL,
+                                skipsUnreadableSources: Bool) throws -> Bool {
+        if skipsUnreadableSources && !fileManager.isReadableFile(atPath: sourceUrl.path) {
+            BacktraceLogger.warning("Skipping an unreadable attachment during pending-crash persistence.")
+            return false
+        }
+        let resourceValues: URLResourceValues
+        do {
+            resourceValues = try regularFileResourceValues(sourceUrl)
+        } catch {
+            guard skipsUnreadableSources else { throw error }
+            BacktraceLogger.warning(
+                "Skipping a pending-crash attachment that became unavailable during validation.")
+            return false
+        }
+        guard resourceValues.isRegularFile == true else {
+            BacktraceLogger.warning("Skipping a non-file attachment during persistence.")
+            return false
+        }
+        return true
+    }
+
+    private func copySource(_ sourceUrl: URL,
+                            index: Int,
+                            transactionUrl: URL,
+                            skipsUnreadableSources: Bool) throws -> (path: String, wasCopied: Bool)? {
+        let fileName = "\(index)-\(sourceUrl.lastPathComponent)"
+        let destinationUrl = transactionUrl.appendingPathComponent(fileName, isDirectory: false)
+        do {
+            try copyItem(sourceUrl, destinationUrl)
+        } catch {
+            // Pending attachments are optional. A source can disappear or become unreadable after preflight but before FileManager opens it.
+            // Destination failures remain fatal.
+            guard skipsUnreadableSources, !isReadableRegularFile(sourceUrl) else {
+                throw error
+            }
+            try? fileManager.removeItem(at: destinationUrl)
+            BacktraceLogger.warning(
+                "Skipping a pending-crash attachment that became unavailable during persistence.")
+            return nil
+        }
+        return (destinationUrl.path, true)
+    }
+
+    private func isReadableRegularFile(_ url: URL) -> Bool {
+        guard fileManager.fileExists(atPath: url.path),
+              fileManager.isReadableFile(atPath: url.path),
+              let values = try? url.resourceValues(forKeys: [.isRegularFileKey]) else {
+            return false
+        }
+        return values.isRegularFile == true
     }
 
     private func removeDirectoryIfEmpty(_ url: URL) {

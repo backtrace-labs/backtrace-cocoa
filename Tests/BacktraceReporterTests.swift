@@ -34,6 +34,26 @@ final class BacktraceReporterTests: QuickSpec {
                 reporter.delegate = delegate
             }
 
+            context("when native bridge shutdown is requested") {
+                it("stops reporter background activity idempotently") {
+                    reporter.enableOomWatcher()
+                    #if os(macOS)
+                    expect(reporter.memoryPressureSource).toNot(beNil())
+                    #endif
+
+                    reporter.shutdown()
+                    reporter.shutdown()
+                    reporter.enableOomWatcher()
+
+                    expect(reporter.isShutdown).to(beTrue())
+                    expect(reporter.watcher.isShutdown).to(beTrue())
+                    expect(reporter.backtraceOomWatcher.isShutdown).to(beTrue())
+                    #if os(macOS)
+                    expect(reporter.memoryPressureSource).to(beNil())
+                    #endif
+                }
+            }
+
             context("given valid HTTP response") {
                 it("sends report and calls delegate methods") {
                     urlSession.response = MockOkResponse()
@@ -82,8 +102,23 @@ final class BacktraceReporterTests: QuickSpec {
                 }
             }
 
+            context("given a permanent URL configuration error") {
+                it("notifies the delegate without persisting the report") {
+                    urlSession.response = MockUrlErrorResponse(.badURL)
+                    let result = reporter.send(resource: try reporter.generate())
+
+                    expect(result.backtraceStatus).to(equal(.unknownError))
+                    expect(result.submissionDisposition).to(equal(.permanentFailure))
+                    expect(delegate.calledWillSend).to(beTrue())
+                    expect(delegate.calledWillSendRequest).to(beTrue())
+                    expect(delegate.calledConnectionDidFail).to(beTrue())
+                    expect(delegate.calledServerDidRespond).to(beFalse())
+                    expect(try reporter.repository.countResources()).to(equal(0))
+                }
+            }
+
             context("given forbidden HTTP response") {
-                it("fails to send crash report and calls delegate methods") {
+                it("does not persist a permanently rejected report") {
                     urlSession.response = Mock403Response()
                     expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
                         .to(equal(.serverError))
@@ -94,13 +129,23 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beFalse())
                     expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
+                    expect { try reporter.repository.countResources() }.to(equal(0))
+                }
+            }
+
+            context("given retryable HTTP response") {
+                it("persists the report for retry") {
+                    urlSession.response = MockHttpResponse(statusCode: 503)
+
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.serverError))
                     expect { try reporter.repository.countResources() }.to(equal(1))
                 }
             }
 
             context("given too many reports to send") {
                 throwingIt("fails and calls limit reached delegate methods") {
-                    backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
+                    backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 1)
                     reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                      api: backtraceApi,
                                                      dbSettings: BacktraceDatabaseSettings(),
@@ -110,6 +155,8 @@ final class BacktraceReporterTests: QuickSpec {
                     reporter.delegate = delegate
 
                     urlSession.response = MockOkResponse()
+                    _ = try backtraceApi.send(try reporter.generate())
+                    delegate.clear()
                     expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
                         .to(equal(.limitReached))
 
@@ -118,7 +165,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beTrue())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(0))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
                     expect { try reporter.repository.countResources() }.to(equal(1))
                 }
             }
@@ -293,7 +340,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect(pendingReporter.backtraceOomWatcher.repository === pendingReporter.repository).to(beTrue())
                 }
 
-                throwingIt("treats purge failure as non-fatal after persistence") {
+                throwingIt("blocks replay until a failed source purge succeeds") {
                     let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
                     let pending = try BacktraceReport(pendingReport: generated.reportData,
                                                       attributes: [:],
@@ -307,12 +354,34 @@ final class BacktraceReporterTests: QuickSpec {
                                                                 oomMode: .none,
                                                                 urlSession: urlSession)
                     try pendingReporter.repository.clear()
+                    urlSession.response = MockOkResponse()
+                    urlSession.resetRequestCount()
 
                     expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
                     expect(try pendingReporter.repository.countResources()).to(equal(1))
+                    expect(try pendingReporter.repository.getLatest()).to(beEmpty())
+                    expect(try pendingReporter.repository.persistedState(for: pending))
+                        .to(equal(.awaitingSourcePurge))
+
+                    let replay = BacktraceWatcher(settings: BacktraceDatabaseSettings(),
+                                                  api: backtraceApi,
+                                                  repository: pendingReporter.repository,
+                                                  networkAvailabilityCheck: { true })
+                    replay.batchRetry()
+                    expect(urlSession.requestCount).to(equal(0))
+
+                    crashReporting.purgeError = nil
+                    try pendingReporter.handlePendingCrashes()
+                    expect(try pendingReporter.repository.persistedState(for: pending))
+                        .to(equal(.readyForInitialSubmission))
+                    replay.batchInitialSubmission()
+                    replay.batchInitialSubmission()
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(try pendingReporter.repository.countResources()).to(equal(0))
                 }
 
-                throwingIt("does not purge when durable persistence fails") {
+                throwingIt("drops invalid optional attribute values without blocking ingestion") {
                     let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
                     let pending = try BacktraceReport(pendingReport: generated.reportData,
                                                       attributes: ["not-a-property-list": NSObject()],
@@ -326,12 +395,43 @@ final class BacktraceReporterTests: QuickSpec {
                                                                 urlSession: urlSession)
                     try pendingReporter.repository.clear()
 
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
+                    expect(persisted?.attributes["not-a-property-list"]).to(beNil())
+                    expect(persisted?.attributes[BacktracePendingCrashMetadata.invalidAttributeValuesKey] as? Int)
+                        .to(equal(1))
+                }
+
+                throwingIt("does not purge when repository-owned persistence is unavailable") {
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: [:],
+                                                      attachmentPaths: [])
+                    let crashReporting = PendingCrashReportingMock(pendingReport: pending)
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                credentials: credentials,
+                                                                oomMode: .none,
+                                                                urlSession: urlSession)
+                    try pendingReporter.repository.clear()
+                    let attributesConfig = try AttributesStorage.AttributesConfig(
+                        fileName: pending.identifier.uuidString,
+                        directoryUrl: pendingReporter.repository.metadataDirectoryUrl
+                    )
+                    try FileManager.default.createDirectory(at: attributesConfig.fileUrl,
+                                                            withIntermediateDirectories: true)
+                    defer { try? FileManager.default.removeItem(at: attributesConfig.fileUrl) }
+
                     expect { try pendingReporter.handlePendingCrashes() }.to(throwError())
+
                     expect(crashReporting.events).to(equal(["load"]))
+                    expect(crashReporting.hasPendingCrashes()).to(beTrue())
                     expect(try pendingReporter.repository.countResources()).to(equal(0))
                 }
 
-                throwingIt("does not purge when a pending attachment cannot be staged") {
+                throwingIt("persists and purges when an optional pending attachment is missing") {
                     let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
                     let missingAttachment = FileManager.default.temporaryDirectory
                         .appendingPathComponent("missing-\(UUID().uuidString).txt")
@@ -347,9 +447,13 @@ final class BacktraceReporterTests: QuickSpec {
                                                                 urlSession: urlSession)
                     try pendingReporter.repository.clear()
 
-                    expect { try pendingReporter.handlePendingCrashes() }.to(throwError())
-                    expect(crashReporting.events).to(equal(["load"]))
-                    expect(try pendingReporter.repository.countResources()).to(equal(0))
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
+                    expect(persisted).toNot(beNil())
+                    expect(persisted?.attachmentPaths).to(beEmpty())
+                    expect(persisted?.attributes[BacktracePendingCrashMetadata.missingAttachmentsKey] as? Int)
+                        .to(equal(1))
                 }
 
                 throwingIt("allows absent crash metadata sidecars and purges after persistence") {
@@ -363,7 +467,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let crashReporting = PendingCrashReportingMock(
                         pendingReport: pending,
                         provider: {
-                            let metadata = try BacktracePendingCrashMetadata.load(fileName: fileName)
+                            let metadata = BacktracePendingCrashMetadata.load(fileName: fileName)
                             return try BacktraceReport(pendingReport: generated.reportData,
                                                        attributes: metadata.attributes,
                                                        attachmentPaths: metadata.attachmentPaths)
@@ -384,7 +488,7 @@ final class BacktraceReporterTests: QuickSpec {
                     expect(try pendingReporter.repository.countResources()).to(equal(1))
                 }
 
-                throwingIt("keeps the source when a present attributes sidecar is corrupt") {
+                throwingIt("preserves a corrupt attributes sidecar and continues ingesting the crash") {
                     let fileName = "corrupt-pending-attributes-\(UUID().uuidString)"
                     let config = try AttributesStorage.AttributesConfig(fileName: fileName)
                     try FileManager.default.createDirectory(at: config.directoryUrl,
@@ -402,10 +506,12 @@ final class BacktraceReporterTests: QuickSpec {
                     let crashReporting = PendingCrashReportingMock(
                         pendingReport: pending,
                         provider: {
-                            let metadata = try BacktracePendingCrashMetadata.load(fileName: fileName)
-                            return try BacktraceReport(pendingReport: generated.reportData,
-                                                       attributes: metadata.attributes,
-                                                       attachmentPaths: metadata.attachmentPaths)
+                            let metadata = BacktracePendingCrashMetadata.load(fileName: fileName)
+                            let report = try BacktraceReport(pendingReport: generated.reportData,
+                                                             attributes: metadata.attributes,
+                                                             attachmentPaths: metadata.attachmentPaths)
+                            report.pendingMetadataFilePaths = metadata.rawSidecarPaths
+                            return report
                         }
                     )
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
@@ -416,15 +522,22 @@ final class BacktraceReporterTests: QuickSpec {
                                                                 urlSession: urlSession)
                     try pendingReporter.repository.clear()
 
-                    expect { try pendingReporter.handlePendingCrashes() }.to(throwError())
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
 
-                    expect(crashReporting.events).to(equal(["load"]))
-                    expect(crashReporting.hasPendingCrashes()).to(beTrue())
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    expect(crashReporting.hasPendingCrashes()).to(beFalse())
                     expect(FileManager.default.fileExists(atPath: config.fileUrl.path)).to(beTrue())
-                    expect(try pendingReporter.repository.countResources()).to(equal(0))
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
+                    expect(persisted?.attributes[BacktracePendingCrashMetadata.attributesErrorKey] as? String)
+                        .toNot(beNil())
+                    let ownedSidecarDirectory = pendingReporter.repository.metadataDirectoryUrl
+                        .appendingPathComponent("PendingMetadata", isDirectory: true)
+                        .appendingPathComponent(pending.identifier.uuidString, isDirectory: true)
+                    expect(try FileManager.default.contentsOfDirectory(atPath: ownedSidecarDirectory.path))
+                        .toNot(beEmpty())
                 }
 
-                throwingIt("keeps the source when any stored attachment bookmark is invalid") {
+                throwingIt("recovers valid bookmarks when another stored bookmark is invalid") {
                     let fileName = "corrupt-pending-attachments-\(UUID().uuidString)"
                     let config = try AttachmentsStorage.AttachmentsConfig(fileName: fileName)
                     try FileManager.default.createDirectory(at: config.directoryUrl,
@@ -455,10 +568,12 @@ final class BacktraceReporterTests: QuickSpec {
                     let crashReporting = PendingCrashReportingMock(
                         pendingReport: pending,
                         provider: {
-                            let metadata = try BacktracePendingCrashMetadata.load(fileName: fileName)
-                            return try BacktraceReport(pendingReport: generated.reportData,
-                                                       attributes: metadata.attributes,
-                                                       attachmentPaths: metadata.attachmentPaths)
+                            let metadata = BacktracePendingCrashMetadata.load(fileName: fileName)
+                            let report = try BacktraceReport(pendingReport: generated.reportData,
+                                                             attributes: metadata.attributes,
+                                                             attachmentPaths: metadata.attachmentPaths)
+                            report.pendingMetadataFilePaths = metadata.rawSidecarPaths
+                            return report
                         }
                     )
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
@@ -469,11 +584,47 @@ final class BacktraceReporterTests: QuickSpec {
                                                                 urlSession: urlSession)
                     try pendingReporter.repository.clear()
 
-                    expect { try pendingReporter.handlePendingCrashes() }.to(throwError())
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
 
-                    expect(crashReporting.events).to(equal(["load"]))
-                    expect(crashReporting.hasPendingCrashes()).to(beTrue())
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    expect(crashReporting.hasPendingCrashes()).to(beFalse())
                     expect(FileManager.default.fileExists(atPath: config.fileUrl.path)).to(beTrue())
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
+                    expect(persisted?.attachmentPaths.count).to(equal(1))
+                    expect(persisted?.attributes[BacktracePendingCrashMetadata.invalidBookmarksKey] as? Int)
+                        .to(equal(1))
+                }
+
+                throwingIt("dead-letters a recurring invalid payload without blocking current capture") {
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let placeholder = try BacktraceReport(pendingReport: generated.reportData,
+                                                          attributes: [:],
+                                                          attachmentPaths: [])
+                    let invalidData = Data("invalid-plcrash-payload-\(UUID().uuidString)".utf8)
+                    let crashReporting = PendingCrashReportingMock(
+                        pendingReport: placeholder,
+                        provider: {
+                            throw BacktracePendingCrashError.invalidPayload(data: invalidData,
+                                                                            rawSidecarPaths: [],
+                                                                            diagnostics: [:],
+                                                                            underlying: FileError.invalidPropertyList)
+                        }
+                    )
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                credentials: credentials,
+                                                                oomMode: .none,
+                                                                urlSession: urlSession)
+                    try pendingReporter.repository.clear()
+
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+                    expect { try crashReporting.enableCrashReporting() }.toNot(throwError())
+
+                    expect(crashReporting.hasPendingCrashes()).to(beFalse())
+                    expect(crashReporting.events.filter { $0 == "load" }.count).to(equal(1))
+                    expect(crashReporting.events.filter { $0 == "purge" }.count).to(equal(1))
+                    expect(crashReporting.events.filter { $0 == "enable" }.count).to(equal(1))
                     expect(try pendingReporter.repository.countResources()).to(equal(0))
                 }
             }

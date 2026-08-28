@@ -1,5 +1,22 @@
 import Foundation
 
+private final class BacktraceCompletionGate {
+    private let lock = NSLock()
+    private var completion: ((BacktraceResult) -> Void)?
+
+    init(_ completion: @escaping (BacktraceResult) -> Void) {
+        self.completion = completion
+    }
+
+    func callAsFunction(_ result: BacktraceResult) {
+        lock.lock()
+        let callback = completion
+        completion = nil
+        lock.unlock()
+        callback?(result)
+    }
+}
+
 /// Provides the default implementation of `BacktraceClientProtocol` protocol.
 @objc open class BacktraceClient: NSObject {
 
@@ -20,6 +37,14 @@ import Foundation
     private let reporter: BacktraceReporter
     private let dispatcher: Dispatching
     private let reportingPolicy: ReportingPolicy
+    private enum LifecycleState {
+        case active
+        case shuttingDown
+        case shutDown
+    }
+    private let lifecycleCondition = NSCondition()
+    private var lifecycleState = LifecycleState.active
+    private let shutdownThreadKey = "io.backtrace.client.shutdown.\(UUID().uuidString)"
 
     /// Initialize `BacktraceClient` with credentials. To learn more about credentials, see
     /// https://help.backtrace.io/troubleshooting/what-is-a-submission-url
@@ -91,7 +116,57 @@ import Foundation
         self.metricsInstance = BacktraceMetrics(api: api)
 
         super.init()
+        if let delegate = configuration.delegate {
+            api.delegate = delegate
+            reporter.delegate = delegate
+        }
         try startCrashReporter()
+    }
+
+    internal var isShutdown: Bool {
+        lifecycleCondition.lock()
+        defer { lifecycleCondition.unlock() }
+        return lifecycleState != .active
+    }
+
+    /// Stops non-fatal SDK work while preserving the process-wide native crash handler.
+    /// Intended for native wrappers whose underlying crash reporter cannot be uninstalled.
+    @objc internal func shutdownForNativeBridge() {
+        lifecycleCondition.lock()
+        switch lifecycleState {
+        case .active:
+            lifecycleState = .shuttingDown
+            lifecycleCondition.unlock()
+        case .shuttingDown:
+            if Thread.current.threadDictionary[shutdownThreadKey] != nil {
+                lifecycleCondition.unlock()
+                return
+            }
+            while lifecycleState == .shuttingDown {
+                lifecycleCondition.wait()
+            }
+            lifecycleCondition.unlock()
+            return
+        case .shutDown:
+            lifecycleCondition.unlock()
+            return
+        }
+
+        Thread.current.threadDictionary[shutdownThreadKey] = true
+        defer {
+            Thread.current.threadDictionary.removeObject(forKey: shutdownThreadKey)
+            lifecycleCondition.lock()
+            lifecycleState = .shutDown
+            lifecycleCondition.broadcast()
+            lifecycleCondition.unlock()
+        }
+
+        dispatcher.shutdown()
+        metricsInstance.shutdownForNativeBridge()
+#if os(iOS) || os(OSX) || targetEnvironment(macCatalyst)
+        breadcrumbsInstance.shutdownForNativeBridge()
+#endif
+        reporter.shutdown()
     }
 }
 
@@ -155,23 +230,41 @@ extension BacktraceClient: BacktraceReporting {
 
     private func reportCrash(faultMessage: String? = nil, exception: NSException? = nil, attachmentPaths: [String] = [],
                              completion: @escaping ((_ result: BacktraceResult) -> Void)) {
+        let completionGate = BacktraceCompletionGate(completion)
+        guard !isShutdown else {
+            completionGate(BacktraceResult(.unknownError))
+            return
+        }
         guard reportingPolicy.allowsReporting else {
-            completion(BacktraceResult(.debuggerAttached))
+            completionGate(BacktraceResult(.debuggerAttached))
             return
         }
 
         guard let resource = try? reporter.generate(exception: exception,
                                                     attachmentPaths: attachmentPaths,
                                                     faultMessage: faultMessage) else {
-            completion(BacktraceResult(.unknownError))
+            completionGate(BacktraceResult(.unknownError))
             return
         }
 
         dispatcher.dispatch({ [weak self] in
-            guard let self = self else { return }
-            completion(self.reporter.send(resource: resource))
-        }, completion: {
-            BacktraceLogger.debug("Finished sending an error report.")
+            guard let self = self else {
+                completionGate(BacktraceResult(.unknownError, report: resource))
+                return
+            }
+            guard !self.isShutdown else {
+                completionGate(BacktraceResult(.unknownError, report: resource))
+                return
+            }
+            let result = self.reporter.send(resource: resource)
+            completionGate(result)
+        }, completion: { [weak self] in
+            // OperationQueue invokes its completion block for operations cancelled before they start.
+            // The once-only gate therefore also supplies cancellation completion without duplicating a result from an operation that did run.
+            completionGate(BacktraceResult(.unknownError, report: resource))
+            if let self = self, !self.isShutdown {
+                BacktraceLogger.debug("Finished sending an error report.")
+            }
         })
     }
 
@@ -187,9 +280,10 @@ extension BacktraceClient: BacktraceReporting {
 
         if self.configuration.oomMode != .none {
             dispatcher.dispatch({ [weak self] in
-                guard let self = self else { return }
+                guard let self = self, !self.isShutdown else { return }
                 self.reporter.enableOomWatcher()
-                }, completion: {
+                }, completion: { [weak self] in
+                    guard let self = self, !self.isShutdown else { return }
                     BacktraceLogger.debug("Started OOM Watcher.")
             })
         }

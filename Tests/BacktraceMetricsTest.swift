@@ -6,6 +6,7 @@ import Quick
 
 final class BacktraceMetricsTests: QuickSpec {
 
+    // swiftlint:disable:next function_body_length
     override func spec() {
         describe("Backtrace Metrics") {
             let urlSession = URLSessionMock()
@@ -81,6 +82,68 @@ final class BacktraceMetricsTests: QuickSpec {
                     }
                     
                     expect {filteredEvents.count}.to(equal(1))
+                }
+
+                it("replaces and stops the previous startup sender when enabled again") {
+                    let replacementMetrics = BacktraceMetrics(api: backtraceApi)
+
+                    replacementMetrics.enable(settings: BacktraceMetricsSettings())
+                    replacementMetrics.enable(settings: BacktraceMetricsSettings())
+                    replacementMetrics.shutdownForNativeBridge()
+
+                    expect(replacementMetrics.isShutdown).to(beTrue())
+                    replacementMetrics.enable(settings: BacktraceMetricsSettings())
+                    replacementMetrics.addUniqueEvent(name: "ignored-after-replacement-shutdown")
+                    expect(replacementMetrics.count).to(equal(0))
+                }
+
+                it("cancels in-flight startup metrics and rejects future work after native shutdown") {
+                    let session = HangingURLSession()
+                    let api = BacktraceApi(credentials: credentials, session: session, reportsPerMin: 30)
+                    let shutdownMetrics = BacktraceMetrics(api: api)
+                    shutdownMetrics.enable(settings: BacktraceMetricsSettings())
+
+                    expect(session.started.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    let shutdownReturned = DispatchSemaphore(value: 0)
+                    DispatchQueue.global().async {
+                        shutdownMetrics.shutdownForNativeBridge()
+                        api.shutdown()
+                        shutdownReturned.signal()
+                    }
+                    expect(shutdownReturned.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+
+                    expect(session.cancelled.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    shutdownMetrics.addUniqueEvent(name: "ignored-after-shutdown")
+                    shutdownMetrics.addSummedEvent(name: "ignored-after-shutdown")
+                    expect(shutdownMetrics.isShutdown).to(beTrue())
+                    expect(shutdownMetrics.count).to(equal(0))
+                }
+            }
+
+            context("Logging") {
+                it("does not expose malformed credential input") {
+                    let sentinel = "sentinel-metrics-token-5c8e2a"
+                    let invalidCredentials = BacktraceCredentials(submissionUrl: URL(string: sentinel)!)
+                    let invalidApi = BacktraceApi(credentials: invalidCredentials,
+                                                  session: urlSession,
+                                                  reportsPerMin: 30)
+                    let destination = CapturingBacktraceDestination()
+                    let previousDestinations = BacktraceLogger.destinations
+                    BacktraceLogger.setDestinations([destination])
+                    defer { BacktraceLogger.setDestinations(previousDestinations) }
+
+                    // Keep the facade alive until both queued startup events exercise the
+                    // redacted error path; production BacktraceClient owns this lifetime.
+                    let invalidMetrics = BacktraceMetrics(api: invalidApi)
+                    invalidMetrics.enable(settings: BacktraceMetricsSettings())
+
+                    expect(destination.messages.count).toEventually(
+                        beGreaterThanOrEqualTo(2),
+                        timeout: .seconds(2),
+                        pollInterval: .milliseconds(10)
+                    )
+                    expect(destination.messages.filter { $0.contains(sentinel) }).to(beEmpty())
+                    invalidMetrics.shutdownForNativeBridge()
                 }
             }
         }
