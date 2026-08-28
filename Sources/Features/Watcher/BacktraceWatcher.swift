@@ -3,7 +3,7 @@ import Foundation
 final class BacktraceWatcher<BacktraceRepository: Repository>
 where BacktraceRepository.Resource == BacktraceReport {
 
-    internal enum InitialBatchResult {
+    internal enum InitialBatchResult: Equatable {
         case empty
         case progressed
         case rateLimited
@@ -98,18 +98,32 @@ where BacktraceRepository.Resource == BacktraceReport {
         guard let reports = try? repository.getInitialSubmission(count: 10),
               !reports.isEmpty else { return .empty }
 
+        var enteredPipeline = false
+        var durableClaimContention = false
+
         for report in reports {
             guard !isShutdown else { return .stopped }
             let receipt = submissionCoordinator.submit(report, origin: .pendingNativeCrash)
-            // A failed claim means another owner took this row. Refetching immediately
-            // could spin on stale state, so leave the remaining work to a later trigger.
-            guard receipt.pipelineEntered else { return .stopped }
+            // Another process may claim one row after this page is fetched.
+            // Continue with the rest of this snapshot;
+            // a durable lost claim also permits the next bounded fetch because that row is no longer eligible in the shared store.
+            guard receipt.pipelineEntered else {
+                guard receipt.isDurable else { return .stopped }
+                durableClaimContention = true
+                continue
+            }
+            enteredPipeline = true
             if receipt.result.submissionDisposition == .rateLimited,
                !receipt.transportStarted {
                 return .rateLimited
             }
         }
-        return .progressed
+        if enteredPipeline {
+            return .progressed
+        }
+        // A failed compare-and-swap means another process moved every contended row out of this eligible snapshot.
+        // Refetch once so a later page is not stranded.
+        return durableClaimContention ? .progressed : .empty
     }
 
     /// Drains bounded fetches until there is no initial work or local admission is full.

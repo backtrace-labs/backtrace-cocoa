@@ -245,6 +245,118 @@ final class BacktraceWatcherTests: QuickSpec {
                         expect(urlSession.requestCount).to(equal(15))
                         expect(try repository.countResources()).to(equal(0))
                     }
+
+                    for lostIndex in [0, 1] {
+                        throwingIt("continues the current initial page after claim contention at index \(lostIndex)") {
+                            dbSettings.retryBehaviour = .none
+                            try repository.clear()
+                            let watcher = BacktraceWatcher(settings: dbSettings,
+                                                           api: api,
+                                                           repository: repository,
+                                                           networkAvailabilityCheck: { true })
+                            let reports = try (0..<3).map { index in
+                                try BacktraceWatcherTests.backtraceReport(for: ["claimIndex": index])
+                            }
+                            reports.forEach(repository.storeInitial)
+                            let lostIdentifier = reports[lostIndex].identifier
+                            repository.initialClaimDecision = { $0.identifier != lostIdentifier }
+
+                            watcher.drainInitialSubmissions(bypassesReachabilityPreflight: true)
+
+                            expect(urlSession.requestCount).to(equal(2))
+                            expect(repository.storage.map(\.resource.identifier))
+                                .to(equal([lostIdentifier]))
+                            expect(repository.storage.first?.state)
+                                .to(equal(.initialSubmissionInFlight))
+                            expect(repository.storage.first?.deliveryOwner)
+                                .to(equal("competing-initial-owner"))
+                        }
+                    }
+
+                    throwingIt("does not spin when every initial claim is owned elsewhere") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: api,
+                                                       repository: repository,
+                                                       networkAvailabilityCheck: { true })
+                        for index in 0..<3 {
+                            repository.storeInitial(try BacktraceWatcherTests.backtraceReport(
+                                for: ["contendedIndex": index]
+                            ))
+                        }
+                        var claimCount = 0
+                        repository.initialClaimDecision = { _ in
+                            claimCount += 1
+                            return false
+                        }
+
+                        watcher.drainInitialSubmissions(bypassesReachabilityPreflight: true)
+
+                        expect(claimCount).to(equal(3))
+                        expect(urlSession.requestCount).to(equal(0))
+                        expect(try repository.countResources()).to(equal(3))
+                        expect(repository.storage.allSatisfy {
+                            $0.state == .initialSubmissionInFlight
+                        }).to(beTrue())
+                    }
+
+                    throwingIt("continues to a later page after the first page is claimed elsewhere") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: api,
+                                                       repository: repository,
+                                                       networkAvailabilityCheck: { true })
+                        let reports = try (0..<11).map { index in
+                            try BacktraceWatcherTests.backtraceReport(for: ["pagedContention": index])
+                        }
+                        reports.forEach(repository.storeInitial)
+                        let contendedIdentifiers = Set(reports.prefix(10).map(\.identifier))
+                        repository.initialClaimDecision = {
+                            !contendedIdentifiers.contains($0.identifier)
+                        }
+
+                        watcher.drainInitialSubmissions(bypassesReachabilityPreflight: true)
+
+                        expect(urlSession.requestCount).to(equal(1))
+                        expect(repository.storage.map(\.resource.identifier))
+                            .to(equal(Array(reports.prefix(10).map(\.identifier))))
+                        expect(repository.storage.allSatisfy {
+                            $0.state == .initialSubmissionInFlight
+                        }).to(beTrue())
+                    }
+
+                    throwingIt("submits a previously contended row after the competing owner exits") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: api,
+                                                       repository: repository,
+                                                       networkAvailabilityCheck: { true })
+                        let contended = try BacktraceWatcherTests.pendingBacktraceReport()
+                        let available = try BacktraceWatcherTests.backtraceReport(for: ["available": true])
+                        repository.storeInitial(contended)
+                        repository.storeInitial(available)
+                        var competingOwnerIsActive = true
+                        repository.initialClaimDecision = { report in
+                            report.identifier != contended.identifier || !competingOwnerIsActive
+                        }
+
+                        watcher.drainInitialSubmissions(bypassesReachabilityPreflight: true)
+                        expect(urlSession.requestCount).to(equal(1))
+                        expect(repository.storage.map(\.resource.identifier))
+                            .to(equal([contended.identifier]))
+                        expect(repository.storage.first?.state)
+                            .to(equal(.initialSubmissionInFlight))
+
+                        competingOwnerIsActive = false
+                        repository.competingInitialOwnerIsAlive = false
+                        watcher.drainInitialSubmissions(bypassesReachabilityPreflight: true)
+
+                        expect(urlSession.requestCount).to(equal(2))
+                        expect(try repository.countResources()).to(equal(0))
+                    }
                 }
             }
 
