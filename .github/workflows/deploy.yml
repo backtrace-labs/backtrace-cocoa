@@ -158,8 +158,6 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Download signed XCFrameworks
         uses: actions/download-artifact@v4
         with:
@@ -173,12 +171,28 @@ jobs:
           path: artifacts/
 
       - name: Upload exact-tag release artifacts
-        uses: xresloader/upload-to-github-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          file: artifacts/*.tar.gz
-          tags: true
-          tag_name: ${{ github.ref_name }}
-          draft: true
-          overwrite: true
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          framework_archive="artifacts/Archive_XCFrameworks_${RELEASE_TAG}.tar.gz"
+          unity_archive="artifacts/BacktraceMacUnity.tar.gz"
+
+          test -f "$framework_archive"
+          test -f "$unity_archive"
+
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              --draft \
+              --notes "" \
+              --title "$RELEASE_TAG" \
+              --verify-tag
+          fi
+
+          gh release upload "$RELEASE_TAG" \
+            "$framework_archive" \
+            "$unity_archive" \
+            --clobber
