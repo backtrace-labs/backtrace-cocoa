@@ -75,8 +75,10 @@ where BacktraceRepository.Resource == BacktraceReport {
         }
         defer { endSubmission() }
 
+        let submissionReport: BacktraceReport
+
         do {
-            guard try claimIfNeeded(report, origin: origin) else {
+            guard let claimedReport = try claimIfNeeded(report, origin: origin) else {
                 return BacktraceSubmissionReceipt(
                     result: BacktraceResult(.unknownError,
                                             report: report,
@@ -85,6 +87,7 @@ where BacktraceRepository.Resource == BacktraceReport {
                     transportStarted: false,
                     isDurable: true)
             }
+            submissionReport = claimedReport
         } catch {
             BacktraceLogger.error("Unable to claim report \(report.identifier) for submission")
             return BacktraceSubmissionReceipt(
@@ -99,11 +102,13 @@ where BacktraceRepository.Resource == BacktraceReport {
         var durable = false
         var transportStarted = false
         do {
-            let result = try api.send(report, transportStarted: {
+            let result = try api.send(submissionReport, transportStarted: {
                 transportStarted = true
             }, finalize: { [self] outcome in
                 beforeFinalization?(outcome)
-                durable = finalize(outcome, persistedReport: report, origin: origin)
+                durable = finalize(outcome,
+                                   persistedReport: submissionReport,
+                                   origin: origin)
             })
             return BacktraceSubmissionReceipt(result: result,
                                               pipelineEntered: true,
@@ -114,7 +119,7 @@ where BacktraceRepository.Resource == BacktraceReport {
             // `durable` already reflects rollback or persistence.
             return BacktraceSubmissionReceipt(
                 result: BacktraceResult(error.backtraceStatus,
-                                        report: report,
+                                        report: submissionReport,
                                         submissionDisposition: error.backtraceSubmissionDisposition),
                 pipelineEntered: true,
                 transportStarted: transportStarted,
@@ -165,14 +170,14 @@ where BacktraceRepository.Resource == BacktraceReport {
     }
 
     private func claimIfNeeded(_ report: BacktraceReport,
-                               origin: BacktraceSubmissionOrigin) throws -> Bool {
+                               origin: BacktraceSubmissionOrigin) throws -> BacktraceReport? {
         switch origin {
         case .pendingNativeCrash:
             return try repository.claimInitialSubmission(report)
         case .repositoryRetry:
             return try repository.claimRetrySubmission(report)
         case .live, .outOfMemory:
-            return true
+            return report
         }
     }
 

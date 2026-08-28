@@ -834,13 +834,13 @@ extension PersistentRepository: Repository {
         }
     }
 
-    func claimInitialSubmission(_ resource: Resource) throws -> Bool {
+    func claimInitialSubmission(_ resource: Resource) throws -> Resource? {
         return try claim(resource,
                          expectedState: .readyForInitialSubmission,
                          inFlightState: .initialSubmissionInFlight)
     }
 
-    func claimRetrySubmission(_ resource: Resource) throws -> Bool {
+    func claimRetrySubmission(_ resource: Resource) throws -> Resource? {
         return try claim(resource,
                          expectedState: .readyForRetry,
                          inFlightState: .retryInFlight)
@@ -1151,17 +1151,25 @@ extension PersistentRepository: Repository {
 
     private func claim(_ resource: Resource,
                        expectedState: PersistedReportState,
-                       inFlightState: PersistedReportState) throws -> Bool {
+                       inFlightState: PersistedReportState) throws -> Resource? {
         return try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
             return try backgroundContext.performAndWaitThrowing {
                 guard let managedObject = try managedObjectLocked(for: resource),
-                      deliveryStateLocked(managedObject) == expectedState else { return false }
+                      deliveryStateLocked(managedObject) == expectedState else { return nil }
                 do {
+                    // Materialize exact payload, metadata, and attachment generation
+                    // while the same transaction that owns the state transition is held.
+                    // Constructing first ensures a decoding failure cannot strand the row
+                    // in an in-flight state.
+                    let claimedResource = try Resource(
+                        managedObject: managedObject,
+                        metadataDirectoryUrl: metadataDirectoryUrl
+                    )
                     setDeliveryStateLocked(inFlightState, on: managedObject)
                     setDeliveryOwnerLocked(deliveryOwnerToken, on: managedObject)
                     try contextSave(backgroundContext)
-                    return true
+                    return claimedResource
                 } catch {
                     backgroundContext.rollback()
                     throw error

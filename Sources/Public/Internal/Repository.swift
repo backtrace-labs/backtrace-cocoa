@@ -3,10 +3,14 @@ import Foundation
 protocol Repository {
     associatedtype Resource
 
+    /// Atomically claims the current persisted row
+    /// returns the exact resource snapshot protected by that claim.
+    ///
+    /// Returns nil if the row no longer exists or is no longer eligible.
+    func claimInitialSubmission(_ resource: Resource) throws -> Resource?
+    func claimRetrySubmission(_ resource: Resource) throws -> Resource?
     func save(_ resource: Resource) throws
     func getInitialSubmission(count: Int) throws -> [Resource]
-    func claimInitialSubmission(_ resource: Resource) throws -> Bool
-    func claimRetrySubmission(_ resource: Resource) throws -> Bool
     func releaseInitialClaim(_ resource: Resource) throws
     func markReadyForRetry(_ resource: Resource) throws
     func markReadyForRetry(_ resource: Resource, incrementRetryCountWithLimit limit: Int) throws
