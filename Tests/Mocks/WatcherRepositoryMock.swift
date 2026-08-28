@@ -6,6 +6,7 @@ final class WatcherRepositoryMock<Resource: BacktraceReport> {
         let resource: Resource
         var retryCount: Int = 0
         var state: PersistedReportState
+        var deliveryOwner: String?
 
         init(_ resource: Resource,
              state: PersistedReportState = .readyForRetry) {
@@ -15,7 +16,10 @@ final class WatcherRepositoryMock<Resource: BacktraceReport> {
     }
     var storage: [StoredResource] = []
     var deleteError: Error?
+    var initialClaimDecision: ((Resource) -> Bool)?
+    var competingInitialOwnerIsAlive = true
     private(set) var terminalIdentifiers = Set<UUID>()
+    private let competingInitialOwner = "competing-initial-owner"
 
     func retryCount(for resource: Resource) -> Int {
         if let idx = storage.firstIndex(where: { $0.resource == resource }) {
@@ -37,30 +41,56 @@ extension WatcherRepositoryMock: Repository {
     }
 
     func getInitialSubmission(count: Int) throws -> [Resource] {
+        if !competingInitialOwnerIsAlive {
+            storage.filter {
+                $0.state == .initialSubmissionInFlight &&
+                    $0.deliveryOwner == competingInitialOwner
+            }.forEach {
+                $0.state = .readyForInitialSubmission
+                $0.deliveryOwner = nil
+            }
+        }
         return Array(storage.filter { $0.state == .readyForInitialSubmission }
             .prefix(count)
             .map(\.resource))
     }
 
     func claimInitialSubmission(_ resource: Resource) throws -> Bool {
+        if let initialClaimDecision = initialClaimDecision,
+           !initialClaimDecision(resource) {
+            // Model the real race: this process fetched an eligible row,
+            // then another process claimed it before this process's compare-and-swap transition.
+            if let stored = storage.first(where: { $0.resource == resource }),
+               stored.state == .readyForInitialSubmission {
+                stored.state = .initialSubmissionInFlight
+                stored.deliveryOwner = competingInitialOwner
+            }
+            return false
+        }
         return transition(resource,
                           from: .readyForInitialSubmission,
-                          to: .initialSubmissionInFlight)
+                          to: .initialSubmissionInFlight,
+                          owner: "local-owner")
     }
 
     func claimRetrySubmission(_ resource: Resource) throws -> Bool {
-        return transition(resource, from: .readyForRetry, to: .retryInFlight)
+        return transition(resource,
+                          from: .readyForRetry,
+                          to: .retryInFlight,
+                          owner: "local-owner")
     }
 
-    func markReadyForInitialSubmission(_ resource: Resource) throws {
+    func releaseInitialClaim(_ resource: Resource) throws {
         _ = transition(resource,
                        from: .initialSubmissionInFlight,
-                       to: .readyForInitialSubmission)
+                       to: .readyForInitialSubmission,
+                       owner: nil)
     }
 
     func markReadyForRetry(_ resource: Resource) throws {
         guard let stored = storage.first(where: { $0.resource == resource }) else { return }
         stored.state = .readyForRetry
+        stored.deliveryOwner = nil
     }
 
     func markReadyForRetry(_ resource: Resource,
@@ -77,6 +107,7 @@ extension WatcherRepositoryMock: Repository {
         }
         storage[index].retryCount += 1
         storage[index].state = .readyForRetry
+        storage[index].deliveryOwner = nil
     }
 
     func resetInFlightReports() throws {
@@ -84,8 +115,10 @@ extension WatcherRepositoryMock: Repository {
             switch $0.state {
             case .initialSubmissionInFlight:
                 $0.state = .readyForInitialSubmission
+                $0.deliveryOwner = nil
             case .retryInFlight:
                 $0.state = .readyForRetry
+                $0.deliveryOwner = nil
             default:
                 break
             }
@@ -98,7 +131,10 @@ extension WatcherRepositoryMock: Repository {
 
     func markTerminalForDeletion(_ resource: Resource) throws {
         terminalIdentifiers.insert(resource.identifier)
-        storage.first(where: { $0.resource == resource })?.state = .terminalAwaitingDeletion
+        if let stored = storage.first(where: { $0.resource == resource }) {
+            stored.state = .terminalAwaitingDeletion
+            stored.deliveryOwner = nil
+        }
     }
 
     func delete(_ resource: Resource) throws {
@@ -141,6 +177,8 @@ extension WatcherRepositoryMock: Repository {
         storage.removeAll()
         terminalIdentifiers.removeAll()
         deleteError = nil
+        initialClaimDecision = nil
+        competingInitialOwnerIsAlive = true
     }
 
     private var eligibleResources: [Resource] {
@@ -150,10 +188,12 @@ extension WatcherRepositoryMock: Repository {
     @discardableResult
     private func transition(_ resource: Resource,
                             from: PersistedReportState,
-                            to: PersistedReportState) -> Bool {
+                            to: PersistedReportState,
+                            owner: String? = nil) -> Bool {
         guard let stored = storage.first(where: { $0.resource == resource }),
               stored.state == from else { return false }
         stored.state = to
+        stored.deliveryOwner = owner
         return true
     }
 }

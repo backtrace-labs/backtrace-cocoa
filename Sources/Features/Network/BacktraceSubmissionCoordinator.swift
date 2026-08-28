@@ -208,7 +208,7 @@ where BacktraceRepository.Resource == BacktraceReport {
             if cancelled {
                 switch origin {
                 case .pendingNativeCrash:
-                    try repository.markReadyForInitialSubmission(persistedReport)
+                    try repository.releaseInitialClaim(persistedReport)
                 case .repositoryRetry:
                     try repository.markReadyForRetry(persistedReport)
                 case .live, .outOfMemory:
@@ -225,7 +225,7 @@ where BacktraceRepository.Resource == BacktraceReport {
                 case .pendingNativeCrash:
                     // Local admission failed before a request existed, so this is
                     // still an initial-delivery operation rather than a retry.
-                    try repository.markReadyForInitialSubmission(persistedReport)
+                    try repository.releaseInitialClaim(persistedReport)
                 case .repositoryRetry:
                     try repository.markReadyForRetry(persistedReport)
                 case .live, .outOfMemory:

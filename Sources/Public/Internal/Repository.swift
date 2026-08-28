@@ -7,7 +7,7 @@ protocol Repository {
     func getInitialSubmission(count: Int) throws -> [Resource]
     func claimInitialSubmission(_ resource: Resource) throws -> Bool
     func claimRetrySubmission(_ resource: Resource) throws -> Bool
-    func markReadyForInitialSubmission(_ resource: Resource) throws
+    func releaseInitialClaim(_ resource: Resource) throws
     func markReadyForRetry(_ resource: Resource) throws
     func markReadyForRetry(_ resource: Resource, incrementRetryCountWithLimit limit: Int) throws
     func markTerminalForDeletion(_ resource: Resource) throws

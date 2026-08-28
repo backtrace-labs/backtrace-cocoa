@@ -122,7 +122,7 @@ extension BacktraceReporter {
         }
 
         try repository.markAwaitingReportsReady(except: resource.identifier)
-        try repository.savePending(resource)
+        let saveOutcome = try repository.savePending(resource)
         BacktraceLogger.debug("Persisted pending crash report: \(resource.identifier)")
 
         do {
@@ -133,11 +133,13 @@ extension BacktraceReporter {
             return
         }
 
-        do {
-            try repository.markReadyForInitialSubmission(resource)
-        } catch {
-            // A later launch with no matching source promotes the row. Failing closed prevents duplicates.
-            BacktraceLogger.warning("Purged a pending crash source but could not mark its row ready.")
+        if saveOutcome == .awaitingSourcePurge {
+            do {
+                try repository.promoteAfterSourcePurge(resource)
+            } catch {
+                // A later launch with no matching source promotes the row. Failing closed prevents duplicates.
+                BacktraceLogger.warning("Purged a pending crash source but could not mark its row ready.")
+            }
         }
     }
 }
