@@ -227,6 +227,9 @@ protocol PersistentStorable: AnyObject {
 }
 
 enum PersistedReportState: Int16 {
+    /// In-memory sentinel for an unknown non-null value read from the store.
+    /// It is never persisted and deliberately fails closed for replay and eviction.
+    case invalidPersistedState = -1
     case awaitingSourcePurge = 0
     case readyForInitialSubmission = 1
     case readyForRetry = 2
@@ -234,9 +237,38 @@ enum PersistedReportState: Int16 {
     case retryInFlight = 4
     case terminalAwaitingDeletion = 5
 
-    /// A pre-row-state sidecar existed but could not be decoded.
-    /// Keeping the row ineligible avoids turning an already accepted report back into a submission candidate.
-    case unresolvedLegacyState = 6
+    var blocksContentReplacement: Bool {
+        switch self {
+        case .invalidPersistedState,
+             .initialSubmissionInFlight,
+             .retryInFlight,
+             .terminalAwaitingDeletion:
+            return true
+        case .awaitingSourcePurge, .readyForInitialSubmission, .readyForRetry:
+            return false
+        }
+    }
+
+    var evictionRank: Int? {
+        switch self {
+        case .terminalAwaitingDeletion:
+            return 0
+        case .readyForRetry:
+            return 1
+        case .readyForInitialSubmission:
+            return 2
+        case .invalidPersistedState,
+             .awaitingSourcePurge,
+             .initialSubmissionInFlight,
+             .retryInFlight:
+            return nil
+        }
+    }
+}
+
+enum PendingSaveOutcome: Equatable {
+    case awaitingSourcePurge
+    case alreadyOwned(PersistedReportState)
 }
 
 /// Persists `PersistentStorable` objects using Core Data
@@ -255,13 +287,13 @@ final class PersistentRepository<Resource: PersistentStorable> {
     private let lifecycleLock = NSLock()
     private var shutdownRequested = false
     private let maintenanceQueue = DispatchQueue(label: "backtrace.repository.maintenance", qos: .utility)
+    private let maintenanceStateLock = NSLock()
+    private var capacityReconciliationScheduled = false
+    private var capacityReconciliationRequested = false
     private let maintenanceRetryDelay: DispatchTimeInterval
+    private let capacityReconciliationDidRun: ((PersistentRepository<Resource>) -> Void)?
     private let contextSave: (NSManagedObjectContext) throws -> Void
     private let databaseSize: (URL) throws -> Int
-
-    private var legacyStateFileUrl: URL {
-        return metadataDirectoryUrl.appendingPathComponent("report-states.plist", isDirectory: false)
-    }
 
     private var pendingMetadataDirectoryUrl: URL {
         return metadataDirectoryUrl.appendingPathComponent("PendingMetadata", isDirectory: true)
@@ -284,6 +316,7 @@ final class PersistentRepository<Resource: PersistentStorable> {
          databaseSize: @escaping (URL) throws -> Int = { try BacktraceFileManager.sizeOfFile(at: $0) },
          contextSave: @escaping (NSManagedObjectContext) throws -> Void = { try $0.save() },
          maintenanceRetryDelay: DispatchTimeInterval = .seconds(1),
+         capacityReconciliationDidRun: ((PersistentRepository<Resource>) -> Void)? = nil,
          storeDirectoryUrl: URL? = nil,
          deliveryOwnerToken: String? = nil,
          deliveryOwnerIsAlive: ((String) -> Bool)? = nil) throws {
@@ -336,6 +369,7 @@ final class PersistentRepository<Resource: PersistentStorable> {
         self.databaseSize = databaseSize
         self.contextSave = contextSave
         self.maintenanceRetryDelay = maintenanceRetryDelay
+        self.capacityReconciliationDidRun = capacityReconciliationDidRun
         let momdName = "Model"
         guard let modelDirectoryURL = Self.resolveModelUrl(modelName: momdName) else {
             throw RepositoryError
@@ -438,7 +472,7 @@ final class PersistentRepository<Resource: PersistentStorable> {
             )
         }
         do {
-            try migrateLegacyReportStates()
+            try initializeMigratedDeliveryStates()
         } catch {
             throw RepositoryError.persistentRepositoryInitError(
                 details: "Retry repository delivery state could not be migrated safely."
@@ -448,85 +482,25 @@ final class PersistentRepository<Resource: PersistentStorable> {
     }
     // swiftlint:enable function_body_length
 
-    /// Imports the legacy global state sidecar once, then makes the Core Data row the sole delivery-state authority.
-    /// A corrupt sidecar is fail-closed because it cannot distinguish a retryable row from a terminal row whose file cleanup was deferred.
-    private func migrateLegacyReportStates() throws {
+    /// Lightweight migration leaves the new optional state unset on rows created by released SDKs.
+    /// Those rows were all ordinary retry work, initialize them directly,
+    /// without depending on the temporary global sidecar used only by unreleased development builds.
+    private func initializeMigratedDeliveryStates() throws {
         try withTransaction {
             try backgroundContext.performAndWaitThrowing {
-                let managedObjects = try _getResourcesLocked()
-                let objectsWithoutState = managedObjects.filter {
-                    $0.value(forKey: "deliveryStateRaw") == nil
-                }
-
-                let legacyFileExists = FileManager.default.fileExists(atPath: legacyStateFileUrl.path)
-                let legacyStates: [String: String]?
-                if legacyFileExists {
-                    do {
-                        let data = try Data(contentsOf: legacyStateFileUrl)
-                        let propertyList = try PropertyListSerialization.propertyList(
-                            from: data,
-                            options: [],
-                            format: nil
-                        )
-                        guard let decodedStates = propertyList as? [String: String] else {
-                            throw FileError.invalidPropertyList
-                        }
-                        legacyStates = decodedStates
-                    } catch {
-                        legacyStates = nil
-                        BacktraceLogger.warning(
-                            "Legacy report delivery state was unreadable; affected rows will remain ineligible."
-                        )
-                    }
-                } else {
-                    legacyStates = [:]
-                }
-
                 do {
-                    for managedObject in objectsWithoutState {
-                        let identifier = managedObject.value(forKey: "hashProperty") as? String
-                        let legacyValue = identifier.flatMap { legacyStates?[$0] }
-                        let migrated = migratedLegacyState(legacyValue,
-                                                           sidecarWasReadable: legacyStates != nil)
-                        setDeliveryStateLocked(migrated, on: managedObject)
+                    for managedObject in try _getResourcesLocked()
+                    where managedObject.value(forKey: "deliveryStateRaw") == nil {
+                        setDeliveryStateLocked(.readyForRetry, on: managedObject)
                     }
                     if backgroundContext.hasChanges {
-                        try backgroundContext.save()
+                        try contextSave(backgroundContext)
                     }
                 } catch {
                     backgroundContext.rollback()
                     throw error
                 }
-
-                guard legacyFileExists else { return }
-                do {
-                    try FileManager.default.removeItem(at: legacyStateFileUrl)
-                } catch {
-                    // Every row now has authoritative state. Leaving the legacy file behind is safe;
-                    // a later startup will retry removal without importing over row state.
-                    BacktraceLogger.warning("Legacy report delivery state cleanup was deferred.")
-                }
             }
-        }
-    }
-
-    private func migratedLegacyState(_ value: String?,
-                                     sidecarWasReadable: Bool) -> PersistedReportState {
-        guard sidecarWasReadable else {
-            return .unresolvedLegacyState
-        }
-        switch value {
-        case "awaitingSourcePurge":
-            return .awaitingSourcePurge
-        case "readyForSubmission":
-            return .readyForInitialSubmission
-        case "terminalAwaitingDeletion":
-            return .terminalAwaitingDeletion
-        case nil:
-            // SDK versions predating the temporary sidecar stored ordinary retry rows without state.
-            return .readyForRetry
-        default:
-            return .unresolvedLegacyState
         }
     }
 
@@ -606,9 +580,9 @@ extension PersistentRepository: Repository {
     func save(_ resource: Resource) throws {
         try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
-            try _save(resource,
-                      isPendingCrash: false,
-                      initialState: .readyForRetry)
+            _ = try _save(resource,
+                          isPendingCrash: false,
+                          initialState: .readyForRetry)
         }
     }
 
@@ -616,13 +590,16 @@ extension PersistentRepository: Repository {
     ///
     /// The report is initially ineligible for submission. It becomes eligible only after PLCrashReporter confirms
     /// that its source has been purged, preventing replay from submitting the same source more than once.
-    func savePending(_ resource: Resource) throws {
-        try withTransaction {
+    @discardableResult
+    func savePending(_ resource: Resource) throws -> PendingSaveOutcome {
+        return try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
-            preservePendingMetadataFilesLocked(resource)
-            try _save(resource,
-                      isPendingCrash: true,
-                      initialState: .awaitingSourcePurge)
+            let state = try _save(resource,
+                                  isPendingCrash: true,
+                                  initialState: .awaitingSourcePurge)
+            return state == .awaitingSourcePurge
+                ? .awaitingSourcePurge
+                : .alreadyOwned(state)
         }
     }
 
@@ -630,12 +607,30 @@ extension PersistentRepository: Repository {
     // swiftlint:disable:next function_body_length
     private func _save(_ resource: Resource,
                        isPendingCrash: Bool,
-                       initialState: PersistedReportState) throws {
-        let existingAttachmentPaths = try backgroundContext.performAndWaitThrowing {
-            let predicate = NSPredicate(format: "hashProperty == %@", resource.identifier.uuidString)
-            return try _getResourcesLocked(predicate: predicate, fetchLimit: 1).first?
-                .value(forKey: "attachmentPaths") as? [String] ?? []
+                       initialState: PersistedReportState) throws -> PersistedReportState {
+        let existingSnapshot: (state: PersistedReportState, attachmentPaths: [String])? =
+            try backgroundContext.performAndWaitThrowing {
+                let predicate = NSPredicate(format: "hashProperty == %@", resource.identifier.uuidString)
+                guard let managedObject = try _getResourcesLocked(predicate: predicate, fetchLimit: 1).first else {
+                    return nil
+                }
+                return (
+                    state: deliveryStateLocked(managedObject),
+                    attachmentPaths: managedObject.value(forKey: "attachmentPaths") as? [String] ?? []
+                )
+            }
+        if let snapshot = existingSnapshot, snapshot.state.blocksContentReplacement {
+            // A duplicate ingestion may observe the same deterministic report while another process owns its delivery.
+            // Do not revoke that claim or replace files underneath request construction.
+            // Terminal rows are immutable for the same reason.
+            resource.attachmentPaths = snapshot.attachmentPaths
+            return snapshot.state
         }
+
+        if isPendingCrash {
+            preservePendingMetadataFilesLocked(resource)
+        }
+        let existingAttachmentPaths = existingSnapshot?.attachmentPaths ?? []
         let attributesConfig = try AttributesStorage.AttributesConfig(
             fileName: resource.identifier.uuidString,
             directoryUrl: metadataDirectoryUrl
@@ -719,7 +714,7 @@ extension PersistentRepository: Repository {
 
                     managedObject.setValue(resource.reportData, forKey: "reportData")
                     managedObject.setValue(storedAttachments.paths, forKey: "attachmentPaths")
-                    if existingObject == nil || deliveryStateLocked(managedObject) != .terminalAwaitingDeletion {
+                    if existingObject == nil {
                         setDeliveryStateLocked(initialState, on: managedObject)
                         setDeliveryOwnerLocked(nil, on: managedObject)
                     }
@@ -740,12 +735,25 @@ extension PersistentRepository: Repository {
 
         resource.attachmentPaths = storedAttachments.paths
         cleanupResources(identifiers: evictedIdentifiers)
+        if existingSnapshot == nil, initialState.evictionRank != nil {
+            // File-size enforcement must observe the committed insertion.
+            // Record-count enforcement also needs a follow-up when every pre-insert victim was protected.
+            scheduleCapacityReconciliation()
+        }
+        return existingSnapshot?.state ?? initialState
     }
 
     /// Promotes a durably persisted pending report only after its PLCrashReporter source is gone.
-    func markReadyForInitialSubmission(_ resource: Resource) throws {
+    func promoteAfterSourcePurge(_ resource: Resource) throws {
         try transition(resource,
-                       from: [.awaitingSourcePurge, .initialSubmissionInFlight],
+                       from: [.awaitingSourcePurge],
+                       to: .readyForInitialSubmission)
+    }
+
+    /// Releases a claimed initial delivery when no transport attempt was admitted.
+    func releaseInitialClaim(_ resource: Resource) throws {
+        try transition(resource,
+                       from: [.initialSubmissionInFlight],
                        to: .readyForInitialSubmission)
     }
 
@@ -755,19 +763,27 @@ extension PersistentRepository: Repository {
         try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
             let preservedIdentifier = identifier?.uuidString
-            try backgroundContext.performAndWaitThrowing {
+            let didPromote = try backgroundContext.performAndWaitThrowing {
                 do {
+                    var didPromote = false
                     for managedObject in try _getResourcesLocked() {
                         guard managedObject.value(forKey: "hashProperty") as? String != preservedIdentifier,
                               deliveryStateLocked(managedObject) == .awaitingSourcePurge else { continue }
                         setDeliveryStateLocked(.readyForInitialSubmission, on: managedObject)
                         setDeliveryOwnerLocked(nil, on: managedObject)
+                        didPromote = true
                     }
-                    try contextSave(backgroundContext)
+                    if didPromote {
+                        try contextSave(backgroundContext)
+                    }
+                    return didPromote
                 } catch {
                     backgroundContext.rollback()
                     throw error
                 }
+            }
+            if didPromote {
+                scheduleCapacityReconciliation()
             }
         }
     }
@@ -835,31 +851,37 @@ extension PersistentRepository: Repository {
                            incrementRetryCountWithLimit limit: Int) throws {
         try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
-            let deletedIdentifiers = try backgroundContext.performAndWaitThrowing {
-                guard let managedObject = try managedObjectLocked(for: resource) else {
-                    throw RepositoryError.resourceNotFound
-                }
-                guard deliveryStateLocked(managedObject) == .retryInFlight else { return [UUID]() }
-                guard let currentRetryCount = managedObject.value(forKey: "retryCount") as? Int else {
-                    throw RepositoryError.resourceNotFound
-                }
-
-                do {
-                    if currentRetryCount >= limit {
-                        return try _deleteLocked([managedObject])
+            let result: (deletedIdentifiers: [UUID], becameEvictable: Bool) =
+                try backgroundContext.performAndWaitThrowing {
+                    guard let managedObject = try managedObjectLocked(for: resource) else {
+                        throw RepositoryError.resourceNotFound
                     }
-                    setDeliveryStateLocked(.readyForRetry, on: managedObject)
-                    setDeliveryOwnerLocked(nil, on: managedObject)
-                    managedObject.setValue(currentRetryCount + 1, forKey: "retryCount")
-                    managedObject.setValue(resource.reportData, forKey: "reportData")
-                    try _saveContextLocked()
-                    return []
-                } catch {
-                    backgroundContext.rollback()
-                    throw error
+                    guard deliveryStateLocked(managedObject) == .retryInFlight else {
+                        return ([], false)
+                    }
+                    guard let currentRetryCount = managedObject.value(forKey: "retryCount") as? Int else {
+                        throw RepositoryError.resourceNotFound
+                    }
+
+                    do {
+                        if currentRetryCount >= limit {
+                            return (try _deleteLocked([managedObject]), false)
+                        }
+                        setDeliveryStateLocked(.readyForRetry, on: managedObject)
+                        setDeliveryOwnerLocked(nil, on: managedObject)
+                        managedObject.setValue(currentRetryCount + 1, forKey: "retryCount")
+                        managedObject.setValue(resource.reportData, forKey: "reportData")
+                        try _saveContextLocked()
+                        return ([], true)
+                    } catch {
+                        backgroundContext.rollback()
+                        throw error
+                    }
                 }
+            cleanupResources(identifiers: result.deletedIdentifiers)
+            if result.becameEvictable {
+                scheduleCapacityReconciliation()
             }
-            cleanupResources(identifiers: deletedIdentifiers)
         }
     }
 
@@ -893,6 +915,7 @@ extension PersistentRepository: Repository {
     }
 
     private func resetInFlightReportsLocked(onlyAbandonedOwners: Bool) throws {
+        var recoveredClaim = false
         try backgroundContext.performAndWaitThrowing {
             do {
                 for managedObject in try _getResourcesLocked() {
@@ -914,6 +937,7 @@ extension PersistentRepository: Repository {
                         continue
                     }
                     setDeliveryOwnerLocked(nil, on: managedObject)
+                    recoveredClaim = true
                 }
                 if backgroundContext.hasChanges {
                     try contextSave(backgroundContext)
@@ -922,6 +946,9 @@ extension PersistentRepository: Repository {
                 backgroundContext.rollback()
                 throw error
             }
+        }
+        if recoveredClaim {
+            scheduleCapacityReconciliation()
         }
     }
     
@@ -1101,10 +1128,10 @@ extension PersistentRepository: Repository {
 
     private func deliveryStateLocked(_ managedObject: NSManagedObject) -> PersistedReportState {
         guard let value = managedObject.value(forKey: "deliveryStateRaw") as? NSNumber else {
-            // Rows produced before ModelV2 are ordinary retry rows unless a legacy sidecar import says otherwise.
+            // Rows produced before ModelV2 are ordinary retry rows.
             return .readyForRetry
         }
-        return PersistedReportState(rawValue: value.int16Value) ?? .unresolvedLegacyState
+        return PersistedReportState(rawValue: value.int16Value) ?? .invalidPersistedState
     }
 
     private func setDeliveryStateLocked(_ state: PersistedReportState, on managedObject: NSManagedObject) {
@@ -1141,21 +1168,25 @@ extension PersistentRepository: Repository {
                             to targetState: PersistedReportState) throws {
         try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
-            try backgroundContext.performAndWaitThrowing {
+            let didTransition = try backgroundContext.performAndWaitThrowing {
                 guard let managedObject = try managedObjectLocked(for: resource) else {
                     throw RepositoryError.resourceNotFound
                 }
                 guard expectedStates?.contains(deliveryStateLocked(managedObject)) ?? true else {
-                    return
+                    return false
                 }
                 do {
                     setDeliveryStateLocked(targetState, on: managedObject)
                     setDeliveryOwnerLocked(nil, on: managedObject)
                     try contextSave(backgroundContext)
+                    return true
                 } catch {
                     backgroundContext.rollback()
                     throw error
                 }
+            }
+            if didTransition, targetState != .terminalAwaitingDeletion {
+                scheduleCapacityReconciliation()
             }
         }
     }
@@ -1212,19 +1243,70 @@ extension PersistentRepository: Repository {
         return try backgroundContext.count(for: resourcesCountRequest)
     }
     
-    /// Removes the oldest record if the maximum number of records or total database size is exceeded
+    /// Selects capacity victims without disturbing a source handoff or an active delivery claim.
+    /// Terminal rows are cheapest to remove, followed by ordinary retry work and then initial work.
+    private func evictionCandidatesLocked(
+        excluding identifiers: Set<UUID> = []
+    ) throws -> [Resource.ManagedObjectType] {
+        let ranked = try _getResourcesLocked().compactMap { managedObject -> (
+            object: Resource.ManagedObjectType,
+            rank: Int,
+            dateAdded: Date,
+            identifier: UUID
+        )? in
+            guard let rank = deliveryStateLocked(managedObject).evictionRank,
+                  let identifierValue = managedObject.value(forKey: "hashProperty") as? String,
+                  let identifier = UUID(uuidString: identifierValue),
+                  !identifiers.contains(identifier) else {
+                return nil
+            }
+            return (
+                object: managedObject,
+                rank: rank,
+                dateAdded: managedObject.value(forKey: "dateAdded") as? Date ?? .distantPast,
+                identifier: identifier
+            )
+        }
+
+        return ranked.sorted { left, right in
+            if left.rank != right.rank {
+                return left.rank < right.rank
+            }
+            if left.dateAdded != right.dateAdded {
+                return left.dateAdded < right.dateAdded
+            }
+            return left.identifier.uuidString < right.identifier.uuidString
+        }.map { $0.object }
+    }
+
+    /// Removes eligible records if the maximum number of records or total database size is exceeded.
+    /// If every row is protected, the repository temporarily exceeds its configured limit,
+    /// and a later reconciliation retries the same safe selection.
     /// Must be called only within a `performAndWaitThrowing` block
     /// - Throws: Any error from counting, removing records, or checking file size
-    private func _removeOldestRecordIfNeededLocked() throws -> [UUID] {
+    private func _removeOldestRecordIfNeededLocked(
+        incomingRecordCount: Int = 1,
+        excluding identifiers: Set<UUID> = []
+    ) throws -> [UUID] {
         var removedIdentifiers = [UUID]()
+        var candidates = try evictionCandidatesLocked(excluding: identifiers)
+
+        func takeCandidates(_ requestedCount: Int) -> [Resource.ManagedObjectType] {
+            let count = min(max(0, requestedCount), candidates.count)
+            guard count > 0 else { return [] }
+            let selected = Array(candidates.prefix(count))
+            candidates.removeFirst(count)
+            return selected
+        }
+
         // check number of records
         if settings.maxRecordCount != BacktraceDatabaseSettings.unlimited {
-            let removalCount = max(0, try _countResourcesLocked() + 1 - settings.maxRecordCount)
+            let removalCount = max(
+                0,
+                try _countResourcesLocked() + incomingRecordCount - settings.maxRecordCount
+            )
             if removalCount > 0 {
-                let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
-                let oldestResources = try _getResourcesLocked(sortDescriptors: sortDescriptors,
-                                                              fetchLimit: removalCount)
-                removedIdentifiers += _stageDeleteLocked(oldestResources)
+                removedIdentifiers += _stageDeleteLocked(takeCandidates(removalCount))
             }
         }
         
@@ -1236,10 +1318,7 @@ extension PersistentRepository: Repository {
             let size = try databaseSize(url)
             if size > settings.maxDatabaseSizeInBytes {
                 BacktraceLogger.debug("Database exceeds its configured size before persistence: \(size)")
-                let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
-                let oldestResource = try _getResourcesLocked(sortDescriptors: sortDescriptors,
-                                                             fetchLimit: 1)
-                removedIdentifiers += _stageDeleteLocked(oldestResource)
+                removedIdentifiers += _stageDeleteLocked(takeCandidates(1))
             }
         }
         return removedIdentifiers
@@ -1256,6 +1335,20 @@ extension PersistentRepository: Repository {
                 return try _deleteLocked(terminalResources)
             }
             cleanupResources(identifiers: terminalIdentifiers)
+
+            let capacityIdentifiers = try backgroundContext.performAndWaitThrowing {
+                do {
+                    let identifiers = try _removeOldestRecordIfNeededLocked(incomingRecordCount: 0)
+                    if !identifiers.isEmpty {
+                        try _saveContextLocked()
+                    }
+                    return identifiers
+                } catch {
+                    backgroundContext.rollback()
+                    throw error
+                }
+            }
+            cleanupResources(identifiers: capacityIdentifiers)
 
             let storageSnapshot: (attachmentPaths: [String], identifiers: Set<UUID>) =
                 try backgroundContext.performAndWaitThrowing {
@@ -1501,6 +1594,56 @@ extension PersistentRepository: Repository {
             guard scheduleRetry, !isShutdown else { return }
             maintenanceQueue.asyncAfter(deadline: .now() + maintenanceRetryDelay) { [weak self] in
                 self?.reconcileStorageBestEffort(scheduleRetry: false)
+            }
+        }
+    }
+
+    /// Capacity may be exceeded while every row is protected by a source handoff or delivery claim.
+    /// Recheck after a claim becomes eligible without extending response finalization.
+    private func scheduleCapacityReconciliation() {
+        guard settings.maxRecordCount != BacktraceDatabaseSettings.unlimited ||
+                settings.maxDatabaseSize != BacktraceDatabaseSettings.unlimited,
+              !isShutdown else { return }
+
+        maintenanceStateLock.lock()
+        capacityReconciliationRequested = true
+        guard !capacityReconciliationScheduled else {
+            maintenanceStateLock.unlock()
+            return
+        }
+        capacityReconciliationScheduled = true
+        maintenanceStateLock.unlock()
+
+        maintenanceQueue.asyncAfter(deadline: .now() + maintenanceRetryDelay) { [weak self] in
+            self?.runScheduledCapacityReconciliation()
+        }
+    }
+
+    /// Runs one coalesced capacity pass.
+    /// A transition that becomes evictable while the pass is running sets `capacityReconciliationRequested` again,
+    /// the single-flight worker performs another pass instead of dropping the wakeup between reconciliation and flag cleanup.
+    private func runScheduledCapacityReconciliation() {
+        maintenanceStateLock.lock()
+        capacityReconciliationRequested = false
+        maintenanceStateLock.unlock()
+
+        if !isShutdown {
+            reconcileStorageBestEffort(scheduleRetry: false)
+            if !isShutdown {
+                capacityReconciliationDidRun?(self)
+            }
+        }
+
+        maintenanceStateLock.lock()
+        let shouldRunAgain = capacityReconciliationRequested && !isShutdown
+        if !shouldRunAgain {
+            capacityReconciliationScheduled = false
+        }
+        maintenanceStateLock.unlock()
+
+        if shouldRunAgain {
+            maintenanceQueue.asyncAfter(deadline: .now() + maintenanceRetryDelay) { [weak self] in
+                self?.runScheduledCapacityReconciliation()
             }
         }
     }
