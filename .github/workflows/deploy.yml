@@ -7,8 +7,31 @@ on:
 jobs:
   # test is copied pasted from test.yml - do in a clean way in the future
   # BEGIN COPY PASTE FROM TEST.YML
+  swift-package:
+    name: Build and test Swift package
+    runs-on: macos-14
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify pinned Xcode
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 15.4"
+      - name: Test Swift package and compiled resources
+        run: |
+          xcodebuild \
+            -workspace SwiftPMIntegration.xcworkspace \
+            -scheme Backtrace-Tests \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$RUNNER_TEMP/backtrace-spm-derived" \
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+
   test:
     runs-on: macos-14
+    timeout-minutes: 30
     
     strategy:
       fail-fast: false
@@ -35,7 +58,7 @@ jobs:
 
   deploy-cocoapods:
     runs-on: macos-14
-    needs: [pod-lint, test]
+    needs: [pod-lint, swift-package, test]
     
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +71,7 @@ jobs:
 
   sign-and-build-frameworks:
     runs-on: macos-14
-    needs: [pod-lint, test]
+    needs: [pod-lint, swift-package, test]
 
     steps:
       - name: Checkout repository
