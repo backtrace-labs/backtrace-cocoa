@@ -6,7 +6,12 @@ import Foundation
     /// Max record count stored in database. `0` means "no limit". Default `0`.
     @objc public var maxRecordCount: Int = 0
 
-    /// Maximum database size in MB. If value is equal to zero, then size is unlimited. Default `0`.
+    /// Maximum physical database size in MB. `0` means "no limit". Default `0`.
+    ///
+    /// Enforcement is opportunistic because SQLite may retain allocated pages after report deletion.
+    /// The physical file can therefore remain above this value temporarily.
+    /// Each physical-size pass removes at most one additional eligible report and never evicts protected source handoffs,
+    /// reports awaiting their first native-crash submission, or in-flight reports.
     @objc public var maxDatabaseSize: Int = 0
 
     /// How much seconds library should wait before next retry. Default `5`.

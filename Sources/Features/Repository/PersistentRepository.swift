@@ -255,12 +255,13 @@ enum PersistedReportState: Int16 {
             return 0
         case .readyForRetry:
             return 1
-        case .readyForInitialSubmission:
-            return 2
         case .invalidPersistedState,
              .awaitingSourcePurge,
+             .readyForInitialSubmission,
              .initialSubmissionInFlight,
              .retryInFlight:
+            // A pending native crash remains protected until it has entered the submission pipeline once.
+            // After a transient initial attempt it becomes readyForRetry and ordinary capacity policy applies.
             return nil
         }
     }
@@ -742,11 +743,10 @@ extension PersistentRepository: Repository {
 
         resource.attachmentPaths = storedAttachments.paths
         cleanupResources(identifiers: evictedIdentifiers)
-        if existingSnapshot == nil, initialState.evictionRank != nil {
-            // File-size enforcement must observe the committed insertion.
-            // Record-count enforcement also needs a follow-up when every pre-insert victim was protected.
-            scheduleCapacityReconciliation()
-        }
+        // Capacity must observe the committed payload and attachment generation
+        // for both inserts and identifier-based replacements.
+        // Protected rows may temporarily exceed configured capacity until they become safely evictable.
+        scheduleCapacityReconciliation()
         return existingSnapshot?.state ?? initialState
     }
 
@@ -1258,8 +1258,8 @@ extension PersistentRepository: Repository {
         return try backgroundContext.count(for: resourcesCountRequest)
     }
     
-    /// Selects capacity victims without disturbing a source handoff or an active delivery claim.
-    /// Terminal rows are cheapest to remove, followed by ordinary retry work and then initial work.
+    /// Selects capacity victims without disturbing a source handoff, a report awaiting its first attempt,
+    /// or an active delivery claim. Terminal rows are cheapest to remove, followed by ordinary retry work.
     private func evictionCandidatesLocked(
         excluding identifiers: Set<UUID> = []
     ) throws -> [Resource.ManagedObjectType] {
@@ -1608,8 +1608,9 @@ extension PersistentRepository: Repository {
         }
     }
 
-    /// Capacity may be exceeded while every row is protected by a source handoff or delivery claim.
-    /// Recheck after a claim becomes eligible without extending response finalization.
+    /// Capacity may be exceeded while every row is protected by a source handoff,
+    /// a first-delivery opportunity, or an active claim.
+    /// Recheck after a protected row becomes safely evictable without extending response finalization.
     private func scheduleCapacityReconciliation() {
         guard settings.maxRecordCount != BacktraceDatabaseSettings.unlimited ||
                 settings.maxDatabaseSize != BacktraceDatabaseSettings.unlimited,
