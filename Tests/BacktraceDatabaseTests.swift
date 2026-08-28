@@ -73,7 +73,20 @@ final class BacktraceDatabaseTests: QuickSpec {
         describe("Crash reporter") {
             throwingContext("given all dependencies and empty database") {
                 let crashReporter = BacktraceCrashReporter()
-                let repository = try PersistentRepository<BacktraceReport>(settings: BacktraceDatabaseSettings())
+                let repositoryStoreDirectory = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(
+                        "backtrace-database-spec-\(UUID().uuidString)",
+                        isDirectory: true
+                    )
+                let repository = try PersistentRepository<BacktraceReport>(
+                    settings: BacktraceDatabaseSettings(),
+                    startupReconciliation: { _ in },
+                    storeDirectoryUrl: repositoryStoreDirectory
+                )
+                throwingAfterSuite {
+                    repository.shutdownForNativeBridge()
+                    try? FileManager.default.removeItem(at: repositoryStoreDirectory)
+                }
 
                 throwingIt("can clear database") {
                     try repository.clear()
@@ -1117,6 +1130,11 @@ final class BacktraceDatabaseTests: QuickSpec {
                 }
 
                 throwingIt("rolls back capacity eviction when the final repository save fails") {
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-capacity-rollback-store-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
                     let settingsWithLimit = BacktraceDatabaseSettings()
                     settingsWithLimit.maxRecordCount = 1
                     let failureLock = NSLock()
@@ -1132,10 +1150,14 @@ final class BacktraceDatabaseTests: QuickSpec {
                                 throw FileError.fileNotWritten
                             }
                             try context.save()
-                        }
+                        },
+                        maintenanceRetryDelay: .seconds(60),
+                        storeDirectoryUrl: storeDirectory
                     )
-                    try limitedRepository.clear()
-                    defer { try? limitedRepository.clear() }
+                    defer {
+                        limitedRepository.shutdownForNativeBridge()
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
 
                     let sourceDirectory = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-capacity-rollback-\(UUID().uuidString)",
@@ -1177,6 +1199,11 @@ final class BacktraceDatabaseTests: QuickSpec {
                 }
 
                 throwingIt("bounds physical database-size eviction to one committed victim per save") {
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-database-size-limit-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
                     let settingsWithSizeLimit = BacktraceDatabaseSettings()
                     settingsWithSizeLimit.maxDatabaseSize = 1
                     let sizeLock = NSLock()
@@ -1188,10 +1215,14 @@ final class BacktraceDatabaseTests: QuickSpec {
                             sizeLock.lock()
                             defer { sizeLock.unlock() }
                             return exceedsLimit ? 2 * 1024 * 1024 : 0
-                        }
+                        },
+                        maintenanceRetryDelay: .seconds(60),
+                        storeDirectoryUrl: storeDirectory
                     )
-                    try sizeLimitedRepository.clear()
-                    defer { try? sizeLimitedRepository.clear() }
+                    defer {
+                        sizeLimitedRepository.shutdownForNativeBridge()
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
 
                     let reports = try (0..<4).map { index in
                         try BacktraceReport(
@@ -1215,6 +1246,142 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(identifiers).to(contain(reports[1].identifier,
                                                    reports[2].identifier,
                                                    reports[3].identifier))
+                }
+
+                for capacityName in ["record count", "database size"] {
+                    for retryBehaviour in [RetryBehaviour.none, .interval] {
+                        let retryName = retryBehaviour == .none ? "none" : "interval"
+                        for statusCode in [200, 503] {
+                            throwingIt(
+                                "admits one protected initial report with \(capacityName), "
+                                    + "\(retryName) retry, and HTTP \(statusCode)"
+                            ) {
+                                let storeDirectory = FileManager.default.temporaryDirectory
+                                    .appendingPathComponent(
+                                        "backtrace-initial-capacity-admission-\(UUID().uuidString)",
+                                        isDirectory: true
+                                    )
+                                let sourceDirectory = storeDirectory.appendingPathComponent(
+                                    "sources",
+                                    isDirectory: true
+                                )
+                                try FileManager.default.createDirectory(
+                                    at: sourceDirectory,
+                                    withIntermediateDirectories: true
+                                )
+                                let settings = BacktraceDatabaseSettings()
+                                settings.retryBehaviour = retryBehaviour
+                                if capacityName == "database size" {
+                                    settings.maxDatabaseSize = 1
+                                } else {
+                                    settings.maxRecordCount = 1
+                                }
+                                let sizeLock = NSLock()
+                                var exceedsDatabaseLimit = false
+                                let limitedRepository = try PersistentRepository<BacktraceReport>(
+                                    settings: settings,
+                                    startupReconciliation: { _ in },
+                                    databaseSize: { _ in
+                                        sizeLock.lock()
+                                        defer { sizeLock.unlock() }
+                                        return exceedsDatabaseLimit ? 2 * 1024 * 1024 : 0
+                                    },
+                                    maintenanceRetryDelay: .seconds(60),
+                                    storeDirectoryUrl: storeDirectory
+                                )
+                                defer {
+                                    limitedRepository.shutdownForNativeBridge()
+                                    try? FileManager.default.removeItem(at: storeDirectory)
+                                }
+
+                                let pendingSource = sourceDirectory.appendingPathComponent("pending.txt")
+                                try Data("pending attachment".utf8).write(to: pendingSource)
+                                let pending = try BacktraceReport(
+                                    pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
+                                    attributes: ["capacity": "initial"],
+                                    attachmentPaths: [pendingSource.path]
+                                )
+                                expect(try limitedRepository.savePending(pending))
+                                    .to(equal(.awaitingSourcePurge))
+                                try limitedRepository.promoteAfterSourcePurge(pending)
+                                let pendingAttachment = try XCTUnwrap(
+                                    limitedRepository.getAll().first?.attachmentPaths.first
+                                )
+
+                                sizeLock.lock()
+                                exceedsDatabaseLimit = true
+                                sizeLock.unlock()
+                                let incomingRetry = try crashReporter.generateLiveReport(
+                                    attributes: ["capacity": "incoming-retry"]
+                                )
+                                try limitedRepository.save(incomingRetry)
+                                try limitedRepository.reconcileStorage()
+
+                                expect(try limitedRepository.getAll().map(\.identifier))
+                                    .to(equal([pending.identifier]))
+                                expect(try limitedRepository.persistedState(for: pending))
+                                    .to(equal(.readyForInitialSubmission))
+                                expect(FileManager.default.fileExists(atPath: pendingAttachment)).to(beTrue())
+
+                                // Keep the failed initial row observable until this test explicitly makes it
+                                // eligible for capacity eviction below.
+                                sizeLock.lock()
+                                exceedsDatabaseLimit = false
+                                sizeLock.unlock()
+
+                                let session = URLSessionMock()
+                                session.response = statusCode == 200
+                                    ? MockOkResponse()
+                                    : MockHttpResponse(statusCode: statusCode)
+                                let api = BacktraceApi(
+                                    credentials: BacktraceCredentials(
+                                        submissionUrl: URL(string: "https://yourteam.backtrace.io")!
+                                    ),
+                                    session: session,
+                                    reportsPerMin: 30
+                                )
+                                let watcher = BacktraceWatcher(
+                                    settings: settings,
+                                    api: api,
+                                    repository: limitedRepository,
+                                    networkAvailabilityCheck: { true }
+                                )
+
+                                watcher.drainInitialSubmissions(bypassesReachabilityPreflight: true)
+                                watcher.shutdown()
+
+                                expect(session.requestCount).to(equal(1))
+                                expect(try limitedRepository.getInitialSubmission(count: 1)).to(beEmpty())
+
+                                if statusCode == 200 {
+                                    expect(try limitedRepository.countResources()).to(equal(0))
+                                    expect(FileManager.default.fileExists(atPath: pendingAttachment)).to(beFalse())
+                                } else {
+                                    expect(try limitedRepository.persistedState(for: pending))
+                                        .to(equal(.readyForRetry))
+                                    expect(try limitedRepository.getLatest().map(\.identifier))
+                                        .to(equal([pending.identifier]))
+                                    expect(FileManager.default.fileExists(atPath: pendingAttachment)).to(beTrue())
+
+                                    if capacityName == "database size" {
+                                        sizeLock.lock()
+                                        exceedsDatabaseLimit = true
+                                        sizeLock.unlock()
+                                        try limitedRepository.reconcileStorage()
+                                        expect(try limitedRepository.countResources()).to(equal(0))
+                                    } else {
+                                        let laterRetry = try crashReporter.generateLiveReport(
+                                            attributes: ["capacity": "later-retry"]
+                                        )
+                                        try limitedRepository.save(laterRetry)
+                                        expect(try limitedRepository.getAll().map(\.identifier))
+                                            .to(equal([laterRetry.identifier]))
+                                    }
+                                    expect(FileManager.default.fileExists(atPath: pendingAttachment)).to(beFalse())
+                                }
+                            }
+                        }
+                    }
                 }
 
                 for capacityMode in ["record count", "database size"] {
@@ -1394,6 +1561,132 @@ final class BacktraceDatabaseTests: QuickSpec {
                     }
                 }
 
+                throwingIt("reconciles database growth after replacing an existing initial row") {
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-replacement-growth-capacity-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
+                    let sourceDirectory = storeDirectory.appendingPathComponent(
+                        "sources",
+                        isDirectory: true
+                    )
+                    try FileManager.default.createDirectory(
+                        at: sourceDirectory,
+                        withIntermediateDirectories: true
+                    )
+                    let settings = BacktraceDatabaseSettings()
+                    let sizeLock = NSLock()
+                    var exceedsDatabaseLimit = false
+                    let growthRepository = try PersistentRepository<BacktraceReport>(
+                        settings: settings,
+                        startupReconciliation: { _ in },
+                        databaseSize: { _ in
+                            sizeLock.lock()
+                            defer { sizeLock.unlock() }
+                            return exceedsDatabaseLimit ? 2 * 1024 * 1024 : 0
+                        },
+                        maintenanceRetryDelay: .milliseconds(10),
+                        storeDirectoryUrl: storeDirectory,
+                        deliveryOwnerIsAlive: { _ in true }
+                    )
+                    defer {
+                        growthRepository.shutdownForNativeBridge()
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+
+                    let initialPayload = try crashReporter
+                        .generateLiveReport(attributes: ["payload": "original"]).reportData
+                    let replacementPayload = try crashReporter.generateLiveReport(
+                        exception: NSException(
+                            name: .genericException,
+                            reason: String(repeating: "replacement payload growth ", count: 2_048),
+                            userInfo: nil
+                        ),
+                        attributes: ["payload": "replacement"]
+                    ).reportData
+                    expect(replacementPayload.count).to(beGreaterThan(initialPayload.count))
+                    let initialIdentifier = UUID()
+                    let initialOriginal = try BacktraceReport(
+                        report: initialPayload,
+                        attributes: ["growth": "original"],
+                        attachmentPaths: [],
+                        identifier: initialIdentifier
+                    )
+                    let replacementSource = sourceDirectory.appendingPathComponent("replacement.txt")
+                    try Data("replacement attachment".utf8).write(to: replacementSource)
+                    let initialReplacement = try BacktraceReport(
+                        report: replacementPayload,
+                        attributes: ["growth": "replacement"],
+                        attachmentPaths: [replacementSource.path],
+                        identifier: initialIdentifier
+                    )
+                    let sourceHandoff = try BacktraceReport(
+                        pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
+                        attributes: ["growth": "source-handoff"],
+                        attachmentPaths: []
+                    )
+                    let inFlight = try crashReporter.generateLiveReport(
+                        attributes: ["growth": "in-flight"]
+                    )
+                    let safeVictim = try crashReporter.generateLiveReport(
+                        attributes: ["growth": "safe-retry-victim"]
+                    )
+
+                    // Build the mixed-state repository while capacity is unlimited, so the only
+                    // maintenance request below must come from replacing an existing identifier.
+                    expect(try growthRepository.savePending(sourceHandoff))
+                        .to(equal(.awaitingSourcePurge))
+                    expect(try growthRepository.savePending(initialOriginal))
+                        .to(equal(.awaitingSourcePurge))
+                    try growthRepository.promoteAfterSourcePurge(initialOriginal)
+                    try growthRepository.save(inFlight)
+                    expect(try growthRepository.claimRetrySubmission(inFlight)).toNot(beNil())
+                    try growthRepository.save(safeVictim)
+                    expect(try growthRepository.countResources()).to(equal(4))
+
+                    settings.maxDatabaseSize = 1
+                    sizeLock.lock()
+                    exceedsDatabaseLimit = true
+                    sizeLock.unlock()
+
+                    expect(try growthRepository.savePending(initialReplacement))
+                        .to(equal(.alreadyOwned(.readyForInitialSubmission)))
+
+                    expect { try growthRepository.countResources() }.toEventually(
+                        equal(3),
+                        timeout: .seconds(2)
+                    )
+                    let remainingIdentifiers = Set(try growthRepository.getAll().map(\.identifier))
+                    expect(remainingIdentifiers).to(contain(
+                        sourceHandoff.identifier,
+                        initialIdentifier,
+                        inFlight.identifier
+                    ))
+                    expect(remainingIdentifiers).notTo(contain(safeVictim.identifier))
+                    expect(try growthRepository.persistedState(for: sourceHandoff))
+                        .to(equal(.awaitingSourcePurge))
+                    expect(try growthRepository.persistedState(for: initialReplacement))
+                        .to(equal(.readyForInitialSubmission))
+                    expect(try growthRepository.persistedState(for: inFlight))
+                        .to(equal(.retryInFlight))
+
+                    let storedReplacement = try XCTUnwrap(
+                        growthRepository.getAll().first {
+                            $0.identifier == initialIdentifier
+                        }
+                    )
+                    let replacementAttachment = try XCTUnwrap(
+                        storedReplacement.attachmentPaths.first
+                    )
+                    expect(storedReplacement.attributes["growth"] as? String)
+                        .to(equal("replacement"))
+                    expect(storedReplacement.reportData).to(equal(replacementPayload))
+                    expect(storedReplacement.reportData).notTo(equal(initialPayload))
+                    expect(try Data(contentsOf: URL(fileURLWithPath: replacementAttachment)))
+                        .to(equal(Data("replacement attachment".utf8)))
+                }
+
                 throwingIt("reconciles deferred capacity after recovering an abandoned claim") {
                     let storeDirectory = FileManager.default.temporaryDirectory
                         .appendingPathComponent(
@@ -1477,7 +1770,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                         .to(equal(.retryInFlight))
                 }
 
-                throwingIt("reconciles capacity after bulk source-handoff promotion") {
+                throwingIt("keeps bulk-promoted initial reports protected until admission") {
                     let storeDirectory = FileManager.default.temporaryDirectory
                         .appendingPathComponent(
                             "backtrace-bulk-promotion-capacity-\(UUID().uuidString)",
@@ -1510,13 +1803,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(try promotionRepository.countResources()).to(equal(2))
 
                     try promotionRepository.markAwaitingReportsReady()
+                    try promotionRepository.reconcileStorage()
 
-                    expect { try promotionRepository.countResources() }.toEventually(
-                        equal(1),
-                        timeout: .seconds(2)
-                    )
-                    expect(try promotionRepository.getAll().map(\.identifier))
-                        .to(equal([second.identifier]))
+                    expect(try promotionRepository.countResources()).to(equal(2))
+                    expect(Set(try promotionRepository.getAll().map(\.identifier)))
+                        .to(equal(Set([first.identifier, second.identifier])))
+                    expect(try promotionRepository.persistedState(for: first))
+                        .to(equal(.readyForInitialSubmission))
                     expect(try promotionRepository.persistedState(for: second))
                         .to(equal(.readyForInitialSubmission))
                 }
@@ -2270,10 +2563,22 @@ final class BacktraceDatabaseTests: QuickSpec {
                 }
                 
                 throwingIt("test with a custom maxRecordCount, removes oldest records when max record count is exceeded") {
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-record-count-limit-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
                     let settingsWithLimit = BacktraceDatabaseSettings()
                     settingsWithLimit.maxRecordCount = 5
                     let limitedRepository = try PersistentRepository<BacktraceReport>(
-                                            settings: settingsWithLimit)
+                        settings: settingsWithLimit,
+                        maintenanceRetryDelay: .seconds(60),
+                        storeDirectoryUrl: storeDirectory
+                    )
+                    defer {
+                        limitedRepository.shutdownForNativeBridge()
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
                     try limitedRepository.clear()
                     // Insert 6 reports
                     let timeOrderedReports = try (1...6).map { _ -> BacktraceReport in
