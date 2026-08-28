@@ -55,29 +55,31 @@ extension WatcherRepositoryMock: Repository {
             .map(\.resource))
     }
 
-    func claimInitialSubmission(_ resource: Resource) throws -> Bool {
+    func claimInitialSubmission(_ resource: Resource) throws -> Resource? {
         if let initialClaimDecision = initialClaimDecision,
            !initialClaimDecision(resource) {
             // Model the real race: this process fetched an eligible row,
             // then another process claimed it before this process's compare-and-swap transition.
-            if let stored = storage.first(where: { $0.resource == resource }),
-               stored.state == .readyForInitialSubmission {
+            if let stored = storage.first(where: {
+                $0.resource.identifier == resource.identifier &&
+                    $0.state == .readyForInitialSubmission
+            }) {
                 stored.state = .initialSubmissionInFlight
                 stored.deliveryOwner = competingInitialOwner
             }
-            return false
+            return nil
         }
-        return transition(resource,
-                          from: .readyForInitialSubmission,
-                          to: .initialSubmissionInFlight,
-                          owner: "local-owner")
+        return claim(resource,
+                     from: .readyForInitialSubmission,
+                     to: .initialSubmissionInFlight,
+                     owner: "local-owner")
     }
 
-    func claimRetrySubmission(_ resource: Resource) throws -> Bool {
-        return transition(resource,
-                          from: .readyForRetry,
-                          to: .retryInFlight,
-                          owner: "local-owner")
+    func claimRetrySubmission(_ resource: Resource) throws -> Resource? {
+        return claim(resource,
+                     from: .readyForRetry,
+                     to: .retryInFlight,
+                     owner: "local-owner")
     }
 
     func releaseInitialClaim(_ resource: Resource) throws {
@@ -183,6 +185,20 @@ extension WatcherRepositoryMock: Repository {
 
     private var eligibleResources: [Resource] {
         return storage.filter { $0.state == .readyForRetry }.map(\.resource)
+    }
+
+    private func claim(_ resource: Resource,
+                       from expectedState: PersistedReportState,
+                       to targetState: PersistedReportState,
+                       owner: String) -> Resource? {
+        guard let stored = storage.first(where: {
+            $0.resource.identifier == resource.identifier && $0.state == expectedState
+        }) else {
+            return nil
+        }
+        stored.state = targetState
+        stored.deliveryOwner = owner
+        return stored.resource
     }
 
     @discardableResult

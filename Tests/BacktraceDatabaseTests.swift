@@ -219,7 +219,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     )
                     try firstRepository.save(original)
                     let originalPath = try XCTUnwrap(firstRepository.getAll().first?.attachmentPaths.first)
-                    try firstRepository.claimRetrySubmission(original)
+                    _ = try firstRepository.claimRetrySubmission(original)
 
                     // The throwing copy closure proves the protected duplicate returns before file staging.
                     try secondRepository.save(replacement)
@@ -246,7 +246,7 @@ final class BacktraceDatabaseTests: QuickSpec {
 
                     // A later accepted or permanently rejected attempt uses the same terminal
                     // finalization path. A second duplicate still cannot interfere with it.
-                    expect(try firstRepository.claimRetrySubmission(stored)).to(beTrue())
+                    expect(try firstRepository.claimRetrySubmission(stored)).toNot(beNil())
                     try secondRepository.save(replacement)
                     try firstRepository.markTerminalForDeletion(stored)
                     try firstRepository.delete(stored)
@@ -296,7 +296,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try firstRepository.savePending(original)
                     try firstRepository.promoteAfterSourcePurge(original)
                     let originalPath = try XCTUnwrap(firstRepository.getAll().first?.attachmentPaths.first)
-                    try firstRepository.claimInitialSubmission(original)
+                    _ = try firstRepository.claimInitialSubmission(original)
 
                     try secondRepository.save(replacement)
 
@@ -320,6 +320,236 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try firstRepository.releaseInitialClaim(stored)
                     expect(try firstRepository.persistedState(for: stored))
                         .to(equal(.readyForInitialSubmission))
+                }
+
+                let atomicClaimScenarios: [(name: String, origin: BacktraceSubmissionOrigin)] = [
+                    ("initial", .pendingNativeCrash),
+                    ("retry", .repositoryRetry)
+                ]
+
+                for scenario in atomicClaimScenarios {
+                    throwingIt(
+                        "submits the current durable \(scenario.name) snapshot when content changes before claim"
+                    ) {
+                        let storeDirectory = FileManager.default.temporaryDirectory
+                            .appendingPathComponent(
+                                "backtrace-atomic-claim-\(UUID().uuidString)",
+                                isDirectory: true
+                            )
+                        let sourceDirectory = storeDirectory
+                            .appendingPathComponent("sources", isDirectory: true)
+                        try FileManager.default.createDirectory(
+                            at: sourceDirectory,
+                            withIntermediateDirectories: true
+                        )
+
+                        let firstRepository = try PersistentRepository<BacktraceReport>(
+                            settings: BacktraceDatabaseSettings(),
+                            startupReconciliation: { _ in },
+                            storeDirectoryUrl: storeDirectory
+                        )
+                        let secondRepository = try PersistentRepository<BacktraceReport>(
+                            settings: BacktraceDatabaseSettings(),
+                            startupReconciliation: { _ in },
+                            storeDirectoryUrl: storeDirectory
+                        )
+
+                        defer {
+                            firstRepository.shutdownForNativeBridge()
+                            secondRepository.shutdownForNativeBridge()
+                            try? FileManager.default.removeItem(at: storeDirectory)
+                        }
+
+                        let originalSource = sourceDirectory.appendingPathComponent("original.txt")
+                        let replacementSource = sourceDirectory.appendingPathComponent("replacement.txt")
+                        try Data("original".utf8).write(to: originalSource)
+                        try Data("replacement".utf8).write(to: replacementSource)
+
+                        let payload = try crashReporter.generateLiveReport(attributes: [:]).reportData
+                        let identifier = UUID()
+                        let original = try BacktraceReport(
+                            report: payload,
+                            attributes: ["snapshot": "original"],
+                            attachmentPaths: [originalSource.path],
+                            identifier: identifier
+                        )
+                        let replacement = try BacktraceReport(
+                            report: payload,
+                            attributes: ["snapshot": "replacement"],
+                            attachmentPaths: [replacementSource.path],
+                            identifier: identifier
+                        )
+
+                        let stale: BacktraceReport
+
+                        switch scenario.origin {
+                        case .pendingNativeCrash:
+                            expect(try firstRepository.savePending(original))
+                                .to(equal(.awaitingSourcePurge))
+                            try firstRepository.promoteAfterSourcePurge(original)
+                            stale = try XCTUnwrap(
+                                firstRepository.getInitialSubmission(count: 1).first
+                            )
+                            expect(try secondRepository.savePending(replacement))
+                                .to(equal(.alreadyOwned(.readyForInitialSubmission)))
+                        case .repositoryRetry:
+                            try firstRepository.save(original)
+                            stale = try XCTUnwrap(firstRepository.getLatest().first)
+                            try secondRepository.save(replacement)
+                        case .live, .outOfMemory:
+                            fail("Unexpected atomic-claim test origin")
+                            return
+                        }
+
+                        let staleAttachment = try XCTUnwrap(stale.attachmentPaths.first)
+                        let current = try XCTUnwrap(firstRepository.getAll().first)
+                        let currentAttachment = try XCTUnwrap(current.attachmentPaths.first)
+
+                        expect(stale.attributes["snapshot"] as? String).to(equal("original"))
+                        expect(current.attributes["snapshot"] as? String).to(equal("replacement"))
+                        expect(currentAttachment).notTo(equal(staleAttachment))
+
+                        try secondRepository.reconcileStorage()
+
+                        expect(FileManager.default.fileExists(atPath: staleAttachment)).to(beFalse())
+                        expect(FileManager.default.fileExists(atPath: currentAttachment)).to(beTrue())
+
+                        let session = URLSessionMock()
+                        session.response = MockOkResponse()
+                        let api = BacktraceApi(
+                            credentials: BacktraceCredentials(
+                                submissionUrl: URL(string: "https://yourteam.backtrace.io")!
+                            ),
+                            session: session,
+                            reportsPerMin: 30
+                        )
+
+                        var submittedSnapshot: String?
+                        var submittedAttachmentPath: String?
+                        var submittedAttachmentData: Data?
+                        var stateDuringSubmission: PersistedReportState?
+                        let delegate = BacktraceClientDelegateMock()
+                        delegate.willSendClosure = { report in
+                            submittedSnapshot = report.attributes["snapshot"] as? String
+                            submittedAttachmentPath = report.attachmentPaths.first
+                            stateDuringSubmission = try? firstRepository.persistedState(for: report)
+                            if let path = submittedAttachmentPath {
+                                submittedAttachmentData = try? Data(
+                                    contentsOf: URL(fileURLWithPath: path)
+                                )
+                            }
+                            return report
+                        }
+                        api.delegate = delegate
+
+                        let coordinator = BacktraceSubmissionCoordinator(
+                            api: api,
+                            repository: firstRepository,
+                            retryLimit: 3
+                        )
+                        let receipt = coordinator.submit(stale, origin: scenario.origin)
+
+                        expect(receipt.pipelineEntered).to(beTrue())
+                        expect(receipt.transportStarted).to(beTrue())
+                        expect(receipt.result.submissionDisposition).to(equal(.accepted))
+                        expect(session.requestCount).to(equal(1))
+                        expect(submittedSnapshot).to(equal("replacement"))
+                        expect(submittedAttachmentPath).to(equal(currentAttachment))
+                        expect(submittedAttachmentData).to(equal(Data("replacement".utf8)))
+                        let expectedState: PersistedReportState = scenario.origin == .pendingNativeCrash
+                            ? .initialSubmissionInFlight
+                            : .retryInFlight
+                        expect(stateDuringSubmission).to(equal(expectedState))
+                        expect(receipt.result.report?.attributes["snapshot"] as? String)
+                            .to(equal("replacement"))
+                        expect(try firstRepository.countResources()).to(equal(0))
+                        expect(FileManager.default.fileExists(atPath: currentAttachment)).to(beFalse())
+                    }
+                }
+
+                throwingIt("keeps the claimed retry snapshot after retryable finalization") {
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-atomic-retry-snapshot-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
+                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectory
+                    )
+                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectory
+                    )
+
+                    defer {
+                        firstRepository.shutdownForNativeBridge()
+                        secondRepository.shutdownForNativeBridge()
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+
+                    let identifier = UUID()
+                    let originalPayload = try crashReporter.generateLiveReport(
+                        attributes: ["payload": "original"]
+                    ).reportData
+                    let replacementPayload = try crashReporter.generateLiveReport(
+                        attributes: ["payload": "replacement"]
+                    ).reportData
+                    let original = try BacktraceReport(
+                        report: originalPayload,
+                        attributes: ["snapshot": "original"],
+                        attachmentPaths: [],
+                        identifier: identifier
+                    )
+                    let replacement = try BacktraceReport(
+                        report: replacementPayload,
+                        attributes: ["snapshot": "replacement"],
+                        attachmentPaths: [],
+                        identifier: identifier
+                    )
+
+                    try firstRepository.save(original)
+                    let stale = try XCTUnwrap(firstRepository.getLatest().first)
+                    try secondRepository.save(replacement)
+
+                    expect(stale.reportData).to(equal(originalPayload))
+                    expect(replacementPayload).notTo(equal(originalPayload))
+
+                    let session = URLSessionMock()
+                    session.response = MockHttpResponse(statusCode: 503)
+                    let api = BacktraceApi(
+                        credentials: BacktraceCredentials(
+                            submissionUrl: URL(string: "https://yourteam.backtrace.io")!
+                        ),
+                        session: session,
+                        reportsPerMin: 30
+                    )
+                    var submittedPayload: Data?
+                    let delegate = BacktraceClientDelegateMock()
+                    delegate.willSendClosure = { report in
+                        submittedPayload = report.reportData
+                        return report
+                    }
+                    api.delegate = delegate
+
+                    let coordinator = BacktraceSubmissionCoordinator(
+                        api: api,
+                        repository: firstRepository,
+                        retryLimit: 3
+                    )
+                    let receipt = coordinator.submit(stale, origin: .repositoryRetry)
+
+                    expect(receipt.pipelineEntered).to(beTrue())
+                    expect(receipt.transportStarted).to(beTrue())
+                    expect(receipt.result.submissionDisposition).to(equal(.retryable))
+                    expect(submittedPayload).to(equal(replacementPayload))
+
+                    let stored = try XCTUnwrap(firstRepository.getLatest().first)
+                    expect(stored.reportData).to(equal(replacementPayload))
+                    expect(stored.attributes["snapshot"] as? String).to(equal("replacement"))
+                    expect(try firstRepository.persistedState(for: stored)).to(equal(.readyForRetry))
                 }
 
                 for statusCode in [200, 403, 503] {
@@ -1092,7 +1322,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                                 delegate.willSendClosure = { report in
                                     do {
                                         try limitedRepository.save(overflow)
-                                        guard try limitedRepository.claimRetrySubmission(overflow) else {
+                                        guard try limitedRepository.claimRetrySubmission(overflow) != nil else {
                                             throw RepositoryError.resourceNotFound
                                         }
                                         try limitedRepository.reconcileStorage()
@@ -1193,7 +1423,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let abandoned = try crashReporter.generateLiveReport(attributes: ["capacity": "abandoned"])
                     let survivor = try crashReporter.generateLiveReport(attributes: ["capacity": "survivor"])
                     try recoveringRepository.save(abandoned)
-                    expect(try recoveringRepository.claimRetrySubmission(abandoned)).to(beTrue())
+                    expect(try recoveringRepository.claimRetrySubmission(abandoned)).toNot(beNil())
                     try recoveringRepository.save(survivor)
                     expect(try recoveringRepository.countResources()).to(equal(2))
 
@@ -1233,7 +1463,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let protected = try crashReporter.generateLiveReport(attributes: ["capacity": "protected"])
                     let overflow = try crashReporter.generateLiveReport(attributes: ["capacity": "overflow"])
                     try overflowRepository.save(protected)
-                    expect(try overflowRepository.claimRetrySubmission(protected)).to(beTrue())
+                    expect(try overflowRepository.claimRetrySubmission(protected)).toNot(beNil())
                     try overflowRepository.save(overflow)
                     expect(try overflowRepository.countResources()).to(equal(2))
 
@@ -1325,7 +1555,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     }
                     for report in reports {
                         try coalescingRepository.save(report)
-                        expect(try coalescingRepository.claimRetrySubmission(report)).to(beTrue())
+                        expect(try coalescingRepository.claimRetrySubmission(report)).toNot(beNil())
                     }
                     settings.maxDatabaseSize = 1
                     sizeLock.lock()
@@ -1393,8 +1623,8 @@ final class BacktraceDatabaseTests: QuickSpec {
                     secondReport = try crashReporter.generateLiveReport(attributes: ["capacity": "second"])
                     try overlappingRepository.save(firstReport)
                     try overlappingRepository.save(secondReport)
-                    expect(try overlappingRepository.claimRetrySubmission(firstReport)).to(beTrue())
-                    expect(try overlappingRepository.claimRetrySubmission(secondReport)).to(beTrue())
+                    expect(try overlappingRepository.claimRetrySubmission(firstReport)).toNot(beNil())
+                    expect(try overlappingRepository.claimRetrySubmission(secondReport)).toNot(beNil())
 
                     settings.maxDatabaseSize = 1
                     stateLock.lock()
@@ -1527,8 +1757,8 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(try repository.getLatest()).to(beEmpty())
                     expect(try repository.getInitialSubmission(count: 1).map(\.identifier))
                         .to(equal([pending.identifier]))
-                    expect(try repository.claimInitialSubmission(pending)).to(beTrue())
-                    expect(try repository.claimInitialSubmission(pending)).to(beFalse())
+                    expect(try repository.claimInitialSubmission(pending)).toNot(beNil())
+                    expect(try repository.claimInitialSubmission(pending)).to(beNil())
                     expect(try repository.persistedState(for: pending)).to(equal(.initialSubmissionInFlight))
 
                     try repository.markReadyForRetry(pending)
@@ -1630,7 +1860,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                         try $0.claimRetrySubmission(report)
                     }
 
-                    expect(claims.filter { $0 }).to(haveCount(1))
+                    expect(claims.compactMap { $0 }).to(haveCount(1))
                     expect(try secondRepository.persistedState(for: report)).to(equal(.retryInFlight))
                     try secondRepository.resetInFlightReports()
                     expect(try firstRepository.persistedState(for: report)).to(equal(.readyForRetry))
@@ -1649,7 +1879,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try firstRepository.recoverStaleInFlightReportsOncePerProcess()
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try firstRepository.save(report)
-                    expect(try firstRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try firstRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     let secondRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
@@ -1659,7 +1889,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try secondRepository.recoverStaleInFlightReportsOncePerProcess()
 
                     expect(try secondRepository.persistedState(for: report)).to(equal(.retryInFlight))
-                    expect(try secondRepository.claimRetrySubmission(report)).to(beFalse())
+                    expect(try secondRepository.claimRetrySubmission(report)).to(beNil())
                 }
 
                 throwingIt("does not recover an in-flight row owned by a live foreign process") {
@@ -1676,7 +1906,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     )
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try foreignRepository.save(report)
-                    expect(try foreignRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try foreignRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     let recoveringRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
@@ -1705,7 +1935,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     )
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try foreignRepository.save(report)
-                    expect(try foreignRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try foreignRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     var foreignOwnerIsAlive = true
                     let recoveringRepository = try PersistentRepository<BacktraceReport>(
@@ -1755,9 +1985,10 @@ final class BacktraceDatabaseTests: QuickSpec {
                         storeDirectoryUrl: storeDirectoryUrl,
                         deliveryOwnerToken: foreignOwner
                     )
+                    let activeSourceRepository = try XCTUnwrap(sourceRepository)
                     let report = try crashReporter.generateLiveReport(attributes: [:])
-                    try sourceRepository?.save(report)
-                    expect(try sourceRepository?.claimRetrySubmission(report)).to(beTrue())
+                    try activeSourceRepository.save(report)
+                    expect(try activeSourceRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     try FileManager.default.createDirectory(at: leaseDirectoryUrl,
                                                             withIntermediateDirectories: true)
@@ -1859,7 +2090,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     )
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try sourceRepository.save(report)
-                    expect(try sourceRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try sourceRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     let ownerLeaseUrl = storeDirectoryUrl
                         .appendingPathComponent("BacktraceReportLocks", isDirectory: true)
@@ -1892,7 +2123,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     )
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try foreignRepository.save(report)
-                    expect(try foreignRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try foreignRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     let recoveringRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
@@ -1919,7 +2150,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     )
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try sourceRepository.save(report)
-                    expect(try sourceRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try sourceRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     let failingRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
@@ -1960,14 +2191,14 @@ final class BacktraceDatabaseTests: QuickSpec {
                     )
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try firstRepository.save(report)
-                    expect(try firstRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try firstRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     try firstRepository.markReadyForRetry(report, incrementRetryCountWithLimit: 3)
 
-                    expect(try secondRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try secondRepository.claimRetrySubmission(report)).toNot(beNil())
                     try secondRepository.markReadyForRetry(report, incrementRetryCountWithLimit: 0)
                     expect(try firstRepository.countResources()).to(equal(0))
-                    expect(try firstRepository.claimRetrySubmission(report)).to(beFalse())
+                    expect(try firstRepository.claimRetrySubmission(report)).to(beNil())
                 }
 
                 throwingIt("does not reactivate an in-flight row when terminal marking and deletion both fail") {
@@ -1992,7 +2223,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     )
                     let report = try crashReporter.generateLiveReport(attributes: [:])
                     try failingRepository.save(report)
-                    expect(try failingRepository.claimRetrySubmission(report)).to(beTrue())
+                    expect(try failingRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     saveLock.lock()
                     shouldFail = true
