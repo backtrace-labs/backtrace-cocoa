@@ -11,7 +11,10 @@ enum BacktraceSubmissionOrigin: Equatable {
 
 struct BacktraceSubmissionReceipt {
     let result: BacktraceResult
-    let attempted: Bool
+    /// True after the coordinator admits and claims the report for this delivery operation.
+    let pipelineEntered: Bool
+    /// True only after a request is constructed and handed to the network transport.
+    let transportStarted: Bool
     /// True when the server outcome is terminal or the report is durably represented by the repository after this call.
     /// OOM cleanup relies on this value during shutdown races.
     let isDurable: Bool
@@ -66,7 +69,8 @@ where BacktraceRepository.Resource == BacktraceReport {
                 result: BacktraceResult(.unknownError,
                                         report: report,
                                         submissionDisposition: .retryable),
-                attempted: false,
+                pipelineEntered: false,
+                transportStarted: false,
                 isDurable: false)
         }
         defer { endSubmission() }
@@ -77,7 +81,8 @@ where BacktraceRepository.Resource == BacktraceReport {
                     result: BacktraceResult(.unknownError,
                                             report: report,
                                             submissionDisposition: .retryable),
-                    attempted: false,
+                    pipelineEntered: false,
+                    transportStarted: false,
                     isDurable: true)
             }
         } catch {
@@ -86,18 +91,23 @@ where BacktraceRepository.Resource == BacktraceReport {
                 result: BacktraceResult(error.backtraceStatus,
                                         report: report,
                                         submissionDisposition: error.backtraceSubmissionDisposition),
-                attempted: false,
+                pipelineEntered: false,
+                transportStarted: false,
                 isDurable: false)
         }
 
         var durable = false
+        var transportStarted = false
         do {
-            let result = try api.send(report) { [self] outcome in
+            let result = try api.send(report, transportStarted: {
+                transportStarted = true
+            }, finalize: { [self] outcome in
                 beforeFinalization?(outcome)
                 durable = finalize(outcome, persistedReport: report, origin: origin)
-            }
+            })
             return BacktraceSubmissionReceipt(result: result,
-                                              attempted: true,
+                                              pipelineEntered: true,
+                                              transportStarted: transportStarted,
                                               isDurable: durable)
         } catch {
             // BacktraceApi always presents a classified failure to the finalizer before it throws,
@@ -106,7 +116,8 @@ where BacktraceRepository.Resource == BacktraceReport {
                 result: BacktraceResult(error.backtraceStatus,
                                         report: report,
                                         submissionDisposition: error.backtraceSubmissionDisposition),
-                attempted: true,
+                pipelineEntered: true,
+                transportStarted: transportStarted,
                 isDurable: durable)
         }
     }
@@ -174,7 +185,7 @@ where BacktraceRepository.Resource == BacktraceReport {
                                      persistedReport: persistedReport,
                                      origin: origin)
         case .live, .outOfMemory:
-            return finalizeUnpersisted(outcome, origin: origin)
+            return finalizeUnpersisted(outcome)
         }
     }
 
@@ -210,7 +221,16 @@ where BacktraceRepository.Resource == BacktraceReport {
             case .accepted, .permanentFailure:
                 return finishTerminalReport(persistedReport)
             case .rateLimited:
-                try repository.markReadyForRetry(persistedReport)
+                switch origin {
+                case .pendingNativeCrash:
+                    // Local admission failed before a request existed, so this is
+                    // still an initial-delivery operation rather than a retry.
+                    try repository.markReadyForInitialSubmission(persistedReport)
+                case .repositoryRetry:
+                    try repository.markReadyForRetry(persistedReport)
+                case .live, .outOfMemory:
+                    break
+                }
                 return true
             case .retryable:
                 if origin == .repositoryRetry {
@@ -229,8 +249,7 @@ where BacktraceRepository.Resource == BacktraceReport {
         }
     }
 
-    private func finalizeUnpersisted(_ outcome: BacktraceSubmissionOutcome,
-                                     origin: BacktraceSubmissionOrigin) -> Bool {
+    private func finalizeUnpersisted(_ outcome: BacktraceSubmissionOutcome) -> Bool {
         let report: BacktraceReport
         let disposition: BacktraceSubmissionDisposition
 
@@ -249,23 +268,12 @@ where BacktraceRepository.Resource == BacktraceReport {
             return true
         case .rateLimited, .retryable:
             do {
-                try repository.save(report, origin: persistedOrigin(for: origin))
+                try repository.save(report)
                 return true
             } catch {
                 BacktraceLogger.error("Unable to persist report \(report.identifier) for retry")
                 return false
             }
-        }
-    }
-
-    private func persistedOrigin(for origin: BacktraceSubmissionOrigin) -> PersistedReportOrigin {
-        switch origin {
-        case .outOfMemory:
-            return .outOfMemory
-        case .pendingNativeCrash:
-            return .nativeCrash
-        case .live, .repositoryRetry:
-            return .live
         }
     }
 

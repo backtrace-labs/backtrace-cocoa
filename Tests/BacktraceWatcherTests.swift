@@ -21,6 +21,7 @@ final class BacktraceWatcherTests: QuickSpec {
                 dbSettings.retryBehaviour = .interval
                 dbSettings.retryOrder = .queue
                 api = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 30)
+                urlSession.response = MockOkResponse()
                 urlSession.resetRequestCount()
             }
 
@@ -155,6 +156,95 @@ final class BacktraceWatcherTests: QuickSpec {
                         expect(urlSession.requestCount).to(equal(0))
                         expect(repository.storage.first?.state).to(equal(.readyForInitialSubmission))
                     }
+
+                    throwingIt("reschedules a queued pending crash after a live report fills the rate window") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        urlSession.response = MockOkResponse()
+                        var now = 1_000.0
+                        let limitedApi = BacktraceApi(credentials: credentials,
+                                                      session: urlSession,
+                                                      reportsPerMin: 1,
+                                                      rateLimiterCurrentTime: { now })
+                        let initialQueue = DispatchQueue(label: "backtrace.watcher.initial-admission.tests")
+                        let queueEntered = DispatchSemaphore(value: 0)
+                        let releaseQueue = DispatchSemaphore(value: 0)
+                        initialQueue.async {
+                            queueEntered.signal()
+                            releaseQueue.wait()
+                        }
+                        let scheduler = InitialAdmissionSchedulerSpy()
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: limitedApi,
+                                                       repository: repository,
+                                                       dispatchQueue: initialQueue,
+                                                       networkAvailabilityCheck: { true },
+                                                       initialAdmissionScheduler: scheduler.schedule)
+                        let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                        repository.storeInitial(pending)
+                        let delegate = BacktraceClientDelegateMock()
+                        let rateLimitCallback = DispatchSemaphore(value: 0)
+                        delegate.didReachLimitClosure = { _ in
+                            expect(repository.storage.first?.state)
+                                .to(equal(.readyForInitialSubmission))
+                            expect(repository.retryCount(for: pending)).to(equal(0))
+                            rateLimitCallback.signal()
+                        }
+                        limitedApi.delegate = delegate
+
+                        expect(queueEntered.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                        watcher.submitInitialAsync()
+                        _ = try limitedApi.send(
+                            BacktraceWatcherTests.backtraceReport(for: ["live": true])
+                        )
+                        releaseQueue.signal()
+                        initialQueue.sync {}
+
+                        expect(rateLimitCallback.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                        expect(urlSession.requestCount).to(equal(1))
+                        expect(repository.storage.first?.state).to(equal(.readyForInitialSubmission))
+                        expect(repository.retryCount(for: pending)).to(equal(0))
+                        expect(scheduler.count).to(equal(1))
+                        expect(scheduler.nextDelay).to(equal(60))
+
+                        // Repeated triggers share the same pending admission check.
+                        watcher.drainInitialSubmissions(bypassesReachabilityPreflight: true)
+                        expect(scheduler.count).to(equal(1))
+
+                        now = 1_060
+                        scheduler.runNext()
+
+                        expect(urlSession.requestCount).to(equal(2))
+                        expect(try repository.countResources()).to(equal(0))
+                        expect(scheduler.count).to(equal(0))
+                    }
+
+                    throwingIt("drains more than one bounded page of initial reports") {
+                        dbSettings.retryBehaviour = .none
+                        try repository.clear()
+                        let unlimitedApi = BacktraceApi(credentials: credentials,
+                                                        session: urlSession,
+                                                        reportsPerMin: 0)
+                        let initialQueue = DispatchQueue(
+                            label: "backtrace.watcher.initial-page-drain.tests"
+                        )
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: unlimitedApi,
+                                                       repository: repository,
+                                                       dispatchQueue: initialQueue,
+                                                       networkAvailabilityCheck: { true })
+                        for index in 0..<15 {
+                            repository.storeInitial(try BacktraceWatcherTests.backtraceReport(
+                                for: ["initialIndex": index]
+                            ))
+                        }
+
+                        watcher.submitInitialAsync()
+                        initialQueue.sync {}
+
+                        expect(urlSession.requestCount).to(equal(15))
+                        expect(try repository.countResources()).to(equal(0))
+                    }
                 }
             }
 
@@ -164,6 +254,7 @@ final class BacktraceWatcherTests: QuickSpec {
                     let watcher = BacktraceWatcher(settings: dbSettings,
                                                    api: api,
                                                    repository: repository)
+                    defer { watcher.shutdown() }
                     watcher.resetTimer()
                     watcher.enable()
                     // spec will be updated after upgrading Quick & Nimble to resolve Fastlane hangs
@@ -276,6 +367,67 @@ final class BacktraceWatcherTests: QuickSpec {
                     expect(urlSession.requestCount).to(equal(1))
                     expect(try repository.countResources()).to(equal(0))
                 }
+
+                throwingIt("keeps a locally limited initial row out of ordinary replay") {
+                    try repository.clear()
+                    var now = 2_000.0
+                    let limitedApi = BacktraceApi(credentials: credentials,
+                                                  session: urlSession,
+                                                  reportsPerMin: 1,
+                                                  rateLimiterCurrentTime: { now })
+                    _ = try limitedApi.send(
+                        BacktraceWatcherTests.backtraceReport(for: ["fillsWindow": true])
+                    )
+                    let scheduler = InitialAdmissionSchedulerSpy()
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   api: limitedApi,
+                                                   repository: repository,
+                                                   networkAvailabilityCheck: { true },
+                                                   initialAdmissionScheduler: scheduler.schedule)
+                    let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                    repository.storeInitial(pending)
+
+                    watcher.drainInitialSubmissions()
+                    watcher.batchRetry()
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(repository.storage.first?.state).to(equal(.readyForInitialSubmission))
+                    expect(repository.retryCount(for: pending)).to(equal(0))
+                    expect(scheduler.count).to(equal(1))
+
+                    now = 2_060
+                    scheduler.runNext()
+
+                    expect(urlSession.requestCount).to(equal(2))
+                    expect(try repository.countResources()).to(equal(0))
+                }
+
+                throwingIt("cancels a scheduled initial admission check during shutdown") {
+                    try repository.clear()
+                    let limitedApi = BacktraceApi(credentials: credentials,
+                                                  session: urlSession,
+                                                  reportsPerMin: 1)
+                    _ = try limitedApi.send(
+                        BacktraceWatcherTests.backtraceReport(for: ["fillsWindow": true])
+                    )
+                    let scheduler = InitialAdmissionSchedulerSpy()
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   api: limitedApi,
+                                                   repository: repository,
+                                                   networkAvailabilityCheck: { true },
+                                                   initialAdmissionScheduler: scheduler.schedule)
+                    repository.storeInitial(try BacktraceWatcherTests.pendingBacktraceReport())
+
+                    watcher.drainInitialSubmissions()
+                    expect(scheduler.count).to(equal(1))
+
+                    watcher.shutdown()
+
+                    expect(scheduler.nextIsCancelled).to(beTrue())
+                    scheduler.runNext()
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(repository.storage.first?.state).to(equal(.readyForInitialSubmission))
+                }
             }
 
             describe("Accessing resources") {
@@ -287,7 +439,6 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        api: api,
                                                        repository: repository,
                                                        networkAvailabilityCheck: { true })
-                        watcher.enable()
                         try repository.save(BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1]))
 
                         expect { try watcher.reportsFromRepository(limit: 1) }.toNot(throwError())
@@ -301,7 +452,6 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        api: api,
                                                        repository: repository,
                                                        networkAvailabilityCheck: { true })
-                        watcher.enable()
                         let firstReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(firstReport)
                         let secondReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2])
@@ -323,7 +473,6 @@ final class BacktraceWatcherTests: QuickSpec {
                                                        api: api,
                                                        repository: repository,
                                                        networkAvailabilityCheck: { true })
-                        watcher.enable()
                         let firstReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 1])
                         try repository.save(firstReport)
                         let secondReport = try BacktraceWatcherTests.backtraceReport(for: ["testOrder": 2])
@@ -738,5 +887,23 @@ private final class SubmissionFinalizationBarrier {
         _ = outcome
         reached.signal()
         release.wait()
+    }
+}
+
+private final class InitialAdmissionSchedulerSpy {
+    private var scheduled = [(delay: TimeInterval, workItem: DispatchWorkItem)]()
+
+    var count: Int { scheduled.count }
+    var nextDelay: TimeInterval? { scheduled.first?.delay }
+    var nextIsCancelled: Bool { scheduled.first?.workItem.isCancelled ?? false }
+
+    func schedule(delay: TimeInterval, workItem: DispatchWorkItem) {
+        scheduled.append((delay, workItem))
+    }
+
+    func runNext() {
+        guard !scheduled.isEmpty else { return }
+        let workItem = scheduled.removeFirst().workItem
+        workItem.perform()
     }
 }

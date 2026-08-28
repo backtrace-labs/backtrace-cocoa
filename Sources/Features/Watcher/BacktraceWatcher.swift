@@ -3,6 +3,13 @@ import Foundation
 final class BacktraceWatcher<BacktraceRepository: Repository>
 where BacktraceRepository.Resource == BacktraceReport {
 
+    internal enum InitialBatchResult {
+        case empty
+        case progressed
+        case rateLimited
+        case stopped
+    }
+
     let settings: BacktraceDatabaseSettings
     let submissionCoordinator: BacktraceSubmissionCoordinator<BacktraceRepository>
     var api: BacktraceApi { submissionCoordinator.api }
@@ -10,14 +17,17 @@ where BacktraceRepository.Resource == BacktraceReport {
     var timer: DispatchSourceTimer?
     let queue: DispatchQueue
     let networkAvailabilityCheck: () -> Bool
+    private let initialAdmissionScheduler: (TimeInterval, DispatchWorkItem) -> Void
     private let lifecycleLock = NSLock()
     private var shutdownRequested = false
+    private var initialAdmissionWorkItem: DispatchWorkItem?
 
     init(settings: BacktraceDatabaseSettings,
          submissionCoordinator: BacktraceSubmissionCoordinator<BacktraceRepository>,
          repository: BacktraceRepository,
          dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background),
-         networkAvailabilityCheck: (() -> Bool)? = nil) {
+         networkAvailabilityCheck: (() -> Bool)? = nil,
+         initialAdmissionScheduler: ((TimeInterval, DispatchWorkItem) -> Void)? = nil) {
 
         self.settings = settings
         self.repository = repository
@@ -25,6 +35,9 @@ where BacktraceRepository.Resource == BacktraceReport {
         self.queue = dispatchQueue
         self.networkAvailabilityCheck = networkAvailabilityCheck ??
             submissionCoordinator.api.networkClient.isNetworkAvailable
+        self.initialAdmissionScheduler = initialAdmissionScheduler ?? { delay, workItem in
+            dispatchQueue.asyncAfter(deadline: .now() + delay, execute: workItem)
+        }
     }
 
     /// Source-compatible convenience for tests and internal callers that do not share a coordinator with live/OOM submission.
@@ -32,7 +45,8 @@ where BacktraceRepository.Resource == BacktraceReport {
                      api: BacktraceApi,
                      repository: BacktraceRepository,
                      dispatchQueue: DispatchQueue = DispatchQueue(label: "backtrace.timer", qos: .background),
-                     networkAvailabilityCheck: (() -> Bool)? = nil) {
+                     networkAvailabilityCheck: (() -> Bool)? = nil,
+                     initialAdmissionScheduler: ((TimeInterval, DispatchWorkItem) -> Void)? = nil) {
         let coordinator = BacktraceSubmissionCoordinator(api: api,
                                                          repository: repository,
                                                          retryLimit: settings.retryLimit)
@@ -40,7 +54,8 @@ where BacktraceRepository.Resource == BacktraceReport {
                   submissionCoordinator: coordinator,
                   repository: repository,
                   dispatchQueue: dispatchQueue,
-                  networkAvailabilityCheck: networkAvailabilityCheck)
+                  networkAvailabilityCheck: networkAvailabilityCheck,
+                  initialAdmissionScheduler: initialAdmissionScheduler)
     }
 
     internal var isShutdown: Bool {
@@ -61,7 +76,8 @@ where BacktraceRepository.Resource == BacktraceReport {
         }
     }
 
-    /// Schedules exactly one initial attempt for newly ingested native crashes, independently from ordinary repository retry policy.
+    /// Schedules exactly one initial attempt for newly ingested native crashes,
+    /// independently from ordinary repository retry policy.
     func submitInitialAsync() {
         guard !isShutdown else { return }
         // With retries disabled this is the process's only opportunity to submit a newly ingested native crash.
@@ -69,21 +85,49 @@ where BacktraceRepository.Resource == BacktraceReport {
         // Interval mode keeps its offline deferral because the timer will revisit the row later.
         let bypassesReachabilityPreflight = settings.retryBehaviour == .none
         queue.async { [weak self] in
-            self?.batchInitialSubmission(bypassesReachabilityPreflight: bypassesReachabilityPreflight)
+            self?.drainInitialSubmissions(bypassesReachabilityPreflight: bypassesReachabilityPreflight)
         }
     }
 
-    internal func batchInitialSubmission(bypassesReachabilityPreflight: Bool = false) {
-        guard !isShutdown else { return }
-        guard bypassesReachabilityPreflight || networkAvailabilityCheck() else { return }
+    @discardableResult
+    internal func batchInitialSubmission(
+        bypassesReachabilityPreflight: Bool = false
+    ) -> InitialBatchResult {
+        guard !isShutdown else { return .stopped }
+        guard bypassesReachabilityPreflight || networkAvailabilityCheck() else { return .stopped }
         guard let reports = try? repository.getInitialSubmission(count: 10),
-              !reports.isEmpty else { return }
+              !reports.isEmpty else { return .empty }
 
         for report in reports {
-            guard !isShutdown else { return }
+            guard !isShutdown else { return .stopped }
             let receipt = submissionCoordinator.submit(report, origin: .pendingNativeCrash)
-            guard receipt.attempted else { continue }
-            if receipt.result.submissionDisposition == .rateLimited {
+            // A failed claim means another owner took this row. Refetching immediately
+            // could spin on stale state, so leave the remaining work to a later trigger.
+            guard receipt.pipelineEntered else { return .stopped }
+            if receipt.result.submissionDisposition == .rateLimited,
+               !receipt.transportStarted {
+                return .rateLimited
+            }
+        }
+        return .progressed
+    }
+
+    /// Drains bounded fetches until there is no initial work or local admission is full.
+    /// Independent from ordinary repository replay and runs when `RetryBehaviour.none` is configured.
+    internal func drainInitialSubmissions(bypassesReachabilityPreflight: Bool = false) {
+        guard !hasScheduledInitialAdmission else { return }
+        while !isShutdown {
+            switch batchInitialSubmission(
+                bypassesReachabilityPreflight: bypassesReachabilityPreflight
+            ) {
+            case .progressed:
+                continue
+            case .rateLimited:
+                scheduleInitialAdmissionCheck(
+                    bypassesReachabilityPreflight: bypassesReachabilityPreflight
+                )
+                return
+            case .empty, .stopped:
                 return
             }
         }
@@ -99,7 +143,7 @@ where BacktraceRepository.Resource == BacktraceReport {
         for report in reports {
             guard !isShutdown else { return }
             let receipt = submissionCoordinator.submit(report, origin: .repositoryRetry)
-            guard receipt.attempted else { continue }
+            guard receipt.pipelineEntered else { continue }
             if receipt.result.submissionDisposition == .rateLimited {
                 // Every remaining report shares this limiter, so avoid duplicate limit callbacks.
                 return
@@ -135,7 +179,7 @@ extension BacktraceWatcher {
         // If an initial attempt becomes retryable, it waits for the next interval instead of
         // being submitted twice in one timer cycle.
         batchRetry()
-        batchInitialSubmission()
+        drainInitialSubmissions()
     }
 
     internal func resetTimer() {
@@ -153,7 +197,11 @@ extension BacktraceWatcher {
     internal func prepareForShutdown() {
         lifecycleLock.lock()
         shutdownRequested = true
+        let initialAdmissionToCancel = initialAdmissionWorkItem
+        initialAdmissionWorkItem = nil
         lifecycleLock.unlock()
+
+        initialAdmissionToCancel?.cancel()
     }
 
     /// Cancels the retry source after the transport has been cancelled.
@@ -174,6 +222,43 @@ extension BacktraceWatcher {
     internal func shutdown() {
         prepareForShutdown()
         finishShutdown()
+    }
+}
+
+// MARK: - Initial admission
+extension BacktraceWatcher {
+
+    private var hasScheduledInitialAdmission: Bool {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        return initialAdmissionWorkItem != nil
+    }
+
+    private func scheduleInitialAdmissionCheck(bypassesReachabilityPreflight: Bool) {
+        guard let delay = api.backtraceRateLimiter.delayUntilNextAvailability() else { return }
+
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.lifecycleLock.lock()
+            self.initialAdmissionWorkItem = nil
+            let shouldRun = !self.shutdownRequested
+            self.lifecycleLock.unlock()
+            guard shouldRun else { return }
+
+            self.drainInitialSubmissions(
+                bypassesReachabilityPreflight: bypassesReachabilityPreflight
+            )
+        }
+
+        lifecycleLock.lock()
+        guard !shutdownRequested, initialAdmissionWorkItem == nil else {
+            lifecycleLock.unlock()
+            return
+        }
+        initialAdmissionWorkItem = workItem
+        lifecycleLock.unlock()
+
+        initialAdmissionScheduler(delay, workItem)
     }
 }
 

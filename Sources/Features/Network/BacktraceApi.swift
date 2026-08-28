@@ -19,10 +19,12 @@ final class BacktraceApi {
     init(credentials: BacktraceCredentials,
          session: URLSession = URLSession(configuration: .ephemeral),
          reportsPerMin: Int,
-         afterTransportCompletion: (() -> Void)? = nil) {
+         afterTransportCompletion: (() -> Void)? = nil,
+         rateLimiterCurrentTime: @escaping () -> TimeInterval = { Date().timeIntervalSince1970 }) {
         self.networkClient = BacktraceNetworkClient(urlSession: session,
                                                     afterTransportCompletion: afterTransportCompletion)
-        self.backtraceRateLimiter = BacktraceRateLimiter(reportsPerMin: reportsPerMin)
+        self.backtraceRateLimiter = BacktraceRateLimiter(reportsPerMin: reportsPerMin,
+                                                         currentTime: rateLimiterCurrentTime)
         self.credentials = credentials
     }
 
@@ -47,13 +49,14 @@ final class BacktraceApi {
 extension BacktraceApi: BacktraceApiProtocol {
 
     func send(_ report: BacktraceReport) throws -> BacktraceResult {
-        return try send(report, finalize: { _ in })
+        return try send(report, transportStarted: {}, finalize: { _ in })
     }
 
     /// Runs one delegate-aware, rate-limited transport attempt.
     /// `finalize` is invoked exactly once after the outcome is classified and before:
     /// `serverDidRespond`, `connectionDidFail`, or `didReachLimit` is delivered.
     internal func send(_ originalReport: BacktraceReport,
+                       transportStarted: @escaping () -> Void,
                        finalize: (BacktraceSubmissionOutcome) -> Void) throws -> BacktraceResult {
         var report = originalReport
 
@@ -108,7 +111,8 @@ extension BacktraceApi: BacktraceApiProtocol {
             guard !isShutdown else {
                 throw NetworkError.cancelled
             }
-            let httpResponse = try networkClient.send(request: urlRequest)
+            let httpResponse = try networkClient.send(request: urlRequest,
+                                                      transportStarted: transportStarted)
 
             // A received HTTP response remains authoritative during shutdown.
             // Finalize the durable state before customer delegate code can call Disable reentrantly.

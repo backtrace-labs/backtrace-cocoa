@@ -64,6 +64,31 @@ final class BacktraceRateLimiterTests: QuickSpec {
                 }
             }
 
+            context("given a full rolling window") {
+                var now = 1_030.0
+                let rateLimiter = BacktraceRateLimiter(timestamps: [1_000],
+                                                       reportsPerMin: 1,
+                                                       currentTime: { now })
+
+                it("reports when the next reservation becomes available") {
+                    expect(rateLimiter.delayUntilNextAvailability()).to(equal(30))
+
+                    now = 1_060
+                    expect(rateLimiter.delayUntilNextAvailability()).to(equal(0))
+                    expect(rateLimiter.acquire()).to(beTrue())
+                }
+            }
+
+            it("reports immediate availability for an unlimited configuration") {
+                let rateLimiter = BacktraceRateLimiter(reportsPerMin: 0)
+                expect(rateLimiter.delayUntilNextAvailability()).to(equal(0))
+            }
+
+            it("does not schedule future availability for an invalid configuration") {
+                let rateLimiter = BacktraceRateLimiter(reportsPerMin: -1)
+                expect(rateLimiter.delayUntilNextAvailability()).to(beNil())
+            }
+
             context("is used concurrently") {
                  let rateLimiter = BacktraceRateLimiter(reportsPerMin: 60)
                  it("atomically bounds reservations") {

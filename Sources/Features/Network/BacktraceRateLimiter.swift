@@ -48,6 +48,24 @@ final class BacktraceRateLimiter {
         return true
     }
 
+    /// Returns the delay until the next reservation can be admitted.
+    ///
+    /// A zero value means capacity is already available.
+    /// `nil` is reserved for an invalid negative configuration, which cannot become available as time passes.
+    func delayUntilNextAvailability() -> TimeInterval? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        if reportsPerMin == 0 { return 0 }
+        guard reportsPerMin > 0 else { return nil }
+
+        let now = currentTime()
+        pruneExpiredRecords(now: now)
+        guard records.count >= reportsPerMin else { return 0 }
+        guard let oldestRecord = records.min() else { return 0 }
+        return max(0, cacheInterval - (now - oldestRecord))
+    }
+
     private func pruneExpiredRecords(now: TimeInterval) {
         records.removeAll { now - $0 >= cacheInterval }
     }

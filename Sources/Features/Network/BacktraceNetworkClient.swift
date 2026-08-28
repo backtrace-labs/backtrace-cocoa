@@ -14,7 +14,8 @@ final class BacktraceNetworkClient {
         self.afterTransportCompletion = afterTransportCompletion
     }
 
-    func send(request: URLRequest) throws -> BacktraceHttpResponse {
+    func send(request: URLRequest,
+              transportStarted: (() -> Void)? = nil) throws -> BacktraceHttpResponse {
         lifecycleLock.lock()
         let canStart = !shutdownRequested
         lifecycleLock.unlock()
@@ -27,6 +28,7 @@ final class BacktraceNetworkClient {
             request,
             taskCreated: { [weak self] task in
                 self?.register(task, identifier: taskIdentifier)
+                transportStarted?()
             },
             taskCompleted: { [weak self] in
                 self?.removeTask(identifier: taskIdentifier)
