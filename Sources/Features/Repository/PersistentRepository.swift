@@ -275,6 +275,13 @@ enum PendingSaveOutcome: Equatable {
 /// Manages concurrency by using a private-queue context and `performAndWaitThrowing` for all operations
 final class PersistentRepository<Resource: PersistentStorable> {
 
+    private struct EvictionCandidate {
+        let object: Resource.ManagedObjectType
+        let rank: Int
+        let dateAdded: Date
+        let identifier: UUID
+    }
+
     let backgroundContext: NSManagedObjectContext
     let settings: BacktraceDatabaseSettings
     let url: URL
@@ -1248,19 +1255,14 @@ extension PersistentRepository: Repository {
     private func evictionCandidatesLocked(
         excluding identifiers: Set<UUID> = []
     ) throws -> [Resource.ManagedObjectType] {
-        let ranked = try _getResourcesLocked().compactMap { managedObject -> (
-            object: Resource.ManagedObjectType,
-            rank: Int,
-            dateAdded: Date,
-            identifier: UUID
-        )? in
+        let ranked = try _getResourcesLocked().compactMap { managedObject -> EvictionCandidate? in
             guard let rank = deliveryStateLocked(managedObject).evictionRank,
                   let identifierValue = managedObject.value(forKey: "hashProperty") as? String,
                   let identifier = UUID(uuidString: identifierValue),
                   !identifiers.contains(identifier) else {
                 return nil
             }
-            return (
+            return EvictionCandidate(
                 object: managedObject,
                 rank: rank,
                 dateAdded: managedObject.value(forKey: "dateAdded") as? Date ?? .distantPast,

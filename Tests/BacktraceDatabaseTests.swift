@@ -68,7 +68,7 @@ private final class RepositoryFileLockProcess {
 // swiftlint:disable:next type_body_length
 final class BacktraceDatabaseTests: QuickSpec {
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     override func spec() {
         describe("Crash reporter") {
             throwingContext("given all dependencies and empty database") {
