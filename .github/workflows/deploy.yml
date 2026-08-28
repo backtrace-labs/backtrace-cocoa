@@ -5,6 +5,28 @@ on:
     tags: '[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
+  validate-release-tag:
+    name: Validate release tag
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+
+    steps:
+      - name: Require an exact semantic version tag
+        id: validate
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$RELEASE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must use the exact N.N.N format: $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+          echo "version=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
   # test is copied pasted from test.yml - do in a clean way in the future
   # BEGIN COPY PASTE FROM TEST.YML
   swift-package:
@@ -58,9 +80,10 @@ jobs:
 
   unity-macos-bundle:
     name: Build and validate Unity macOS bundle
+    needs: validate-release-tag
     uses: ./.github/workflows/unity-macos-bundle.yml
     with:
-      backtrace_version: ${{ github.ref_name }}
+      backtrace_version: ${{ needs.validate-release-tag.outputs.version }}
 
   deploy-cocoapods:
     runs-on: macos-14
