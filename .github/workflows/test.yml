@@ -39,7 +39,7 @@ jobs:
         platform: [ios, mac, tvos]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run test
@@ -49,7 +49,7 @@ jobs:
     runs-on: macos-14
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run pod lib lint
@@ -57,61 +57,4 @@ jobs:
 
   unity-macos-bundle:
     name: Build and validate Unity macOS bundle
-    runs-on: macos-14
-    timeout-minutes: 45
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
-      BTUNITY_REQUIRE_CLEAN_SOURCE: 1
-      PLCRASHREPORTER_REVISION: 8c61e5e38e9f737dd68512ed1ea5ab081244ad65
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Verify pinned Xcode and clean source
-        run: |
-          test "$(xcodebuild -version | head -n 1)" = "Xcode 15.4"
-          test "$(uname -m)" = "arm64"
-          test -z "$(git status --porcelain)"
-
-      - name: Test Unity build tooling
-        run: python3 -B -m unittest discover -s scripts/tests -p 'test_*.py'
-
-      - name: Resolve and verify PLCrashReporter
-        run: |
-          swift package --package-path "$GITHUB_WORKSPACE" \
-            --scratch-path "$RUNNER_TEMP/swiftpm" resolve
-          PLCRASHREPORTER_SOURCE_DIR="$RUNNER_TEMP/swiftpm/checkouts/plcrashreporter"
-          test -f "$PLCRASHREPORTER_SOURCE_DIR/CrashReporter.xcodeproj/project.pbxproj"
-          test "$(git -C "$PLCRASHREPORTER_SOURCE_DIR" rev-parse HEAD)" = \
-            "$PLCRASHREPORTER_REVISION"
-          test "$(git -C "$PLCRASHREPORTER_SOURCE_DIR" describe --tags --exact-match)" = \
-            "1.12.0"
-          test -z "$(git -C "$PLCRASHREPORTER_SOURCE_DIR" status --porcelain)"
-          echo "PLCRASHREPORTER_SOURCE_DIR=$PLCRASHREPORTER_SOURCE_DIR" >> "$GITHUB_ENV"
-
-      - name: Build universal bundle
-        run: scripts/build-unity-macos-bundle.sh "$RUNNER_TEMP/unity-artifact"
-
-      - name: Validate production artifact
-        run: scripts/validate-unity-macos-bundle.sh "$RUNNER_TEMP/unity-artifact"
-
-      - name: Verify build did not modify source
-        run: test -z "$(git status --porcelain)"
-
-      - name: Package validated artifact
-        run: |
-          tar -czf "$RUNNER_TEMP/BacktraceMacUnity.tar.gz" \
-            -C "$RUNNER_TEMP/unity-artifact" \
-            BacktraceMacUnity.bundle \
-            BacktraceMacUnity.bundle.dSYM \
-            artifact-provenance.json \
-            SHA256SUMS
-
-      - name: Upload validated bundle and symbols
-        uses: actions/upload-artifact@v4
-        with:
-          name: BacktraceMacUnity-${{ github.sha }}
-          path: ${{ runner.temp }}/BacktraceMacUnity.tar.gz
-          if-no-files-found: error
-          retention-days: 14
+    uses: ./.github/workflows/unity-macos-bundle.yml
