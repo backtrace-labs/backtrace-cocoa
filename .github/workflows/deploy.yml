@@ -46,7 +46,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify pinned Xcode
-        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+        run: |
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
       - name: Test Swift package and compiled resources
         run: |
           xcodebuild \
@@ -72,7 +74,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify pinned Xcode
-        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+        run: |
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run test
@@ -86,7 +90,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify pinned Xcode
-        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+        run: |
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run pod lib lint
@@ -127,7 +133,8 @@ jobs:
           EXPECTED_VERSION: ${{ needs.validate-release-tag.outputs.version }}
         run: |
           set -euo pipefail
-          test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
           test "$(uname -m)" = "x86_64"
           archive="$RUNNER_TEMP/unity-download/BacktraceMacUnity.tar.gz"
@@ -208,7 +215,9 @@ jobs:
           test "$tag_type" = "commit"
           test "$tag_sha" = "$EXPECTED_HEAD"
       - name: Verify pinned Xcode
-        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+        run: |
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Deploy to Cocoapods
@@ -232,7 +241,9 @@ jobs:
           EXPECTED_HEAD: ${{ needs.validate-release-tag.outputs.head }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
       - name: Verify pinned Xcode
-        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+        run: |
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
       - name: Install pods
         run: pod install
       - name: Install the Apple certificate and provisioning profile
