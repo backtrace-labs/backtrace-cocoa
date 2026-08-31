@@ -92,6 +92,8 @@ static BOOL BTUnityHandlerInstallationAttempted = NO;
 static NSString *const BTUnityCrashStorageRelativePath = @"Backtrace/NativeCrash/v1/plcrash";
 static NSString *const BTUnityLegacyIdentifierPrefix = @"io.backtrace.unity.legacy.";
 static NSString *const BTUnityStorageErrorDomain = @"io.backtrace.unity.macos.storage";
+static NSString *const BTPLCrashReporterDefaultNamespace =
+    @"com.plausiblelabs.crashreporter.data";
 static NSString *const BTUnityExceptionContractMarker =
     @"BacktraceUnityExceptionContract:all-c-exports-contained-v1";
 static const char BTUnityLifecycleContractMarker[] __attribute__((used, retain)) =
@@ -381,13 +383,57 @@ static NSString *BTPrepareCrashReportBasePath(NSString *rawPath, NSError **error
         return nil;
     }
 
-    if (![fileManager isWritableFileAtPath:path]) {
+    // Compare canonical paths only after the requested directory exists so every
+    // path component, including a caller-supplied alias, can be resolved.
+    NSURL *resolvedURL = [NSURL fileURLWithPath:path isDirectory:YES]
+        .URLByResolvingSymlinksInPath.URLByStandardizingPath;
+    NSString *resolvedPath = resolvedURL.path;
+    if (resolvedPath.length == 0 || !resolvedPath.isAbsolutePath) {
         if (errorOut != NULL) {
-            *errorOut = BTStorageError(6, @"The PLCrashReporter base path is not writable.");
+            *errorOut = BTStorageError(6, @"The PLCrashReporter base path could not be resolved.");
         }
         return nil;
     }
-    return path;
+
+    NSError *cachesError = nil;
+    NSURL *cachesURL = [fileManager URLForDirectory:NSCachesDirectory
+                                          inDomain:NSUserDomainMask
+                                 appropriateForURL:nil
+                                            create:YES
+                                             error:&cachesError];
+    NSString *defaultBasePath = cachesURL.isFileURL
+        ? cachesURL.URLByResolvingSymlinksInPath.URLByStandardizingPath.path
+        : nil;
+    if (defaultBasePath.length == 0) {
+        if (errorOut != NULL) {
+            *errorOut = BTStorageError(
+                7,
+                @"PLCrashReporter's default cache namespace could not be resolved.");
+        }
+        return nil;
+    }
+
+    // A nil PLCrashReporter basePath resolves to NSCachesDirectory,
+    // and then to <basePath>/com.plausiblelabs.crashreporter.data/<application>.
+    // Passing that same base directory explicitly would recreate Unity's shared namespace.
+    if ([resolvedPath isEqualToString:defaultBasePath]) {
+        if (errorOut != NULL) {
+            *errorOut = BTStorageError(
+                8,
+                [NSString stringWithFormat:
+                    @"The PLCrashReporter base path must not use its default %@ namespace.",
+                    BTPLCrashReporterDefaultNamespace]);
+        }
+        return nil;
+    }
+
+    if (![fileManager isWritableFileAtPath:resolvedPath]) {
+        if (errorOut != NULL) {
+            *errorOut = BTStorageError(9, @"The PLCrashReporter base path is not writable.");
+        }
+        return nil;
+    }
+    return resolvedPath;
 }
 
 static const char *BTInitializationResultName(BTUnityInitializationResult result) {

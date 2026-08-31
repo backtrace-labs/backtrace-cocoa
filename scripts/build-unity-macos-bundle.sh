@@ -138,6 +138,8 @@ def declaration_body(text: str, declaration: str, label: str) -> str:
 required = [
     'BTUnityCrashStorageRelativePath = @"Backtrace/NativeCrash/v1/plcrash"',
     'BTUnityLegacyIdentifierPrefix = @"io.backtrace.unity.legacy."',
+    'BTPLCrashReporterDefaultNamespace =',
+    '@"com.plausiblelabs.crashreporter.data"',
     'BTUnityExceptionContractMarker =',
     'BacktraceUnityExceptionContract:all-c-exports-contained-v1',
     'BacktraceUnityLifecycleContract:process-lifetime-handler-distinct-disabled-v2',
@@ -167,6 +169,23 @@ default_initializer = re.compile(
 )
 if default_initializer.search(source):
     raise SystemExit("error: Unity bridge still constructs PLCrashReporter in its default namespace")
+
+storage_preparation = declaration_body(
+    source,
+    "static NSString *BTPrepareCrashReportBasePath(",
+    "BTPrepareCrashReportBasePath",
+)
+for value in (
+    "URLByResolvingSymlinksInPath",
+    "NSCachesDirectory",
+    "BTPLCrashReporterDefaultNamespace",
+    "[resolvedPath isEqualToString:defaultBasePath]",
+):
+    if value not in storage_preparation:
+        raise SystemExit(
+            "error: Unity V3 storage validation does not reject the canonical "
+            f"PLCrashReporter default namespace: {value}"
+        )
 
 def exported_body(signature: str) -> str:
     return declaration_body(source, f"BT_EXPORT {signature}", f"Unity export {signature}")

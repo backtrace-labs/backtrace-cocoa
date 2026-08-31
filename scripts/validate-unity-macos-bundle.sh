@@ -123,7 +123,11 @@ cleanup_runtime_test() {
   rm -rf "$RUNTIME_TEST_ROOT"
 }
 trap cleanup_runtime_test EXIT
-mkdir -p "$RUNTIME_TEST_ROOT/home" "$RUNTIME_TEST_ROOT/plcrash"
+mkdir -p \
+  "$RUNTIME_TEST_ROOT/home/Library/Caches" \
+  "$RUNTIME_TEST_ROOT/plcrash"
+ln -s "$RUNTIME_TEST_ROOT/home/Library/Caches" \
+  "$RUNTIME_TEST_ROOT/default-plcrash-base-alias"
 
 # Exercise the V2/V3 pre-existing-shared-client distinction in a dedicated process. The
 # protocol-only Objective-C fixture is sufficient for the preflight check but must never be
@@ -384,7 +388,10 @@ mkdir -p "$RUNTIME_TEST_ROOT/swift-module-cache"
 CLANG_MODULE_CACHE_PATH="$RUNTIME_TEST_ROOT/swift-module-cache" \
 SWIFT_MODULECACHE_PATH="$RUNTIME_TEST_ROOT/swift-module-cache" \
 CFFIXED_USER_HOME="$RUNTIME_TEST_ROOT/home" \
-swift - "$BINARY" "$RUNTIME_TEST_ROOT/plcrash" <<'SWIFT'
+swift - \
+  "$BINARY" \
+  "$RUNTIME_TEST_ROOT/plcrash" \
+  "$RUNTIME_TEST_ROOT/default-plcrash-base-alias" <<'SWIFT'
 import AppKit
 import Darwin
 import Foundation
@@ -408,8 +415,8 @@ typealias GetAttributes = @convention(c) (
 ) -> Void
 typealias SetLogLevel = @convention(c) (Int32) -> Int32
 
-guard CommandLine.arguments.count == 3 else {
-    fatalError("error: lifecycle smoke test requires a bundle and storage path")
+guard CommandLine.arguments.count == 4 else {
+    fatalError("error: lifecycle smoke test requires a bundle and two storage paths")
 }
 guard let handle = dlopen(CommandLine.arguments[1], RTLD_NOW | RTLD_LOCAL) else {
     fatalError("error: could not load bundle: \(String(cString: dlerror()))")
@@ -432,9 +439,13 @@ guard setLogLevel(4) == 0 else {
 
 let submissionURL = "https://submit.backtrace.io/example/example/plcrash"
 let storagePath = CommandLine.arguments[2]
-func startIntegration(with submissionURL: String = submissionURL) -> Int32 {
+let defaultStoragePath = CommandLine.arguments[3]
+func startIntegration(
+    with submissionURL: String = submissionURL,
+    at crashStoragePath: String = storagePath
+) -> Int32 {
     submissionURL.withCString { submissionURLPointer in
-        storagePath.withCString { storagePathPointer in
+        crashStoragePath.withCString { storagePathPointer in
             start(
                 submissionURLPointer,
                 nil,
@@ -452,6 +463,13 @@ func startIntegration(with submissionURL: String = submissionURL) -> Int32 {
 }
 
 // A failure before PLCrashReporter enable must not latch process-wide handler state.
+let defaultNamespaceResult = startIntegration(at: defaultStoragePath)
+guard defaultNamespaceResult == 3 else {
+    fatalError(
+        "error: a symlink to PLCrashReporter's default base path must return " +
+        "storageInitializationFailed; found \(defaultNamespaceResult)"
+    )
+}
 let invalidURLResult = startIntegration(with: "invalid://pre-enable-lifecycle-check")
 guard invalidURLResult == 4 else {
     fatalError(
