@@ -35,8 +35,11 @@ private final class RepositoryFileLockProcess {
     private let output = Pipe()
 
     init(lockUrl: URL) {
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
+        // `/usr/bin/python3` is an Xcode developer-tool shim on newer macOS runners.
+        // Resolve the runner-provided interpreter from PATH instead.
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.arguments = [
+            "python3",
             "-c",
             """
             import fcntl, os, sys
