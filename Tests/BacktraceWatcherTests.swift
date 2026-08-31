@@ -373,6 +373,231 @@ final class BacktraceWatcherTests: QuickSpec {
                     expect(watcher.timer).toNot(beNil())
                 }
 
+                throwingIt("gives an initial crash the first rate slot and defers its failed retry") {
+                    try repository.clear()
+                    var now = 1_000.0
+                    let limitedApi = BacktraceApi(credentials: credentials,
+                                                  session: urlSession,
+                                                  reportsPerMin: 1,
+                                                  rateLimiterCurrentTime: { now })
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   api: limitedApi,
+                                                   repository: repository,
+                                                   networkAvailabilityCheck: { true })
+                    let olderRetry = try BacktraceWatcherTests.backtraceReport(
+                        for: ["deliveryOrder": "olderRetry"]
+                    )
+                    let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                    try repository.save(olderRetry)
+                    repository.storeInitial(pending)
+                    var submittedIdentifiers = [UUID]()
+                    let delegate = BacktraceClientDelegateMock()
+                    delegate.willSendClosure = { report in
+                        submittedIdentifiers.append(report.identifier)
+                        return report
+                    }
+                    limitedApi.delegate = delegate
+                    urlSession.response = MockHttpResponse(statusCode: 503)
+
+                    watcher.runDeliveryCycle()
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(submittedIdentifiers).to(equal([pending.identifier]))
+                    expect(repository.storage.first {
+                        $0.resource.identifier == olderRetry.identifier
+                    }?.state).to(equal(.readyForRetry))
+                    expect(repository.retryCount(for: olderRetry)).to(equal(0))
+                    expect(repository.storage.first {
+                        $0.resource.identifier == pending.identifier
+                    }?.state).to(equal(.readyForRetry))
+                    expect(repository.retryCount(for: pending)).to(equal(0))
+
+                    now += 60
+                    urlSession.response = MockOkResponse()
+                    watcher.runDeliveryCycle()
+
+                    expect(urlSession.requestCount).to(equal(2))
+                    expect(submittedIdentifiers).to(equal([
+                        pending.identifier,
+                        olderRetry.identifier
+                    ]))
+                    expect(repository.storage.map(\.resource.identifier))
+                        .to(equal([pending.identifier]))
+                }
+
+                throwingIt("does not let a large retry backlog starve an initial crash") {
+                    try repository.clear()
+                    let limitedApi = BacktraceApi(credentials: credentials,
+                                                  session: urlSession,
+                                                  reportsPerMin: 1)
+                    let deliveryQueue = DispatchQueue(
+                        label: "backtrace.watcher.initial-priority.startup.tests"
+                    )
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   api: limitedApi,
+                                                   repository: repository,
+                                                   dispatchQueue: deliveryQueue,
+                                                   networkAvailabilityCheck: { true })
+                    // Delivery ordering is the behavior under test. Capture native process state
+                    // once, then reuse the verified payload so repeated live capture cannot make
+                    // this scheduling test fail before the watcher runs.
+                    let payload = try BacktraceWatcherTests.backtraceReport(for: [:]).reportData
+                    let backlog = try (0..<11).map { index in
+                        try BacktraceReport(report: payload,
+                                            attributes: ["backlogIndex": index],
+                                            attachmentPaths: [],
+                                            identifier: UUID())
+                    }
+                    for report in backlog {
+                        try repository.save(report)
+                    }
+                    let pending = try BacktraceReport(pendingReport: payload,
+                                                      attributes: ["pending": true],
+                                                      attachmentPaths: [])
+                    repository.storeInitial(pending)
+                    var submittedIdentifiers = [UUID]()
+                    let delegate = BacktraceClientDelegateMock()
+                    delegate.willSendClosure = { report in
+                        submittedIdentifiers.append(report.identifier)
+                        return report
+                    }
+                    limitedApi.delegate = delegate
+
+                    watcher.startDeliveryAsync()
+                    deliveryQueue.sync {}
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(submittedIdentifiers).to(equal([pending.identifier]))
+                    expect(try repository.countResources()).to(equal(backlog.count))
+                    expect(repository.storage.allSatisfy {
+                        $0.state == .readyForRetry
+                    }).to(beTrue())
+                }
+
+                throwingIt("keeps retry rows disabled while allowing the initial opportunity") {
+                    dbSettings.retryBehaviour = .none
+                    try repository.clear()
+                    let deliveryQueue = DispatchQueue(
+                        label: "backtrace.watcher.none.ordered-delivery.tests"
+                    )
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   api: api,
+                                                   repository: repository,
+                                                   dispatchQueue: deliveryQueue,
+                                                   networkAvailabilityCheck: { false })
+                    let retry = try BacktraceWatcherTests.backtraceReport(
+                        for: ["deliveryOrder": "retry"]
+                    )
+                    let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                    try repository.save(retry)
+                    repository.storeInitial(pending)
+
+                    watcher.startDeliveryAsync()
+                    deliveryQueue.sync {}
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(repository.storage.map(\.resource.identifier))
+                        .to(equal([retry.identifier]))
+                    expect(repository.storage.first?.state).to(equal(.readyForRetry))
+                    expect(repository.retryCount(for: retry)).to(equal(0))
+                }
+
+                throwingIt("keeps the initial row ahead of retries after local rate limiting") {
+                    try repository.clear()
+                    var now = 2_000.0
+                    let limitedApi = BacktraceApi(credentials: credentials,
+                                                  session: urlSession,
+                                                  reportsPerMin: 1,
+                                                  rateLimiterCurrentTime: { now })
+                    _ = try limitedApi.send(BacktraceWatcherTests.backtraceReport(
+                        for: ["fillsWindow": true]
+                    ))
+                    let scheduler = InitialAdmissionSchedulerSpy()
+                    let watcher = BacktraceWatcher(settings: dbSettings,
+                                                   api: limitedApi,
+                                                   repository: repository,
+                                                   networkAvailabilityCheck: { true },
+                                                   initialAdmissionScheduler: scheduler.schedule)
+                    let retry = try BacktraceWatcherTests.backtraceReport(
+                        for: ["deliveryOrder": "retry"]
+                    )
+                    let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                    try repository.save(retry)
+                    repository.storeInitial(pending)
+
+                    watcher.runDeliveryCycle()
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(repository.storage.first {
+                        $0.resource.identifier == pending.identifier
+                    }?.state).to(equal(.readyForInitialSubmission))
+                    expect(repository.retryCount(for: pending)).to(equal(0))
+                    expect(repository.storage.first {
+                        $0.resource.identifier == retry.identifier
+                    }?.state).to(equal(.readyForRetry))
+                    expect(repository.retryCount(for: retry)).to(equal(0))
+                    expect(scheduler.count).to(equal(1))
+
+                    now += 60
+                    scheduler.runNext()
+
+                    expect(urlSession.requestCount).to(equal(2))
+                    expect(repository.storage.map(\.resource.identifier))
+                        .to(equal([retry.identifier]))
+                }
+
+                for timerRunsFirst in [true, false] {
+                    throwingIt("preserves initial priority when simultaneous wakeups run timer first: \(timerRunsFirst)") {
+                        try repository.clear()
+                        urlSession.resetRequestCount()
+                        var now = 3_000.0
+                        let limitedApi = BacktraceApi(credentials: credentials,
+                                                      session: urlSession,
+                                                      reportsPerMin: 1,
+                                                      rateLimiterCurrentTime: { now })
+                        _ = try limitedApi.send(BacktraceWatcherTests.backtraceReport(
+                            for: ["fillsWindow": true]
+                        ))
+                        let scheduler = InitialAdmissionSchedulerSpy()
+                        let watcher = BacktraceWatcher(settings: dbSettings,
+                                                       api: limitedApi,
+                                                       repository: repository,
+                                                       networkAvailabilityCheck: { true },
+                                                       initialAdmissionScheduler: scheduler.schedule)
+                        let retry = try BacktraceWatcherTests.backtraceReport(
+                            for: ["deliveryOrder": "retry"]
+                        )
+                        let pending = try BacktraceWatcherTests.pendingBacktraceReport()
+                        try repository.save(retry)
+                        repository.storeInitial(pending)
+                        watcher.runDeliveryCycle()
+                        expect(scheduler.count).to(equal(1))
+
+                        var submittedIdentifiers = [UUID]()
+                        let delegate = BacktraceClientDelegateMock()
+                        delegate.willSendClosure = { report in
+                            submittedIdentifiers.append(report.identifier)
+                            return report
+                        }
+                        limitedApi.delegate = delegate
+                        now += 60
+
+                        if timerRunsFirst {
+                            watcher.timerEventHandler()
+                            scheduler.runNext()
+                        } else {
+                            scheduler.runNext()
+                            watcher.timerEventHandler()
+                        }
+
+                        expect(urlSession.requestCount).to(equal(2))
+                        expect(submittedIdentifiers).to(equal([pending.identifier]))
+                        expect(repository.storage.map(\.resource.identifier))
+                            .to(equal([retry.identifier]))
+                        expect(repository.retryCount(for: retry)).to(equal(0))
+                    }
+                }
+
                 throwingIt("shuts down timers and queued replay idempotently") {
                     try repository.clear()
                     let replayQueue = DispatchQueue(label: "backtrace.watcher.shutdown.tests")
@@ -499,9 +724,10 @@ final class BacktraceWatcherTests: QuickSpec {
                     let pending = try BacktraceWatcherTests.pendingBacktraceReport()
                     repository.storeInitial(pending)
 
-                    watcher.drainInitialSubmissions()
+                    let initialResult = watcher.drainInitialSubmissions()
                     watcher.batchRetry()
 
+                    expect(initialResult).to(equal(.rateLimited))
                     expect(urlSession.requestCount).to(equal(1))
                     expect(repository.storage.first?.state).to(equal(.readyForInitialSubmission))
                     expect(repository.retryCount(for: pending)).to(equal(0))

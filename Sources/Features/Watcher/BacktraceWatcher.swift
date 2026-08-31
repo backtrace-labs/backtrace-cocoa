@@ -3,6 +3,10 @@ import Foundation
 final class BacktraceWatcher<BacktraceRepository: Repository>
 where BacktraceRepository.Resource == BacktraceReport {
 
+    private struct RetrySnapshot {
+        let reports: [BacktraceReport]
+    }
+
     internal enum InitialBatchResult: Equatable {
         case empty
         case progressed
@@ -71,21 +75,44 @@ where BacktraceRepository.Resource == BacktraceReport {
 
     func replayAsync() {
         guard settings.retryBehaviour == .interval, !isShutdown else { return }
+        startDeliveryAsync()
+    }
+
+    /// Starts one ordered delivery cycle. Eligible retry rows are snapshotted first,
+    /// but initial native crashes always receive admission before that snapshot is submitted.
+    func startDeliveryAsync() {
+        guard !isShutdown else { return }
+        let bypassesReachabilityPreflight = settings.retryBehaviour == .none
         queue.async { [weak self] in
-            self?.batchRetry()
+            self?.runDeliveryCycle(
+                bypassesReachabilityPreflight: bypassesReachabilityPreflight
+            )
         }
     }
 
-    /// Schedules exactly one initial attempt for newly ingested native crashes,
-    /// independently from ordinary repository retry policy.
+    /// Schedules the ordered cycle that provides newly ingested native crashes
+    /// an initial opportunity independently from ordinary repository retry policy.
     func submitInitialAsync() {
+        startDeliveryAsync()
+    }
+
+    /// Captures retry eligibility before initial delivery,
+    /// then gives initial native crashes first use of shared rate-limit capacity.
+    /// A failed initial report cannot appear in the already captured retry snapshot
+    /// and cannot be replayed in this cycle.
+    internal func runDeliveryCycle(bypassesReachabilityPreflight: Bool = false) {
         guard !isShutdown else { return }
-        // With retries disabled this is the process's only opportunity to submit a newly ingested native crash.
-        // Reachability is advisory, so let the transport make that one decision.
-        // Interval mode keeps its offline deferral because the timer will revisit the row later.
-        let bypassesReachabilityPreflight = settings.retryBehaviour == .none
-        queue.async { [weak self] in
-            self?.drainInitialSubmissions(bypassesReachabilityPreflight: bypassesReachabilityPreflight)
+
+        let retrySnapshot = captureRetrySnapshot()
+        let initialResult = drainInitialSubmissions(
+            bypassesReachabilityPreflight: bypassesReachabilityPreflight
+        )
+
+        switch initialResult {
+        case .empty, .progressed:
+            submitRetrySnapshot(retrySnapshot)
+        case .rateLimited, .stopped:
+            return
         }
     }
 
@@ -128,33 +155,57 @@ where BacktraceRepository.Resource == BacktraceReport {
 
     /// Drains bounded fetches until there is no initial work or local admission is full.
     /// Independent from ordinary repository replay and runs when `RetryBehaviour.none` is configured.
-    internal func drainInitialSubmissions(bypassesReachabilityPreflight: Bool = false) {
-        guard !hasScheduledInitialAdmission else { return }
+    @discardableResult
+    internal func drainInitialSubmissions(
+        bypassesReachabilityPreflight: Bool = false
+    ) -> InitialBatchResult {
+        // A pending admission wakeup owns the next available limiter slot.
+        // A timer cycle arriving first must not let ordinary retries consume that slot.
+        guard !hasScheduledInitialAdmission else { return .rateLimited }
+        var madeProgress = false
         while !isShutdown {
             switch batchInitialSubmission(
                 bypassesReachabilityPreflight: bypassesReachabilityPreflight
             ) {
             case .progressed:
+                madeProgress = true
                 continue
             case .rateLimited:
                 scheduleInitialAdmissionCheck(
                     bypassesReachabilityPreflight: bypassesReachabilityPreflight
                 )
-                return
-            case .empty, .stopped:
-                return
+                return .rateLimited
+            case .empty:
+                return madeProgress ? .progressed : .empty
+            case .stopped:
+                return .stopped
             }
         }
+        return .stopped
     }
 
     internal func batchRetry() {
-        guard !isShutdown else { return }
-        guard settings.retryBehaviour == .interval else { return }
-        guard networkAvailabilityCheck() else { return }
-        guard let reports = try? reportsFromRepository(limit: 10), !reports.isEmpty else { return }
-        BacktraceLogger.debug("Resending reporting. Batch size: \(reports.count)")
+        submitRetrySnapshot(captureRetrySnapshot())
+    }
 
-        for report in reports {
+    private func captureRetrySnapshot() -> RetrySnapshot {
+        guard !isShutdown,
+              settings.retryBehaviour == .interval,
+              networkAvailabilityCheck(),
+              let reports = try? reportsFromRepository(limit: 10) else {
+            return RetrySnapshot(reports: [])
+        }
+        return RetrySnapshot(reports: reports)
+    }
+
+    private func submitRetrySnapshot(_ snapshot: RetrySnapshot) {
+        guard !isShutdown,
+              settings.retryBehaviour == .interval,
+              networkAvailabilityCheck(),
+              !snapshot.reports.isEmpty else { return }
+        BacktraceLogger.debug("Resending reporting. Batch size: \(snapshot.reports.count)")
+
+        for report in snapshot.reports {
             guard !isShutdown else { return }
             let receipt = submissionCoordinator.submit(report, origin: .repositoryRetry)
             guard receipt.pipelineEntered else { continue }
@@ -189,11 +240,7 @@ extension BacktraceWatcher {
     }
 
     internal func timerEventHandler() {
-        // Retry rows that predate this tick first, then attempt newly discovered native rows.
-        // If an initial attempt becomes retryable, it waits for the next interval instead of
-        // being submitted twice in one timer cycle.
-        batchRetry()
-        drainInitialSubmissions()
+        runDeliveryCycle()
     }
 
     internal func resetTimer() {
@@ -259,7 +306,7 @@ extension BacktraceWatcher {
             self.lifecycleLock.unlock()
             guard shouldRun else { return }
 
-            self.drainInitialSubmissions(
+            self.runDeliveryCycle(
                 bypassesReachabilityPreflight: bypassesReachabilityPreflight
             )
         }

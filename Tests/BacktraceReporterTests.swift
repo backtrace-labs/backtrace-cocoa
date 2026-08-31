@@ -17,9 +17,7 @@ final class BacktraceReporterTests: QuickSpec {
             var reporter = try! BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                   api: backtraceApi,
                                                   dbSettings: BacktraceDatabaseSettings(),
-                                                  credentials: credentials,
-                                                  oomMode: .full,
-                                                  urlSession: urlSession)
+                                                  oomMode: .full)
 
             throwingBeforeEach {
                 delegate.clear()
@@ -27,9 +25,7 @@ final class BacktraceReporterTests: QuickSpec {
                 reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                  api: backtraceApi,
                                                  dbSettings: BacktraceDatabaseSettings(),
-                                                 credentials: credentials,
-                                                 oomMode: .full,
-                                                 urlSession: urlSession)
+                                                 oomMode: .full)
                 try reporter.repository.clear()
                 reporter.delegate = delegate
             }
@@ -149,9 +145,7 @@ final class BacktraceReporterTests: QuickSpec {
                     reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                      api: backtraceApi,
                                                      dbSettings: BacktraceDatabaseSettings(),
-                                                     credentials: credentials,
-                                                     oomMode: .full,
-                                                     urlSession: urlSession)
+                                                     oomMode: .full)
                     reporter.delegate = delegate
 
                     urlSession.response = MockOkResponse()
@@ -325,9 +319,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
 
                     try pendingReporter.handlePendingCrashes()
@@ -350,9 +342,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
                     urlSession.response = MockOkResponse()
                     urlSession.resetRequestCount()
@@ -390,9 +380,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
 
                     expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
@@ -412,9 +400,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
                     let attributesConfig = try AttributesStorage.AttributesConfig(
                         fileName: pending.identifier.uuidString,
@@ -442,9 +428,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
 
                     expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
@@ -476,9 +460,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
 
                     try pendingReporter.handlePendingCrashes()
@@ -517,9 +499,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
 
                     expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
@@ -579,9 +559,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
 
                     expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
@@ -613,9 +591,7 @@ final class BacktraceReporterTests: QuickSpec {
                     let pendingReporter = try BacktraceReporter(reporter: crashReporting,
                                                                 api: backtraceApi,
                                                                 dbSettings: BacktraceDatabaseSettings(),
-                                                                credentials: credentials,
-                                                                oomMode: .none,
-                                                                urlSession: urlSession)
+                                                                oomMode: .none)
                     try pendingReporter.repository.clear()
 
                     expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())

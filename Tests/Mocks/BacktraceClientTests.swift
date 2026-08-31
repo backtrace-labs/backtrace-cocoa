@@ -48,7 +48,6 @@ final class BacktraceClientTests: QuickSpec {
                     let reporter = try BacktraceReporter(reporter: crashReporter,
                                                          api: api,
                                                          dbSettings: configuration.dbSettings,
-                                                         credentials: credentials,
                                                          oomMode: configuration.oomMode)
 
                     let client = try BacktraceClient(configuration: configuration,
@@ -74,7 +73,6 @@ final class BacktraceClientTests: QuickSpec {
                     let reporter = try BacktraceReporter(reporter: crashReporting,
                                                          api: api,
                                                          dbSettings: dbSettings,
-                                                         credentials: credentials,
                                                          oomMode: .none,
                                                          networkAvailabilityCheck: { true })
                     try reporter.repository.clear()
@@ -111,7 +109,6 @@ final class BacktraceClientTests: QuickSpec {
                     let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                          api: api,
                                                          dbSettings: BacktraceDatabaseSettings(),
-                                                         credentials: credentials,
                                                          oomMode: .none)
                     let client = try BacktraceClient(configuration: BacktraceClientConfiguration(
                                                         credentials: credentials),
@@ -129,7 +126,6 @@ final class BacktraceClientTests: QuickSpec {
                     let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                          api: api,
                                                          dbSettings: BacktraceDatabaseSettings(),
-                                                         credentials: credentials,
                                                          oomMode: .full)
                     let dispatcher = ShutdownDispatchingSpy()
                     let client = try BacktraceClient(configuration: BacktraceClientConfiguration(
@@ -161,7 +157,6 @@ final class BacktraceClientTests: QuickSpec {
                     let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                          api: api,
                                                          dbSettings: BacktraceDatabaseSettings(),
-                                                         credentials: credentials,
                                                          oomMode: .none)
                     let dispatcher = BlockingShutdownDispatchingSpy()
                     let client = try BacktraceClient(configuration: BacktraceClientConfiguration(
@@ -197,9 +192,15 @@ final class BacktraceClientTests: QuickSpec {
                     let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                          api: api,
                                                          dbSettings: BacktraceDatabaseSettings(),
-                                                         credentials: credentials,
                                                          oomMode: .none)
                     try reporter.repository.clear()
+                    let storeDirectoryUrl = reporter.repository.url.deletingLastPathComponent()
+                    var verificationRepository: PersistentRepository<BacktraceReport>?
+                    defer {
+                        try? verificationRepository?.clear()
+                        verificationRepository?.shutdownForNativeBridge()
+                        verificationRepository = nil
+                    }
                     let dispatcher = UserInitiatedTestDispatcher()
                     DynamicDebuggerCheckerMock.setAttached(true)
                     defer { DynamicDebuggerCheckerMock.setAttached(true) }
@@ -235,7 +236,15 @@ final class BacktraceClientTests: QuickSpec {
                     let result = completionResult
                     completionLock.unlock()
                     expect(result?.backtraceStatus).to(equal(.unknownError))
-                    expect(try reporter.repository.countResources()).to(equal(1))
+                    // Native shutdown detaches the retained reporter's Core Data store after
+                    // admitted cancellation persistence finishes. Reopen the same durable store
+                    // to verify the report instead of querying the closed repository instance.
+                    verificationRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    expect(try verificationRepository?.countResources()).to(equal(1))
                 }
 
                 it("modifies the default values") {

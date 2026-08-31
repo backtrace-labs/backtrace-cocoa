@@ -28,13 +28,8 @@ final class BacktraceReporter {
     init(reporter: CrashReporting,
          api: BacktraceApi,
          dbSettings: BacktraceDatabaseSettings,
-         credentials: BacktraceCredentials,
          oomMode: BacktraceOomMode,
-         urlSession: URLSession = URLSession(configuration: .ephemeral),
          networkAvailabilityCheck: (() -> Bool)? = nil) throws {
-        // Retained for internal source compatibility while replay now deliberately shares the delegate-aware API (and therefore its URLSession and credentials) with live reports.
-        _ = credentials
-        _ = urlSession
         self.reporter = reporter
         self.api = api
         self.oomMode = oomMode
@@ -79,10 +74,7 @@ extension BacktraceReporter {
     func enableCrashReporter() throws {
         try reporter.enableCrashReporting()
         watcher.enable()
-        // Replay rows that were already retryable before this launch first.
-        // Scheduling newly discovered initial rows afterward prevents a transient first attempt from being picked up again by the same startup replay cycle.
-        watcher.replayAsync()
-        watcher.submitInitialAsync()
+        watcher.startDeliveryAsync()
     }
 
     func handlePendingCrashes() throws {

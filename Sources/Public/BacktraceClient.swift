@@ -80,8 +80,8 @@ private final class BacktraceCompletionGate {
         }
         let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
-        let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api, dbSettings: configuration.dbSettings,
-                                             credentials: configuration.credentials, oomMode: configuration.oomMode)
+        let reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(), api: api,
+                                             dbSettings: configuration.dbSettings, oomMode: configuration.oomMode)
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)
     }
@@ -98,8 +98,8 @@ private final class BacktraceCompletionGate {
         }
         let api = BacktraceApi(credentials: configuration.credentials,
                                reportsPerMin: configuration.reportsPerMin)
-        let reporter = try BacktraceReporter(reporter: crashReporter, api: api, dbSettings: configuration.dbSettings,
-                                             credentials: configuration.credentials, oomMode: configuration.oomMode)
+        let reporter = try BacktraceReporter(reporter: crashReporter, api: api,
+                                             dbSettings: configuration.dbSettings, oomMode: configuration.oomMode)
 
         try self.init(configuration: configuration, debugger: DebuggerChecker.self, reporter: reporter,
                       dispatcher: Dispatcher(), api: api)
