@@ -106,80 +106,18 @@ jobs:
     with:
       backtrace_version: ${{ needs.validate-release-tag.outputs.version }}
 
-  validate-unity-macos-intel:
-    name: Validate the same Unity archive on Intel
-    runs-on: macos-15-intel
-    timeout-minutes: 20
+  release-validation:
+    name: Validate the Unity release archive
     needs: [validate-release-tag, unity-macos-bundle]
     permissions:
       actions: read
       contents: read
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
-    steps:
-      - name: Checkout validated release revision
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.validate-release-tag.outputs.head }}
-      - name: Download validated Unity archive
-        uses: actions/download-artifact@v4
-        with:
-          name: BacktraceMacUnity-${{ github.sha }}
-          path: ${{ runner.temp }}/unity-download
-      - name: Verify and execute the Intel lifecycle smoke test
-        env:
-          EXPECTED_ARCHIVE_SHA256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
-          EXPECTED_HEAD: ${{ needs.validate-release-tag.outputs.head }}
-          EXPECTED_VERSION: ${{ needs.validate-release-tag.outputs.version }}
-        run: |
-          set -euo pipefail
-          xcode_version_output="$(xcodebuild -version)"
-          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
-          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
-          test "$(uname -m)" = "x86_64"
-          archive="$RUNNER_TEMP/unity-download/BacktraceMacUnity.tar.gz"
-          test -f "$archive"
-          test "$(shasum -a 256 "$archive" | awk '{print $1}')" = \
-            "$EXPECTED_ARCHIVE_SHA256"
-          extract_root="$RUNNER_TEMP/unity-intel"
-          mkdir -p "$extract_root"
-          tar -xzf "$archive" -C "$extract_root"
-          (
-            cd "$extract_root"
-            shasum -a 256 -c SHA256SUMS
-          )
-          python3 - "$extract_root/artifact-provenance.json" \
-            "$EXPECTED_HEAD" "$EXPECTED_VERSION" <<'PY'
-          import json
-          import sys
-
-          path, expected_head, expected_version = sys.argv[1:]
-          with open(path, encoding="utf-8") as stream:
-              cocoa = json.load(stream)["backtrace_cocoa"]
-          if cocoa["head"] != expected_head:
-              raise SystemExit("Unity archive provenance does not match the validated commit")
-          if cocoa["version"] != expected_version:
-              raise SystemExit("Unity archive provenance does not match the validated version")
-          PY
-          scripts/validate-unity-macos-bundle.sh "$extract_root"
-
-  validate-unity-macos-12:
-    name: Confirm the same Unity archive passed on macOS 12
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [validate-release-tag, unity-macos-bundle, validate-unity-macos-intel]
-    environment: unity-macos-12-runtime-validation
-    permissions:
-      contents: read
-    steps:
-      - name: Require checksum-bound macOS 12 validation
-        env:
-          EXPECTED_ARCHIVE_SHA256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
-          VALIDATED_ARCHIVE_SHA256: ${{ secrets.UNITY_MACOS12_VALIDATED_ARCHIVE_SHA256 }}
-        run: |
-          set -euo pipefail
-          test -n "$VALIDATED_ARCHIVE_SHA256"
-          test "$VALIDATED_ARCHIVE_SHA256" = "$EXPECTED_ARCHIVE_SHA256"
+    uses: ./.github/workflows/release-validation.yml
+    with:
+      source_head: ${{ needs.validate-release-tag.outputs.head }}
+      backtrace_version: ${{ needs.validate-release-tag.outputs.version }}
+      archive_sha256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
+      attestation_environment: unity-macos-12-runtime-validation
 
   deploy-cocoapods:
     runs-on: macos-26
@@ -227,7 +165,7 @@ jobs:
 
   sign-and-build-frameworks:
     runs-on: macos-26
-    needs: [validate-release-tag, pod-lint, swift-package, test, validate-unity-macos-12]
+    needs: [validate-release-tag, pod-lint, swift-package, test, release-validation]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 

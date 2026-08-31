@@ -5,9 +5,8 @@ on:
     inputs:
       backtrace_version:
         description: Bundle marketing version recorded in the artifact
-        required: false
+        required: true
         type: string
-        default: '2.1.1'
     outputs:
       archive_sha256:
         description: SHA-256 of the validated BacktraceMacUnity archive
@@ -38,6 +37,7 @@ jobs:
           xcode_version_output="$(xcodebuild -version)"
           test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
           test "$(uname -m)" = "arm64"
+          scripts/validate-release-version.sh "$BACKTRACE_VERSION"
           test -z "$(git status --porcelain)"
 
       - name: Test Unity build tooling

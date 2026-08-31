@@ -1,10 +1,15 @@
 #!/bin/bash
+set -euo pipefail
 
 PROJECT_DIR="$(dirname "$0")/.."
 BUILD_PATH="${PROJECT_DIR}/.build"
 WORKFLOW_XC_PATH="${PROJECT_DIR}/frameworks"
 POD_PATH="${PROJECT_DIR}/Pods/PLCrashReporter"
 DERIVED_DATA_PATH="${PROJECT_DIR}/.derivedData"
+SOURCE_VERSION="$("${PROJECT_DIR}/scripts/current-release-version.sh")"
+BACKTRACE_VERSION="${BACKTRACE_VERSION:-$SOURCE_VERSION}"
+
+"${PROJECT_DIR}/scripts/validate-release-version.sh" "$BACKTRACE_VERSION"
 
 rm -rf ${BUILD_PATH}
 rm -rf ${WORKFLOW_XC_PATH}
@@ -20,6 +25,7 @@ xcodebuild archive \
     -archivePath ${BUILD_PATH}/Backtrace-iOS-lib.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
+    MARKETING_VERSION="$BACKTRACE_VERSION" \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
     BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
@@ -30,6 +36,7 @@ xcodebuild archive \
     -archivePath ${BUILD_PATH}/Backtrace-iOS-Simulator-lib.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
+    MARKETING_VERSION="$BACKTRACE_VERSION" \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
     BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
@@ -40,6 +47,7 @@ xcodebuild archive \
     -archivePath ${BUILD_PATH}/Backtrace-iOS-MacCatalyst-lib.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
+    MARKETING_VERSION="$BACKTRACE_VERSION" \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
     SUPPORTS_MACCATALYST=YES BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO    
 
@@ -50,6 +58,7 @@ xcodebuild archive \
     -archivePath ${BUILD_PATH}/Backtrace-macOS-lib.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
+    MARKETING_VERSION="$BACKTRACE_VERSION" \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
     BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
@@ -60,6 +69,7 @@ xcodebuild archive \
     -archivePath ${BUILD_PATH}/Backtrace-tvOS-lib.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
+    MARKETING_VERSION="$BACKTRACE_VERSION" \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
     BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 
@@ -70,6 +80,7 @@ xcodebuild archive \
     -archivePath ${BUILD_PATH}/Backtrace-tvOS-Simulator-lib.xcarchive \
     -derivedDataPath ${DERIVED_DATA_PATH} \
     -configuration Release \
+    MARKETING_VERSION="$BACKTRACE_VERSION" \
     DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" GCC_GENERATE_DEBUGGING_SYMBOLS=YES \
     BUILD_LIBRARY_FOR_DISTRIBUTION=YES SKIP_INSTALL=NO
 

@@ -1,0 +1,108 @@
+name: Validate Unity macOS release archive
+
+on:
+  workflow_call:
+    inputs:
+      source_head:
+        description: Immutable Backtrace Cocoa commit used to build the archive
+        required: true
+        type: string
+      backtrace_version:
+        description: Validated Backtrace Cocoa release version
+        required: true
+        type: string
+      archive_sha256:
+        description: SHA-256 emitted by the Unity archive build
+        required: true
+        type: string
+      attestation_environment:
+        description: Protected environment containing the matching macOS 12 attestation
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate-unity-macos-intel:
+    name: Validate the same Unity archive on Intel
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+    steps:
+      - name: Checkout validated source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_head }}
+
+      - name: Download validated Unity archive
+        uses: actions/download-artifact@v4
+        with:
+          name: BacktraceMacUnity-${{ inputs.source_head }}
+          path: ${{ runner.temp }}/unity-download
+
+      - name: Verify and execute the Intel lifecycle smoke test
+        env:
+          EXPECTED_ARCHIVE_SHA256: ${{ inputs.archive_sha256 }}
+          EXPECTED_HEAD: ${{ inputs.source_head }}
+          EXPECTED_VERSION: ${{ inputs.backtrace_version }}
+        run: |
+          set -euo pipefail
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(uname -m)" = "x86_64"
+
+          archive="$RUNNER_TEMP/unity-download/BacktraceMacUnity.tar.gz"
+          test -f "$archive"
+          test "$(shasum -a 256 "$archive" | awk '{print $1}')" = \
+            "$EXPECTED_ARCHIVE_SHA256"
+
+          extract_root="$RUNNER_TEMP/unity-intel"
+          mkdir -p "$extract_root"
+          tar -xzf "$archive" -C "$extract_root"
+          (
+            cd "$extract_root"
+            shasum -a 256 -c SHA256SUMS
+          )
+
+          scripts/verify-unity-artifact-provenance.py \
+            "$extract_root/artifact-provenance.json" \
+            "$EXPECTED_HEAD" \
+            "$EXPECTED_VERSION"
+          scripts/validate-unity-macos-bundle.sh "$extract_root"
+
+  require-unity-macos-12-attestation:
+    name: Require external macOS 12 runtime attestation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: validate-unity-macos-intel
+    environment: ${{ inputs.attestation_environment }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Verify checksum-bound external attestation
+        env:
+          ATTESTATION_RECORD_URL: ${{ vars.UNITY_MACOS12_ATTESTATION_RECORD_URL }}
+          EXPECTED_ARCHIVE_SHA256: ${{ inputs.archive_sha256 }}
+          EXPECTED_HEAD: ${{ inputs.source_head }}
+          EXPECTED_VERSION: ${{ inputs.backtrace_version }}
+          VALIDATED_ARCHIVE_SHA256: ${{ vars.UNITY_MACOS12_VALIDATED_ARCHIVE_SHA256 }}
+        run: |
+          set -euo pipefail
+          test -n "$VALIDATED_ARCHIVE_SHA256"
+          test -n "$ATTESTATION_RECORD_URL"
+          test "$VALIDATED_ARCHIVE_SHA256" = "$EXPECTED_ARCHIVE_SHA256"
+          {
+            echo "### External macOS 12 runtime attestation accepted"
+            echo "- Archive SHA-256: \`$EXPECTED_ARCHIVE_SHA256\`"
+            echo "- Backtrace Cocoa head: \`$EXPECTED_HEAD\`"
+            echo "- Release version: \`$EXPECTED_VERSION\`"
+            echo "- Retained evidence: $ATTESTATION_RECORD_URL"
+          } >> "$GITHUB_STEP_SUMMARY"

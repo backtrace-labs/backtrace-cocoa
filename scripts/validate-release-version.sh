@@ -22,12 +22,7 @@ extract_version() {
   ' "$path" "$pattern" "$missing_message"
 }
 
-readonly PODSPEC_VERSION="$(
-  extract_version \
-    "$SOURCE_ROOT/Backtrace.podspec" \
-    's\.version\s*=\s*["\x27]([^"\x27]+)["\x27]' \
-    'Backtrace.podspec version not found'
-)"
+readonly PODSPEC_VERSION="$("$SCRIPT_DIRECTORY/current-release-version.sh")"
 readonly AGENT_VERSION="$(
   extract_version \
     "$SOURCE_ROOT/Sources/Features/Attributes/DefaultAttributes.swift" \
@@ -40,11 +35,20 @@ readonly CHANGELOG_VERSION="$(
     '^## Version ([^\s]+)\s*$' \
     'CHANGELOG.md has no current Version heading'
 )"
+readonly XCODE_MARKETING_VERSIONS="$(
+  ruby -e '
+    text = File.read(ARGV.fetch(0))
+    versions = text.scan(/MARKETING_VERSION\s*=\s*([^;\s]+)\s*;/).flatten.uniq.sort
+    abort "Xcode MARKETING_VERSION not found" if versions.empty?
+    puts versions.join(",")
+  ' "$SOURCE_ROOT/Backtrace.xcodeproj/project.pbxproj"
+)"
 
 for source_and_value in \
   "Backtrace.podspec:$PODSPEC_VERSION" \
   "LibInfo.backtraceVersion:$AGENT_VERSION" \
-  "CHANGELOG.md:$CHANGELOG_VERSION"; do
+  "CHANGELOG.md:$CHANGELOG_VERSION" \
+  "Xcode MARKETING_VERSION:$XCODE_MARKETING_VERSIONS"; do
   source="${source_and_value%%:*}"
   value="${source_and_value#*:}"
   if [[ "$value" != "$VERSION" ]]; then

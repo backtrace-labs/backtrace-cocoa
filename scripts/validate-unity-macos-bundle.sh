@@ -74,6 +74,11 @@ readonly MINIMUM_VERSIONS="$(xcrun vtool -show-build "$BINARY" |
   awk '$1 == "minos" { print $2 }' | LC_ALL=C sort -u)"
 [[ "$MINIMUM_VERSIONS" == "$BTUNITY_MACOS_DEPLOYMENT_TARGET" ]] ||
   fail "unexpected minimum macOS version: $MINIMUM_VERSIONS"
+readonly BUNDLE_MARKETING_VERSION="$(
+  plutil -extract CFBundleShortVersionString raw -o - "$INFO_PLIST"
+)"
+[[ "$BUNDLE_MARKETING_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+  fail "bundle has an invalid marketing version: $BUNDLE_MARKETING_VERSION"
 
 while IFS= read -r dependency; do
   case "$dependency" in
@@ -644,13 +649,22 @@ python3 - \
   "$BINARY_SHA256" \
   "$BINARY_UUIDS" \
   "$BTUNITY_MACOS_DEPLOYMENT_TARGET" \
+  "$BUNDLE_MARKETING_VERSION" \
   "${BTUNITY_REQUIRE_CLEAN_SOURCE:-0}" <<'PY'
 import json
 import hashlib
 from pathlib import Path
 import sys
 
-path, bundle_sha, binary_sha, uuid_lines, deployment_target, require_clean = sys.argv[1:]
+(
+    path,
+    bundle_sha,
+    binary_sha,
+    uuid_lines,
+    deployment_target,
+    bundle_version,
+    require_clean,
+) = sys.argv[1:]
 with Path(path).open(encoding="utf-8") as stream:
     value = json.load(stream)
 expected = {
@@ -668,6 +682,8 @@ for key, expected_value in expected.items():
         raise SystemExit(f"error: provenance {key} mismatch: {value.get(key)!r}")
 if require_clean == "1" and value.get("backtrace_cocoa", {}).get("dirty") is not False:
     raise SystemExit("error: release validation requires clean Backtrace Cocoa source provenance")
+if value.get("backtrace_cocoa", {}).get("version") != bundle_version:
+    raise SystemExit("error: bundle and provenance versions do not match")
 if value.get("plcrashreporter", {}).get("upstream_tag") != "1.12.0":
     raise SystemExit("error: provenance has an unexpected PLCrashReporter tag")
 if value.get("plcrashreporter", {}).get("prefix") != "BTUnity":

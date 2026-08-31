@@ -12,7 +12,7 @@ usage() {
   echo "" >&2
   echo "Environment:" >&2
   echo "  PLCRASHREPORTER_SOURCE_DIR  Verified PLCrashReporter 1.12.0 checkout" >&2
-  echo "  BACKTRACE_VERSION            Bundle version (default: 2.1.1)" >&2
+  echo "  BACKTRACE_VERSION            Bundle version (default: Backtrace.podspec)" >&2
   echo "  BACKTRACE_BUILD_NUMBER       Bundle build number (default: 1)" >&2
   echo "  MACOS_SIGNING_IDENTITY       Signing identity (default: ad-hoc '-')" >&2
   echo "  KEEP_BUILD_ARTIFACTS=1       Preserve temporary build products" >&2
@@ -24,7 +24,7 @@ usage() {
 }
 
 for tool in awk chmod codesign ditto dsymutil dwarfdump find git lipo nm otool plutil \
-  python3 shasum sort swift sw_vers uname xattr xcodebuild xcrun; do
+  python3 ruby shasum sort swift sw_vers uname xattr xcodebuild xcrun; do
   command -v "$tool" >/dev/null 2>&1 || fail "required tool is unavailable: $tool"
 done
 
@@ -42,7 +42,9 @@ readonly PREFIX_BUILDER="$SCRIPT_DIR/build-prefixed-plcrashreporter.sh"
 readonly PRIVACY_MERGER="$SCRIPT_DIR/merge-unity-privacy-manifests.py"
 readonly PROJECT_VALIDATOR="$SCRIPT_DIR/validate_unity_xcode_project.py"
 readonly VALIDATOR="$SCRIPT_DIR/validate-unity-macos-bundle.sh"
+readonly VERSION_RESOLVER="$SCRIPT_DIR/current-release-version.sh"
 readonly BRIDGE_SOURCE="$PROJECT_ROOT/BacktraceUnityBridge.mm"
+[[ -x "$VERSION_RESOLVER" ]] || fail "release-version resolver is unavailable: $VERSION_RESOLVER"
 readonly COCOA_PRIVACY_MANIFEST="$PROJECT_ROOT/Sources/Resources/PrivacyInfo.xcprivacy"
 for required in "$PREFIX_BUILDER" "$PRIVACY_MERGER" "$PROJECT_VALIDATOR" "$VALIDATOR" \
   "$BRIDGE_SOURCE" "$COCOA_PRIVACY_MANIFEST"; do
@@ -413,7 +415,8 @@ bash "$PREFIX_BUILDER" \
 
 readonly PRODUCTS="$WORK_ROOT/products"
 readonly DERIVED="$WORK_ROOT/derived"
-readonly COCOA_VERSION="${BACKTRACE_VERSION:-2.1.1}"
+readonly SOURCE_VERSION="$("$VERSION_RESOLVER")"
+readonly COCOA_VERSION="${BACKTRACE_VERSION:-$SOURCE_VERSION}"
 readonly BUILD_NUMBER="${BACKTRACE_BUILD_NUMBER:-1}"
 
 echo "Building self-contained BacktraceMacUnity.bundle $COCOA_VERSION"

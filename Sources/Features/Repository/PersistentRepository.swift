@@ -1743,7 +1743,7 @@ extension PersistentRepository: Repository {
             do {
                 try AttributesStorage.remove(fileName: identifier.uuidString,
                                              directoryUrl: metadataDirectoryUrl)
-                // Remove the pre-2.1.1 cache-backed sidecar after a repository row is deleted.
+                // Remove the 2.1.0-and-earlier cache-backed sidecar after a repository row is deleted.
                 try? AttributesStorage.remove(fileName: identifier.uuidString)
             } catch {
                 BacktraceLogger.warning("Unable to remove persisted attributes for report \(identifier).")

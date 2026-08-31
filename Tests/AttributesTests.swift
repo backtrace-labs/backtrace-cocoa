@@ -103,8 +103,8 @@ final class AttributesTests: QuickSpec {
             it("will find the framework version correctly") {
                 let attributes = AttributesProvider()
 
-                expect { attributes.allAttributes["lang.version"] as? String }.to(equal("2.1.1"))
-                expect { attributes.allAttributes["backtrace.version"] as? String }.to(equal("2.1.1"))
+                expect { attributes.allAttributes["lang.version"] as? String }.to(equal("2.2.0"))
+                expect { attributes.allAttributes["backtrace.version"] as? String }.to(equal("2.2.0"))
             }
         }
 
