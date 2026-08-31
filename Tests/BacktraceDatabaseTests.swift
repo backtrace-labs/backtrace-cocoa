@@ -1007,15 +1007,30 @@ final class BacktraceDatabaseTests: QuickSpec {
                 }
 
                 throwingIt("can add 100 new reports") {
-                    try repository.clear()
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-hundred-records-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
+                    var bulkRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        bulkRepository?.shutdownForNativeBridge()
+                        bulkRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    bulkRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectory
+                    )
                     let liveReport = try crashReporter.generateLiveReport(attributes: [:])
                     for _ in 1...100 {
                         let report = try BacktraceReport(report: liveReport.reportData,
                                                          attributes: [:],
                                                          attachmentPaths: [])
-                        try repository.save(report)
+                        try bulkRepository.save(report)
                     }
-                    expect(try repository.countResources()).to(equal(100))
+                    expect(try bulkRepository.countResources()).to(equal(100))
                 }
 
                 throwingIt("supports concurrent read/write operations") {
