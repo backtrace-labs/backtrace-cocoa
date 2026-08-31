@@ -19,9 +19,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
         // Usage https://docs.saucelabs.com/error-reporting/platform-integrations/ios/configuration/#usage
-        //let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!, token: Keys.backtraceToken as String)
-        let backtraceCredentials = BacktraceCredentials(submissionUrl: URL(string: "https://submit.backtrace.io/spmtests/6e15d495fad7d09e13fb327616add4971347a512aabd1fea3f1f6213809c5d04/plcrash")!)
-
+        let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!, token: Keys.backtraceToken as String)
 
         // Customize Database Settings https://docs.saucelabs.com/error-reporting/platform-integrations/ios/configuration/#database-settings
         let backtraceDatabaseSettings = BacktraceDatabaseSettings()
@@ -68,13 +66,13 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                   type: .user,
                                                   level: .error)
         // Sample throwing method
-//        do {
-//            try throwingFunc()
-//        } catch {
-//            BacktraceClient.shared?.send(attachmentPaths: []) { (result) in
-//                print("AppDelegate:Result:\(result)")
-//            }
-//        }
+        do {
+            try throwingFunc()
+        } catch {
+            BacktraceClient.shared?.send(attachmentPaths: []) { (result) in
+                print("AppDelegate:Result:\(result)")
+            }
+        }
         return true
     }
     
