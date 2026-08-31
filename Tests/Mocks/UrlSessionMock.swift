@@ -64,6 +64,8 @@ final class HangingURLSession: URLSession, @unchecked Sendable {
     let cancelled = DispatchSemaphore(value: 0)
     private let requestLock = NSLock()
     private var recordedRequestCount = 0
+    private var recordedStartedCount = 0
+    private var recordedCancellationCount = 0
 
     var requestCount: Int {
         requestLock.lock()
@@ -71,20 +73,52 @@ final class HangingURLSession: URLSession, @unchecked Sendable {
         return recordedRequestCount
     }
 
+    var startedCount: Int {
+        requestLock.lock()
+        defer { requestLock.unlock() }
+        return recordedStartedCount
+    }
+
+    var cancellationCount: Int {
+        requestLock.lock()
+        defer { requestLock.unlock() }
+        return recordedCancellationCount
+    }
+
     override func dataTask(with request: URLRequest,
                            completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
         requestLock.lock()
         recordedRequestCount += 1
         requestLock.unlock()
-        return HangingURLSessionDataTask(started: started,
-                                         cancelled: cancelled,
-                                         completionHandler: completionHandler)
+        return HangingURLSessionDataTask(
+            onStart: { [weak self] in
+                self?.recordStart()
+            },
+            onCancellation: { [weak self] in
+                self?.recordCancellation()
+            },
+            completionHandler: completionHandler
+        )
+    }
+
+    private func recordStart() {
+        requestLock.lock()
+        recordedStartedCount += 1
+        requestLock.unlock()
+        started.signal()
+    }
+
+    private func recordCancellation() {
+        requestLock.lock()
+        recordedCancellationCount += 1
+        requestLock.unlock()
+        cancelled.signal()
     }
 }
 
 final class HangingURLSessionDataTask: URLSessionDataTask, @unchecked Sendable {
-    private let started: DispatchSemaphore
-    private let cancelled: DispatchSemaphore
+    private let onStart: () -> Void
+    private let onCancellation: () -> Void
     private let completionHandler: (Data?, URLResponse?, Error?) -> Void
     private let lifecycleLock = NSLock()
     private var completionDelivered = false
@@ -93,17 +127,17 @@ final class HangingURLSessionDataTask: URLSessionDataTask, @unchecked Sendable {
         iOS, deprecated: 13.0,
         message: "Unit-test stubbing only; do not use in production"
     )
-    init(started: DispatchSemaphore,
-         cancelled: DispatchSemaphore,
+    init(onStart: @escaping () -> Void,
+         onCancellation: @escaping () -> Void,
          completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) {
-        self.started = started
-        self.cancelled = cancelled
+        self.onStart = onStart
+        self.onCancellation = onCancellation
         self.completionHandler = completionHandler
         super.init()
     }
 
     override func resume() {
-        started.signal()
+        onStart()
     }
 
     override func cancel() {
@@ -116,7 +150,7 @@ final class HangingURLSessionDataTask: URLSessionDataTask, @unchecked Sendable {
         lifecycleLock.unlock()
 
         completionHandler(nil, nil, URLError(.cancelled))
-        cancelled.signal()
+        onCancellation()
     }
 }
 

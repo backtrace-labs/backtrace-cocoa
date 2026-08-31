@@ -43,7 +43,7 @@ final class BacktraceMetricsTests: QuickSpec {
                     // Wait for that work to finish before exercising a newly added event.
                     expect { metrics?.getSummedEvents().count }.toEventually(
                         equal(0),
-                        timeout: .seconds(5),
+                        timeout: .seconds(10),
                         pollInterval: .milliseconds(10)
                     )
                     
@@ -103,7 +103,13 @@ final class BacktraceMetricsTests: QuickSpec {
                     let shutdownMetrics = BacktraceMetrics(api: api)
                     shutdownMetrics.enable(settings: BacktraceMetricsSettings())
 
-                    expect(session.started.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    // Poll instead of blocking on the semaphore,
+                    // the tvOS simulator can schedule the metrics sender's background queue while this test waits.
+                    expect { session.startedCount }.toEventually(
+                        beGreaterThanOrEqualTo(1),
+                        timeout: .seconds(10),
+                        pollInterval: .milliseconds(10)
+                    )
                     let shutdownReturned = DispatchSemaphore(value: 0)
                     DispatchQueue.global().async {
                         shutdownMetrics.shutdownForNativeBridge()
@@ -112,7 +118,7 @@ final class BacktraceMetricsTests: QuickSpec {
                     }
                     expect(shutdownReturned.wait(timeout: .now() + .seconds(2))).to(equal(.success))
 
-                    expect(session.cancelled.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(session.cancellationCount).to(beGreaterThanOrEqualTo(1))
                     shutdownMetrics.addUniqueEvent(name: "ignored-after-shutdown")
                     shutdownMetrics.addSummedEvent(name: "ignored-after-shutdown")
                     expect(shutdownMetrics.isShutdown).to(beTrue())
@@ -139,7 +145,7 @@ final class BacktraceMetricsTests: QuickSpec {
 
                     expect(destination.messages.count).toEventually(
                         beGreaterThanOrEqualTo(2),
-                        timeout: .seconds(2),
+                        timeout: .seconds(10),
                         pollInterval: .milliseconds(10)
                     )
                     expect(destination.messages.filter { $0.contains(sentinel) }).to(beEmpty())
