@@ -4,42 +4,49 @@ on:
   push:
     tags: '[0-9]+.[0-9]+.[0-9]+*'
 
+permissions:
+  contents: read
+
 jobs:
   validate-release-tag:
     name: Validate release tag
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.validate.outputs.version }}
+      head: ${{ steps.validate.outputs.head }}
 
     steps:
-      - name: Require an exact semantic version tag
+      - name: Checkout immutable release event revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Validate release version sources
         id: validate
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-
-          if [[ ! "$RELEASE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must use the exact N.N.N format: $RELEASE_TAG" >&2
-            exit 1
-          fi
-
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          scripts/validate-release-version.sh "$RELEASE_TAG"
           echo "version=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   # test is copied pasted from test.yml - do in a clean way in the future
   # BEGIN COPY PASTE FROM TEST.YML
   swift-package:
     name: Build and test Swift package
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 30
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
     steps:
       - uses: actions/checkout@v4
       - name: Verify pinned Xcode
-        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 15.4"
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
       - name: Test Swift package and compiled resources
         run: |
           xcodebuild \
@@ -52,8 +59,10 @@ jobs:
             test
 
   test:
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     
     strategy:
       fail-fast: false
@@ -62,16 +71,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Verify pinned Xcode
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run test
         run: fastlane ${{ matrix.platform }} tests
     
   pod-lint:
-    runs-on: macos-14
+    runs-on: macos-26
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     
     steps:
       - uses: actions/checkout@v4
+      - name: Verify pinned Xcode
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run pod lib lint
@@ -85,12 +100,115 @@ jobs:
     with:
       backtrace_version: ${{ needs.validate-release-tag.outputs.version }}
 
+  validate-unity-macos-intel:
+    name: Validate the same Unity archive on Intel
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    needs: [validate-release-tag, unity-macos-bundle]
+    permissions:
+      actions: read
+      contents: read
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - name: Checkout validated release revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-release-tag.outputs.head }}
+      - name: Download validated Unity archive
+        uses: actions/download-artifact@v4
+        with:
+          name: BacktraceMacUnity-${{ github.sha }}
+          path: ${{ runner.temp }}/unity-download
+      - name: Verify and execute the Intel lifecycle smoke test
+        env:
+          EXPECTED_ARCHIVE_SHA256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
+          EXPECTED_HEAD: ${{ needs.validate-release-tag.outputs.head }}
+          EXPECTED_VERSION: ${{ needs.validate-release-tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(uname -m)" = "x86_64"
+          archive="$RUNNER_TEMP/unity-download/BacktraceMacUnity.tar.gz"
+          test -f "$archive"
+          test "$(shasum -a 256 "$archive" | awk '{print $1}')" = \
+            "$EXPECTED_ARCHIVE_SHA256"
+          extract_root="$RUNNER_TEMP/unity-intel"
+          mkdir -p "$extract_root"
+          tar -xzf "$archive" -C "$extract_root"
+          (
+            cd "$extract_root"
+            shasum -a 256 -c SHA256SUMS
+          )
+          python3 - "$extract_root/artifact-provenance.json" \
+            "$EXPECTED_HEAD" "$EXPECTED_VERSION" <<'PY'
+          import json
+          import sys
+
+          path, expected_head, expected_version = sys.argv[1:]
+          with open(path, encoding="utf-8") as stream:
+              cocoa = json.load(stream)["backtrace_cocoa"]
+          if cocoa["head"] != expected_head:
+              raise SystemExit("Unity archive provenance does not match the validated commit")
+          if cocoa["version"] != expected_version:
+              raise SystemExit("Unity archive provenance does not match the validated version")
+          PY
+          scripts/validate-unity-macos-bundle.sh "$extract_root"
+
+  validate-unity-macos-12:
+    name: Confirm the same Unity archive passed on macOS 12
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [validate-release-tag, unity-macos-bundle, validate-unity-macos-intel]
+    environment: unity-macos-12-runtime-validation
+    permissions:
+      contents: read
+    steps:
+      - name: Require checksum-bound macOS 12 validation
+        env:
+          EXPECTED_ARCHIVE_SHA256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
+          VALIDATED_ARCHIVE_SHA256: ${{ secrets.UNITY_MACOS12_VALIDATED_ARCHIVE_SHA256 }}
+        run: |
+          set -euo pipefail
+          test -n "$VALIDATED_ARCHIVE_SHA256"
+          test "$VALIDATED_ARCHIVE_SHA256" = "$EXPECTED_ARCHIVE_SHA256"
+
   deploy-cocoapods:
-    runs-on: macos-14
-    needs: upload-xcframeworks
+    runs-on: macos-26
+    needs: [validate-release-tag, upload-xcframeworks]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-release-tag.outputs.head }}
+      - name: Verify validated release revision
+        env:
+          EXPECTED_HEAD: ${{ needs.validate-release-tag.outputs.head }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - name: Verify release tag still resolves to the validated revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.validate-release-tag.outputs.version }}
+          EXPECTED_HEAD: ${{ needs.validate-release-tag.outputs.head }}
+        run: |
+          set -euo pipefail
+          read -r tag_type tag_sha <<< "$(gh api \
+            "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" \
+            --jq '.object | "\(.type) \(.sha)"')"
+          for tag_level in 1 2 3 4 5; do
+            test "$tag_type" = "tag" || break
+            read -r tag_type tag_sha <<< "$(gh api \
+              "repos/$GH_REPO/git/tags/$tag_sha" \
+              --jq '.object | "\(.type) \(.sha)"')"
+          done
+          test "$tag_type" = "commit"
+          test "$tag_sha" = "$EXPECTED_HEAD"
+      - name: Verify pinned Xcode
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Deploy to Cocoapods
@@ -99,12 +217,22 @@ jobs:
          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
 
   sign-and-build-frameworks:
-    runs-on: macos-14
-    needs: [pod-lint, swift-package, test, unity-macos-bundle]
+    runs-on: macos-26
+    needs: [validate-release-tag, pod-lint, swift-package, test, validate-unity-macos-12]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-release-tag.outputs.head }}
+      - name: Verify validated release revision
+        env:
+          EXPECTED_HEAD: ${{ needs.validate-release-tag.outputs.head }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - name: Verify pinned Xcode
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
       - name: Install pods
         run: pod install
       - name: Install the Apple certificate and provisioning profile
@@ -156,7 +284,7 @@ jobs:
       - name: Build frameworks
         run: sh scripts/xcframeworkgen.sh
         env:
-          BACKTRACE_VERSION: ${{ github.ref_name }}
+          BACKTRACE_VERSION: ${{ needs.validate-release-tag.outputs.version }}
           
       - name: Codesign frameworks
         env:
@@ -175,7 +303,7 @@ jobs:
         
   upload-xcframeworks:
     runs-on: ubuntu-latest
-    needs: [sign-and-build-frameworks, unity-macos-bundle]
+    needs: [validate-release-tag, sign-and-build-frameworks, unity-macos-bundle]
     permissions:
       actions: read
       contents: write
@@ -197,7 +325,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ needs.validate-release-tag.outputs.version }}
+          EXPECTED_HEAD: ${{ needs.validate-release-tag.outputs.head }}
+          EXPECTED_UNITY_ARCHIVE_SHA256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
         run: |
           set -euo pipefail
 
@@ -206,6 +336,54 @@ jobs:
 
           test -f "$framework_archive"
           test -f "$unity_archive"
+          test "$(sha256sum "$unity_archive" | awk '{print $1}')" = \
+            "$EXPECTED_UNITY_ARCHIVE_SHA256"
+
+          tar -tzf "$framework_archive" >/dev/null
+          tar -tzf "$unity_archive" >/dev/null
+
+          verify_root="$(mktemp -d)"
+          trap 'rm -rf "$verify_root"' EXIT
+          tar -xzf "$unity_archive" -C "$verify_root"
+          test -f "$verify_root/SHA256SUMS"
+          test -f "$verify_root/artifact-provenance.json"
+          (
+            cd "$verify_root"
+            sha256sum -c SHA256SUMS
+          )
+
+          python3 - "$verify_root/artifact-provenance.json" \
+            "$EXPECTED_HEAD" "$RELEASE_TAG" <<'PY'
+          import json
+          import sys
+
+          path, expected_sha, expected_version = sys.argv[1:]
+          with open(path, encoding="utf-8") as stream:
+              provenance = json.load(stream)
+
+          cocoa = provenance["backtrace_cocoa"]
+          if cocoa["head"] != expected_sha:
+              raise SystemExit(
+                  f"provenance head mismatch: {cocoa['head']} != {expected_sha}"
+              )
+          if cocoa["version"] != expected_version:
+              raise SystemExit(
+                  "provenance version mismatch: "
+                  f"{cocoa['version']} != {expected_version}"
+              )
+          PY
+
+          read -r tag_type tag_sha <<< "$(gh api \
+            "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" \
+            --jq '.object | "\(.type) \(.sha)"')"
+          for tag_level in 1 2 3 4 5; do
+            test "$tag_type" = "tag" || break
+            read -r tag_type tag_sha <<< "$(gh api \
+              "repos/$GH_REPO/git/tags/$tag_sha" \
+              --jq '.object | "\(.type) \(.sha)"')"
+          done
+          test "$tag_type" = "commit"
+          test "$tag_sha" = "$EXPECTED_HEAD"
 
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" \

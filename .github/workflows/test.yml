@@ -6,18 +6,21 @@ on:
     branches: [master, release]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   swift-package:
     name: Build and test Swift package
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 30
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
     steps:
       - uses: actions/checkout@v4
       - name: Verify pinned Xcode
-        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 15.4"
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
       - name: Test Swift package and compiled resources
         run: |
           xcodebuild \
@@ -30,8 +33,10 @@ jobs:
             test
 
   test:
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
     strategy:
       fail-fast: false
@@ -40,16 +45,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Verify pinned Xcode
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run test
         run: fastlane ${{ matrix.platform }} tests
 
   pod-lint:
-    runs-on: macos-14
+    runs-on: macos-26
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
     steps:
       - uses: actions/checkout@v4
+      - name: Verify pinned Xcode
+        run: test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run pod lib lint
