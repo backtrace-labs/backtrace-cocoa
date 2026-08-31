@@ -3,6 +3,9 @@ import Quick
 import XCTest
 import CoreData
 @testable import Backtrace
+#if canImport(Darwin)
+import Darwin
+#endif
 #if SWIFT_PACKAGE
 import Foundation
 #endif
@@ -13,6 +16,16 @@ import Foundation
 private enum RepositoryFileTestError: Error {
     case subprocessLeaseUnavailable
 }
+
+#if canImport(Darwin)
+private func openDarwinFileDescriptorCount() -> Int {
+    return (0..<Darwin.getdtablesize()).reduce(into: 0) { count, descriptor in
+        if Darwin.fcntl(descriptor, F_GETFD) != -1 {
+            count += 1
+        }
+    }
+}
+#endif
 
 #if os(macOS)
 /// Holds the same POSIX record lock used by the repository from a separate process.
@@ -78,13 +91,14 @@ final class BacktraceDatabaseTests: QuickSpec {
                         "backtrace-database-spec-\(UUID().uuidString)",
                         isDirectory: true
                     )
-                let repository = try PersistentRepository<BacktraceReport>(
+                var repository: PersistentRepository<BacktraceReport>! = try PersistentRepository<BacktraceReport>(
                     settings: BacktraceDatabaseSettings(),
                     startupReconciliation: { _ in },
                     storeDirectoryUrl: repositoryStoreDirectory
                 )
                 throwingAfterSuite {
                     repository.shutdownForNativeBridge()
+                    repository = nil
                     try? FileManager.default.removeItem(at: repositoryStoreDirectory)
                 }
 
@@ -197,20 +211,28 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let sourceDirectory = storeDirectory.appendingPathComponent("sources", isDirectory: true)
                     try FileManager.default.createDirectory(at: sourceDirectory,
                                                             withIntermediateDirectories: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectory) }
+                    var firstRepository: PersistentRepository<BacktraceReport>!
+                    var secondRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        firstRepository?.shutdownForNativeBridge()
+                        secondRepository?.shutdownForNativeBridge()
+                        firstRepository = nil
+                        secondRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
                     let originalSource = sourceDirectory.appendingPathComponent("original.txt")
                     let replacementSource = sourceDirectory.appendingPathComponent("replacement.txt")
                     try Data("original".utf8).write(to: originalSource)
                     try Data("replacement".utf8).write(to: replacementSource)
                     let owner = "retry-owner-\(UUID().uuidString)"
-                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                    firstRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectory,
                         deliveryOwnerToken: owner,
                         deliveryOwnerIsAlive: { _ in true }
                     )
-                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                    secondRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         attachmentCopy: { _, _ in throw FileError.fileNotWritten },
@@ -273,20 +295,28 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let sourceDirectory = storeDirectory.appendingPathComponent("sources", isDirectory: true)
                     try FileManager.default.createDirectory(at: sourceDirectory,
                                                             withIntermediateDirectories: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectory) }
+                    var firstRepository: PersistentRepository<BacktraceReport>!
+                    var secondRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        firstRepository?.shutdownForNativeBridge()
+                        secondRepository?.shutdownForNativeBridge()
+                        firstRepository = nil
+                        secondRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
                     let originalSource = sourceDirectory.appendingPathComponent("original.txt")
                     let replacementSource = sourceDirectory.appendingPathComponent("replacement.txt")
                     try Data("original".utf8).write(to: originalSource)
                     try Data("replacement".utf8).write(to: replacementSource)
                     let owner = "initial-owner-\(UUID().uuidString)"
-                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                    firstRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectory,
                         deliveryOwnerToken: owner,
                         deliveryOwnerIsAlive: { _ in true }
                     )
-                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                    secondRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         attachmentCopy: { _, _ in throw FileError.fileNotWritten },
@@ -356,22 +386,25 @@ final class BacktraceDatabaseTests: QuickSpec {
                             withIntermediateDirectories: true
                         )
 
-                        let firstRepository = try PersistentRepository<BacktraceReport>(
-                            settings: BacktraceDatabaseSettings(),
-                            startupReconciliation: { _ in },
-                            storeDirectoryUrl: storeDirectory
-                        )
-                        let secondRepository = try PersistentRepository<BacktraceReport>(
-                            settings: BacktraceDatabaseSettings(),
-                            startupReconciliation: { _ in },
-                            storeDirectoryUrl: storeDirectory
-                        )
-
+                        var firstRepository: PersistentRepository<BacktraceReport>!
+                        var secondRepository: PersistentRepository<BacktraceReport>!
                         defer {
-                            firstRepository.shutdownForNativeBridge()
-                            secondRepository.shutdownForNativeBridge()
+                            firstRepository?.shutdownForNativeBridge()
+                            secondRepository?.shutdownForNativeBridge()
+                            firstRepository = nil
+                            secondRepository = nil
                             try? FileManager.default.removeItem(at: storeDirectory)
                         }
+                        firstRepository = try PersistentRepository<BacktraceReport>(
+                            settings: BacktraceDatabaseSettings(),
+                            startupReconciliation: { _ in },
+                            storeDirectoryUrl: storeDirectory
+                        )
+                        secondRepository = try PersistentRepository<BacktraceReport>(
+                            settings: BacktraceDatabaseSettings(),
+                            startupReconciliation: { _ in },
+                            storeDirectoryUrl: storeDirectory
+                        )
 
                         let originalSource = sourceDirectory.appendingPathComponent("original.txt")
                         let replacementSource = sourceDirectory.appendingPathComponent("replacement.txt")
@@ -455,12 +488,15 @@ final class BacktraceDatabaseTests: QuickSpec {
                         }
                         api.delegate = delegate
 
-                        let coordinator = BacktraceSubmissionCoordinator(
+                        var coordinator: BacktraceSubmissionCoordinator<
+                            PersistentRepository<BacktraceReport>
+                        >? = BacktraceSubmissionCoordinator(
                             api: api,
                             repository: firstRepository,
                             retryLimit: 3
                         )
-                        let receipt = coordinator.submit(stale, origin: scenario.origin)
+                        let receipt = coordinator!.submit(stale, origin: scenario.origin)
+                        coordinator = nil
 
                         expect(receipt.pipelineEntered).to(beTrue())
                         expect(receipt.transportStarted).to(beTrue())
@@ -486,22 +522,25 @@ final class BacktraceDatabaseTests: QuickSpec {
                             "backtrace-atomic-retry-snapshot-\(UUID().uuidString)",
                             isDirectory: true
                         )
-                    let firstRepository = try PersistentRepository<BacktraceReport>(
-                        settings: BacktraceDatabaseSettings(),
-                        startupReconciliation: { _ in },
-                        storeDirectoryUrl: storeDirectory
-                    )
-                    let secondRepository = try PersistentRepository<BacktraceReport>(
-                        settings: BacktraceDatabaseSettings(),
-                        startupReconciliation: { _ in },
-                        storeDirectoryUrl: storeDirectory
-                    )
-
+                    var firstRepository: PersistentRepository<BacktraceReport>!
+                    var secondRepository: PersistentRepository<BacktraceReport>!
                     defer {
-                        firstRepository.shutdownForNativeBridge()
-                        secondRepository.shutdownForNativeBridge()
+                        firstRepository?.shutdownForNativeBridge()
+                        secondRepository?.shutdownForNativeBridge()
+                        firstRepository = nil
+                        secondRepository = nil
                         try? FileManager.default.removeItem(at: storeDirectory)
                     }
+                    firstRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectory
+                    )
+                    secondRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectory
+                    )
 
                     let identifier = UUID()
                     let originalPayload = try crashReporter.generateLiveReport(
@@ -547,12 +586,15 @@ final class BacktraceDatabaseTests: QuickSpec {
                     }
                     api.delegate = delegate
 
-                    let coordinator = BacktraceSubmissionCoordinator(
+                    var coordinator: BacktraceSubmissionCoordinator<
+                        PersistentRepository<BacktraceReport>
+                    >? = BacktraceSubmissionCoordinator(
                         api: api,
                         repository: firstRepository,
                         retryLimit: 3
                     )
-                    let receipt = coordinator.submit(stale, origin: .repositoryRetry)
+                    let receipt = coordinator!.submit(stale, origin: .repositoryRetry)
+                    coordinator = nil
 
                     expect(receipt.pipelineEntered).to(beTrue())
                     expect(receipt.transportStarted).to(beTrue())
@@ -576,25 +618,29 @@ final class BacktraceDatabaseTests: QuickSpec {
                         try FileManager.default.createDirectory(at: sourceDirectory,
                                                                 withIntermediateDirectories: true)
                         let owner = "submission-owner-\(UUID().uuidString)"
-                        let firstRepository = try PersistentRepository<BacktraceReport>(
+                        var firstRepository: PersistentRepository<BacktraceReport>!
+                        var secondRepository: PersistentRepository<BacktraceReport>!
+                        defer {
+                            firstRepository?.shutdownForNativeBridge()
+                            secondRepository?.shutdownForNativeBridge()
+                            firstRepository = nil
+                            secondRepository = nil
+                            try? FileManager.default.removeItem(at: storeDirectory)
+                        }
+                        firstRepository = try PersistentRepository<BacktraceReport>(
                             settings: BacktraceDatabaseSettings(),
                             startupReconciliation: { _ in },
                             storeDirectoryUrl: storeDirectory,
                             deliveryOwnerToken: owner,
                             deliveryOwnerIsAlive: { _ in true }
                         )
-                        let secondRepository = try PersistentRepository<BacktraceReport>(
+                        secondRepository = try PersistentRepository<BacktraceReport>(
                             settings: BacktraceDatabaseSettings(),
                             startupReconciliation: { _ in },
                             attachmentCopy: { _, _ in throw FileError.fileNotWritten },
                             storeDirectoryUrl: storeDirectory,
                             deliveryOwnerIsAlive: { _ in true }
                         )
-                        defer {
-                            firstRepository.shutdownForNativeBridge()
-                            secondRepository.shutdownForNativeBridge()
-                            try? FileManager.default.removeItem(at: storeDirectory)
-                        }
 
                         let originalSource = sourceDirectory.appendingPathComponent("original.txt")
                         let replacementSource = sourceDirectory.appendingPathComponent("replacement.txt")
@@ -655,13 +701,16 @@ final class BacktraceDatabaseTests: QuickSpec {
                             return report
                         }
                         api.delegate = delegate
-                        let coordinator = BacktraceSubmissionCoordinator(
+                        var coordinator: BacktraceSubmissionCoordinator<
+                            PersistentRepository<BacktraceReport>
+                        >? = BacktraceSubmissionCoordinator(
                             api: api,
                             repository: firstRepository,
                             retryLimit: 3
                         )
 
-                        let receipt = coordinator.submit(original, origin: .pendingNativeCrash)
+                        let receipt = coordinator!.submit(original, origin: .pendingNativeCrash)
+                        coordinator = nil
 
                         expect(receipt.pipelineEntered).to(beTrue())
                         expect(receipt.transportStarted).to(beTrue())
@@ -697,13 +746,21 @@ final class BacktraceDatabaseTests: QuickSpec {
                 throwingIt("keeps a terminal row immutable during a duplicate save") {
                     let storeDirectory = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-terminal-upsert-\(UUID().uuidString)", isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectory) }
-                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                    var firstRepository: PersistentRepository<BacktraceReport>!
+                    var secondRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        firstRepository?.shutdownForNativeBridge()
+                        secondRepository?.shutdownForNativeBridge()
+                        firstRepository = nil
+                        secondRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    firstRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectory
                     )
-                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                    secondRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectory
@@ -738,7 +795,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(try firstRepository.countResources()).to(equal(0))
                 }
 
-                throwingIt("copies attachments into immutable repository storage") {
+                throwingIt("copies attachments and removes superseded immutable generations") {
                     try repository.clear()
                     let sourceDirectory = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-attachment-\(UUID().uuidString)", isDirectory: true)
@@ -772,7 +829,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try repository.save(second)
                     let secondOwnedPath = try repository.getLatest().first!.attachmentPaths.first!
                     expect(secondOwnedPath).notTo(equal(firstOwnedPath))
-                    expect(FileManager.default.fileExists(atPath: firstOwnedPath)).to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: firstOwnedPath)).to(beFalse())
 
                     try repository.reconcileStorage()
                     expect(FileManager.default.fileExists(atPath: firstOwnedPath)).to(beFalse())
@@ -972,7 +1029,28 @@ final class BacktraceDatabaseTests: QuickSpec {
                         withIntermediateDirectories: true
                     )
 
-                    let concurrentRepository = try PersistentRepository<BacktraceReport>(
+                    var concurrentRepository: PersistentRepository<BacktraceReport>!
+                    let group = DispatchGroup()
+                    let errorLock = NSLock()
+                    var errors = [Error]()
+                    var workersCompleted = false
+
+                    defer {
+                        if workersCompleted {
+                            concurrentRepository?.shutdownForNativeBridge()
+                            concurrentRepository = nil
+                            try? FileManager.default.removeItem(at: storeDirectory)
+                        } else {
+                            // A timeout must fail promptly without tearing the store down under a
+                            // worker. Let the workers retain the repository and clean up when done.
+                            group.notify(queue: .global()) {
+                                concurrentRepository?.shutdownForNativeBridge()
+                                concurrentRepository = nil
+                                try? FileManager.default.removeItem(at: storeDirectory)
+                            }
+                        }
+                    }
+                    concurrentRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectory
@@ -988,24 +1066,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                             attachmentPaths: [],
                             identifier: UUID()
                         )
-                    }
-                    let group = DispatchGroup()
-                    let errorLock = NSLock()
-                    var errors = [Error]()
-                    var workersCompleted = false
-
-                    defer {
-                        if workersCompleted {
-                            concurrentRepository.shutdownForNativeBridge()
-                            try? FileManager.default.removeItem(at: storeDirectory)
-                        } else {
-                            // A timeout must fail promptly without tearing the store down under a
-                            // worker. Let the workers retain the repository and clean up when done.
-                            group.notify(queue: .global()) {
-                                concurrentRepository.shutdownForNativeBridge()
-                                try? FileManager.default.removeItem(at: storeDirectory)
-                            }
-                        }
                     }
 
                     func record(_ error: Error) {
@@ -1092,6 +1152,17 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let attachmentGeneration = String(data: try Data(contentsOf: URL(fileURLWithPath: attachmentPath)),
                                                       encoding: .utf8)
                     expect(attachmentGeneration).to(equal(storedGeneration.map(String.init)))
+                    let reportAttachmentDirectory = repository.attachmentStore.rootUrl
+                        .appendingPathComponent(identifier.uuidString, isDirectory: true)
+                    let persistedGenerations = try FileManager.default.contentsOfDirectory(
+                        at: reportAttachmentDirectory,
+                        includingPropertiesForKeys: [.isDirectoryKey],
+                        options: [.skipsHiddenFiles]
+                    )
+                    expect(persistedGenerations.count).to(equal(1))
+                    expect(persistedGenerations.first?.standardizedFileURL.path)
+                        .to(equal(URL(fileURLWithPath: attachmentPath)
+                            .deletingLastPathComponent().standardizedFileURL.path))
                 }
 
                 throwingIt("rolls back Core Data mutations after a failed repository save") {
@@ -1139,7 +1210,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                     settingsWithLimit.maxRecordCount = 1
                     let failureLock = NSLock()
                     var shouldFailSave = false
-                    let limitedRepository = try PersistentRepository<BacktraceReport>(
+                    var limitedRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        limitedRepository?.shutdownForNativeBridge()
+                        limitedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    limitedRepository = try PersistentRepository<BacktraceReport>(
                         settings: settingsWithLimit,
                         startupReconciliation: { _ in },
                         contextSave: { context in
@@ -1154,10 +1231,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                         maintenanceRetryDelay: .seconds(60),
                         storeDirectoryUrl: storeDirectory
                     )
-                    defer {
-                        limitedRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
 
                     let sourceDirectory = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-capacity-rollback-\(UUID().uuidString)",
@@ -1208,7 +1281,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                     settingsWithSizeLimit.maxDatabaseSize = 1
                     let sizeLock = NSLock()
                     var exceedsLimit = false
-                    let sizeLimitedRepository = try PersistentRepository<BacktraceReport>(
+                    var sizeLimitedRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        sizeLimitedRepository?.shutdownForNativeBridge()
+                        sizeLimitedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    sizeLimitedRepository = try PersistentRepository<BacktraceReport>(
                         settings: settingsWithSizeLimit,
                         startupReconciliation: { _ in },
                         databaseSize: { _ in
@@ -1219,10 +1298,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                         maintenanceRetryDelay: .seconds(60),
                         storeDirectoryUrl: storeDirectory
                     )
-                    defer {
-                        sizeLimitedRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
 
                     let reports = try (0..<4).map { index in
                         try BacktraceReport(
@@ -1278,7 +1353,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                                 }
                                 let sizeLock = NSLock()
                                 var exceedsDatabaseLimit = false
-                                let limitedRepository = try PersistentRepository<BacktraceReport>(
+                                var limitedRepository: PersistentRepository<BacktraceReport>!
+                                defer {
+                                    limitedRepository?.shutdownForNativeBridge()
+                                    limitedRepository = nil
+                                    try? FileManager.default.removeItem(at: storeDirectory)
+                                }
+                                limitedRepository = try PersistentRepository<BacktraceReport>(
                                     settings: settings,
                                     startupReconciliation: { _ in },
                                     databaseSize: { _ in
@@ -1289,10 +1370,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                                     maintenanceRetryDelay: .seconds(60),
                                     storeDirectoryUrl: storeDirectory
                                 )
-                                defer {
-                                    limitedRepository.shutdownForNativeBridge()
-                                    try? FileManager.default.removeItem(at: storeDirectory)
-                                }
 
                                 let pendingSource = sourceDirectory.appendingPathComponent("pending.txt")
                                 try Data("pending attachment".utf8).write(to: pendingSource)
@@ -1340,15 +1417,17 @@ final class BacktraceDatabaseTests: QuickSpec {
                                     session: session,
                                     reportsPerMin: 30
                                 )
-                                let watcher = BacktraceWatcher(
+                                var watcher: BacktraceWatcher<PersistentRepository<BacktraceReport>>?
+                                watcher = BacktraceWatcher(
                                     settings: settings,
                                     api: api,
                                     repository: limitedRepository,
                                     networkAvailabilityCheck: { true }
                                 )
 
-                                watcher.drainInitialSubmissions(bypassesReachabilityPreflight: true)
-                                watcher.shutdown()
+                                watcher?.drainInitialSubmissions(bypassesReachabilityPreflight: true)
+                                watcher?.shutdown()
+                                watcher = nil
 
                                 expect(session.requestCount).to(equal(1))
                                 expect(try limitedRepository.getInitialSubmission(count: 1)).to(beEmpty())
@@ -1410,7 +1489,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                                 let sizeLock = NSLock()
                                 var exceedsDatabaseLimit = false
                                 let owner = "capacity-owner-\(UUID().uuidString)"
-                                let limitedRepository = try PersistentRepository<BacktraceReport>(
+                                var limitedRepository: PersistentRepository<BacktraceReport>!
+                                defer {
+                                    limitedRepository?.shutdownForNativeBridge()
+                                    limitedRepository = nil
+                                    try? FileManager.default.removeItem(at: storeDirectory)
+                                }
+                                limitedRepository = try PersistentRepository<BacktraceReport>(
                                     settings: settings,
                                     startupReconciliation: { _ in },
                                     databaseSize: { _ in
@@ -1423,10 +1508,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                                     deliveryOwnerToken: owner,
                                     deliveryOwnerIsAlive: { _ in true }
                                 )
-                                defer {
-                                    limitedRepository.shutdownForNativeBridge()
-                                    try? FileManager.default.removeItem(at: storeDirectory)
-                                }
 
                                 let source = sourceDirectory.appendingPathComponent("active.txt")
                                 try Data("active attachment".utf8).write(to: source)
@@ -1509,13 +1590,16 @@ final class BacktraceDatabaseTests: QuickSpec {
                                     return report
                                 }
                                 api.delegate = delegate
-                                let coordinator = BacktraceSubmissionCoordinator(
+                                var coordinator: BacktraceSubmissionCoordinator<
+                                    PersistentRepository<BacktraceReport>
+                                >? = BacktraceSubmissionCoordinator(
                                     api: api,
                                     repository: limitedRepository,
                                     retryLimit: 3
                                 )
 
-                                let receipt = coordinator.submit(active, origin: origin)
+                                let receipt = try XCTUnwrap(coordinator).submit(active, origin: origin)
+                                coordinator = nil
 
                                 expect(callbackError).to(beNil())
                                 expect(receipt.pipelineEntered).to(beTrue())
@@ -1578,7 +1662,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let settings = BacktraceDatabaseSettings()
                     let sizeLock = NSLock()
                     var exceedsDatabaseLimit = false
-                    let growthRepository = try PersistentRepository<BacktraceReport>(
+                    var growthRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        growthRepository?.shutdownForNativeBridge()
+                        growthRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    growthRepository = try PersistentRepository<BacktraceReport>(
                         settings: settings,
                         startupReconciliation: { _ in },
                         databaseSize: { _ in
@@ -1590,10 +1680,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                         storeDirectoryUrl: storeDirectory,
                         deliveryOwnerIsAlive: { _ in true }
                     )
-                    defer {
-                        growthRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
 
                     let initialPayload = try crashReporter
                         .generateLiveReport(attributes: ["payload": "original"]).reportData
@@ -1697,7 +1783,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                     settings.maxRecordCount = 1
                     let livenessLock = NSLock()
                     var ownerIsAlive = true
-                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                    var recoveringRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        recoveringRepository?.shutdownForNativeBridge()
+                        recoveringRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    recoveringRepository = try PersistentRepository<BacktraceReport>(
                         settings: settings,
                         startupReconciliation: { _ in },
                         maintenanceRetryDelay: .milliseconds(10),
@@ -1709,10 +1801,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                             return ownerIsAlive
                         }
                     )
-                    defer {
-                        recoveringRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
                     let abandoned = try crashReporter.generateLiveReport(attributes: ["capacity": "abandoned"])
                     let survivor = try crashReporter.generateLiveReport(attributes: ["capacity": "survivor"])
                     try recoveringRepository.save(abandoned)
@@ -1741,7 +1829,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                         )
                     let settings = BacktraceDatabaseSettings()
                     settings.maxRecordCount = 1
-                    let overflowRepository = try PersistentRepository<BacktraceReport>(
+                    var overflowRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        overflowRepository?.shutdownForNativeBridge()
+                        overflowRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    overflowRepository = try PersistentRepository<BacktraceReport>(
                         settings: settings,
                         startupReconciliation: { _ in },
                         maintenanceRetryDelay: .milliseconds(50),
@@ -1749,10 +1843,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                         deliveryOwnerToken: "insert-overflow-owner",
                         deliveryOwnerIsAlive: { _ in true }
                     )
-                    defer {
-                        overflowRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
                     let protected = try crashReporter.generateLiveReport(attributes: ["capacity": "protected"])
                     let overflow = try crashReporter.generateLiveReport(attributes: ["capacity": "overflow"])
                     try overflowRepository.save(protected)
@@ -1778,16 +1868,18 @@ final class BacktraceDatabaseTests: QuickSpec {
                         )
                     let settings = BacktraceDatabaseSettings()
                     settings.maxRecordCount = 1
-                    let promotionRepository = try PersistentRepository<BacktraceReport>(
+                    var promotionRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        promotionRepository?.shutdownForNativeBridge()
+                        promotionRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    promotionRepository = try PersistentRepository<BacktraceReport>(
                         settings: settings,
                         startupReconciliation: { _ in },
                         maintenanceRetryDelay: .milliseconds(10),
                         storeDirectoryUrl: storeDirectory
                     )
-                    defer {
-                        promotionRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
                     let first = try BacktraceReport(
                         pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
                         attributes: ["capacity": "first"],
@@ -1824,7 +1916,13 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let sizeLock = NSLock()
                     var exceedsLimit = false
                     var enforcementChecks = 0
-                    let coalescingRepository = try PersistentRepository<BacktraceReport>(
+                    var coalescingRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        coalescingRepository?.shutdownForNativeBridge()
+                        coalescingRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    coalescingRepository = try PersistentRepository<BacktraceReport>(
                         settings: settings,
                         startupReconciliation: { _ in },
                         databaseSize: { _ in
@@ -1839,10 +1937,6 @@ final class BacktraceDatabaseTests: QuickSpec {
                         maintenanceRetryDelay: .milliseconds(50),
                         storeDirectoryUrl: storeDirectory
                     )
-                    defer {
-                        coalescingRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
                     let reports = try (0..<3).map { index in
                         try crashReporter.generateLiveReport(attributes: ["capacity": index])
                     }
@@ -1909,7 +2003,8 @@ final class BacktraceDatabaseTests: QuickSpec {
                         storeDirectoryUrl: storeDirectory
                     )
                     defer {
-                        overlappingRepository.shutdownForNativeBridge()
+                        overlappingRepository?.shutdownForNativeBridge()
+                        overlappingRepository = nil
                         try? FileManager.default.removeItem(at: storeDirectory)
                     }
                     let firstReport = try crashReporter.generateLiveReport(attributes: ["capacity": "first"])
@@ -1939,10 +2034,15 @@ final class BacktraceDatabaseTests: QuickSpec {
                 throwingIt("evicts safe rows by delivery priority and protects source handoffs") {
                     let storeDirectory = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-capacity-rank-\(UUID().uuidString)", isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectory) }
                     let settings = BacktraceDatabaseSettings()
                     settings.maxRecordCount = 3
-                    let rankedRepository = try PersistentRepository<BacktraceReport>(
+                    var rankedRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        rankedRepository?.shutdownForNativeBridge()
+                        rankedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    rankedRepository = try PersistentRepository<BacktraceReport>(
                         settings: settings,
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectory
@@ -1984,6 +2084,791 @@ final class BacktraceDatabaseTests: QuickSpec {
                         .to(equal(.awaitingSourcePurge))
                 }
 
+                throwingIt("quarantines a corrupt initial row and continues to the next valid report") {
+                    try repository.clear()
+                    let corrupt = try BacktraceReport(
+                        pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
+                        attributes: ["row": "corrupt-initial"],
+                        attachmentPaths: []
+                    )
+                    let valid = try BacktraceReport(
+                        pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
+                        attributes: ["row": "valid-initial"],
+                        attachmentPaths: []
+                    )
+                    try repository.savePending(corrupt)
+                    try repository.promoteAfterSourcePurge(corrupt)
+                    try repository.savePending(valid)
+                    try repository.promoteAfterSourcePurge(valid)
+                    let corruptPendingMetadataUrl = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PendingMetadata", isDirectory: true)
+                        .appendingPathComponent(corrupt.identifier.uuidString, isDirectory: true)
+                    try FileManager.default.createDirectory(
+                        at: corruptPendingMetadataUrl,
+                        withIntermediateDirectories: true
+                    )
+                    try Data("pending metadata".utf8).write(
+                        to: corruptPendingMetadataUrl.appendingPathComponent("state.plist")
+                    )
+                    let invalidPayload = Data("invalid-plcrash-payload".utf8)
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(entityName: BacktraceReport.entityName)
+                        request.predicate = NSPredicate(
+                            format: "hashProperty == %@",
+                            corrupt.identifier.uuidString
+                        )
+                        let object = try XCTUnwrap(repository.backgroundContext.fetch(request).first)
+                        object.setValue(invalidPayload, forKey: "reportData")
+                        try repository.backgroundContext.save()
+                    }
+
+                    let page = try repository.getInitialSubmission(count: 1)
+
+                    expect(page.map(\.identifier)).to(equal([valid.identifier]))
+                    expect(try repository.claimInitialSubmission(valid)?.identifier)
+                        .to(equal(valid.identifier))
+                    expect(try repository.getInitialSubmission(count: 1)).to(beEmpty())
+                    expect(try repository.countResources()).to(equal(1))
+                    let archiveRoot = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PersistedRowDeadLetters", isDirectory: true)
+                    let archiveDirectories = try FileManager.default.contentsOfDirectory(
+                        at: archiveRoot,
+                        includingPropertiesForKeys: nil
+                    )
+                    let corruptArchive = try XCTUnwrap(archiveDirectories.first { directory in
+                        (try? Data(contentsOf: directory
+                            .appendingPathComponent("payload.plcrash", isDirectory: false))) ==
+                                invalidPayload
+                    })
+                    expect(FileManager.default.fileExists(atPath: corruptArchive
+                        .appendingPathComponent("attributes.plist", isDirectory: false).path))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: corruptArchive
+                        .appendingPathComponent("pending-metadata", isDirectory: true).path))
+                        .to(beTrue())
+                }
+
+                throwingIt("preserves survivor files when a corrupt row collides with its identifier") {
+                    try repository.clear()
+                    let corruptAttachmentSource = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-corrupt-collision-\(UUID().uuidString).txt",
+                            isDirectory: false
+                        )
+                    let survivorAttachmentSource = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-survivor-collision-\(UUID().uuidString).txt",
+                            isDirectory: false
+                        )
+                    try Data("corrupt attachment".utf8).write(to: corruptAttachmentSource)
+                    try Data("survivor attachment".utf8).write(to: survivorAttachmentSource)
+                    defer {
+                        try? FileManager.default.removeItem(at: corruptAttachmentSource)
+                        try? FileManager.default.removeItem(at: survivorAttachmentSource)
+                    }
+
+                    let corrupt = try crashReporter.generateLiveReport(
+                        attributes: ["row": "corrupt-collision"],
+                        attachmentPaths: [corruptAttachmentSource.path]
+                    )
+                    let survivor = try crashReporter.generateLiveReport(
+                        attributes: ["row": "survivor-collision"],
+                        attachmentPaths: [survivorAttachmentSource.path]
+                    )
+                    try repository.save(corrupt)
+                    try repository.save(survivor)
+
+                    let persisted = try repository.getAll()
+                    let corruptAttachmentPath = try XCTUnwrap(
+                        persisted.first { $0.identifier == corrupt.identifier }?.attachmentPaths.first
+                    )
+                    let survivorAttachmentPath = try XCTUnwrap(
+                        persisted.first { $0.identifier == survivor.identifier }?.attachmentPaths.first
+                    )
+                    let survivorAttributesUrl = repository.metadataDirectoryUrl
+                        .appendingPathComponent("\(survivor.identifier.uuidString).plist")
+                    let survivorPendingMetadataUrl = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PendingMetadata", isDirectory: true)
+                        .appendingPathComponent(survivor.identifier.uuidString, isDirectory: true)
+                    try FileManager.default.createDirectory(
+                        at: survivorPendingMetadataUrl,
+                        withIntermediateDirectories: true
+                    )
+                    try Data("survivor pending metadata".utf8).write(
+                        to: survivorPendingMetadataUrl.appendingPathComponent("state.plist")
+                    )
+
+                    let invalidPayload = Data("invalid-colliding-plcrash".utf8)
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(
+                            entityName: BacktraceReport.entityName
+                        )
+                        let objects = try repository.backgroundContext.fetch(request)
+                        let corruptObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) ==
+                                corrupt.identifier.uuidString
+                        })
+                        corruptObject.setValue(
+                            survivor.identifier.uuidString,
+                            forKey: "hashProperty"
+                        )
+                        corruptObject.setValue(invalidPayload, forKey: "reportData")
+                        corruptObject.setValue(Date.distantPast, forKey: "dateAdded")
+                        let survivorObject = try XCTUnwrap(objects.first {
+                            $0.objectID != corruptObject.objectID &&
+                                ($0.value(forKey: "hashProperty") as? String) ==
+                                    survivor.identifier.uuidString
+                        })
+                        survivorObject.setValue(Date.distantFuture, forKey: "dateAdded")
+                        try repository.backgroundContext.save()
+                    }
+
+                    let page = try repository.getOldest(count: 1)
+
+                    expect(page.map(\.identifier)).to(equal([survivor.identifier]))
+                    expect(page.first?.attributes["row"] as? String)
+                        .to(equal("survivor-collision"))
+                    expect(page.first?.attachmentPaths).to(equal([survivorAttachmentPath]))
+                    expect(FileManager.default.fileExists(atPath: survivorAttributesUrl.path))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: survivorAttachmentPath))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: survivorPendingMetadataUrl.path))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: corruptAttachmentPath))
+                        .to(beFalse())
+                    expect(try repository.claimRetrySubmission(try XCTUnwrap(page.first))?.identifier)
+                        .to(equal(survivor.identifier))
+
+                    let archiveRoot = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PersistedRowDeadLetters", isDirectory: true)
+                    let archivedPayloads = try FileManager.default.contentsOfDirectory(
+                        at: archiveRoot,
+                        includingPropertiesForKeys: nil
+                    ).compactMap { directory in
+                        try? Data(contentsOf: directory
+                            .appendingPathComponent("payload.plcrash", isDirectory: false))
+                    }
+                    expect(archivedPayloads).to(contain(invalidPayload))
+                }
+
+                throwingIt("claims the exact survivor when a later corrupt row shares its identifier") {
+                    try repository.clear()
+                    let corrupt = try crashReporter.generateLiveReport(
+                        attributes: ["claimCollision": "corrupt"]
+                    )
+                    let survivor = try crashReporter.generateLiveReport(
+                        attributes: ["claimCollision": "survivor"]
+                    )
+                    try repository.save(corrupt)
+                    try repository.save(survivor)
+                    let invalidPayload = Data("invalid-later-collision".utf8)
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(
+                            entityName: BacktraceReport.entityName
+                        )
+                        let objects = try repository.backgroundContext.fetch(request)
+                        let corruptObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) ==
+                                corrupt.identifier.uuidString
+                        })
+                        let survivorObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) ==
+                                survivor.identifier.uuidString
+                        })
+                        corruptObject.setValue(
+                            survivor.identifier.uuidString,
+                            forKey: "hashProperty"
+                        )
+                        corruptObject.setValue(invalidPayload, forKey: "reportData")
+                        corruptObject.setValue(Date.distantFuture, forKey: "dateAdded")
+                        survivorObject.setValue(Date.distantPast, forKey: "dateAdded")
+                        try repository.backgroundContext.save()
+                    }
+
+                    let page = try repository.getOldest(count: 1)
+                    let fetchedSurvivor = try XCTUnwrap(page.first)
+
+                    expect(page.map(\.identifier)).to(equal([survivor.identifier]))
+                    expect(fetchedSurvivor.reportData).to(equal(survivor.reportData))
+                    expect(fetchedSurvivor.persistedObjectURI).notTo(beNil())
+                    let claimed = try repository.claimRetrySubmission(fetchedSurvivor)
+                    expect(claimed?.reportData).to(equal(survivor.reportData))
+                    expect(claimed?.identifier).to(equal(survivor.identifier))
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(
+                            entityName: BacktraceReport.entityName
+                        )
+                        let objects = try repository.backgroundContext.fetch(request)
+                        let claimedObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "reportData") as? Data) == survivor.reportData
+                        })
+                        let corruptObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "reportData") as? Data) == invalidPayload
+                        })
+                        expect((claimedObject.value(forKey: "deliveryStateRaw") as? NSNumber)?.int16Value)
+                            .to(equal(PersistedReportState.retryInFlight.rawValue))
+                        expect((corruptObject.value(forKey: "deliveryStateRaw") as? NSNumber)?.int16Value)
+                            .to(equal(PersistedReportState.readyForRetry.rawValue))
+                    }
+
+                    expect(try repository.getOldest(count: 1)).to(beEmpty())
+                    expect(try repository.countResources()).to(equal(1))
+                    let archiveRoot = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PersistedRowDeadLetters", isDirectory: true)
+                    let archivedPayloads = try FileManager.default.contentsOfDirectory(
+                        at: archiveRoot,
+                        includingPropertiesForKeys: nil
+                    ).compactMap { directory in
+                        try? Data(contentsOf: directory
+                            .appendingPathComponent("payload.plcrash", isDirectory: false))
+                    }
+                    expect(archivedPayloads).to(contain(invalidPayload))
+                }
+
+                throwingIt("claims an initial row whose persisted UUID uses lowercase characters") {
+                    try repository.clear()
+                    let pending = try crashReporter.generateLiveReport(
+                        attributes: ["identifierCase": "lowercase"]
+                    )
+                    expect(try repository.savePending(pending)).to(equal(.awaitingSourcePurge))
+                    try repository.promoteAfterSourcePurge(pending)
+
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(
+                            entityName: BacktraceReport.entityName
+                        )
+                        let object = try XCTUnwrap(
+                            repository.backgroundContext.fetch(request).first
+                        )
+                        object.setValue(
+                            pending.identifier.uuidString.lowercased(),
+                            forKey: "hashProperty"
+                        )
+                        try repository.backgroundContext.save()
+                    }
+
+                    let fetched = try XCTUnwrap(
+                        repository.getInitialSubmission(count: 1).first
+                    )
+                    expect(fetched.identifier).to(equal(pending.identifier))
+                    expect(fetched.persistedObjectURI).notTo(beNil())
+                    let claimed = try repository.claimInitialSubmission(fetched)
+                    expect(claimed?.identifier).to(equal(pending.identifier))
+                    expect(try repository.persistedState(for: try XCTUnwrap(claimed)))
+                        .to(equal(.initialSubmissionInFlight))
+                }
+
+                throwingIt("deletes only the exact terminal row when identifiers collide") {
+                    try repository.clear()
+                    let colliding = try crashReporter.generateLiveReport(
+                        attributes: ["terminalCollision": "remaining"]
+                    )
+                    let terminal = try crashReporter.generateLiveReport(
+                        attributes: ["terminalCollision": "deleted"]
+                    )
+                    try repository.save(colliding)
+                    try repository.save(terminal)
+
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(
+                            entityName: BacktraceReport.entityName
+                        )
+                        let objects = try repository.backgroundContext.fetch(request)
+                        let collidingObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "reportData") as? Data) == colliding.reportData
+                        })
+                        let terminalObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "reportData") as? Data) == terminal.reportData
+                        })
+                        collidingObject.setValue(
+                            terminal.identifier.uuidString,
+                            forKey: "hashProperty"
+                        )
+                        collidingObject.setValue(Date.distantFuture, forKey: "dateAdded")
+                        terminalObject.setValue(Date.distantPast, forKey: "dateAdded")
+                        try repository.backgroundContext.save()
+                    }
+
+                    let fetchedTerminal = try XCTUnwrap(repository.getOldest(count: 1).first)
+                    expect(fetchedTerminal.reportData).to(equal(terminal.reportData))
+                    let claimedTerminal = try XCTUnwrap(
+                        repository.claimRetrySubmission(fetchedTerminal)
+                    )
+                    try repository.markTerminalForDeletion(claimedTerminal)
+                    try repository.delete(claimedTerminal)
+
+                    expect(try repository.countResources()).to(equal(1))
+                    let remaining = try XCTUnwrap(repository.getAll().first)
+                    expect(remaining.reportData).to(equal(colliding.reportData))
+                    expect(remaining.identifier).to(equal(terminal.identifier))
+                    expect(try repository.persistedState(for: remaining))
+                        .to(equal(.readyForRetry))
+                }
+
+                throwingIt("preserves survivor files when terminal cleanup removes a colliding row") {
+                    try repository.clear()
+                    let corruptSource = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-terminal-collision-corrupt-\(UUID().uuidString).txt"
+                        )
+                    let survivorSource = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-terminal-collision-survivor-\(UUID().uuidString).txt"
+                        )
+                    try Data("terminal corrupt".utf8).write(to: corruptSource)
+                    try Data("terminal survivor".utf8).write(to: survivorSource)
+                    defer {
+                        try? FileManager.default.removeItem(at: corruptSource)
+                        try? FileManager.default.removeItem(at: survivorSource)
+                    }
+
+                    let corrupt = try crashReporter.generateLiveReport(
+                        attributes: ["terminalCollision": "corrupt"],
+                        attachmentPaths: [corruptSource.path]
+                    )
+                    let survivor = try crashReporter.generateLiveReport(
+                        attributes: ["terminalCollision": "survivor"],
+                        attachmentPaths: [survivorSource.path]
+                    )
+                    try repository.save(corrupt)
+                    try repository.save(survivor)
+                    let persisted = try repository.getAll()
+                    let corruptAttachmentPath = try XCTUnwrap(
+                        persisted.first { $0.identifier == corrupt.identifier }?.attachmentPaths.first
+                    )
+                    let survivorAttachmentPath = try XCTUnwrap(
+                        persisted.first { $0.identifier == survivor.identifier }?.attachmentPaths.first
+                    )
+                    let survivorAttributesUrl = repository.metadataDirectoryUrl
+                        .appendingPathComponent("\(survivor.identifier.uuidString).plist")
+                    let survivorPendingMetadataUrl = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PendingMetadata", isDirectory: true)
+                        .appendingPathComponent(survivor.identifier.uuidString, isDirectory: true)
+                    try FileManager.default.createDirectory(
+                        at: survivorPendingMetadataUrl,
+                        withIntermediateDirectories: true
+                    )
+                    try Data("terminal pending metadata".utf8).write(
+                        to: survivorPendingMetadataUrl.appendingPathComponent("state.plist")
+                    )
+
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(
+                            entityName: BacktraceReport.entityName
+                        )
+                        let objects = try repository.backgroundContext.fetch(request)
+                        let corruptObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) ==
+                                corrupt.identifier.uuidString
+                        })
+                        corruptObject.setValue(
+                            survivor.identifier.uuidString,
+                            forKey: "hashProperty"
+                        )
+                        corruptObject.setValue(
+                            NSNumber(value: PersistedReportState.terminalAwaitingDeletion.rawValue),
+                            forKey: "deliveryStateRaw"
+                        )
+                        try repository.backgroundContext.save()
+                    }
+
+                    try repository.reconcileStorage()
+
+                    let remaining = try repository.getAll()
+                    expect(remaining.map(\.identifier)).to(equal([survivor.identifier]))
+                    expect(FileManager.default.fileExists(atPath: survivorAttributesUrl.path))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: survivorAttachmentPath))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: survivorPendingMetadataUrl.path))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: corruptAttachmentPath))
+                        .to(beFalse())
+                    expect(try repository.claimRetrySubmission(try XCTUnwrap(remaining.first))?.identifier)
+                        .to(equal(survivor.identifier))
+                }
+
+                throwingIt("preserves a cross-identifier attachment referenced by a surviving row") {
+                    try repository.clear()
+                    let terminalSource = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-terminal-alias-owner-\(UUID().uuidString).txt"
+                        )
+                    let survivorSource = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-terminal-alias-survivor-\(UUID().uuidString).txt"
+                        )
+                    try Data("terminal attachment".utf8).write(to: terminalSource)
+                    try Data("survivor attachment".utf8).write(to: survivorSource)
+                    defer {
+                        try? FileManager.default.removeItem(at: terminalSource)
+                        try? FileManager.default.removeItem(at: survivorSource)
+                    }
+
+                    let terminal = try crashReporter.generateLiveReport(
+                        attributes: ["attachmentAlias": "terminal"],
+                        attachmentPaths: [terminalSource.path]
+                    )
+                    let survivor = try crashReporter.generateLiveReport(
+                        attributes: ["attachmentAlias": "survivor"],
+                        attachmentPaths: [survivorSource.path]
+                    )
+                    try repository.save(terminal)
+                    try repository.save(survivor)
+
+                    let persisted = try repository.getAll()
+                    let terminalAttachmentPath = try XCTUnwrap(
+                        persisted.first { $0.identifier == terminal.identifier }?.attachmentPaths.first
+                    )
+                    let originalSurvivorAttachmentPath = try XCTUnwrap(
+                        persisted.first { $0.identifier == survivor.identifier }?.attachmentPaths.first
+                    )
+
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(
+                            entityName: BacktraceReport.entityName
+                        )
+                        let objects = try repository.backgroundContext.fetch(request)
+                        let terminalObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) ==
+                                terminal.identifier.uuidString
+                        })
+                        let survivorObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) ==
+                                survivor.identifier.uuidString
+                        })
+                        terminalObject.setValue(
+                            NSNumber(value: PersistedReportState.terminalAwaitingDeletion.rawValue),
+                            forKey: "deliveryStateRaw"
+                        )
+                        // Simulate a damaged transformable reference that points into a
+                        // generation owned by a different row identifier.
+                        survivorObject.setValue(
+                            [terminalAttachmentPath],
+                            forKey: "attachmentPaths"
+                        )
+                        try repository.backgroundContext.save()
+                    }
+
+                    try repository.reconcileStorage()
+
+                    let remaining = try repository.getAll()
+                    let persistedSurvivor = try XCTUnwrap(remaining.first)
+                    expect(remaining.map(\.identifier)).to(equal([survivor.identifier]))
+                    expect(persistedSurvivor.attachmentPaths).to(equal([terminalAttachmentPath]))
+                    expect(FileManager.default.fileExists(atPath: terminalAttachmentPath))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: originalSurvivorAttachmentPath))
+                        .to(beFalse())
+                    expect(try repository.claimRetrySubmission(persistedSurvivor)?.identifier)
+                        .to(equal(survivor.identifier))
+                }
+
+                throwingIt("preserves survivor files when capacity evicts a colliding row") {
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-capacity-collision-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
+                    let settings = BacktraceDatabaseSettings()
+                    settings.maxRecordCount = 2
+                    var limitedRepository: PersistentRepository<BacktraceReport>? =
+                        try PersistentRepository<BacktraceReport>(
+                            settings: settings,
+                            startupReconciliation: { _ in },
+                            storeDirectoryUrl: storeDirectory
+                        )
+                    defer {
+                        limitedRepository?.shutdownForNativeBridge()
+                        limitedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    let corruptSource = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-capacity-collision-corrupt-\(UUID().uuidString).txt"
+                        )
+                    let survivorSource = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-capacity-collision-survivor-\(UUID().uuidString).txt"
+                        )
+                    try Data("capacity corrupt".utf8).write(to: corruptSource)
+                    try Data("capacity survivor".utf8).write(to: survivorSource)
+                    defer {
+                        try? FileManager.default.removeItem(at: corruptSource)
+                        try? FileManager.default.removeItem(at: survivorSource)
+                    }
+
+                    let corrupt = try crashReporter.generateLiveReport(
+                        attributes: ["capacityCollision": "corrupt"],
+                        attachmentPaths: [corruptSource.path]
+                    )
+                    let survivor = try crashReporter.generateLiveReport(
+                        attributes: ["capacityCollision": "survivor"],
+                        attachmentPaths: [survivorSource.path]
+                    )
+                    let incoming = try crashReporter.generateLiveReport(
+                        attributes: ["capacityCollision": "incoming"]
+                    )
+                    try limitedRepository?.save(corrupt)
+                    try limitedRepository?.save(survivor)
+                    let persisted = try XCTUnwrap(limitedRepository).getAll()
+                    let corruptAttachmentPath = try XCTUnwrap(
+                        persisted.first { $0.identifier == corrupt.identifier }?.attachmentPaths.first
+                    )
+                    let survivorAttachmentPath = try XCTUnwrap(
+                        persisted.first { $0.identifier == survivor.identifier }?.attachmentPaths.first
+                    )
+                    let survivorAttributesUrl = try XCTUnwrap(limitedRepository).metadataDirectoryUrl
+                        .appendingPathComponent("\(survivor.identifier.uuidString).plist")
+                    let survivorPendingMetadataUrl = try XCTUnwrap(limitedRepository).metadataDirectoryUrl
+                        .appendingPathComponent("PendingMetadata", isDirectory: true)
+                        .appendingPathComponent(survivor.identifier.uuidString, isDirectory: true)
+                    try FileManager.default.createDirectory(
+                        at: survivorPendingMetadataUrl,
+                        withIntermediateDirectories: true
+                    )
+                    try Data("capacity pending metadata".utf8).write(
+                        to: survivorPendingMetadataUrl.appendingPathComponent("state.plist")
+                    )
+
+                    try limitedRepository?.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(
+                            entityName: BacktraceReport.entityName
+                        )
+                        let objects = try limitedRepository?.backgroundContext.fetch(request) ?? []
+                        let corruptObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) ==
+                                corrupt.identifier.uuidString
+                        })
+                        let survivorObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) ==
+                                survivor.identifier.uuidString
+                        })
+                        corruptObject.setValue(
+                            survivor.identifier.uuidString,
+                            forKey: "hashProperty"
+                        )
+                        corruptObject.setValue(Date.distantPast, forKey: "dateAdded")
+                        survivorObject.setValue(Date.distantFuture, forKey: "dateAdded")
+                        try limitedRepository?.backgroundContext.save()
+                    }
+
+                    try limitedRepository?.save(incoming)
+                    try limitedRepository?.reconcileStorage()
+
+                    let remaining = try XCTUnwrap(limitedRepository).getAll()
+                    expect(Set(remaining.map(\.identifier)))
+                        .to(equal(Set([survivor.identifier, incoming.identifier])))
+                    expect(FileManager.default.fileExists(atPath: survivorAttributesUrl.path))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: survivorAttachmentPath))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: survivorPendingMetadataUrl.path))
+                        .to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: corruptAttachmentPath))
+                        .to(beFalse())
+                    let persistedSurvivor = try XCTUnwrap(remaining.first {
+                        $0.identifier == survivor.identifier
+                    })
+                    expect(try limitedRepository?.claimRetrySubmission(persistedSurvivor)?.identifier)
+                        .to(equal(survivor.identifier))
+                }
+
+                throwingIt("quarantines malformed retry rows and cleans their owned files") {
+                    try repository.clear()
+                    let sourceUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-corrupt-row-attachment-\(UUID().uuidString).txt",
+                            isDirectory: false
+                        )
+                    try Data("owned attachment".utf8).write(to: sourceUrl)
+                    defer { try? FileManager.default.removeItem(at: sourceUrl) }
+
+                    let invalidIdentifier = try crashReporter.generateLiveReport(
+                        attributes: ["row": "invalid-identifier"],
+                        attachmentPaths: [sourceUrl.path]
+                    )
+                    let nilPayload = try crashReporter.generateLiveReport(
+                        attributes: ["row": "nil-payload"]
+                    )
+                    let invalidPayload = try crashReporter.generateLiveReport(
+                        attributes: ["row": "invalid-payload"]
+                    )
+                    let invalidAttachments = try crashReporter.generateLiveReport(
+                        attributes: ["row": "invalid-attachments"]
+                    )
+                    let valid = try crashReporter.generateLiveReport(
+                        attributes: ["row": "valid-retry"]
+                    )
+                    for report in [invalidIdentifier, nilPayload, invalidPayload, invalidAttachments, valid] {
+                        try repository.save(report)
+                    }
+                    let ownedAttachmentPath = try XCTUnwrap(
+                        repository.getAll().first {
+                            $0.identifier == invalidIdentifier.identifier
+                        }?.attachmentPaths.first
+                    )
+                    let ownedAttributesUrl = repository.metadataDirectoryUrl
+                        .appendingPathComponent("\(invalidIdentifier.identifier.uuidString).plist")
+
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(entityName: BacktraceReport.entityName)
+                        let objects = try repository.backgroundContext.fetch(request)
+                        func object(for identifier: UUID) throws -> NSManagedObject {
+                            try XCTUnwrap(objects.first {
+                                ($0.value(forKey: "hashProperty") as? String) == identifier.uuidString
+                            })
+                        }
+                        try object(for: invalidIdentifier.identifier)
+                            .setValue("not-a-report-uuid", forKey: "hashProperty")
+                        try object(for: nilPayload.identifier).setValue(nil, forKey: "reportData")
+                        try object(for: invalidPayload.identifier)
+                            .setValue(Data("not-a-plcrash-report".utf8), forKey: "reportData")
+                        try object(for: invalidAttachments.identifier)
+                            .setValue([NSNumber(value: 1)], forKey: "attachmentPaths")
+                        try repository.backgroundContext.save()
+                    }
+
+                    let page = try repository.getOldest(count: 1)
+
+                    expect(page.map(\.identifier)).to(equal([valid.identifier]))
+                    expect(try repository.claimRetrySubmission(valid)?.identifier)
+                        .to(equal(valid.identifier))
+                    expect(try repository.getOldest(count: 1)).to(beEmpty())
+                    expect(try repository.countResources()).to(equal(1))
+                    expect(FileManager.default.fileExists(atPath: ownedAttachmentPath)).to(beFalse())
+                    expect(FileManager.default.fileExists(atPath: ownedAttributesUrl.path)).to(beFalse())
+                    let archiveRoot = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PersistedRowDeadLetters", isDirectory: true)
+                    let archives = try FileManager.default.contentsOfDirectory(
+                        at: archiveRoot,
+                        includingPropertiesForKeys: nil
+                    )
+                    expect(archives.count).to(beGreaterThanOrEqualTo(4))
+                }
+
+                throwingIt("bounds corrupt persisted-row archives") {
+                    try repository.clear()
+                    let archiveRoot = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PersistedRowDeadLetters", isDirectory: true)
+                    try? FileManager.default.removeItem(at: archiveRoot)
+                    var reports = [BacktraceReport]()
+                    for index in 0..<14 {
+                        let report = try crashReporter.generateLiveReport(attributes: ["archive": index])
+                        try repository.save(report)
+                        reports.append(report)
+                    }
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(entityName: BacktraceReport.entityName)
+                        for object in try repository.backgroundContext.fetch(request) {
+                            let identifier = object.value(forKey: "hashProperty") as? String ?? "unknown"
+                            object.setValue(Data("invalid-\(identifier)".utf8), forKey: "reportData")
+                        }
+                        try repository.backgroundContext.save()
+                    }
+
+                    expect(try repository.getLatest(count: reports.count)).to(beEmpty())
+                    expect(try repository.countResources()).to(equal(0))
+                    let archives = try FileManager.default.contentsOfDirectory(
+                        at: archiveRoot,
+                        includingPropertiesForKeys: nil
+                    )
+                    expect(archives.count).to(equal(10))
+                }
+
+                throwingIt("keeps distinct archives for corrupt rows with the same identifier") {
+                    try repository.clear()
+                    let archiveRoot = repository.metadataDirectoryUrl
+                        .appendingPathComponent("PersistedRowDeadLetters", isDirectory: true)
+                    try? FileManager.default.removeItem(at: archiveRoot)
+                    let first = try crashReporter.generateLiveReport(attributes: ["collision": "first"])
+                    let second = try crashReporter.generateLiveReport(attributes: ["collision": "second"])
+                    try repository.save(first)
+                    try repository.save(second)
+                    let sharedIdentifier = UUID().uuidString
+                    let firstPayload = Data("invalid-collision-first".utf8)
+                    let secondPayload = Data("invalid-collision-second".utf8)
+                    try repository.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(entityName: BacktraceReport.entityName)
+                        let objects = try repository.backgroundContext.fetch(request)
+                        let firstObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) == first.identifier.uuidString
+                        })
+                        let secondObject = try XCTUnwrap(objects.first {
+                            ($0.value(forKey: "hashProperty") as? String) == second.identifier.uuidString
+                        })
+                        firstObject.setValue(sharedIdentifier, forKey: "hashProperty")
+                        firstObject.setValue(firstPayload, forKey: "reportData")
+                        secondObject.setValue(sharedIdentifier, forKey: "hashProperty")
+                        secondObject.setValue(secondPayload, forKey: "reportData")
+                        try repository.backgroundContext.save()
+                    }
+
+                    expect(try repository.getLatest(count: 2)).to(beEmpty())
+                    let archives = try FileManager.default.contentsOfDirectory(
+                        at: archiveRoot,
+                        includingPropertiesForKeys: nil
+                    )
+                    let payloads = archives.compactMap { directory in
+                        try? Data(contentsOf: directory
+                            .appendingPathComponent("payload.plcrash", isDirectory: false))
+                    }
+                    expect(archives.count).to(equal(2))
+                    expect(payloads).to(contain(firstPayload, secondPayload))
+                }
+
+                throwingIt("releases protected capacity after quarantining a corrupt initial row") {
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-corrupt-protected-capacity-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
+                    let settings = BacktraceDatabaseSettings()
+                    settings.maxRecordCount = 1
+                    var limitedRepository: PersistentRepository<BacktraceReport>? =
+                        try PersistentRepository<BacktraceReport>(
+                            settings: settings,
+                            startupReconciliation: { _ in },
+                            storeDirectoryUrl: storeDirectory
+                        )
+                    defer {
+                        limitedRepository?.shutdownForNativeBridge()
+                        limitedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    let corrupt = try BacktraceReport(
+                        pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
+                        attributes: ["capacity": "corrupt"],
+                        attachmentPaths: []
+                    )
+                    let valid = try BacktraceReport(
+                        pendingReport: crashReporter.generateLiveReport(attributes: [:]).reportData,
+                        attributes: ["capacity": "valid"],
+                        attachmentPaths: []
+                    )
+                    try limitedRepository?.savePending(corrupt)
+                    try limitedRepository?.promoteAfterSourcePurge(corrupt)
+                    try limitedRepository?.savePending(valid)
+                    try limitedRepository?.promoteAfterSourcePurge(valid)
+                    try limitedRepository?.backgroundContext.performAndWaitThrowing {
+                        let request = NSFetchRequest<NSManagedObject>(entityName: BacktraceReport.entityName)
+                        request.predicate = NSPredicate(
+                            format: "hashProperty == %@",
+                            corrupt.identifier.uuidString
+                        )
+                        let object = try XCTUnwrap(
+                            limitedRepository?.backgroundContext.fetch(request).first
+                        )
+                        object.setValue(nil, forKey: "reportData")
+                        try limitedRepository?.backgroundContext.save()
+                    }
+
+                    expect(try limitedRepository?.getInitialSubmission(count: 1).map(\.identifier))
+                        .to(equal([valid.identifier]))
+                    expect(try limitedRepository?.countResources()).to(equal(1))
+                }
+
                 throwingIt("fails closed for an unknown non-null persisted delivery state") {
                     let storeDirectory = FileManager.default.temporaryDirectory
                         .appendingPathComponent(
@@ -1992,15 +2877,17 @@ final class BacktraceDatabaseTests: QuickSpec {
                         )
                     let settings = BacktraceDatabaseSettings()
                     settings.maxRecordCount = 1
-                    let isolatedRepository = try PersistentRepository<BacktraceReport>(
+                    var isolatedRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        isolatedRepository?.shutdownForNativeBridge()
+                        isolatedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    isolatedRepository = try PersistentRepository<BacktraceReport>(
                         settings: settings,
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectory
                     )
-                    defer {
-                        isolatedRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
                     let quarantined = try BacktraceReport(
                         report: crashReporter.generateLiveReport(attributes: [:]).reportData,
                         attributes: ["state": "unknown"],
@@ -2082,7 +2969,12 @@ final class BacktraceDatabaseTests: QuickSpec {
                                               isDirectory: true)
                     try FileManager.default.createDirectory(at: storeDirectoryUrl,
                                                             withIntermediateDirectories: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    var migratedRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        migratedRepository?.shutdownForNativeBridge()
+                        migratedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
 
                     let attachmentUrl = storeDirectoryUrl.appendingPathComponent("legacy-attachment.txt")
                     try Data("legacy attachment".utf8).write(to: attachmentUrl)
@@ -2117,7 +3009,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                         try coordinator.remove(store)
                     }
 
-                    let migratedRepository = try PersistentRepository<BacktraceReport>(
+                    migratedRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
@@ -2135,13 +3027,21 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-shared-repository-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
-                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                    var firstRepository: PersistentRepository<BacktraceReport>!
+                    var secondRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        firstRepository?.shutdownForNativeBridge()
+                        secondRepository?.shutdownForNativeBridge()
+                        firstRepository = nil
+                        secondRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+                    firstRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
                     )
-                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                    secondRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
@@ -2159,12 +3059,226 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(try firstRepository.persistedState(for: report)).to(equal(.readyForRetry))
                 }
 
+                throwingIt("releases shared state and file descriptors for distinct repositories") {
+                    let repositoryCount = 128
+                    let storesRootDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-shared-state-lifetime-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    try FileManager.default.createDirectory(at: storesRootDirectoryUrl,
+                                                            withIntermediateDirectories: true)
+                    defer { try? FileManager.default.removeItem(at: storesRootDirectoryUrl) }
+                    let baselineStateCount = PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting
+#if canImport(Darwin)
+                    let baselineDescriptorCount = openDarwinFileDescriptorCount()
+#endif
+
+                    for index in 0..<repositoryCount {
+                        let storeDirectoryUrl = storesRootDirectoryUrl
+                            .appendingPathComponent("repository-\(index)", isDirectory: true)
+                        try autoreleasepool {
+                            var repository: PersistentRepository<BacktraceReport>? =
+                                try PersistentRepository<BacktraceReport>(
+                                    settings: BacktraceDatabaseSettings(),
+                                    startupReconciliation: { _ in },
+                                    storeDirectoryUrl: storeDirectoryUrl
+                                )
+                            repository?.shutdownForNativeBridge()
+                            repository = nil
+                        }
+                    }
+
+                    expect(PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting)
+                        .to(equal(baselineStateCount))
+#if canImport(Darwin)
+                    let retainedDescriptorCount = openDarwinFileDescriptorCount() - baselineDescriptorCount
+                    expect(retainedDescriptorCount).to(beLessThanOrEqualTo(8))
+#endif
+                }
+
+                throwingIt("releases native repository state while the disabled client remains retained") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-store-shutdown-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
+                    let baselineStateCount =
+                        PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting
+                    var shutdownRepository: PersistentRepository<BacktraceReport>? =
+                        try PersistentRepository<BacktraceReport>(
+                            settings: BacktraceDatabaseSettings(),
+                            startupReconciliation: { _ in },
+                            storeDirectoryUrl: storeDirectoryUrl
+                        )
+                    var reopenedRepository: PersistentRepository<BacktraceReport>?
+                    defer {
+                        reopenedRepository?.shutdownForNativeBridge()
+                        shutdownRepository?.shutdownForNativeBridge()
+                        reopenedRepository = nil
+                        shutdownRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+
+                    let coordinator = try XCTUnwrap(
+                        shutdownRepository?.backgroundContext.persistentStoreCoordinator
+                    )
+                    expect(shutdownRepository?.sharedStateIdentifierForTesting).notTo(beNil())
+                    let originalOwnerToken = try XCTUnwrap(
+                        shutdownRepository?.deliveryOwnerTokenForTesting
+                    )
+                    let leaseUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportLocks", isDirectory: true)
+                        .appendingPathComponent("Leases", isDirectory: true)
+                        .appendingPathComponent("\(originalOwnerToken).lock", isDirectory: false)
+                    expect(coordinator.persistentStores).to(haveCount(1))
+                    expect(PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting)
+                        .to(equal(baselineStateCount + 1))
+                    expect(FileManager.default.fileExists(atPath: leaseUrl.path)).to(beTrue())
+
+                    shutdownRepository?.shutdownForNativeBridge()
+
+                    expect(coordinator.persistentStores).to(beEmpty())
+                    expect(shutdownRepository).notTo(beNil())
+                    expect(shutdownRepository?.sharedStateIdentifierForTesting).to(beNil())
+                    expect(PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting)
+                        .to(equal(baselineStateCount))
+                    expect(FileManager.default.fileExists(atPath: leaseUrl.path)).to(beFalse())
+
+                    // A retained, disabled Unity client must not keep the old
+                    // process lease alive or prevent a fresh repository generation.
+                    reopenedRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    expect(reopenedRepository?.sharedStateIdentifierForTesting).notTo(beNil())
+                    expect(reopenedRepository?.deliveryOwnerTokenForTesting)
+                        .notTo(equal(originalOwnerToken))
+                }
+
+                throwingIt("retains one shared state until the final repository is released") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-shared-state-generation-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    let baselineStateCount = PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting
+                    var firstRepository: PersistentRepository<BacktraceReport>?
+                    var secondRepository: PersistentRepository<BacktraceReport>?
+                    defer {
+                        secondRepository?.shutdownForNativeBridge()
+                        firstRepository?.shutdownForNativeBridge()
+                        secondRepository = nil
+                        firstRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+
+                    firstRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let firstStateIdentifier = try XCTUnwrap(firstRepository?.sharedStateIdentifierForTesting)
+                    let ownerToken = try XCTUnwrap(firstRepository?.deliveryOwnerTokenForTesting)
+                    let leaseUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportLocks", isDirectory: true)
+                        .appendingPathComponent("Leases", isDirectory: true)
+                        .appendingPathComponent("\(ownerToken).lock", isDirectory: false)
+
+                    secondRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    expect(secondRepository?.sharedStateIdentifierForTesting).to(equal(firstStateIdentifier))
+                    expect(secondRepository?.deliveryOwnerTokenForTesting).to(equal(ownerToken))
+                    expect(PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting)
+                        .to(equal(baselineStateCount + 1))
+                    expect(FileManager.default.fileExists(atPath: leaseUrl.path)).to(beTrue())
+
+                    firstRepository?.shutdownForNativeBridge()
+                    firstRepository = nil
+                    expect(PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting)
+                        .to(equal(baselineStateCount + 1))
+                    expect(FileManager.default.fileExists(atPath: leaseUrl.path)).to(beTrue())
+
+                    secondRepository?.shutdownForNativeBridge()
+                    secondRepository = nil
+                    expect(PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting)
+                        .to(equal(baselineStateCount))
+                    expect(FileManager.default.fileExists(atPath: leaseUrl.path)).to(beFalse())
+                }
+
+                throwingIt("reopens a released database with a fresh lease and recovers its old claim") {
+                    let storeDirectoryUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("backtrace-shared-state-reopen-\(UUID().uuidString)",
+                                              isDirectory: true)
+                    let baselineStateCount = PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting
+                    var sourceRepository: PersistentRepository<BacktraceReport>?
+                    var recoveringRepository: PersistentRepository<BacktraceReport>?
+                    defer {
+                        recoveringRepository?.shutdownForNativeBridge()
+                        sourceRepository?.shutdownForNativeBridge()
+                        recoveringRepository = nil
+                        sourceRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+
+                    sourceRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    try sourceRepository?.recoverStaleInFlightReportsOncePerProcess()
+                    let oldOwnerToken = try XCTUnwrap(sourceRepository?.deliveryOwnerTokenForTesting)
+                    let oldLeaseUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportLocks", isDirectory: true)
+                        .appendingPathComponent("Leases", isDirectory: true)
+                        .appendingPathComponent("\(oldOwnerToken).lock", isDirectory: false)
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    try sourceRepository?.save(report)
+                    expect(try sourceRepository?.claimRetrySubmission(report)).toNot(beNil())
+                    expect(try sourceRepository?.persistedDeliveryOwner(for: report)).to(equal(oldOwnerToken))
+
+                    sourceRepository?.shutdownForNativeBridge()
+                    sourceRepository = nil
+                    expect(FileManager.default.fileExists(atPath: oldLeaseUrl.path)).to(beFalse())
+
+                    recoveringRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectoryUrl
+                    )
+                    let newOwnerToken = try XCTUnwrap(recoveringRepository?.deliveryOwnerTokenForTesting)
+                    expect(newOwnerToken).notTo(equal(oldOwnerToken))
+                    let newLeaseUrl = storeDirectoryUrl
+                        .appendingPathComponent("BacktraceReportLocks", isDirectory: true)
+                        .appendingPathComponent("Leases", isDirectory: true)
+                        .appendingPathComponent("\(newOwnerToken).lock", isDirectory: false)
+
+                    try recoveringRepository?.recoverStaleInFlightReportsOncePerProcess()
+                    expect(try recoveringRepository?.persistedState(for: report)).to(equal(.readyForRetry))
+                    expect(try recoveringRepository?.persistedDeliveryOwner(for: report)).to(beNil())
+                    expect(try recoveringRepository?.claimRetrySubmission(report)).toNot(beNil())
+
+                    recoveringRepository?.shutdownForNativeBridge()
+                    recoveringRepository = nil
+                    expect(PersistentRepository<BacktraceReport>.liveSharedStateCountForTesting)
+                        .to(equal(baselineStateCount))
+                    expect(FileManager.default.fileExists(atPath: newLeaseUrl.path)).to(beFalse())
+                }
+
                 throwingIt("does not rewind a live claim when a second repository performs startup recovery") {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-once-per-process-recovery-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
-                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                    var firstRepository: PersistentRepository<BacktraceReport>!
+                    var secondRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        firstRepository?.shutdownForNativeBridge()
+                        secondRepository?.shutdownForNativeBridge()
+                        firstRepository = nil
+                        secondRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+                    firstRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
@@ -2174,7 +3288,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try firstRepository.save(report)
                     expect(try firstRepository.claimRetrySubmission(report)).toNot(beNil())
 
-                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                    secondRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
@@ -2189,9 +3303,17 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-live-foreign-owner-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    var foreignRepository: PersistentRepository<BacktraceReport>!
+                    var recoveringRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        foreignRepository?.shutdownForNativeBridge()
+                        recoveringRepository?.shutdownForNativeBridge()
+                        foreignRepository = nil
+                        recoveringRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
                     let foreignOwner = UUID().uuidString
-                    let foreignRepository = try PersistentRepository<BacktraceReport>(
+                    foreignRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl,
@@ -2201,7 +3323,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try foreignRepository.save(report)
                     expect(try foreignRepository.claimRetrySubmission(report)).toNot(beNil())
 
-                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                    recoveringRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl,
@@ -2218,9 +3340,17 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-expired-owner-after-startup-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    var foreignRepository: PersistentRepository<BacktraceReport>!
+                    var recoveringRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        foreignRepository?.shutdownForNativeBridge()
+                        recoveringRepository?.shutdownForNativeBridge()
+                        foreignRepository = nil
+                        recoveringRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
                     let foreignOwner = UUID().uuidString
-                    let foreignRepository = try PersistentRepository<BacktraceReport>(
+                    foreignRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl,
@@ -2231,7 +3361,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     expect(try foreignRepository.claimRetrySubmission(report)).toNot(beNil())
 
                     var foreignOwnerIsAlive = true
-                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                    recoveringRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl,
@@ -2267,6 +3397,8 @@ final class BacktraceDatabaseTests: QuickSpec {
                     var recoveringRepository: PersistentRepository<BacktraceReport>?
                     defer {
                         leaseProcess.stop()
+                        sourceRepository?.shutdownForNativeBridge()
+                        recoveringRepository?.shutdownForNativeBridge()
                         recoveringRepository = nil
                         sourceRepository = nil
                         try? FileManager.default.removeItem(at: storeDirectoryUrl)
@@ -2278,10 +3410,9 @@ final class BacktraceDatabaseTests: QuickSpec {
                         storeDirectoryUrl: storeDirectoryUrl,
                         deliveryOwnerToken: foreignOwner
                     )
-                    let activeSourceRepository = try XCTUnwrap(sourceRepository)
                     let report = try crashReporter.generateLiveReport(attributes: [:])
-                    try activeSourceRepository.save(report)
-                    expect(try activeSourceRepository.claimRetrySubmission(report)).toNot(beNil())
+                    try sourceRepository?.save(report)
+                    expect(try sourceRepository?.claimRetrySubmission(report)).toNot(beNil())
 
                     try FileManager.default.createDirectory(at: leaseDirectoryUrl,
                                                             withIntermediateDirectories: true)
@@ -2318,20 +3449,30 @@ final class BacktraceDatabaseTests: QuickSpec {
                         .appendingPathComponent("Leases", isDirectory: true)
                     let databaseLockProcess = RepositoryFileLockProcess(lockUrl: databaseLockUrl)
                     let initializationFinished = DispatchSemaphore(value: 0)
+                    let initializationGroup = DispatchGroup()
                     let resultLock = NSLock()
                     var initializedRepository: PersistentRepository<BacktraceReport>?
                     var initializationError: Error?
                     var initializationWasJoined = false
                     defer {
                         databaseLockProcess.stop()
-                        if !initializationWasJoined {
-                            _ = initializationFinished.wait(timeout: .now() + 5)
+                        let cleanupRepository = {
+                            resultLock.lock()
+                            initializedRepository?.shutdownForNativeBridge()
+                            initializedRepository = nil
+                            resultLock.unlock()
+                            try? FileManager.default.removeItem(at: storeDirectoryUrl)
                         }
-                        initializedRepository = nil
-                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                        if initializationWasJoined ||
+                            initializationGroup.wait(timeout: .now() + 5) == .success {
+                            cleanupRepository()
+                        } else {
+                            initializationGroup.notify(queue: .global(), execute: cleanupRepository)
+                        }
                     }
 
                     try databaseLockProcess.start()
+                    initializationGroup.enter()
                     DispatchQueue.global().async {
                         do {
                             let repository = try PersistentRepository<BacktraceReport>(
@@ -2348,6 +3489,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                             resultLock.unlock()
                         }
                         initializationFinished.signal()
+                        initializationGroup.leave()
                     }
 
                     expect(initializationFinished.wait(timeout: .now() + .milliseconds(250)))
@@ -2357,7 +3499,11 @@ final class BacktraceDatabaseTests: QuickSpec {
                     databaseLockProcess.stop()
                     let initializationResult = initializationFinished.wait(timeout: .now() + 5)
                     expect(initializationResult).to(equal(.success))
-                    initializationWasJoined = initializationResult == .success
+                    if initializationResult == .success {
+                        let joinResult = initializationGroup.wait(timeout: .now() + 5)
+                        expect(joinResult).to(equal(.success))
+                        initializationWasJoined = joinResult == .success
+                    }
                     resultLock.lock()
                     let repositoryWasInitialized = initializedRepository != nil
                     let capturedError = initializationError
@@ -2373,9 +3519,17 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-owner-open-failure-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    var sourceRepository: PersistentRepository<BacktraceReport>!
+                    var recoveringRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        sourceRepository?.shutdownForNativeBridge()
+                        recoveringRepository?.shutdownForNativeBridge()
+                        sourceRepository = nil
+                        recoveringRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
                     let foreignOwner = UUID().uuidString
-                    let sourceRepository = try PersistentRepository<BacktraceReport>(
+                    sourceRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl,
@@ -2391,7 +3545,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                         .appendingPathComponent("\(foreignOwner).lock", isDirectory: true)
                     try FileManager.default.createDirectory(at: ownerLeaseUrl,
                                                             withIntermediateDirectories: true)
-                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                    recoveringRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
@@ -2407,8 +3561,16 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-dead-foreign-owner-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
-                    let foreignRepository = try PersistentRepository<BacktraceReport>(
+                    var foreignRepository: PersistentRepository<BacktraceReport>!
+                    var recoveringRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        foreignRepository?.shutdownForNativeBridge()
+                        recoveringRepository?.shutdownForNativeBridge()
+                        foreignRepository = nil
+                        recoveringRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+                    foreignRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl,
@@ -2418,7 +3580,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try foreignRepository.save(report)
                     expect(try foreignRepository.claimRetrySubmission(report)).toNot(beNil())
 
-                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                    recoveringRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl,
@@ -2435,8 +3597,19 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-failed-stale-recovery-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
-                    let sourceRepository = try PersistentRepository<BacktraceReport>(
+                    var sourceRepository: PersistentRepository<BacktraceReport>!
+                    var failingRepository: PersistentRepository<BacktraceReport>!
+                    var recoveringRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        sourceRepository?.shutdownForNativeBridge()
+                        failingRepository?.shutdownForNativeBridge()
+                        recoveringRepository?.shutdownForNativeBridge()
+                        sourceRepository = nil
+                        failingRepository = nil
+                        recoveringRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+                    sourceRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
@@ -2445,7 +3618,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     try sourceRepository.save(report)
                     expect(try sourceRepository.claimRetrySubmission(report)).toNot(beNil())
 
-                    let failingRepository = try PersistentRepository<BacktraceReport>(
+                    failingRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         contextSave: { _ in throw FileError.fileNotWritten },
@@ -2457,7 +3630,7 @@ final class BacktraceDatabaseTests: QuickSpec {
                     }.to(throwError())
                     expect(try sourceRepository.persistedState(for: report)).to(equal(.retryInFlight))
 
-                    let recoveringRepository = try PersistentRepository<BacktraceReport>(
+                    recoveringRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl,
@@ -2471,13 +3644,21 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-atomic-retry-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
-                    let firstRepository = try PersistentRepository<BacktraceReport>(
+                    var firstRepository: PersistentRepository<BacktraceReport>!
+                    var secondRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        firstRepository?.shutdownForNativeBridge()
+                        secondRepository?.shutdownForNativeBridge()
+                        firstRepository = nil
+                        secondRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
+                    firstRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
                     )
-                    let secondRepository = try PersistentRepository<BacktraceReport>(
+                    secondRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         storeDirectoryUrl: storeDirectoryUrl
@@ -2498,10 +3679,15 @@ final class BacktraceDatabaseTests: QuickSpec {
                     let storeDirectoryUrl = FileManager.default.temporaryDirectory
                         .appendingPathComponent("backtrace-terminal-failure-\(UUID().uuidString)",
                                               isDirectory: true)
-                    defer { try? FileManager.default.removeItem(at: storeDirectoryUrl) }
+                    var failingRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        failingRepository?.shutdownForNativeBridge()
+                        failingRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectoryUrl)
+                    }
                     let saveLock = NSLock()
                     var shouldFail = false
-                    let failingRepository = try PersistentRepository<BacktraceReport>(
+                    failingRepository = try PersistentRepository<BacktraceReport>(
                         settings: BacktraceDatabaseSettings(),
                         startupReconciliation: { _ in },
                         contextSave: { context in
@@ -2543,23 +3729,41 @@ final class BacktraceDatabaseTests: QuickSpec {
                 }
 
                 throwingIt("cancels deferred repository maintenance after native shutdown") {
-                    let deferredRepository = try PersistentRepository<BacktraceReport>(
-                        settings: BacktraceDatabaseSettings(),
-                        startupReconciliation: { _ in throw FileError.fileNotWritten },
-                        maintenanceRetryDelay: .milliseconds(250)
-                    )
-                    try deferredRepository.clear()
-                    defer { try? deferredRepository.clear() }
+                    let storeDirectory = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(
+                            "backtrace-deferred-shutdown-\(UUID().uuidString)",
+                            isDirectory: true
+                        )
+                    var deferredRepository: PersistentRepository<BacktraceReport>? =
+                        try PersistentRepository<BacktraceReport>(
+                            settings: BacktraceDatabaseSettings(),
+                            startupReconciliation: { _ in throw FileError.fileNotWritten },
+                            maintenanceRetryDelay: .milliseconds(250),
+                            storeDirectoryUrl: storeDirectory
+                        )
+                    var verificationRepository: PersistentRepository<BacktraceReport>?
+                    defer {
+                        verificationRepository?.shutdownForNativeBridge()
+                        deferredRepository?.shutdownForNativeBridge()
+                        verificationRepository = nil
+                        deferredRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
                     let report = try crashReporter.generateLiveReport(attributes: [:])
-                    try deferredRepository.save(report)
-                    try deferredRepository.markTerminalForDeletion(report)
+                    try deferredRepository?.save(report)
+                    try deferredRepository?.markTerminalForDeletion(report)
 
-                    deferredRepository.shutdownForNativeBridge()
-                    try deferredRepository.reconcileStorage()
+                    deferredRepository?.shutdownForNativeBridge()
+                    try deferredRepository?.reconcileStorage()
                     Thread.sleep(forTimeInterval: 0.35)
 
-                    expect(deferredRepository.isShutdown).to(beTrue())
-                    expect(try deferredRepository.countResources()).to(equal(1))
+                    expect(deferredRepository?.isShutdown).to(beTrue())
+                    verificationRepository = try PersistentRepository<BacktraceReport>(
+                        settings: BacktraceDatabaseSettings(),
+                        startupReconciliation: { _ in },
+                        storeDirectoryUrl: storeDirectory
+                    )
+                    expect(try verificationRepository?.countResources()).to(equal(1))
                 }
                 
                 throwingIt("test with a custom maxRecordCount, removes oldest records when max record count is exceeded") {
@@ -2570,19 +3774,30 @@ final class BacktraceDatabaseTests: QuickSpec {
                         )
                     let settingsWithLimit = BacktraceDatabaseSettings()
                     settingsWithLimit.maxRecordCount = 5
-                    let limitedRepository = try PersistentRepository<BacktraceReport>(
+                    var limitedRepository: PersistentRepository<BacktraceReport>!
+                    defer {
+                        limitedRepository?.shutdownForNativeBridge()
+                        limitedRepository = nil
+                        try? FileManager.default.removeItem(at: storeDirectory)
+                    }
+                    limitedRepository = try PersistentRepository<BacktraceReport>(
                         settings: settingsWithLimit,
                         maintenanceRetryDelay: .seconds(60),
                         storeDirectoryUrl: storeDirectory
                     )
-                    defer {
-                        limitedRepository.shutdownForNativeBridge()
-                        try? FileManager.default.removeItem(at: storeDirectory)
-                    }
                     try limitedRepository.clear()
                     // Insert 6 reports
-                    let timeOrderedReports = try (1...6).map { _ -> BacktraceReport in
-                        let report = try crashReporter.generateLiveReport(attributes: [:])
+                    let payload = try crashReporter.generateLiveReport(attributes: [:]).reportData
+                    let timeOrderedReports = try (1...6).map { sequence -> BacktraceReport in
+                        // PLCrashReporter uses process-global live-report state. Reuse one
+                        // validated payload and vary only repository identity so this capacity
+                        // test does not depend on six consecutive native captures.
+                        let report = try BacktraceReport(
+                            report: payload,
+                            attributes: ["sequence": sequence],
+                            attachmentPaths: [],
+                            identifier: UUID()
+                        )
                         try limitedRepository.save(report)
                         return report
                     }

@@ -114,17 +114,6 @@ final class RepositoryAttachmentStore {
         removeDirectoryIfEmpty(generationUrl.deletingLastPathComponent())
     }
 
-    func removeAttachments(for reportIdentifier: UUID) throws {
-        let reportDirectoryUrl = rootUrl
-            .appendingPathComponent(reportIdentifier.uuidString, isDirectory: true)
-            .standardizedFileURL
-        guard contains(reportDirectoryUrl) else {
-            throw RepositoryAttachmentStoreError.unsafePath(reportDirectoryUrl)
-        }
-        guard fileManager.fileExists(atPath: reportDirectoryUrl.path) else { return }
-        try fileManager.removeItem(at: reportDirectoryUrl)
-    }
-
     // Reconciliation deliberately walks and validates both repository hierarchy levels in one pass so unsafe paths are never handed to a helper without the surrounding containment state.
     // swiftlint:disable:next cyclomatic_complexity function_body_length
     func reconcile(referencedAttachmentPaths: [String]) throws {

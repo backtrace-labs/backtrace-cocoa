@@ -27,7 +27,7 @@ private func setRepositoryFileLock(_ descriptor: Int32,
 
 /// An advisory lock shared by every process that opens the same repository database.
 private final class RepositoryAdvisoryFileLock {
-    private let descriptor: Int32
+    private var descriptor: Int32
     private let localLock = NSRecursiveLock()
     private var lockDepth = 0
 
@@ -39,7 +39,19 @@ private final class RepositoryAdvisoryFileLock {
     }
 
     deinit {
+        close()
+    }
+
+    func close() {
+        localLock.lock()
+        defer { localLock.unlock() }
+        guard descriptor >= 0 else { return }
+        if lockDepth > 0 {
+            _ = setRepositoryFileLock(descriptor, command: F_SETLK, type: Int16(F_UNLCK))
+            lockDepth = 0
+        }
         Darwin.close(descriptor)
+        descriptor = -1
     }
 
     func withExclusiveLock<T>(_ body: () throws -> T) throws -> T {
@@ -59,6 +71,9 @@ private final class RepositoryAdvisoryFileLock {
     }
 
     private func lock(command: Int32) throws {
+        guard descriptor >= 0 else {
+            throw RepositoryFileLockError.openFailed(EBADF)
+        }
         while setRepositoryFileLock(descriptor, command: command, type: Int16(F_WRLCK)) != 0 {
             guard errno == EINTR else {
                 throw RepositoryFileLockError.lockFailed(errno)
@@ -67,11 +82,14 @@ private final class RepositoryAdvisoryFileLock {
     }
 }
 
-/// A process-lifetime lease used to distinguish abandoned in-flight rows from reports actively owned by another process sharing the same SQLite store.
+/// A live repository-generation lease used to distinguish abandoned in-flight rows
+/// from reports actively owned by another process sharing the same SQLite store.
 private final class RepositoryProcessLease {
     let token: String
     private let directoryUrl: URL
-    private let descriptor: Int32
+    private let leaseUrl: URL
+    private let lifecycleLock = NSLock()
+    private var descriptor: Int32
 
     init(databaseUrl: URL, token: String) throws {
         self.token = token
@@ -81,7 +99,7 @@ private final class RepositoryProcessLease {
         try FileManager.default.createDirectory(at: directoryUrl,
                                                 withIntermediateDirectories: true,
                                                 attributes: [.protectionKey: FileProtectionType.none])
-        let leaseUrl = Self.leaseUrl(directoryUrl: directoryUrl, owner: token)
+        leaseUrl = Self.leaseUrl(directoryUrl: directoryUrl, owner: token)
         descriptor = Darwin.open(leaseUrl.path, O_CREAT | O_RDWR, mode_t(S_IRUSR | S_IWUSR))
         guard descriptor >= 0 else {
             throw RepositoryFileLockError.openFailed(errno)
@@ -89,18 +107,33 @@ private final class RepositoryProcessLease {
         guard setRepositoryFileLock(descriptor, command: F_SETLK, type: Int16(F_WRLCK)) == 0 else {
             let lockError = errno
             Darwin.close(descriptor)
+            descriptor = -1
+            try? FileManager.default.removeItem(at: leaseUrl)
             throw RepositoryFileLockError.lockFailed(lockError)
         }
         removeStaleLeaseFiles()
     }
 
     deinit {
+        close()
+    }
+
+    func close() {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        guard descriptor >= 0 else { return }
         _ = setRepositoryFileLock(descriptor, command: F_SETLK, type: Int16(F_UNLCK))
         Darwin.close(descriptor)
+        descriptor = -1
+        try? FileManager.default.removeItem(at: leaseUrl)
     }
 
     func isOwnerAlive(_ owner: String) -> Bool {
-        guard owner != token else { return true }
+        if owner == token {
+            lifecycleLock.lock()
+            defer { lifecycleLock.unlock() }
+            return descriptor >= 0
+        }
         guard UUID(uuidString: owner) != nil else { return false }
         let leaseUrl = Self.leaseUrl(directoryUrl: directoryUrl, owner: owner)
         let candidateDescriptor = Darwin.open(leaseUrl.path, O_RDWR)
@@ -146,69 +179,117 @@ private final class RepositoryProcessLease {
     }
 }
 
+private final class RepositorySharedState {
+    let transactionLock = NSRecursiveLock()
+    let advisoryLock: RepositoryAdvisoryFileLock
+    let processLease: RepositoryProcessLease
+
+    /// Access only while `transactionLock` is held.
+    var staleRecoveryCompleted = false
+
+    init(databaseUrl: URL) throws {
+        let advisoryLock = try RepositoryAdvisoryFileLock(
+            url: databaseUrl.appendingPathExtension("backtrace.lock")
+        )
+        self.advisoryLock = advisoryLock
+        self.processLease = try advisoryLock.withExclusiveLock {
+            try RepositoryProcessLease(databaseUrl: databaseUrl,
+                                       token: UUID().uuidString)
+        }
+    }
+
+    func retire() {
+        processLease.close()
+        advisoryLock.close()
+    }
+}
+
+private final class WeakRepositorySharedState {
+    weak var value: RepositorySharedState?
+
+    init(_ value: RepositorySharedState) {
+        self.value = value
+    }
+}
+
+private final class RepositorySharedStateEntry {
+    let state: RepositorySharedState
+    var participantCount: Int
+
+    init(state: RepositorySharedState, participantCount: Int) {
+        self.state = state
+        self.participantCount = participantCount
+    }
+}
+
+private final class RepositorySharedStateHandle {
+    let state: RepositorySharedState
+    private let key: String
+    private let releaseLock = NSLock()
+    private var released = false
+
+    init(key: String, state: RepositorySharedState) {
+        self.key = key
+        self.state = state
+    }
+
+    deinit {
+        release()
+    }
+
+    func release() {
+        releaseLock.lock()
+        guard !released else {
+            releaseLock.unlock()
+            return
+        }
+        released = true
+        releaseLock.unlock()
+        RepositoryTransactionLockRegistry.shared.release(key: key, state: state)
+    }
+}
+
 private final class RepositoryTransactionLockRegistry {
     static let shared = RepositoryTransactionLockRegistry()
-    private static let processSessionToken = UUID().uuidString
 
     private let registryLock = NSLock()
-    private var locks = [String: NSRecursiveLock]()
-    private var advisoryLocks = [String: RepositoryAdvisoryFileLock]()
-    private var processLeases = [String: RepositoryProcessLease]()
-    private var completedStaleRecoveryKeys = Set<String>()
+    private var states = [String: RepositorySharedStateEntry]()
 
     private func key(for databaseUrl: URL) -> String {
         return databaseUrl.standardizedFileURL.path
     }
 
-    func transactionLock(for databaseUrl: URL) -> NSRecursiveLock {
+    func acquireSharedState(for databaseUrl: URL) throws -> RepositorySharedStateHandle {
         let key = key(for: databaseUrl)
         registryLock.lock()
         defer { registryLock.unlock() }
-        if let lock = locks[key] {
-            return lock
+        if let entry = states[key] {
+            entry.participantCount += 1
+            return RepositorySharedStateHandle(key: key, state: entry.state)
         }
-        let lock = NSRecursiveLock()
-        locks[key] = lock
-        return lock
+        // Keep the registry locked while creating the state,
+        // concurrent repositories for one database cannot receive different in-process locks or delivery-owner tokens.
+        let state = try RepositorySharedState(databaseUrl: databaseUrl)
+        states[key] = RepositorySharedStateEntry(state: state, participantCount: 1)
+        return RepositorySharedStateHandle(key: key, state: state)
     }
 
-    func advisoryLock(for databaseUrl: URL) throws -> RepositoryAdvisoryFileLock {
-        let key = key(for: databaseUrl)
+    fileprivate func release(key: String, state: RepositorySharedState) {
         registryLock.lock()
         defer { registryLock.unlock() }
-        if let lock = advisoryLocks[key] {
-            return lock
-        }
-        let lock = try RepositoryAdvisoryFileLock(
-            url: databaseUrl.appendingPathExtension("backtrace.lock")
-        )
-        advisoryLocks[key] = lock
-        return lock
+        guard let entry = states[key], entry.state === state else { return }
+        entry.participantCount -= 1
+        guard entry.participantCount == 0 else { return }
+        states.removeValue(forKey: key)
+        // Retire descriptors before another acquire can create a new generation.
+        // This prevents a concurrently opened client from observing the old lease.
+        state.retire()
     }
 
-    func hasCompletedStaleRecovery(for databaseUrl: URL) -> Bool {
+    var liveStateCountForTesting: Int {
         registryLock.lock()
         defer { registryLock.unlock() }
-        return completedStaleRecoveryKeys.contains(key(for: databaseUrl))
-    }
-
-    func markStaleRecoveryCompleted(for databaseUrl: URL) {
-        registryLock.lock()
-        completedStaleRecoveryKeys.insert(key(for: databaseUrl))
-        registryLock.unlock()
-    }
-
-    func processLease(for databaseUrl: URL) throws -> RepositoryProcessLease {
-        let key = key(for: databaseUrl)
-        registryLock.lock()
-        defer { registryLock.unlock() }
-        if let lease = processLeases[key] {
-            return lease
-        }
-        let lease = try RepositoryProcessLease(databaseUrl: databaseUrl,
-                                               token: Self.processSessionToken)
-        processLeases[key] = lease
-        return lease
+        return states.count
     }
 }
 
@@ -222,6 +303,9 @@ protocol PersistentStorable: AnyObject {
     var attachmentPaths: [String] { get set }
     var attributes: Attributes { get set }
     var pendingMetadataFilePaths: [String] { get set }
+    /// Stable Core Data identity for a materialized persisted snapshot.
+    /// Live reports have no identity until a later repository fetch.
+    var persistedObjectURI: URL? { get }
 
     init(managedObject: ManagedObjectType, metadataDirectoryUrl: URL?) throws
 }
@@ -283,13 +367,22 @@ final class PersistentRepository<Resource: PersistentStorable> {
         let identifier: UUID
     }
 
+    private struct MaterializedPage {
+        let resources: [Resource]
+        /// Identifiers that no committed row still owns after corrupt rows are removed.
+        /// A corrupt row's identifier is untrusted and can collide with a healthy row.
+        let cleanupIdentifiers: [UUID]
+        let removedObjectCount: Int
+    }
+
     let backgroundContext: NSManagedObjectContext
     let settings: BacktraceDatabaseSettings
     let url: URL
     let attachmentStore: RepositoryAttachmentStore
     let metadataDirectoryUrl: URL
-    private let transactionLock: NSRecursiveLock
-    private let databaseAdvisoryLock: RepositoryAdvisoryFileLock
+    /// Explicitly released during native shutdown even though Unity retains the client for process lifetime.
+    /// The participant-counted registry retires the advisory lock and lease synchronously when its final handle leaves.
+    private var repositorySharedStateHandle: RepositorySharedStateHandle?
     private let deliveryOwnerToken: String
     private let deliveryOwnerIsAlive: (String) -> Bool
     private let lifecycleLock = NSLock()
@@ -309,6 +402,10 @@ final class PersistentRepository<Resource: PersistentStorable> {
 
     private var deadLetterDirectoryUrl: URL {
         return metadataDirectoryUrl.appendingPathComponent("DeadLetters", isDirectory: true)
+    }
+
+    private var persistedRowDeadLetterDirectoryUrl: URL {
+        return metadataDirectoryUrl.appendingPathComponent("PersistedRowDeadLetters", isDirectory: true)
     }
 
     // Keep initialization and its migration transaction together;
@@ -353,25 +450,24 @@ final class PersistentRepository<Resource: PersistentStorable> {
                 details: "The retry database directory could not be created."
             )
         }
-        self.transactionLock = RepositoryTransactionLockRegistry.shared.transactionLock(for: resolvedDatabaseUrl)
-        let sharedAdvisoryLock: RepositoryAdvisoryFileLock
+        let sharedStateHandle: RepositorySharedStateHandle
         do {
-            sharedAdvisoryLock = try RepositoryTransactionLockRegistry.shared.advisoryLock(
-                for: resolvedDatabaseUrl
-            )
-            self.databaseAdvisoryLock = sharedAdvisoryLock
-            // Lease creation and stale-file cleanup must share the database lock with liveness
-            // checks. Otherwise another process can unlink a newly opened lease before its owner
-            // acquires the lease lock, making a live claim appear abandoned.
-            let processLease = try sharedAdvisoryLock.withExclusiveLock {
-                try RepositoryTransactionLockRegistry.shared.processLease(for: resolvedDatabaseUrl)
-            }
-            self.deliveryOwnerToken = deliveryOwnerToken ?? processLease.token
-            self.deliveryOwnerIsAlive = deliveryOwnerIsAlive ?? { processLease.isOwnerAlive($0) }
+            sharedStateHandle = try RepositoryTransactionLockRegistry.shared
+                .acquireSharedState(for: resolvedDatabaseUrl)
         } catch {
             throw RepositoryError.persistentRepositoryInitError(
                 details: "The retry database process lock could not be prepared."
             )
+        }
+        let sharedState = sharedStateHandle.state
+        self.repositorySharedStateHandle = sharedStateHandle
+        let sharedAdvisoryLock = sharedState.advisoryLock
+        let processLease = sharedState.processLease
+        let weakSharedState = WeakRepositorySharedState(sharedState)
+        self.deliveryOwnerToken = deliveryOwnerToken ?? processLease.token
+        self.deliveryOwnerIsAlive = deliveryOwnerIsAlive ?? { owner in
+            // Unknown liveness must fail closed. During an admitted transaction its local shared-state snapshot keeps this weak value alive. 
+            weakSharedState.value?.processLease.isOwnerAlive(owner) ?? true
         }
         self.settings = settings
         self.databaseSize = databaseSize
@@ -551,6 +647,20 @@ final class PersistentRepository<Resource: PersistentStorable> {
 
         return selectCompatibleModelUrl(candidates)
 #endif
+    }
+
+    internal static var liveSharedStateCountForTesting: Int {
+        return RepositoryTransactionLockRegistry.shared.liveStateCountForTesting
+    }
+
+    internal var sharedStateIdentifierForTesting: ObjectIdentifier? {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        return repositorySharedStateHandle.map { ObjectIdentifier($0.state) }
+    }
+
+    internal var deliveryOwnerTokenForTesting: String {
+        return deliveryOwnerToken
     }
 
     private static func nestedModelUrl(in bundle: Bundle, modelName: String) -> URL? {
@@ -743,6 +853,13 @@ extension PersistentRepository: Repository {
 
         resource.attachmentPaths = storedAttachments.paths
         cleanupResources(identifiers: evictedIdentifiers)
+        if existingSnapshot != nil,
+           existingAttachmentPaths != storedAttachments.paths {
+            // Replacing a row changes the only durable attachment reference but does not create an eviction identifier.
+            // Reconcile synchronously while the repository transaction is still held,
+            // superseded immutable generations do not accumulate under unlimited capacity.
+            reconcileAttachmentsFromCommittedRowsBestEffort()
+        }
         // Capacity must observe the committed payload and attachment generation
         // for both inserts and identifier-based replacements.
         // Protected rows may temporarily exceed configured capacity until they become safely evictable.
@@ -818,20 +935,22 @@ extension PersistentRepository: Repository {
     }
 
     func getInitialSubmission(count: Int) throws -> [Resource] {
-        return try withTransaction {
+        let page = try withTransaction {
             // A process that owned a claim may exit after this client starts.
             // Recheck leases at every submission fetch so the surviving client can eventually resume that row.
             try resetInFlightReportsLocked(onlyAbandonedOwners: true)
-            return try backgroundContext.performAndWaitThrowing {
+            let page = try backgroundContext.performAndWaitThrowing {
                 let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
                 let initial = try _getResourcesLocked(sortDescriptors: sortDescriptors).filter {
                     deliveryStateLocked($0) == .readyForInitialSubmission
                 }
-                return try initial.prefix(count).map {
-                    try Resource(managedObject: $0, metadataDirectoryUrl: metadataDirectoryUrl)
-                }
+                return try materializeEligiblePageLocked(initial, limit: count)
             }
+            cleanupResources(identifiers: page.cleanupIdentifiers)
+            return page
         }
+        reconcileOrphansAfterCorruptRows(page)
+        return page.resources
     }
 
     func claimInitialSubmission(_ resource: Resource) throws -> Resource? {
@@ -899,17 +1018,17 @@ extension PersistentRepository: Repository {
                        to: .terminalAwaitingDeletion)
     }
 
-    /// Recovers claims abandoned by a previous process exactly once for this database in the current process.
-    /// A second live client must not rewind a claim owned by the first client.
+    /// Recovers abandoned claims once per live shared-state generation.
+    /// A second live client must not rewind a claim owned by the first client, while reopening
+    /// after the final repository release must be able to recover claims owned by the old lease.
     func recoverStaleInFlightReportsOncePerProcess() throws {
-        try withTransaction {
+        try withSharedStateTransaction { sharedState in
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
-            let registry = RepositoryTransactionLockRegistry.shared
-            guard !registry.hasCompletedStaleRecovery(for: url) else { return }
+            guard !sharedState.staleRecoveryCompleted else { return }
             try resetInFlightReportsLocked(onlyAbandonedOwners: true)
             // Mark only after the Core Data transaction commits.
             // A failed first client therefore leaves recovery available to a later client in the same process.
-            registry.markStaleRecoveryCompleted(for: url)
+            sharedState.staleRecoveryCompleted = true
         }
     }
 
@@ -966,8 +1085,23 @@ extension PersistentRepository: Repository {
         try withTransaction {
             guard !isShutdown else { throw RepositoryError.repositoryShutdown }
             let deletedIdentifiers = try backgroundContext.performAndWaitThrowing {
-                let predicate = NSPredicate(format: "hashProperty==%@", resource.identifier.uuidString)
-                let fetchRequestResults = try _getResourcesLocked(predicate: predicate, fetchLimit: 100)
+                let fetchRequestResults: [Resource.ManagedObjectType]
+                if resource.persistedObjectURI != nil {
+                    // Submission snapshots own one exact durable row.
+                    // Never let a colliding identifier broaden terminal cleanup to another row.
+                    fetchRequestResults = try managedObjectLocked(for: resource).map { [$0] } ?? []
+                } else {
+                    // Preserve the legacy public delete behavior for live resources
+                    // that have not been materialized from this repository.
+                    let predicate = NSPredicate(
+                        format: "hashProperty==%@",
+                        resource.identifier.uuidString
+                    )
+                    fetchRequestResults = try _getResourcesLocked(
+                        predicate: predicate,
+                        fetchLimit: 100
+                    )
+                }
                 return try _deleteLocked(fetchRequestResults)
             }
             cleanupResources(identifiers: deletedIdentifiers)
@@ -1014,18 +1148,20 @@ extension PersistentRepository: Repository {
     /// - Returns: [Resource]
     /// - Throws: Any error from the fetch request or object initialization
     func getLatest(count: Int = 1) throws -> [Resource] {
-        return try withTransaction {
+        let page = try withTransaction {
             try resetInFlightReportsLocked(onlyAbandonedOwners: true)
-            return try backgroundContext.performAndWaitThrowing {
+            let page = try backgroundContext.performAndWaitThrowing {
                 let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: false)]
                 let latest = submissionEligibleResourcesLocked(
                     try _getResourcesLocked(sortDescriptors: sortDescriptors)
                 )
-                return try latest.prefix(count).map {
-                    try Resource(managedObject: $0, metadataDirectoryUrl: metadataDirectoryUrl)
-                }
+                return try materializeEligiblePageLocked(latest, limit: count)
             }
+            cleanupResources(identifiers: page.cleanupIdentifiers)
+            return page
         }
+        reconcileOrphansAfterCorruptRows(page)
+        return page.resources
     }
     
     /// Fetches the oldest (by `dateAdded`) resources
@@ -1033,18 +1169,20 @@ extension PersistentRepository: Repository {
     /// - Returns: [Resource]
     /// - Throws: Any error from the fetch request or object initialization
     func getOldest(count: Int = 1) throws -> [Resource] {
-        return try withTransaction {
+        let page = try withTransaction {
             try resetInFlightReportsLocked(onlyAbandonedOwners: true)
-            return try backgroundContext.performAndWaitThrowing {
+            let page = try backgroundContext.performAndWaitThrowing {
                 let sortDescriptors = [NSSortDescriptor(key: "dateAdded", ascending: true)]
                 let oldest = submissionEligibleResourcesLocked(
                     try _getResourcesLocked(sortDescriptors: sortDescriptors)
                 )
-                return try oldest.prefix(count).map {
-                    try Resource(managedObject: $0, metadataDirectoryUrl: metadataDirectoryUrl)
-                }
+                return try materializeEligiblePageLocked(oldest, limit: count)
             }
+            cleanupResources(identifiers: page.cleanupIdentifiers)
+            return page
         }
+        reconcileOrphansAfterCorruptRows(page)
+        return page.resources
     }
     
     /// Increments the retry count for a resource. If the count reaches limit, removes the resource from the database.
@@ -1129,6 +1267,19 @@ extension PersistentRepository: Repository {
     }
 
     private func managedObjectLocked(for resource: Resource) throws -> Resource.ManagedObjectType? {
+        if let objectURI = resource.persistedObjectURI {
+            // A fetched resource must keep targeting the exact row that produced its snapshot.
+            // Falling back to a non-unique hash could claim or finalize a different row after identifier corruption.
+            guard let coordinator = backgroundContext.persistentStoreCoordinator,
+                  let objectID = coordinator.managedObjectID(forURIRepresentation: objectURI),
+                  let managedObject = try backgroundContext.existingObject(with: objectID)
+                    as? Resource.ManagedObjectType,
+                  let persistedIdentifierString = managedObject.value(forKey: "hashProperty") as? String,
+                  UUID(uuidString: persistedIdentifierString) == resource.identifier else {
+                return nil
+            }
+            return managedObject
+        }
         let predicate = NSPredicate(format: "hashProperty == %@", resource.identifier.uuidString)
         return try _getResourcesLocked(predicate: predicate, fetchLimit: 1).first
     }
@@ -1213,6 +1364,176 @@ extension PersistentRepository: Repository {
     ) -> [Resource.ManagedObjectType] {
         return resources.filter { resource in
             deliveryStateLocked(resource) == .readyForRetry
+        }
+    }
+
+    /// Materializes each eligible row independently so one damaged row cannot block every valid report behind it.
+    /// Invalid rows are archived before their deletion is committed, then their owned files are cleaned after leaving the Core Data block.
+    private func materializeEligiblePageLocked(
+        _ objects: [Resource.ManagedObjectType],
+        limit: Int
+    ) throws -> MaterializedPage {
+        guard limit > 0 else {
+            return MaterializedPage(resources: [],
+                                    cleanupIdentifiers: [],
+                                    removedObjectCount: 0)
+        }
+
+        var resources = [Resource]()
+        var invalidObjects = [Resource.ManagedObjectType]()
+
+        for object in objects {
+            do {
+                resources.append(
+                    try Resource(managedObject: object,
+                                 metadataDirectoryUrl: metadataDirectoryUrl)
+                )
+            } catch {
+                archiveInvalidPersistedObjectBestEffort(object, failure: error)
+                invalidObjects.append(object)
+            }
+
+            if resources.count == limit {
+                break
+            }
+        }
+
+        let removedIdentifiers = _stageDeleteLocked(invalidObjects)
+        if !invalidObjects.isEmpty {
+            try _saveContextLocked()
+        }
+
+        // A corrupt hash is evidence, not ownership. Another committed row may use the same valid-looking UUID,
+        // only remove UUID-scoped files when no survivor owns it.
+        let survivingIdentifiers = Set(try _getResourcesLocked().compactMap {
+            ($0.value(forKey: "hashProperty") as? String).flatMap(UUID.init(uuidString:))
+        })
+        let cleanupIdentifiers = removedIdentifiers.filter {
+            !survivingIdentifiers.contains($0)
+        }
+
+        return MaterializedPage(resources: resources,
+                                cleanupIdentifiers: cleanupIdentifiers,
+                                removedObjectCount: invalidObjects.count)
+    }
+
+    private func reconcileOrphansAfterCorruptRows(_ page: MaterializedPage) {
+        guard page.removedObjectCount > 0 else { return }
+        // Every field on a corrupt row is untrusted, including a syntactically valid UUID and its attachment generation.
+        // Reconcile against committed survivors after each quarantine so orphaned files are removed without touching survivor-owned files.
+        reconcileStorageBestEffort(scheduleRetry: true)
+    }
+
+    // Keep raw database evidence local and bounded. Archival is best effort:
+    // a full or unavailable diagnostics directory must not leave a protected corrupt row blocking delivery.
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    private func archiveInvalidPersistedObjectBestEffort(
+        _ object: Resource.ManagedObjectType,
+        failure: Error
+    ) {
+        do {
+            let rawIdentifier = object.value(forKey: "hashProperty") as? String
+            let payload = object.value(forKey: "reportData") as? Data
+            let stableSeed = [
+                rawIdentifier ?? "missing-identifier",
+                object.objectID.uriRepresentation().absoluteString
+            ].joined(separator: "|")
+            // Always include the Core Data object identity.
+            // Two corrupt rows may carry the same valid-looking UUID and must retain separate diagnostic evidence.
+            let archiveIdentifier = BacktraceReportIdentifier.digestIdentifier(
+                for: Data(stableSeed.utf8)
+            )
+            let reportDirectoryUrl = persistedRowDeadLetterDirectoryUrl
+                .appendingPathComponent(archiveIdentifier.uuidString, isDirectory: true)
+            try FileManager.default.createDirectory(at: reportDirectoryUrl,
+                                                    withIntermediateDirectories: true,
+                                                    attributes: [.protectionKey: FileProtectionType.none])
+
+            if let payload = payload {
+                try payload.write(to: reportDirectoryUrl
+                    .appendingPathComponent("payload.plcrash", isDirectory: false),
+                                  options: .atomic)
+            }
+
+            var state: [String: Any] = [
+                "failureType": String(describing: type(of: failure)),
+                "failureDescription": String(describing: failure),
+                "objectURI": object.objectID.uriRepresentation().absoluteString,
+                "payloadLength": payload?.count ?? 0,
+                "updatedAt": Date()
+            ]
+            if let rawIdentifier = rawIdentifier {
+                state["hashProperty"] = rawIdentifier
+            }
+            if let dateAdded = object.value(forKey: "dateAdded") as? Date {
+                state["dateAdded"] = dateAdded
+            }
+            if let deliveryOwner = object.value(forKey: "deliveryOwner") as? String {
+                state["deliveryOwner"] = deliveryOwner
+            }
+            if let deliveryState = object.value(forKey: "deliveryStateRaw") as? NSNumber {
+                state["deliveryStateRaw"] = deliveryState
+            }
+            if let retryCount = object.value(forKey: "retryCount") as? NSNumber {
+                state["retryCount"] = retryCount
+            } else if let retryCount = object.value(forKey: "retryCount") as? Int64 {
+                state["retryCount"] = retryCount
+            }
+            if let attachmentMetadata = object.value(forKey: "attachmentPaths") {
+                let safeAttachmentMetadata = propertyListSafeAttributes(
+                    ["attachmentPaths": attachmentMetadata]
+                )
+                if let value = safeAttachmentMetadata.attributes["attachmentPaths"] {
+                    state["attachmentPaths"] = value
+                } else {
+                    state["attachmentMetadataType"] = String(
+                        describing: type(of: attachmentMetadata)
+                    )
+                }
+            }
+
+            let stateData = try PropertyListSerialization.data(fromPropertyList: state,
+                                                               format: .binary,
+                                                               options: 0)
+            try stateData.write(to: reportDirectoryUrl
+                .appendingPathComponent("state.plist", isDirectory: false),
+                                options: .atomic)
+            if let metadataIdentifier = rawIdentifier.flatMap(UUID.init(uuidString:)) {
+                // The digest names this unique archive, while persisted sidecars remain keyed by the row's original UUID.
+                archivePersistedMetadataBestEffort(identifier: metadataIdentifier,
+                                                   reportDirectoryUrl: reportDirectoryUrl)
+            }
+            _ = trimPersistedRowDeadLettersBestEffort()
+        } catch {
+            BacktraceLogger.warning("Unable to preserve a corrupt persisted report before removing it.")
+        }
+    }
+
+    private func archivePersistedMetadataBestEffort(identifier: UUID,
+                                                    reportDirectoryUrl: URL) {
+        do {
+            let config = try AttributesStorage.AttributesConfig(fileName: identifier.uuidString,
+                                                                directoryUrl: metadataDirectoryUrl)
+            if FileManager.default.fileExists(atPath: config.fileUrl.path) {
+                let data = try Data(contentsOf: config.fileUrl)
+                try data.write(to: reportDirectoryUrl
+                    .appendingPathComponent("attributes.plist", isDirectory: false),
+                               options: .atomic)
+            }
+        } catch {
+            BacktraceLogger.warning("Unable to preserve corrupt persisted report attributes.")
+        }
+
+        let pendingMetadataUrl = pendingMetadataDirectoryUrl
+            .appendingPathComponent(identifier.uuidString, isDirectory: true)
+        let archivedMetadataUrl = reportDirectoryUrl
+            .appendingPathComponent("pending-metadata", isDirectory: true)
+        guard FileManager.default.fileExists(atPath: pendingMetadataUrl.path),
+              !FileManager.default.fileExists(atPath: archivedMetadataUrl.path) else { return }
+        do {
+            try FileManager.default.copyItem(at: pendingMetadataUrl, to: archivedMetadataUrl)
+        } catch {
+            BacktraceLogger.warning("Unable to preserve corrupt persisted pending metadata.")
         }
     }
     
@@ -1384,6 +1705,7 @@ extension PersistentRepository: Repository {
                 reportIdentifiers: storageSnapshot.identifiers
             ) || cleanupWasDeferred
             cleanupWasDeferred = !trimDeadLettersBestEffort() || cleanupWasDeferred
+            cleanupWasDeferred = !trimPersistedRowDeadLettersBestEffort() || cleanupWasDeferred
             if cleanupWasDeferred {
                 throw RepositoryAttachmentStoreError.cleanupDeferred
             }
@@ -1391,7 +1713,33 @@ extension PersistentRepository: Repository {
     }
 
     private func cleanupResources(identifiers: [UUID]) {
-        for identifier in Set(identifiers) {
+        let requestedIdentifiers = Set(identifiers)
+        guard !requestedIdentifiers.isEmpty else { return }
+
+        // UUID-scoped files can be shared by multiple rows if persistence is corrupted and two rows acquire the same valid-looking hash.
+        // Every deletion path must fail closed while a committed survivor still owns that UUID;
+        // later reconciliation removes only genuinely orphaned files.
+        let storageSnapshot: (attachmentPaths: [String], identifiers: Set<UUID>)
+        do {
+            storageSnapshot = try backgroundContext.performAndWaitThrowing {
+                let storedResources = try _getResourcesLocked()
+                let attachmentPaths = storedResources.flatMap {
+                    ($0.value(forKey: "attachmentPaths") as? [String]) ?? []
+                }
+                let identifiers = Set(storedResources.compactMap {
+                    ($0.value(forKey: "hashProperty") as? String)
+                        .flatMap(UUID.init(uuidString:))
+                })
+                return (attachmentPaths, identifiers)
+            }
+        } catch {
+            BacktraceLogger.warning(
+                "Deferred persisted report file cleanup because ownership could not be verified."
+            )
+            return
+        }
+
+        for identifier in requestedIdentifiers.subtracting(storageSnapshot.identifiers) {
             do {
                 try AttributesStorage.remove(fileName: identifier.uuidString,
                                              directoryUrl: metadataDirectoryUrl)
@@ -1400,13 +1748,34 @@ extension PersistentRepository: Repository {
             } catch {
                 BacktraceLogger.warning("Unable to remove persisted attributes for report \(identifier).")
             }
-            do {
-                try attachmentStore.removeAttachments(for: identifier)
-            } catch {
-                BacktraceLogger.warning("Unable to remove persisted attachments for report \(identifier).")
-            }
             try? FileManager.default.removeItem(at: pendingMetadataDirectoryUrl
                 .appendingPathComponent(identifier.uuidString, isDirectory: true))
+        }
+
+        // Attachment paths are durable references and must be treated independently from the row UUID.
+        // A damaged row can make a surviving row reference a generation stored below another identifier's directory.
+        // Reconcile from the committed reference set instead of deleting that directory eagerly.
+        do {
+            try attachmentStore.reconcile(
+                referencedAttachmentPaths: storageSnapshot.attachmentPaths
+            )
+        } catch {
+            BacktraceLogger.warning("Deferred persisted attachment cleanup after row deletion.")
+        }
+    }
+
+    private func reconcileAttachmentsFromCommittedRowsBestEffort() {
+        do {
+            let attachmentPaths = try backgroundContext.performAndWaitThrowing {
+                try _getResourcesLocked().flatMap {
+                    ($0.value(forKey: "attachmentPaths") as? [String]) ?? []
+                }
+            }
+            try attachmentStore.reconcile(referencedAttachmentPaths: attachmentPaths)
+        } catch {
+            BacktraceLogger.warning(
+                "Deferred cleanup of superseded persisted attachment generations."
+            )
         }
     }
 
@@ -1595,6 +1964,39 @@ extension PersistentRepository: Repository {
         return cleanupSucceeded
     }
 
+    private func trimPersistedRowDeadLettersBestEffort() -> Bool {
+        guard FileManager.default.fileExists(atPath: persistedRowDeadLetterDirectoryUrl.path) else {
+            return true
+        }
+        guard let entries = try? FileManager.default.contentsOfDirectory(
+            at: persistedRowDeadLetterDirectoryUrl,
+            includingPropertiesForKeys: [.contentModificationDateKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            BacktraceLogger.warning("Deferred corrupt persisted-report archive cleanup.")
+            return false
+        }
+        guard entries.count > maximumPendingCrashDeadLetters else { return true }
+
+        var cleanupSucceeded = true
+        let sortedEntries = entries.sorted {
+            let left = (try? $0.resourceValues(forKeys: [.contentModificationDateKey])
+                .contentModificationDate) ?? .distantPast
+            let right = (try? $1.resourceValues(forKeys: [.contentModificationDateKey])
+                .contentModificationDate) ?? .distantPast
+            return left < right
+        }
+        for entry in sortedEntries.prefix(entries.count - maximumPendingCrashDeadLetters) {
+            do {
+                try FileManager.default.removeItem(at: entry)
+            } catch {
+                cleanupSucceeded = false
+                BacktraceLogger.warning("Deferred removal of an expired corrupt persisted-report archive.")
+            }
+        }
+        return cleanupSucceeded
+    }
+
     private func reconcileStorageBestEffort(scheduleRetry: Bool) {
         guard !isShutdown else { return }
         do {
@@ -1673,11 +2075,54 @@ extension PersistentRepository: Repository {
         lifecycleLock.unlock()
     }
 
-    /// Waits for currently admitted local Core Data/file transactions after transport
-    /// cancellation. No fixed completion deadline is promised.
+    /// Waits for currently admitted local Core Data/file transactions after transport cancellation,
+    /// then synchronously detaches this repository's persistent stores.
+    /// The Unity bridge retains its first reporter for process lifetime,
+    /// relying on object deallocation alone would keep SQLite descriptors open after `Disable()`.
+    /// No fixed completion deadline is promised.
     internal func finishNativeBridgeShutdown() {
-        transactionLock.lock()
-        transactionLock.unlock()
+        lifecycleLock.lock()
+        let sharedStateHandle = repositorySharedStateHandle
+        lifecycleLock.unlock()
+        guard let sharedStateHandle = sharedStateHandle else { return }
+        let sharedState = sharedStateHandle.state
+
+        sharedState.transactionLock.lock()
+        defer { sharedState.transactionLock.unlock() }
+
+        // A concurrent shutdown may have completed while this call waited.
+        lifecycleLock.lock()
+        let stillOwnsSharedState = repositorySharedStateHandle === sharedStateHandle
+        lifecycleLock.unlock()
+        guard stillOwnsSharedState else { return }
+
+        do {
+            try sharedState.advisoryLock.withExclusiveLock {
+                try backgroundContext.performAndWaitThrowing {
+                    backgroundContext.reset()
+                    guard let coordinator = backgroundContext.persistentStoreCoordinator else {
+                        return
+                    }
+                    for store in coordinator.persistentStores {
+                        try coordinator.remove(store)
+                    }
+                }
+            }
+        } catch {
+            // Shutdown is best effort and idempotent.
+            // Keep diagnostics generic because persistent-store errors may contain application filesystem paths.
+            BacktraceLogger.warning("Unable to close retry repository storage during shutdown.")
+        }
+
+        // The crash reporter remains installed, but the disabled client cannot perform more repository work.
+        // Release this repository's state even if Core Data teardown was best effort;
+        // another live repository retains a shared state independently.
+        sharedStateHandle.release()
+        lifecycleLock.lock()
+        if repositorySharedStateHandle === sharedStateHandle {
+            repositorySharedStateHandle = nil
+        }
+        lifecycleLock.unlock()
     }
 
     internal func shutdownForNativeBridge() {
@@ -1711,9 +2156,37 @@ extension PersistentRepository: Repository {
     }
 
     private func withTransaction<T>(_ body: () throws -> T) throws -> T {
-        transactionLock.lock()
-        defer { transactionLock.unlock() }
-        return try databaseAdvisoryLock.withExclusiveLock {
+        return try withSharedStateTransaction { _ in
+            try body()
+        }
+    }
+
+    private func withSharedStateTransaction<T>(
+        _ body: (RepositorySharedState) throws -> T
+    ) throws -> T {
+        lifecycleLock.lock()
+        let sharedStateHandle = shutdownRequested ? nil : repositorySharedStateHandle
+        lifecycleLock.unlock()
+        guard let sharedStateHandle = sharedStateHandle else {
+            throw RepositoryError.repositoryShutdown
+        }
+        let sharedState = sharedStateHandle.state
+
+        sharedState.transactionLock.lock()
+        defer { sharedState.transactionLock.unlock() }
+
+        // Shutdown can win while this operation waits behind an admitted transaction.
+        // Recheck after acquiring the transaction lock,
+        // without ever holding lifecycleLock while waiting for another lock.
+        lifecycleLock.lock()
+        let isActive = !shutdownRequested &&
+            repositorySharedStateHandle === sharedStateHandle
+        lifecycleLock.unlock()
+        guard isActive else {
+            throw RepositoryError.repositoryShutdown
+        }
+
+        return try sharedState.advisoryLock.withExclusiveLock {
             backgroundContext.performAndWait {
                 if !backgroundContext.hasChanges {
                     // Separate repository instances and processes use separate containers.
@@ -1721,7 +2194,7 @@ extension PersistentRepository: Repository {
                     backgroundContext.reset()
                 }
             }
-            return try body()
+            return try body(sharedState)
         }
     }
 }
