@@ -54,6 +54,11 @@ lane :common_tests do |options|
     code_coverage: true,
     open_report: true,
     disable_slide_to_type: options[:disable_slide_to_type],
+    # The test bundle intentionally exercises process-wide:
+    # crash-handler, metrics, OOM, logger, and repository state.
+    # Keep XCTest methods in one runner,
+    # one example cannot tear down shared files while another example is using them.
+    parallel_testing: false,
     disable_concurrent_testing: true
   )
 end
