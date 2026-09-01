@@ -23,8 +23,8 @@ usage() {
   exit 64
 }
 
-for tool in awk chmod codesign ditto dsymutil dwarfdump find git lipo nm otool plutil \
-  python3 ruby shasum sort swift sw_vers uname xattr xcodebuild xcrun; do
+for tool in chmod codesign ditto dsymutil find python3 ruby shasum sort swift \
+  xattr xcodebuild; do
   command -v "$tool" >/dev/null 2>&1 || fail "required tool is unavailable: $tool"
 done
 
@@ -37,6 +37,12 @@ source "$UNITY_MACOS_CONFIG"
 mkdir -p "$1"
 readonly OUTPUT_ROOT="$(cd "$1" && pwd -P)"
 [[ "$OUTPUT_ROOT" != "/" ]] || fail "refusing to use the filesystem root as output"
+while IFS= read -r -d '' existing_output; do
+  case "${existing_output##*/}" in
+    BacktraceMacUnity.bundle|BacktraceMacUnity.bundle.dSYM|SHA256SUMS|artifact-provenance.json) ;;
+    *) fail "output directory contains an unexpected entry: $existing_output" ;;
+  esac
+done < <(find "$OUTPUT_ROOT" -mindepth 1 -maxdepth 1 -print0)
 
 readonly PREFIX_BUILDER="$SCRIPT_DIR/build-prefixed-plcrashreporter.sh"
 readonly PRIVACY_MERGER="$SCRIPT_DIR/merge-unity-privacy-manifests.py"
@@ -454,7 +460,6 @@ fi
 
 readonly STAGED_OUTPUT="$WORK_ROOT/output"
 readonly STAGED_BUNDLE="$STAGED_OUTPUT/BacktraceMacUnity.bundle"
-readonly STAGED_BINARY="$STAGED_BUNDLE/Contents/MacOS/BacktraceMacUnity"
 readonly STAGED_DSYM="$STAGED_OUTPUT/BacktraceMacUnity.bundle.dSYM"
 mkdir -p "$STAGED_OUTPUT"
 ditto "$BUILT_BUNDLE" "$STAGED_BUNDLE"
@@ -494,192 +499,9 @@ else
 fi
 codesign --verify --strict --verbose=2 "$STAGED_BUNDLE"
 
-readonly BUNDLE_MANIFEST="$WORK_ROOT/bundle-manifest.sha256"
 (
   cd "$STAGED_OUTPUT"
-  find BacktraceMacUnity.bundle -type f -print | LC_ALL=C sort |
-    while IFS= read -r path; do
-      shasum -a 256 "$path"
-    done
-) > "$BUNDLE_MANIFEST"
-
-readonly BUNDLE_SHA256="$(shasum -a 256 "$BUNDLE_MANIFEST" | awk '{print $1}')"
-readonly BINARY_SHA256="$(shasum -a 256 "$STAGED_BINARY" | awk '{print $1}')"
-readonly COCOA_HEAD="$(git -C "$PROJECT_ROOT" rev-parse HEAD)"
-readonly COCOA_DIRTY="$(if [[ -n "$(git -C "$PROJECT_ROOT" status --porcelain)" ]]; then echo true; else echo false; fi)"
-readonly WORKTREE_DIGEST="$(python3 - "$PROJECT_ROOT" <<'PY'
-import hashlib
-from pathlib import Path
-import subprocess
-import sys
-
-root = Path(sys.argv[1])
-digest = hashlib.sha256()
-diff = subprocess.run(
-    ["git", "-C", str(root), "diff", "--binary", "HEAD"],
-    check=True,
-    stdout=subprocess.PIPE,
-).stdout
-digest.update(b"tracked-diff\0")
-digest.update(diff)
-untracked = subprocess.run(
-    ["git", "-C", str(root), "ls-files", "--others", "--exclude-standard", "-z"],
-    check=True,
-    stdout=subprocess.PIPE,
-).stdout.split(b"\0")
-for raw_path in sorted(path for path in untracked if path):
-    path = root / raw_path.decode()
-    digest.update(b"untracked\0" + raw_path + b"\0")
-    if path.is_file():
-        digest.update(path.read_bytes())
-print(digest.hexdigest())
-PY
-)"
-readonly BRIDGE_SOURCE_SHA256="$(shasum -a 256 "$BRIDGE_SOURCE" | awk '{print $1}')"
-readonly XCODE_VERSION="$(xcodebuild -version | tr '\n' ';' | sed 's/;$//')"
-readonly SWIFT_VERSION="$(swift --version | head -1)"
-readonly MACOS_VERSION="$(sw_vers -productVersion)"
-readonly MACOS_BUILD="$(sw_vers -buildVersion)"
-readonly HOST_ARCHITECTURE="$(uname -m)"
-readonly CDHASH="$(codesign -dvvv "$STAGED_BUNDLE" 2>&1 | awk -F= '$1 == "CDHash" {print $2; exit}')"
-
-python3 - \
-  "$STAGED_OUTPUT/artifact-provenance.json" \
-  "$PRIVATE_RUNTIME/plcrashreporter-provenance.json" \
-  "$COCOA_HEAD" \
-  "$COCOA_DIRTY" \
-  "$WORKTREE_DIGEST" \
-  "$BRIDGE_SOURCE_SHA256" \
-  "$COCOA_VERSION" \
-  "$BUILD_NUMBER" \
-  "$XCODE_VERSION" \
-  "$SWIFT_VERSION" \
-  "$MACOS_VERSION" \
-  "$MACOS_BUILD" \
-  "$HOST_ARCHITECTURE" \
-  "$BUNDLE_SHA256" \
-  "$BINARY_SHA256" \
-  "$SIGNING_IDENTITY" \
-  "$CDHASH" \
-  "$BTUNITY_MACOS_DEPLOYMENT_TARGET" \
-  "$STAGED_BINARY" \
-  "$STAGED_DSYM" <<'PY'
-import json
-from pathlib import Path
-import re
-import subprocess
-import sys
-
-(
-    output,
-    plcrash_path,
-    cocoa_head,
-    cocoa_dirty,
-    worktree_digest,
-    bridge_source_sha,
-    cocoa_version,
-    build_number,
-    xcode_version,
-    swift_version,
-    macos_version,
-    macos_build,
-    host_architecture,
-    bundle_sha,
-    binary_sha,
-    signing_identity,
-    cdhash,
-    deployment_target,
-    binary,
-    dsym,
-) = sys.argv[1:]
-
-with Path(plcrash_path).open(encoding="utf-8") as stream:
-    plcrash = json.load(stream)
-
-third_party_notices = []
-for notice in plcrash.get("license_attribution", {}).get("files", []):
-    private_path = Path(notice["path"])
-    if private_path.parent != Path("ThirdPartyNotices"):
-        raise SystemExit(f"error: unexpected PLCrashReporter notice path: {private_path}")
-    third_party_notices.append(
-        {
-            "component": "PLCrashReporter",
-            "path": (
-                "BacktraceMacUnity.bundle/Contents/Resources/ThirdPartyNotices/"
-                + private_path.name
-            ),
-            "sha256": notice["sha256"],
-        }
-    )
-
-uuid_pattern = re.compile(r"UUID: ([0-9A-F-]+) \(([^)]+)\)")
-binary_uuids = [
-    {"uuid": match.group(1), "architecture": match.group(2)}
-    for match in uuid_pattern.finditer(
-        subprocess.run(["dwarfdump", "--uuid", binary], check=True, text=True, stdout=subprocess.PIPE).stdout
-    )
-]
-dsym_uuids = [
-    {"uuid": match.group(1), "architecture": match.group(2)}
-    for match in uuid_pattern.finditer(
-        subprocess.run(["dwarfdump", "--uuid", dsym], check=True, text=True, stdout=subprocess.PIPE).stdout
-    )
-]
-
-value = {
-    "schema_version": 1,
-    "artifact": "BacktraceMacUnity.bundle",
-    "backtrace_cocoa": {
-        "head": cocoa_head,
-        "dirty": cocoa_dirty == "true",
-        "working_tree_digest_sha256": worktree_digest,
-        "version": cocoa_version,
-        "build_number": build_number,
-    },
-    "plcrashreporter": plcrash,
-    "unity_bridge": {
-        "exception_contract": "all-c-exports-contained-v1",
-        "initialization_results": {
-            "success": 0,
-            "already_initialized_active": 1,
-            "invalid_arguments": 2,
-            "storage_initialization_failed": 3,
-            "invalid_submission_url": 4,
-            "client_initialization_failed": 5,
-            "unexpected_failure": 6,
-            "process_lifetime_disabled": 7,
-        },
-        "lifecycle_contract": "process-lifetime-handler-distinct-disabled-v2",
-        "logging_contract": "warning-default-explicit-setter-silent-none-redacted-v3",
-        "source_sha256": bridge_source_sha,
-        "storage_contract": "all-entry-points-isolated-v1",
-    },
-    "toolchain": {
-        "xcode": xcode_version,
-        "swift": swift_version,
-        "macos": macos_version,
-        "macos_build": macos_build,
-        "host_architecture": host_architecture,
-    },
-    "architectures": ["arm64", "x86_64"],
-    "deployment_target": deployment_target,
-    "bundle_identifier": "io.backtrace.unity.macos",
-    "bridge_abi_version": 3,
-    "bundle_sha256": bundle_sha,
-    "bundle_sha256_algorithm": "sha256(sorted per-file SHA-256 manifest)",
-    "binary_sha256": binary_sha,
-    "binary_uuids": binary_uuids,
-    "dsym_uuids": dsym_uuids,
-    "signing": {"requested_identity": signing_identity, "cdhash": cdhash},
-    "third_party_notices": third_party_notices,
-    "build_command": "scripts/build-unity-macos-bundle.sh OUTPUT_DIRECTORY",
-}
-Path(output).write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-PY
-
-(
-  cd "$STAGED_OUTPUT"
-  find BacktraceMacUnity.bundle BacktraceMacUnity.bundle.dSYM artifact-provenance.json \
+  find BacktraceMacUnity.bundle BacktraceMacUnity.bundle.dSYM \
     -type f -print | LC_ALL=C sort |
     while IFS= read -r path; do
       shasum -a 256 "$path"
@@ -691,14 +513,14 @@ bash "$VALIDATOR" "$STAGED_OUTPUT"
 rm -rf \
   "$OUTPUT_ROOT/BacktraceMacUnity.bundle" \
   "$OUTPUT_ROOT/BacktraceMacUnity.bundle.dSYM"
+# Remove the legacy generated metadata when rebuilding into an output directory
+# previously used by a provenance-producing version of this script.
 rm -f "$OUTPUT_ROOT/artifact-provenance.json" "$OUTPUT_ROOT/SHA256SUMS"
 ditto "$STAGED_BUNDLE" "$OUTPUT_ROOT/BacktraceMacUnity.bundle"
 ditto "$STAGED_DSYM" "$OUTPUT_ROOT/BacktraceMacUnity.bundle.dSYM"
-ditto "$STAGED_OUTPUT/artifact-provenance.json" "$OUTPUT_ROOT/artifact-provenance.json"
 ditto "$STAGED_OUTPUT/SHA256SUMS" "$OUTPUT_ROOT/SHA256SUMS"
 
 echo "Built and validated self-contained Unity macOS bundle:"
 echo "  $OUTPUT_ROOT/BacktraceMacUnity.bundle"
 echo "  $OUTPUT_ROOT/BacktraceMacUnity.bundle.dSYM"
-echo "  $OUTPUT_ROOT/artifact-provenance.json"
 echo "  $OUTPUT_ROOT/SHA256SUMS"

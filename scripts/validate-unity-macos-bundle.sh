@@ -34,12 +34,28 @@ readonly PRIVACY_MANIFEST="$RESOURCES/PrivacyInfo.xcprivacy"
 readonly PLCRASHREPORTER_LICENSE="$RESOURCES/ThirdPartyNotices/PLCrashReporter-LICENSE.txt"
 readonly PLCRASHREPORTER_NOTICES="$RESOURCES/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt"
 readonly DSYM="$OUTPUT_ROOT/BacktraceMacUnity.bundle.dSYM"
-readonly PROVENANCE="$OUTPUT_ROOT/artifact-provenance.json"
 readonly CHECKSUMS="$OUTPUT_ROOT/SHA256SUMS"
+
+while IFS= read -r -d '' top_level_entry; do
+  case "${top_level_entry##*/}" in
+    BacktraceMacUnity.bundle|BacktraceMacUnity.bundle.dSYM|SHA256SUMS) ;;
+    artifact-provenance.json)
+      fail "obsolete artifact provenance must not be included in the Unity handoff"
+      ;;
+    *) fail "Unity handoff contains an unexpected top-level entry: $top_level_entry" ;;
+  esac
+done < <(find "$OUTPUT_ROOT" -mindepth 1 -maxdepth 1 -print0)
+
+[[ -d "$BUNDLE" && ! -L "$BUNDLE" ]] ||
+  fail "Unity handoff bundle must be a real directory"
+[[ -d "$DSYM" && ! -L "$DSYM" ]] ||
+  fail "Unity handoff dSYM must be a real directory"
+[[ -f "$CHECKSUMS" && ! -L "$CHECKSUMS" ]] ||
+  fail "Unity handoff checksum manifest must be a regular file"
 
 for required in "$BINARY" "$INFO_PLIST" "$LEGACY_MODEL" "$CURRENT_MODEL" "$MODEL_VERSION" \
   "$PRIVACY_MANIFEST" "$PLCRASHREPORTER_LICENSE" "$PLCRASHREPORTER_NOTICES" \
-  "$DSYM" "$PROVENANCE" "$CHECKSUMS"; do
+  "$DSYM" "$CHECKSUMS"; do
   [[ -e "$required" ]] || fail "required artifact is missing: $required"
 done
 grep -Fq 'Copyright (c) Microsoft Corporation.' "$PLCRASHREPORTER_LICENSE" ||
@@ -49,6 +65,9 @@ grep -Fq 'Protobuf-c NOTICES AND INFORMATION' "$PLCRASHREPORTER_NOTICES" ||
 
 readonly FIRST_SYMLINK="$(find "$BUNDLE" -type l -print -quit)"
 [[ -z "$FIRST_SYMLINK" ]] || fail "bundle contains a UPM-unsafe symlink: $FIRST_SYMLINK"
+readonly FIRST_DSYM_SYMLINK="$(find "$DSYM" -type l -print -quit)"
+[[ -z "$FIRST_DSYM_SYMLINK" ]] ||
+  fail "dSYM contains an unchecksummed symlink: $FIRST_DSYM_SYMLINK"
 
 readonly FORBIDDEN_LAYOUT="$(find "$BUNDLE" \
   \( -name '*.framework' -o -name Versions -o -name BacktraceResources.bundle \) \
@@ -628,11 +647,24 @@ codesign --verify --strict --verbose=2 "$BUNDLE"
   shasum -a 256 -c SHA256SUMS
 )
 
+readonly GENERATED_HANDOFF_MANIFEST="$(
+  mktemp "${TMPDIR:-/private/tmp}/btunity-handoff-manifest.XXXXXX"
+)"
 readonly GENERATED_MANIFEST="$(mktemp "${TMPDIR:-/private/tmp}/btunity-bundle-manifest.XXXXXX")"
 cleanup_manifest() {
-  rm -f "$GENERATED_MANIFEST"
+  rm -f "$GENERATED_HANDOFF_MANIFEST" "$GENERATED_MANIFEST"
 }
 trap cleanup_manifest EXIT
+(
+  cd "$OUTPUT_ROOT"
+  find BacktraceMacUnity.bundle BacktraceMacUnity.bundle.dSYM \
+    -type f -print | LC_ALL=C sort |
+    while IFS= read -r path; do
+      shasum -a 256 "$path"
+    done
+) > "$GENERATED_HANDOFF_MANIFEST"
+diff -u "$GENERATED_HANDOFF_MANIFEST" "$CHECKSUMS" >/dev/null ||
+  fail "SHA256SUMS does not describe the complete bundle and dSYM"
 (
   cd "$OUTPUT_ROOT"
   find BacktraceMacUnity.bundle -type f -print | LC_ALL=C sort |
@@ -641,99 +673,6 @@ trap cleanup_manifest EXIT
     done
 ) > "$GENERATED_MANIFEST"
 readonly BUNDLE_SHA256="$(shasum -a 256 "$GENERATED_MANIFEST" | awk '{print $1}')"
-readonly BINARY_SHA256="$(shasum -a 256 "$BINARY" | awk '{print $1}')"
-
-python3 - \
-  "$PROVENANCE" \
-  "$BUNDLE_SHA256" \
-  "$BINARY_SHA256" \
-  "$BINARY_UUIDS" \
-  "$BTUNITY_MACOS_DEPLOYMENT_TARGET" \
-  "$BUNDLE_MARKETING_VERSION" \
-  "${BTUNITY_REQUIRE_CLEAN_SOURCE:-0}" <<'PY'
-import json
-import hashlib
-from pathlib import Path
-import sys
-
-(
-    path,
-    bundle_sha,
-    binary_sha,
-    uuid_lines,
-    deployment_target,
-    bundle_version,
-    require_clean,
-) = sys.argv[1:]
-with Path(path).open(encoding="utf-8") as stream:
-    value = json.load(stream)
-expected = {
-    "schema_version": 1,
-    "artifact": "BacktraceMacUnity.bundle",
-    "architectures": ["arm64", "x86_64"],
-    "deployment_target": deployment_target,
-    "bundle_identifier": "io.backtrace.unity.macos",
-    "bridge_abi_version": 3,
-    "bundle_sha256": bundle_sha,
-    "binary_sha256": binary_sha,
-}
-for key, expected_value in expected.items():
-    if value.get(key) != expected_value:
-        raise SystemExit(f"error: provenance {key} mismatch: {value.get(key)!r}")
-if require_clean == "1" and value.get("backtrace_cocoa", {}).get("dirty") is not False:
-    raise SystemExit("error: release validation requires clean Backtrace Cocoa source provenance")
-if value.get("backtrace_cocoa", {}).get("version") != bundle_version:
-    raise SystemExit("error: bundle and provenance versions do not match")
-if value.get("plcrashreporter", {}).get("upstream_tag") != "1.12.0":
-    raise SystemExit("error: provenance has an unexpected PLCrashReporter tag")
-if value.get("plcrashreporter", {}).get("prefix") != "BTUnity":
-    raise SystemExit("error: provenance has an unexpected PLCrashReporter prefix")
-expected_notice_paths = {
-    "BacktraceMacUnity.bundle/Contents/Resources/ThirdPartyNotices/PLCrashReporter-LICENSE.txt",
-    "BacktraceMacUnity.bundle/Contents/Resources/ThirdPartyNotices/PLCrashReporter-ThirdPartyNotices.txt",
-}
-recorded_notices = value.get("third_party_notices", [])
-if {item.get("path") for item in recorded_notices} != expected_notice_paths:
-    raise SystemExit("error: provenance has incomplete PLCrashReporter attribution paths")
-for item in recorded_notices:
-    if item.get("component") != "PLCrashReporter":
-        raise SystemExit("error: provenance has an unexpected third-party notice component")
-    notice_path = Path(path).parent / item["path"]
-    if not notice_path.is_file():
-        raise SystemExit(f"error: attributed notice is missing: {notice_path}")
-    digest = hashlib.sha256(notice_path.read_bytes()).hexdigest()
-    if item.get("sha256") != digest:
-        raise SystemExit(f"error: attributed notice checksum mismatch: {notice_path}")
-bridge = value.get("unity_bridge", {})
-if bridge.get("storage_contract") != "all-entry-points-isolated-v1":
-    raise SystemExit("error: provenance has an unexpected Unity bridge storage contract")
-if bridge.get("exception_contract") != "all-c-exports-contained-v1":
-    raise SystemExit("error: provenance has an unexpected Unity bridge exception contract")
-expected_initialization_results = {
-    "success": 0,
-    "already_initialized_active": 1,
-    "invalid_arguments": 2,
-    "storage_initialization_failed": 3,
-    "invalid_submission_url": 4,
-    "client_initialization_failed": 5,
-    "unexpected_failure": 6,
-    "process_lifetime_disabled": 7,
-}
-if bridge.get("initialization_results") != expected_initialization_results:
-    raise SystemExit("error: provenance has unexpected Unity bridge initialization results")
-if bridge.get("lifecycle_contract") != "process-lifetime-handler-distinct-disabled-v2":
-    raise SystemExit("error: provenance has an unexpected Unity bridge lifecycle contract")
-if bridge.get("logging_contract") != "warning-default-explicit-setter-silent-none-redacted-v3":
-    raise SystemExit("error: provenance has an unexpected Unity bridge logging contract")
-if not __import__("re").fullmatch(r"[0-9a-f]{64}", bridge.get("source_sha256", "")):
-    raise SystemExit("error: provenance has an invalid Unity bridge source hash")
-if value.get("toolchain", {}).get("host_architecture") not in {"arm64", "x86_64"}:
-    raise SystemExit("error: provenance has an invalid build-host architecture")
-expected_uuids = sorted(line.split()[0] for line in uuid_lines.splitlines())
-recorded_uuids = sorted(item["uuid"] for item in value.get("binary_uuids", []))
-if recorded_uuids != expected_uuids:
-    raise SystemExit("error: provenance binary UUIDs do not match")
-PY
 
 readonly ROUND_TRIP_ROOT="$(mktemp -d "${TMPDIR:-/private/tmp}/btunity-bundle-roundtrip.XXXXXX")"
 cleanup_round_trip() {
