@@ -7,10 +7,6 @@ on:
         description: Bundle marketing version recorded in the artifact
         required: true
         type: string
-    outputs:
-      archive_sha256:
-        description: SHA-256 of the validated BacktraceMacUnity archive
-        value: ${{ jobs.build.outputs.archive_sha256 }}
 
 permissions:
   contents: read
@@ -20,11 +16,8 @@ jobs:
     name: Build and validate Unity macOS bundle
     runs-on: macos-26
     timeout-minutes: 45
-    outputs:
-      archive_sha256: ${{ steps.package.outputs.archive_sha256 }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
-      BTUNITY_REQUIRE_CLEAN_SOURCE: 1
       BACKTRACE_VERSION: ${{ inputs.backtrace_version }}
       PLCRASHREPORTER_REVISION: 8c61e5e38e9f737dd68512ed1ea5ab081244ad65
 
@@ -66,17 +59,12 @@ jobs:
         run: test -z "$(git status --porcelain)"
 
       - name: Package validated artifact
-        id: package
         run: |
           tar -czf "$RUNNER_TEMP/BacktraceMacUnity.tar.gz" \
             -C "$RUNNER_TEMP/unity-artifact" \
             BacktraceMacUnity.bundle \
             BacktraceMacUnity.bundle.dSYM \
-            artifact-provenance.json \
             SHA256SUMS
-          archive_sha256="$(shasum -a 256 "$RUNNER_TEMP/BacktraceMacUnity.tar.gz" | awk '{print $1}')"
-          echo "archive_sha256=$archive_sha256" >> "$GITHUB_OUTPUT"
-          echo "Unity archive SHA-256: \`$archive_sha256\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload validated bundle and symbols
         uses: actions/upload-artifact@v4

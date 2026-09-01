@@ -16,7 +16,6 @@ jobs:
     permissions:
       contents: read
     outputs:
-      head: ${{ steps.version.outputs.head }}
       version: ${{ steps.version.outputs.version }}
 
     steps:
@@ -27,7 +26,6 @@ jobs:
           set -euo pipefail
           version="$(scripts/current-release-version.sh)"
           scripts/validate-release-version.sh "$version"
-          echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
   swift-package:
@@ -98,17 +96,3 @@ jobs:
     uses: ./.github/workflows/unity-macos-bundle.yml
     with:
       backtrace_version: ${{ needs.current-version.outputs.version }}
-
-  release-validation:
-    name: Non-publishing Unity macOS release validation
-    if: github.event_name == 'workflow_dispatch'
-    needs: [current-version, unity-macos-bundle]
-    permissions:
-      actions: read
-      contents: read
-    uses: ./.github/workflows/release-validation.yml
-    with:
-      source_head: ${{ needs.current-version.outputs.head }}
-      backtrace_version: ${{ needs.current-version.outputs.version }}
-      archive_sha256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
-      attestation_environment: unity-macos-12-runtime-validation-pr

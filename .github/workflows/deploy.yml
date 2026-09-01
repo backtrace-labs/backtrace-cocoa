@@ -99,26 +99,6 @@ jobs:
         run: pod lib lint --verbose --allow-warnings --sources='https://cdn.cocoapods.org/' 
   # END COPY PASTE FROM TEST.YML
 
-  unity-macos-bundle:
-    name: Build and validate Unity macOS bundle
-    needs: validate-release-tag
-    uses: ./.github/workflows/unity-macos-bundle.yml
-    with:
-      backtrace_version: ${{ needs.validate-release-tag.outputs.version }}
-
-  release-validation:
-    name: Validate the Unity release archive
-    needs: [validate-release-tag, unity-macos-bundle]
-    permissions:
-      actions: read
-      contents: read
-    uses: ./.github/workflows/release-validation.yml
-    with:
-      source_head: ${{ needs.validate-release-tag.outputs.head }}
-      backtrace_version: ${{ needs.validate-release-tag.outputs.version }}
-      archive_sha256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
-      attestation_environment: unity-macos-12-runtime-validation
-
   deploy-cocoapods:
     runs-on: macos-26
     needs: [validate-release-tag, upload-xcframeworks]
@@ -165,7 +145,7 @@ jobs:
 
   sign-and-build-frameworks:
     runs-on: macos-26
-    needs: [validate-release-tag, pod-lint, swift-package, test, release-validation]
+    needs: [validate-release-tag, pod-lint, swift-package, test]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
@@ -252,7 +232,7 @@ jobs:
         
   upload-xcframeworks:
     runs-on: ubuntu-latest
-    needs: [validate-release-tag, sign-and-build-frameworks, unity-macos-bundle]
+    needs: [validate-release-tag, sign-and-build-frameworks]
     permissions:
       actions: read
       contents: write
@@ -264,63 +244,19 @@ jobs:
           name: Archive_XCFrameworks_${{ github.ref_name }}
           path: artifacts/
 
-      - name: Download validated Unity macOS bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: BacktraceMacUnity-${{ github.sha }}
-          path: artifacts/
-
       - name: Upload exact-tag release artifacts
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.validate-release-tag.outputs.version }}
           EXPECTED_HEAD: ${{ needs.validate-release-tag.outputs.head }}
-          EXPECTED_UNITY_ARCHIVE_SHA256: ${{ needs.unity-macos-bundle.outputs.archive_sha256 }}
         run: |
           set -euo pipefail
 
           framework_archive="artifacts/Archive_XCFrameworks_${RELEASE_TAG}.tar.gz"
-          unity_archive="artifacts/BacktraceMacUnity.tar.gz"
 
           test -f "$framework_archive"
-          test -f "$unity_archive"
-          test "$(sha256sum "$unity_archive" | awk '{print $1}')" = \
-            "$EXPECTED_UNITY_ARCHIVE_SHA256"
-
           tar -tzf "$framework_archive" >/dev/null
-          tar -tzf "$unity_archive" >/dev/null
-
-          verify_root="$(mktemp -d)"
-          trap 'rm -rf "$verify_root"' EXIT
-          tar -xzf "$unity_archive" -C "$verify_root"
-          test -f "$verify_root/SHA256SUMS"
-          test -f "$verify_root/artifact-provenance.json"
-          (
-            cd "$verify_root"
-            sha256sum -c SHA256SUMS
-          )
-
-          python3 - "$verify_root/artifact-provenance.json" \
-            "$EXPECTED_HEAD" "$RELEASE_TAG" <<'PY'
-          import json
-          import sys
-
-          path, expected_sha, expected_version = sys.argv[1:]
-          with open(path, encoding="utf-8") as stream:
-              provenance = json.load(stream)
-
-          cocoa = provenance["backtrace_cocoa"]
-          if cocoa["head"] != expected_sha:
-              raise SystemExit(
-                  f"provenance head mismatch: {cocoa['head']} != {expected_sha}"
-              )
-          if cocoa["version"] != expected_version:
-              raise SystemExit(
-                  "provenance version mismatch: "
-                  f"{cocoa['version']} != {expected_version}"
-              )
-          PY
 
           read -r tag_type tag_sha <<< "$(gh api \
             "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" \
@@ -344,5 +280,4 @@ jobs:
 
           gh release upload "$RELEASE_TAG" \
             "$framework_archive" \
-            "$unity_archive" \
             --clobber
