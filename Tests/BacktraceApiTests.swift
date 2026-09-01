@@ -286,28 +286,62 @@ final class BacktraceApiTests: QuickSpec {
                     let shutdownDelegate = BacktraceClientDelegateSpy()
                     api.delegate = shutdownDelegate
                     let report = try crashReporter.generateLiveReport(attributes: [:])
+                    let sendQueue = DispatchQueue(label: "backtrace.api.shutdown.send",
+                                                  qos: .userInitiated)
+                    let shutdownQueue = DispatchQueue(label: "backtrace.api.shutdown.cancel",
+                                                      qos: .userInitiated)
+                    let sendClosureEntered = DispatchSemaphore(value: 0)
                     let sendFinished = DispatchSemaphore(value: 0)
 
-                    DispatchQueue.global(qos: .utility).async {
+                    sendQueue.async {
+                        sendClosureEntered.signal()
+                        defer { sendFinished.signal() }
                         _ = try? api.send(report)
-                        sendFinished.signal()
                     }
 
-                    expect(session.started.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    guard sendClosureEntered.wait(timeout: .now() + .seconds(5)) == .success else {
+                        api.shutdown()
+                        fail("The send worker was not scheduled.")
+                        return
+                    }
+                    guard session.started.wait(timeout: .now() + .seconds(10)) == .success else {
+                        api.shutdown()
+                        _ = sendFinished.wait(timeout: .now() + .seconds(10))
+                        fail("The hanging transport did not enter resume().")
+                        return
+                    }
+
                     let shutdownReturned = DispatchSemaphore(value: 0)
-                    DispatchQueue.global().async {
+                    shutdownQueue.async {
                         api.shutdown()
                         shutdownReturned.signal()
                     }
-                    expect(shutdownReturned.wait(timeout: .now() + .seconds(2))).to(equal(.success))
 
-                    expect(session.cancelled.wait(timeout: .now() + .seconds(2))).to(equal(.success))
-                    expect(sendFinished.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    guard shutdownReturned.wait(timeout: .now() + .seconds(5)) == .success else {
+                        api.shutdown()
+                        _ = sendFinished.wait(timeout: .now() + .seconds(10))
+                        fail("Shutdown did not return promptly.")
+                        return
+                    }
+                    guard session.cancelled.wait(timeout: .now() + .seconds(5)) == .success else {
+                        api.shutdown()
+                        _ = sendFinished.wait(timeout: .now() + .seconds(10))
+                        fail("Shutdown did not cancel the hanging transport.")
+                        return
+                    }
+                    guard sendFinished.wait(timeout: .now() + .seconds(5)) == .success else {
+                        api.shutdown()
+                        fail("The send worker did not finish after transport cancellation.")
+                        return
+                    }
+
                     expect(api.isShutdown).to(beTrue())
                     expect(shutdownDelegate.calledConnectionDidFail).to(beFalse())
                     expect(shutdownDelegate.calledServerDidRespond).to(beFalse())
                     expect { try api.send(report) }.to(throwError())
                     expect(session.requestCount).to(equal(1))
+                    expect(session.startedCount).to(equal(1))
+                    expect(session.cancellationCount).to(equal(1))
                 }
             }
 
