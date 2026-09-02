@@ -100,25 +100,20 @@ final class BacktraceMetricsTests: QuickSpec {
                 it("cancels in-flight startup metrics and rejects future work after native shutdown") {
                     let session = HangingURLSession()
                     let api = BacktraceApi(credentials: credentials, session: session, reportsPerMin: 30)
-                    let shutdownMetrics = BacktraceMetrics(api: api)
+                    let senderQueue = DispatchQueue(label: "backtrace.metrics.shutdown.tests",
+                                                    qos: .userInitiated)
+                    let shutdownMetrics = BacktraceMetrics(api: api,
+                                                           senderQueue: senderQueue)
                     shutdownMetrics.enable(settings: BacktraceMetricsSettings())
+                    senderQueue.sync {}
 
-                    // Poll instead of blocking on the semaphore,
-                    // the tvOS simulator can schedule the metrics sender's background queue while this test waits.
-                    expect { session.startedCount }.toEventually(
-                        beGreaterThanOrEqualTo(1),
-                        timeout: .seconds(10),
-                        pollInterval: .milliseconds(10)
-                    )
-                    let shutdownReturned = DispatchSemaphore(value: 0)
-                    DispatchQueue.global().async {
-                        shutdownMetrics.shutdownForNativeBridge()
-                        api.shutdown()
-                        shutdownReturned.signal()
-                    }
-                    expect(shutdownReturned.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(session.requestCount).to(equal(2))
+                    expect(session.startedCount).to(equal(2))
 
-                    expect(session.cancellationCount).to(beGreaterThanOrEqualTo(1))
+                    shutdownMetrics.shutdownForNativeBridge()
+                    api.shutdown()
+
+                    expect(session.cancellationCount).to(equal(2))
                     shutdownMetrics.addUniqueEvent(name: "ignored-after-shutdown")
                     shutdownMetrics.addSummedEvent(name: "ignored-after-shutdown")
                     expect(shutdownMetrics.isShutdown).to(beTrue())
@@ -140,15 +135,21 @@ final class BacktraceMetricsTests: QuickSpec {
 
                     // Keep the facade alive until both queued startup events exercise the
                     // redacted error path; production BacktraceClient owns this lifetime.
-                    let invalidMetrics = BacktraceMetrics(api: invalidApi)
+                    let senderQueue = DispatchQueue(label: "backtrace.metrics.logging.tests",
+                                                    qos: .userInitiated)
+                    let invalidMetrics = BacktraceMetrics(api: invalidApi,
+                                                          senderQueue: senderQueue)
                     invalidMetrics.enable(settings: BacktraceMetricsSettings())
+                    senderQueue.sync {}
 
-                    expect(destination.messages.count).toEventually(
-                        beGreaterThanOrEqualTo(2),
-                        timeout: .seconds(10),
-                        pollInterval: .milliseconds(10)
-                    )
-                    expect(destination.messages.filter { $0.contains(sentinel) }).to(beEmpty())
+                    let messages = destination.messages
+                    expect(messages.filter {
+                        $0 == "Unable to prepare summed metrics submission"
+                    }.count).to(equal(1))
+                    expect(messages.filter {
+                        $0 == "Unable to prepare unique metrics submission"
+                    }.count).to(equal(1))
+                    expect(messages.filter { $0.contains(sentinel) }).to(beEmpty())
                     invalidMetrics.shutdownForNativeBridge()
                 }
             }

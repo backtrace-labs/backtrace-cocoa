@@ -7,7 +7,7 @@ final class BacktraceMetricsSender {
     private let settings: BacktraceMetricsSettings
 
     private let baseUrlString: String
-    private let queue = DispatchQueue(label: "com.backtrace.metrics", qos: .background)
+    private let queue: DispatchQueue
     private let queueKey = DispatchSpecificKey<Bool>()
     private let lifecycleLock = NSLock()
     private var shutdownRequested = false
@@ -24,11 +24,15 @@ final class BacktraceMetricsSender {
       }
     }
 
-    init(api: BacktraceApi, metricsContainer: BacktraceMetricsContainer, settings: BacktraceMetricsSettings) {
+    init(api: BacktraceApi,
+         metricsContainer: BacktraceMetricsContainer,
+         settings: BacktraceMetricsSettings,
+         senderQueue: DispatchQueue? = nil) {
         self.api = api
         self.metricsContainer = metricsContainer
         self.settings = settings
         self.baseUrlString = defaultMetricsBaseUrlString
+        self.queue = senderQueue ?? DispatchQueue(label: "com.backtrace.metrics", qos: .background)
         self.queue.setSpecific(key: queueKey, value: true)
     }
 

@@ -3,6 +3,7 @@ import Foundation
 @objc open class BacktraceMetrics: NSObject {
 
     private let api: BacktraceApi
+    private let senderQueue: DispatchQueue?
 
     private var backtraceMetricsSender: BacktraceMetricsSender?
 
@@ -21,8 +22,10 @@ import Foundation
         return containerUnwrapped.count
     }
 
-    init(api: BacktraceApi) {
+    init(api: BacktraceApi,
+         senderQueue: DispatchQueue? = nil) {
         self.api = api
+        self.senderQueue = senderQueue
         super.init()
     }
 
@@ -34,7 +37,10 @@ import Foundation
         }
         let previousSender = backtraceMetricsSender
         let container = BacktraceMetricsContainer(settings: settings)
-        let sender = BacktraceMetricsSender(api: api, metricsContainer: container, settings: settings)
+        let sender = BacktraceMetricsSender(api: api,
+                                            metricsContainer: container,
+                                            settings: settings,
+                                            senderQueue: senderQueue)
         backtraceMetricsContainer = container
         backtraceMetricsSender = sender
         lifecycleLock.unlock()
