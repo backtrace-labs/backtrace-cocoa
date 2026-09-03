@@ -33,7 +33,7 @@ extension MultipartRequest {
         urlComponents?.queryItems = Constants.queryItems(token).map(URLQueryItem.init)
 
         guard let finalUrl = urlComponents?.url else {
-            BacktraceLogger.error("Malformed URL: \(endpoint)")
+            BacktraceLogger.error("Unable to construct the submission URL")
             throw HttpError.malformedUrl(endpoint)
         }
         var request = URLRequest(url: finalUrl)

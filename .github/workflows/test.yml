@@ -6,9 +6,57 @@ on:
     branches: [master, release]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
+  current-version:
+    name: Validate current source version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve and validate current source version
+        id: version
+        run: |
+          set -euo pipefail
+          version="$(scripts/current-release-version.sh)"
+          scripts/validate-release-version.sh "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  swift-package:
+    name: Build and test Swift package
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify pinned Xcode
+        run: |
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
+      - name: Test Swift package and compiled resources
+        run: |
+          xcodebuild \
+            -workspace SwiftPMIntegration.xcworkspace \
+            -scheme Backtrace-Tests \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$RUNNER_TEMP/backtrace-spm-derived" \
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+
   test:
-    runs-on: macos-14
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
     strategy:
       fail-fast: false
@@ -16,18 +64,35 @@ jobs:
         platform: [ios, mac, tvos]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Verify pinned Xcode
+        run: |
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run test
         run: fastlane ${{ matrix.platform }} tests
 
   pod-lint:
-    runs-on: macos-14
+    runs-on: macos-26
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Verify pinned Xcode
+        run: |
+          xcode_version_output="$(xcodebuild -version)"
+          test "${xcode_version_output%%$'\n'*}" = "Xcode 26.3"
       - name: Install dependencies
         run: sh scripts/install.sh
       - name: Run pod lib lint
         run: pod lib lint --verbose --allow-warnings --sources='https://cdn.cocoapods.org/'
+
+  unity-macos-bundle:
+    name: Build and validate Unity macOS bundle
+    needs: current-version
+    uses: ./.github/workflows/unity-macos-bundle.yml
+    with:
+      backtrace_version: ${{ needs.current-version.outputs.version }}

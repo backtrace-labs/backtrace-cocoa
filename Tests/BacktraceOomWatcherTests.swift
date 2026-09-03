@@ -40,6 +40,7 @@ class BacktraceOomWatcherTests: QuickSpec {
                                                  attributes: attributesProvider,
                                                  backtraceApi: backtraceApi,
                                                  oomMode: .full)
+                try repository.clear()
                 BacktraceOomWatcher.clean()
 
                 urlSession.response = MockConnectionErrorResponse()
@@ -119,6 +120,154 @@ class BacktraceOomWatcherTests: QuickSpec {
                     oomWatcher?.flushQueue()
                     expect { BacktraceOomWatcher.reportAttachments?.first?.path }.to(contain("should-be-added"))
                     expect { BacktraceOomWatcher.reportAttributes?["should"] }.toNot(beNil())
+                }
+
+                it("stops queued submission and future state work idempotently") {
+                    urlSession.resetRequestCount()
+                    oomWatcher?.start()
+                    oomWatcher?.handleLowMemoryWarning()
+
+                    oomWatcher?.shutdown()
+                    oomWatcher?.shutdown()
+                    oomWatcher?.start()
+                    oomWatcher?.appChangedState(.background)
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.flushQueue()
+
+                    expect(oomWatcher?.isShutdown).to(beTrue())
+                    expect(oomWatcher?._sendPendingOomReports()).to(beFalse())
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beFalse())
+                    expect(BacktraceOomWatcher.reportAttributes).to(beNil())
+                    expect(BacktraceOomWatcher.reportAttachments).to(beNil())
+                    expect(urlSession.requestCount).to(equal(0))
+                }
+
+                it("preserves a previous-session OOM marker when shutdown wins startup replay") {
+                    var previousState = BacktraceOomWatcher.ApplicationInfo()
+                    previousState.debugger = false
+                    previousState.memoryWarningReceived = true
+                    previousState.sessionIdentifier = "previous-session"
+                    let markerData = try PropertyListEncoder().encode(previousState)
+                    try markerData.write(to: BacktraceOomWatcher.oomFileURL!, options: .atomic)
+                    BacktraceOomWatcher.reportAttributes = ["previous": "pending"]
+
+                    oomWatcher?.shutdown()
+                    oomWatcher?.start()
+                    oomWatcher?.flushQueue()
+
+                    let retainedState = oomWatcher?._loadPreviousState()
+                    expect(retainedState?.sessionIdentifier).to(equal("previous-session"))
+                    expect(retainedState?.memoryWarningReceived).to(beTrue())
+                    expect(BacktraceOomWatcher.reportAttributes?["previous"] as? String)
+                        .to(equal("pending"))
+                    expect(urlSession.requestCount).to(equal(0))
+                }
+
+                it("preserves a legacy previous-session marker without an owner identifier") {
+                    var legacyState = BacktraceOomWatcher.ApplicationInfo()
+                    legacyState.memoryWarningReceived = true
+                    legacyState.sessionIdentifier = nil
+                    let markerData = try PropertyListEncoder().encode(legacyState)
+                    try markerData.write(to: BacktraceOomWatcher.oomFileURL!, options: .atomic)
+
+                    oomWatcher?.shutdown()
+
+                    let retainedState = oomWatcher?._loadPreviousState()
+                    expect(retainedState?.sessionIdentifier).to(beNil())
+                    expect(retainedState?.memoryWarningReceived).to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beTrue())
+                }
+
+                it("cancels in-flight OOM transport and durably hands the report to retry storage") {
+                    oomWatcher?.state.debugger = false
+                    oomWatcher?.start()
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.flushQueue()
+
+                    let session = HangingURLSession()
+                    let hangingApi = BacktraceApi(credentials: credentials,
+                                                  session: session,
+                                                  reportsPerMin: 30)
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    let pendingWatcher = BacktraceOomWatcher(repository: repository,
+                                                             crashReporter: OomCrashReportingStub(report: report),
+                                                             attributes: AttributesProvider(),
+                                                             backtraceApi: hangingApi,
+                                                             oomMode: .full)
+                    let sendFinished = DispatchSemaphore(value: 0)
+                    pendingWatcher.queue.async {
+                        _ = pendingWatcher._sendPendingOomReports()
+                        sendFinished.signal()
+                    }
+
+                    expect(session.started.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    let shutdownReturned = DispatchSemaphore(value: 0)
+                    DispatchQueue.global().async {
+                        pendingWatcher.prepareForShutdown()
+                        pendingWatcher.submissionCoordinator.prepareForShutdown()
+                        hangingApi.shutdown()
+                        pendingWatcher.finishShutdown()
+                        pendingWatcher.submissionCoordinator.finishShutdown(whenQuiesced: {})
+                        shutdownReturned.signal()
+                    }
+                    expect(shutdownReturned.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+
+                    expect(session.cancelled.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(sendFinished.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(try repository.countResources()).to(equal(1))
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beFalse())
+                    expect(BacktraceOomWatcher.reportAttributes).to(beNil())
+                }
+
+                it("cleans the OOM marker after HTTP 200 even when shutdown races finalization") {
+                    var previousState = BacktraceOomWatcher.ApplicationInfo()
+                    previousState.debugger = false
+                    previousState.memoryWarningReceived = true
+                    previousState.sessionIdentifier = "previous-session"
+                    let markerData = try PropertyListEncoder().encode(previousState)
+                    try markerData.write(to: BacktraceOomWatcher.oomFileURL!, options: .atomic)
+                    BacktraceOomWatcher.reportAttributes = ["previous": "pending"]
+
+                    let raceSession = URLSessionMock()
+                    raceSession.response = MockOkResponse()
+                    let raceApi = BacktraceApi(credentials: credentials,
+                                               session: raceSession,
+                                               reportsPerMin: 30)
+                    let barrier = OomFinalizationBarrier()
+                    let coordinator = BacktraceSubmissionCoordinator(
+                        api: raceApi,
+                        repository: repository,
+                        retryLimit: 3,
+                        beforeFinalization: barrier.pause)
+                    let report = try crashReporter.generateLiveReport(attributes: [:])
+                    let pendingWatcher = BacktraceOomWatcher(repository: repository,
+                                                             crashReporter: OomCrashReportingStub(report: report),
+                                                             attributes: AttributesProvider(),
+                                                             submissionCoordinator: coordinator,
+                                                             oomMode: .full)
+                    let sendFinished = DispatchSemaphore(value: 0)
+                    pendingWatcher.queue.async {
+                        _ = pendingWatcher._sendPendingOomReports()
+                        sendFinished.signal()
+                    }
+
+                    expect(barrier.reached.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    pendingWatcher.prepareForShutdown()
+                    coordinator.prepareForShutdown()
+                    raceApi.shutdown()
+                    pendingWatcher.finishShutdown()
+                    coordinator.finishShutdown(whenQuiesced: {})
+                    barrier.release.signal()
+
+                    expect(sendFinished.wait(timeout: .now() + .seconds(2))).to(equal(.success))
+                    expect(raceSession.requestCount).to(equal(1))
+                    expect(try repository.countResources()).to(equal(0))
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beFalse())
+                    expect(BacktraceOomWatcher.reportAttributes).to(beNil())
                 }
             }
             
@@ -208,6 +357,68 @@ class BacktraceOomWatcherTests: QuickSpec {
 
                     expect { calledWillSend }.to(equal(1))
                  }
+
+                it("persists an OOM report when the server returns a retryable failure") {
+                    urlSession.response = MockHttpResponse(statusCode: 503)
+                    oomWatcher?.start()
+                    oomWatcher?.state.debugger = false
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.flushQueue()
+
+                    expect(oomWatcher?._sendPendingOomReports()).to(beTrue())
+
+                    expect(try repository.countResources()).to(equal(1))
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beFalse())
+                }
+
+                it("persists an OOM report after a transient transport failure") {
+                    urlSession.response = MockUrlErrorResponse(.timedOut)
+                    let failureDelegate = BacktraceClientDelegateSpy()
+                    backtraceApi.delegate = failureDelegate
+                    oomWatcher?.start()
+                    oomWatcher?.state.debugger = false
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.flushQueue()
+
+                    expect(oomWatcher?._sendPendingOomReports()).to(beTrue())
+
+                    expect(try repository.countResources()).to(equal(1))
+                    expect(failureDelegate.calledConnectionDidFail).to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beFalse())
+                }
+
+                it("does not persist an OOM report after a permanent rejection") {
+                    urlSession.response = Mock403Response()
+                    oomWatcher?.start()
+                    oomWatcher?.state.debugger = false
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.flushQueue()
+
+                    expect(oomWatcher?._sendPendingOomReports()).to(beTrue())
+
+                    expect(try repository.countResources()).to(equal(0))
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beFalse())
+                }
+
+                it("does not persist an OOM report after a permanent URL configuration error") {
+                    urlSession.response = MockUrlErrorResponse(.appTransportSecurityRequiresSecureConnection)
+                    let failureDelegate = BacktraceClientDelegateSpy()
+                    backtraceApi.delegate = failureDelegate
+                    oomWatcher?.start()
+                    oomWatcher?.state.debugger = false
+                    oomWatcher?.handleLowMemoryWarning()
+                    oomWatcher?.flushQueue()
+
+                    expect(oomWatcher?._sendPendingOomReports()).to(beTrue())
+
+                    expect(try repository.countResources()).to(equal(0))
+                    expect(failureDelegate.calledConnectionDidFail).to(beTrue())
+                    expect(FileManager.default.fileExists(atPath: BacktraceOomWatcher.oomFileURL!.path))
+                        .to(beFalse())
+                }
                 
                  it("can handle missing attributes and attachments") {
                      urlSession.response = MockOkResponse()
@@ -288,4 +499,36 @@ class BacktraceOomWatcherTests: QuickSpec {
         }
     }
 
+}
+
+private final class OomCrashReportingStub: CrashReporting {
+    private let report: BacktraceReport
+
+    init(report: BacktraceReport) {
+        self.report = report
+    }
+
+    func generateLiveReport(exception: NSException?,
+                            attributes: Attributes,
+                            attachmentPaths: [String]) throws -> BacktraceReport {
+        return report
+    }
+
+    func pendingCrashReport() throws -> BacktraceReport { return report }
+    func purgePendingCrashReport() throws {}
+    func hasPendingCrashes() -> Bool { return false }
+    func enableCrashReporting() throws {}
+    func signalContext(_ mutableContext: inout SignalContext) {}
+    func setCustomData(data: Data) {}
+}
+
+private final class OomFinalizationBarrier {
+    let reached = DispatchSemaphore(value: 0)
+    let release = DispatchSemaphore(value: 0)
+
+    func pause(_ outcome: BacktraceSubmissionOutcome) {
+        _ = outcome
+        reached.signal()
+        release.wait()
+    }
 }

@@ -7,6 +7,10 @@ final class BacktraceMetricsSender {
     private let settings: BacktraceMetricsSettings
 
     private let baseUrlString: String
+    private let queue: DispatchQueue
+    private let queueKey = DispatchSpecificKey<Bool>()
+    private let lifecycleLock = NSLock()
+    private var shutdownRequested = false
 
     enum MetricsUrlPrefix: CustomStringConvertible {
       case summed
@@ -20,22 +24,49 @@ final class BacktraceMetricsSender {
       }
     }
 
-    init(api: BacktraceApi, metricsContainer: BacktraceMetricsContainer, settings: BacktraceMetricsSettings) {
+    init(api: BacktraceApi,
+         metricsContainer: BacktraceMetricsContainer,
+         settings: BacktraceMetricsSettings,
+         senderQueue: DispatchQueue? = nil) {
         self.api = api
         self.metricsContainer = metricsContainer
         self.settings = settings
         self.baseUrlString = defaultMetricsBaseUrlString
+        self.queue = senderQueue ?? DispatchQueue(label: "com.backtrace.metrics", qos: .background)
+        self.queue.setSpecific(key: queueKey, value: true)
     }
 
     func enable() {
-        // No need to do in the running thread, can be backgrounded
-        DispatchQueue.global(qos: .background).async {
+        guard !isShutdown else { return }
+        queue.async { [weak self] in
+            guard let self = self, !self.isShutdown else { return }
             self.sendStartupEvents()
         }
     }
 
+    internal var isShutdown: Bool {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        return shutdownRequested
+    }
+
+    internal func shutdown() {
+        lifecycleLock.lock()
+        shutdownRequested = true
+        lifecycleLock.unlock()
+
+        // Metrics URL/payload preparation is finite and its transport API is asynchronous.
+        // Drain only this queue so no startup metrics work continues after Disable returns;
+        // never wait reentrantly if shutdown is triggered from the sender itself.
+        if DispatchQueue.getSpecific(key: queueKey) != true {
+            queue.sync {}
+        }
+    }
+
     private func sendStartupEvents() {
+        guard !isShutdown else { return }
         sendStartupSummedEvent()
+        guard !isShutdown else { return }
         sendStartupUniqueEvent()
     }
 
@@ -48,25 +79,29 @@ final class BacktraceMetricsSender {
     }
 
     private func sendUniqueEvent() {
+        guard !isShutdown else { return }
         let payload = metricsContainer.getUniqueEventsPayload()
 
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.unique)
+            guard !isShutdown else { return }
             api.sendMetrics(payload, url: url)
         } catch {
-            BacktraceLogger.error(error)
+            BacktraceLogger.error("Unable to prepare unique metrics submission")
         }
     }
 
     private func sendSummedEvent() {
+        guard !isShutdown else { return }
         let payload = metricsContainer.getSummedEventsPayload()
         metricsContainer.clearSummedEvents()
 
         do {
             let url = try getSubmissionUrl(urlPrefix: MetricsUrlPrefix.summed)
+            guard !isShutdown else { return }
             api.sendMetrics(payload, url: url)
         } catch {
-            BacktraceLogger.error(error)
+            BacktraceLogger.error("Unable to prepare summed metrics submission")
         }
     }
 

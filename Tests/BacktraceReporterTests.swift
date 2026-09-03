@@ -4,6 +4,7 @@ import Nimble
 import Quick
 @testable import Backtrace
 
+// swiftlint:disable:next type_body_length
 final class BacktraceReporterTests: QuickSpec {
     // swiftlint:disable function_body_length force_try
     override func spec() {
@@ -16,9 +17,7 @@ final class BacktraceReporterTests: QuickSpec {
             var reporter = try! BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                   api: backtraceApi,
                                                   dbSettings: BacktraceDatabaseSettings(),
-                                                  credentials: credentials,
-                                                  oomMode: .full,
-                                                  urlSession: urlSession)
+                                                  oomMode: .full)
 
             throwingBeforeEach {
                 delegate.clear()
@@ -26,11 +25,29 @@ final class BacktraceReporterTests: QuickSpec {
                 reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                  api: backtraceApi,
                                                  dbSettings: BacktraceDatabaseSettings(),
-                                                 credentials: credentials,
-                                                 oomMode: .full,
-                                                 urlSession: urlSession)
+                                                 oomMode: .full)
                 try reporter.repository.clear()
                 reporter.delegate = delegate
+            }
+
+            context("when native bridge shutdown is requested") {
+                it("stops reporter background activity idempotently") {
+                    reporter.enableOomWatcher()
+                    #if os(macOS)
+                    expect(reporter.memoryPressureSource).toNot(beNil())
+                    #endif
+
+                    reporter.shutdown()
+                    reporter.shutdown()
+                    reporter.enableOomWatcher()
+
+                    expect(reporter.isShutdown).to(beTrue())
+                    expect(reporter.watcher.isShutdown).to(beTrue())
+                    expect(reporter.backtraceOomWatcher.isShutdown).to(beTrue())
+                    #if os(macOS)
+                    expect(reporter.memoryPressureSource).to(beNil())
+                    #endif
+                }
             }
 
             context("given valid HTTP response") {
@@ -81,8 +98,23 @@ final class BacktraceReporterTests: QuickSpec {
                 }
             }
 
+            context("given a permanent URL configuration error") {
+                it("notifies the delegate without persisting the report") {
+                    urlSession.response = MockUrlErrorResponse(.badURL)
+                    let result = reporter.send(resource: try reporter.generate())
+
+                    expect(result.backtraceStatus).to(equal(.unknownError))
+                    expect(result.submissionDisposition).to(equal(.permanentFailure))
+                    expect(delegate.calledWillSend).to(beTrue())
+                    expect(delegate.calledWillSendRequest).to(beTrue())
+                    expect(delegate.calledConnectionDidFail).to(beTrue())
+                    expect(delegate.calledServerDidRespond).to(beFalse())
+                    expect(try reporter.repository.countResources()).to(equal(0))
+                }
+            }
+
             context("given forbidden HTTP response") {
-                it("fails to send crash report and calls delegate methods") {
+                it("does not persist a permanently rejected report") {
                     urlSession.response = Mock403Response()
                     expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
                         .to(equal(.serverError))
@@ -97,18 +129,28 @@ final class BacktraceReporterTests: QuickSpec {
                 }
             }
 
+            context("given retryable HTTP response") {
+                it("persists the report for retry") {
+                    urlSession.response = MockHttpResponse(statusCode: 503)
+
+                    expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
+                        .to(equal(.serverError))
+                    expect { try reporter.repository.countResources() }.to(equal(1))
+                }
+            }
+
             context("given too many reports to send") {
                 throwingIt("fails and calls limit reached delegate methods") {
-                    backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 0)
+                    backtraceApi = BacktraceApi(credentials: credentials, session: urlSession, reportsPerMin: 1)
                     reporter = try BacktraceReporter(reporter: BacktraceCrashReporter(),
                                                      api: backtraceApi,
                                                      dbSettings: BacktraceDatabaseSettings(),
-                                                     credentials: credentials,
-                                                     oomMode: .full,
-                                                     urlSession: urlSession)
+                                                     oomMode: .full)
                     reporter.delegate = delegate
 
                     urlSession.response = MockOkResponse()
+                    _ = try backtraceApi.send(try reporter.generate())
+                    delegate.clear()
                     expect { reporter.send(resource: try reporter.generate()).backtraceStatus }
                         .to(equal(.limitReached))
 
@@ -117,8 +159,8 @@ final class BacktraceReporterTests: QuickSpec {
                     expect { delegate.calledServerDidRespond }.to(beFalse())
                     expect { delegate.calledConnectionDidFail }.to(beFalse())
                     expect { delegate.calledDidReachLimit }.to(beTrue())
-                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(0))
-                    expect { try reporter.repository.countResources() }.to(equal(0))
+                    expect { backtraceApi.backtraceRateLimiter.timestamps.count }.to(equal(1))
+                    expect { try reporter.repository.countResources() }.to(equal(1))
                 }
             }
 
@@ -266,7 +308,339 @@ final class BacktraceReporterTests: QuickSpec {
                 }
 #endif
             }
+
+            context("given a pending native crash") {
+                throwingIt("persists before purging and upserts a repeated payload") {
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: ["pending": true],
+                                                      attachmentPaths: [])
+                    let crashReporting = PendingCrashReportingMock(pendingReport: pending)
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+
+                    try pendingReporter.handlePendingCrashes()
+                    expect(try pendingReporter.repository.countResources()).to(equal(1))
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+
+                    try pendingReporter.handlePendingCrashes()
+                    expect(try pendingReporter.repository.countResources()).to(equal(1))
+                    expect(pendingReporter.watcher.repository === pendingReporter.repository).to(beTrue())
+                    expect(pendingReporter.backtraceOomWatcher.repository === pendingReporter.repository).to(beTrue())
+                }
+
+                throwingIt("blocks replay until a failed source purge succeeds") {
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: [:],
+                                                      attachmentPaths: [])
+                    let crashReporting = PendingCrashReportingMock(pendingReport: pending)
+                    crashReporting.purgeError = FileError.fileNotWritten
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+                    urlSession.response = MockOkResponse()
+                    urlSession.resetRequestCount()
+
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+                    expect(try pendingReporter.repository.countResources()).to(equal(1))
+                    expect(try pendingReporter.repository.getLatest()).to(beEmpty())
+                    expect(try pendingReporter.repository.persistedState(for: pending))
+                        .to(equal(.awaitingSourcePurge))
+
+                    let replay = BacktraceWatcher(settings: BacktraceDatabaseSettings(),
+                                                  api: backtraceApi,
+                                                  repository: pendingReporter.repository,
+                                                  networkAvailabilityCheck: { true })
+                    replay.batchRetry()
+                    expect(urlSession.requestCount).to(equal(0))
+
+                    crashReporting.purgeError = nil
+                    try pendingReporter.handlePendingCrashes()
+                    expect(try pendingReporter.repository.persistedState(for: pending))
+                        .to(equal(.readyForInitialSubmission))
+                    replay.batchInitialSubmission()
+                    replay.batchInitialSubmission()
+
+                    expect(urlSession.requestCount).to(equal(1))
+                    expect(try pendingReporter.repository.countResources()).to(equal(0))
+                }
+
+                throwingIt("drops invalid optional attribute values without blocking ingestion") {
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: ["not-a-property-list": NSObject()],
+                                                      attachmentPaths: [])
+                    let crashReporting = PendingCrashReportingMock(pendingReport: pending)
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
+                    expect(persisted?.attributes["not-a-property-list"]).to(beNil())
+                    expect(persisted?.attributes[BacktracePendingCrashMetadata.invalidAttributeValuesKey] as? Int)
+                        .to(equal(1))
+                }
+
+                throwingIt("does not purge when repository-owned persistence is unavailable") {
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: [:],
+                                                      attachmentPaths: [])
+                    let crashReporting = PendingCrashReportingMock(pendingReport: pending)
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+                    let attributesConfig = try AttributesStorage.AttributesConfig(
+                        fileName: pending.identifier.uuidString,
+                        directoryUrl: pendingReporter.repository.metadataDirectoryUrl
+                    )
+                    try FileManager.default.createDirectory(at: attributesConfig.fileUrl,
+                                                            withIntermediateDirectories: true)
+                    defer { try? FileManager.default.removeItem(at: attributesConfig.fileUrl) }
+
+                    expect { try pendingReporter.handlePendingCrashes() }.to(throwError())
+
+                    expect(crashReporting.events).to(equal(["load"]))
+                    expect(crashReporting.hasPendingCrashes()).to(beTrue())
+                    expect(try pendingReporter.repository.countResources()).to(equal(0))
+                }
+
+                throwingIt("persists and purges when an optional pending attachment is missing") {
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let missingAttachment = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("missing-\(UUID().uuidString).txt")
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: [:],
+                                                      attachmentPaths: [missingAttachment.path])
+                    let crashReporting = PendingCrashReportingMock(pendingReport: pending)
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
+                    expect(persisted).toNot(beNil())
+                    expect(persisted?.attachmentPaths).to(beEmpty())
+                    expect(persisted?.attributes[BacktracePendingCrashMetadata.missingAttachmentsKey] as? Int)
+                        .to(equal(1))
+                }
+
+                throwingIt("allows absent crash metadata sidecars and purges after persistence") {
+                    let fileName = "absent-pending-sidecars-\(UUID().uuidString)"
+                    try? AttributesStorage.remove(fileName: fileName)
+                    try? AttachmentsStorage.remove(fileName: fileName)
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: [:],
+                                                      attachmentPaths: [])
+                    let crashReporting = PendingCrashReportingMock(
+                        pendingReport: pending,
+                        provider: {
+                            let metadata = BacktracePendingCrashMetadata.load(fileName: fileName)
+                            return try BacktraceReport(pendingReport: generated.reportData,
+                                                       attributes: metadata.attributes,
+                                                       attachmentPaths: metadata.attachmentPaths)
+                        }
+                    )
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+
+                    try pendingReporter.handlePendingCrashes()
+
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    expect(crashReporting.hasPendingCrashes()).to(beFalse())
+                    expect(try pendingReporter.repository.countResources()).to(equal(1))
+                }
+
+                throwingIt("preserves a corrupt attributes sidecar and continues ingesting the crash") {
+                    let fileName = "corrupt-pending-attributes-\(UUID().uuidString)"
+                    let config = try AttributesStorage.AttributesConfig(fileName: fileName)
+                    try FileManager.default.createDirectory(at: config.directoryUrl,
+                                                            withIntermediateDirectories: true)
+                    try Data("not a property list".utf8).write(to: config.fileUrl, options: .atomic)
+                    defer {
+                        try? AttributesStorage.remove(fileName: fileName)
+                        try? AttachmentsStorage.remove(fileName: fileName)
+                    }
+
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: [:],
+                                                      attachmentPaths: [])
+                    let crashReporting = PendingCrashReportingMock(
+                        pendingReport: pending,
+                        provider: {
+                            let metadata = BacktracePendingCrashMetadata.load(fileName: fileName)
+                            let report = try BacktraceReport(pendingReport: generated.reportData,
+                                                             attributes: metadata.attributes,
+                                                             attachmentPaths: metadata.attachmentPaths)
+                            report.pendingMetadataFilePaths = metadata.rawSidecarPaths
+                            return report
+                        }
+                    )
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    expect(crashReporting.hasPendingCrashes()).to(beFalse())
+                    expect(FileManager.default.fileExists(atPath: config.fileUrl.path)).to(beTrue())
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
+                    expect(persisted?.attributes[BacktracePendingCrashMetadata.attributesErrorKey] as? String)
+                        .toNot(beNil())
+                    let ownedSidecarDirectory = pendingReporter.repository.metadataDirectoryUrl
+                        .appendingPathComponent("PendingMetadata", isDirectory: true)
+                        .appendingPathComponent(pending.identifier.uuidString, isDirectory: true)
+                    expect(try FileManager.default.contentsOfDirectory(atPath: ownedSidecarDirectory.path))
+                        .toNot(beEmpty())
+                }
+
+                throwingIt("recovers valid bookmarks when another stored bookmark is invalid") {
+                    let fileName = "corrupt-pending-attachments-\(UUID().uuidString)"
+                    let config = try AttachmentsStorage.AttachmentsConfig(fileName: fileName)
+                    try FileManager.default.createDirectory(at: config.directoryUrl,
+                                                            withIntermediateDirectories: true)
+                    defer {
+                        try? AttributesStorage.remove(fileName: fileName)
+                        try? AttachmentsStorage.remove(fileName: fileName)
+                    }
+
+                    let attachmentUrl = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("valid-pending-attachment-\(UUID().uuidString).txt")
+                    try Data("attachment".utf8).write(to: attachmentUrl, options: .atomic)
+                    defer { try? FileManager.default.removeItem(at: attachmentUrl) }
+                    let validBookmark = try attachmentUrl.bookmarkData(options: .minimalBookmark)
+                    let bookmarks: Bookmarks = [
+                        attachmentUrl.path: validBookmark,
+                        "invalid-bookmark": Data("not a bookmark".utf8)
+                    ]
+                    let sidecarData = try PropertyListSerialization.data(fromPropertyList: bookmarks,
+                                                                         format: .binary,
+                                                                         options: 0)
+                    try sidecarData.write(to: config.fileUrl, options: .atomic)
+
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let pending = try BacktraceReport(pendingReport: generated.reportData,
+                                                      attributes: [:],
+                                                      attachmentPaths: [])
+                    let crashReporting = PendingCrashReportingMock(
+                        pendingReport: pending,
+                        provider: {
+                            let metadata = BacktracePendingCrashMetadata.load(fileName: fileName)
+                            let report = try BacktraceReport(pendingReport: generated.reportData,
+                                                             attributes: metadata.attributes,
+                                                             attachmentPaths: metadata.attachmentPaths)
+                            report.pendingMetadataFilePaths = metadata.rawSidecarPaths
+                            return report
+                        }
+                    )
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+
+                    expect(crashReporting.events).to(equal(["load", "purge"]))
+                    expect(crashReporting.hasPendingCrashes()).to(beFalse())
+                    expect(FileManager.default.fileExists(atPath: config.fileUrl.path)).to(beTrue())
+                    let persisted = try pendingReporter.repository.getInitialSubmission(count: 1).first
+                    expect(persisted?.attachmentPaths.count).to(equal(1))
+                    expect(persisted?.attributes[BacktracePendingCrashMetadata.invalidBookmarksKey] as? Int)
+                        .to(equal(1))
+                }
+
+                throwingIt("dead-letters a recurring invalid payload without blocking current capture") {
+                    let generated = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+                    let placeholder = try BacktraceReport(pendingReport: generated.reportData,
+                                                          attributes: [:],
+                                                          attachmentPaths: [])
+                    let invalidData = Data("invalid-plcrash-payload-\(UUID().uuidString)".utf8)
+                    let crashReporting = PendingCrashReportingMock(
+                        pendingReport: placeholder,
+                        provider: {
+                            throw BacktracePendingCrashError.invalidPayload(data: invalidData,
+                                                                            rawSidecarPaths: [],
+                                                                            diagnostics: [:],
+                                                                            underlying: FileError.invalidPropertyList)
+                        }
+                    )
+                    let pendingReporter = try BacktraceReporter(reporter: crashReporting,
+                                                                api: backtraceApi,
+                                                                dbSettings: BacktraceDatabaseSettings(),
+                                                                oomMode: .none)
+                    try pendingReporter.repository.clear()
+
+                    expect { try pendingReporter.handlePendingCrashes() }.toNot(throwError())
+                    expect { try crashReporting.enableCrashReporting() }.toNot(throwError())
+
+                    expect(crashReporting.hasPendingCrashes()).to(beFalse())
+                    expect(crashReporting.events.filter { $0 == "load" }.count).to(equal(1))
+                    expect(crashReporting.events.filter { $0 == "purge" }.count).to(equal(1))
+                    expect(crashReporting.events.filter { $0 == "enable" }.count).to(equal(1))
+                    expect(try pendingReporter.repository.countResources()).to(equal(0))
+                }
+            }
         }
     }
     // swiftlint:enable function_body_length force_try
+}
+
+private final class PendingCrashReportingMock: CrashReporting {
+    let report: BacktraceReport
+    var purgeError: Error?
+    var events = [String]()
+    private var pending = true
+    private let provider: (() throws -> BacktraceReport)?
+
+    init(pendingReport: BacktraceReport,
+         provider: (() throws -> BacktraceReport)? = nil) {
+        self.report = pendingReport
+        self.provider = provider
+    }
+
+    func generateLiveReport(exception: NSException?,
+                            attributes: Attributes,
+                            attachmentPaths: [String]) throws -> BacktraceReport {
+        return report
+    }
+
+    func pendingCrashReport() throws -> BacktraceReport {
+        events.append("load")
+        return try provider?() ?? report
+    }
+
+    func purgePendingCrashReport() throws {
+        events.append("purge")
+        if let purgeError = purgeError { throw purgeError }
+        pending = false
+    }
+
+    func hasPendingCrashes() -> Bool { return pending }
+    func enableCrashReporting() throws { events.append("enable") }
+    func signalContext(_ mutableContext: inout SignalContext) {}
+    func setCustomData(data: Data) {}
 }

@@ -22,14 +22,14 @@ struct Attachment {
         guard let fileAttributes = try? FileManager.default.attributesOfItem(atPath: filePath),
               let fileSize = fileAttributes[FileAttributeKey.size] as? UInt64,
               fileSize < Attachment.maximumAttachmentSize else {
-            BacktraceLogger.warning("Skipping attachment because fileSize couldn't be read or is larger than 10MB: \(filePath)")
+            BacktraceLogger.warning("Skipping an attachment whose size is unavailable or exceeds 10 MB.")
             return nil
         }
 
         do {
             data = try Data(contentsOf: fileURL, options: Data.ReadingOptions.mappedIfSafe)
         } catch {
-            BacktraceLogger.warning("Skipping attachment: \(filePath): \(error.localizedDescription)")
+            BacktraceLogger.warning("Skipping an attachment that could not be read.")
             return nil
         }
 

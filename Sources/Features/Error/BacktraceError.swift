@@ -8,10 +8,49 @@ extension Error {
     var backtraceStatus: BacktraceReportStatus {
         return .unknownError
     }
+
+    /// Delivery policy for failures thrown before an HTTP response is available.
+    ///
+    /// Invalid submission URL configuration cannot recover through repository replay.
+    /// Network failures without a response remain retryable because connectivity may recover later.
+    var backtraceSubmissionDisposition: BacktraceSubmissionDisposition {
+        if let httpError = self as? HttpError {
+            switch httpError {
+            case .malformedUrl:
+                return .permanentFailure
+            case .unknownError:
+                return .retryable
+            }
+        }
+
+        if let networkError = self as? NetworkError {
+            switch networkError {
+            case .connectionError(let underlyingError):
+                return underlyingError.backtraceSubmissionDisposition
+            case .cancelled:
+                return .retryable
+            }
+        }
+
+        let error = self as NSError
+        guard error.domain == NSURLErrorDomain else {
+            return .retryable
+        }
+
+        switch error.code {
+        case NSURLErrorBadURL,
+             NSURLErrorUnsupportedURL,
+             NSURLErrorAppTransportSecurityRequiresSecureConnection:
+            return .permanentFailure
+        default:
+            return .retryable
+        }
+    }
 }
 
 enum NetworkError: BacktraceError {
     case connectionError(Error)
+    case cancelled
 }
 
 enum HttpError: BacktraceError {
@@ -22,6 +61,7 @@ enum HttpError: BacktraceError {
 enum RepositoryError: BacktraceError {
     case resourceNotFound
     case resourceAlreadyExists
+    case repositoryShutdown
     case persistentRepositoryInitError(details: String)
     case canNotCreateEntityDescription
 }
@@ -60,14 +100,34 @@ extension NetworkError {
         switch self {
         case .connectionError(let error):
             return error.localizedDescription
+        case .cancelled:
+            return "Submission was cancelled."
         }
+    }
+}
+
+extension Error {
+    /// Whether a submission stopped because SDK shutdown cancelled transport before an HTTP response was available.
+    /// A completed HTTP response is never represented as cancellation.
+    var isBacktraceCancellation: Bool {
+        if let networkError = self as? NetworkError {
+            switch networkError {
+            case .cancelled:
+                return true
+            case .connectionError(let underlyingError):
+                return underlyingError.isBacktraceCancellation
+            }
+        }
+
+        let error = self as NSError
+        return error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled
     }
 }
 
 extension HttpError {
     var localizedDescription: String {
         switch self {
-        case .malformedUrl(let url): return "Provided URL cannot be parsed: \(url)."
+        case .malformedUrl: return "Provided URL cannot be parsed."
         case .unknownError: return "Unknown error occurred."
         }
     }
@@ -80,6 +140,8 @@ extension RepositoryError {
             return "Previously saved resource cannot be found."
         case .resourceAlreadyExists:
             return "Resource already exists in the database."
+        case .repositoryShutdown:
+            return "Repository activity has been stopped."
         case .persistentRepositoryInitError(let details):
             return "An unexpected error occurred while trying to instantiate database: \(details)."
         case .canNotCreateEntityDescription:

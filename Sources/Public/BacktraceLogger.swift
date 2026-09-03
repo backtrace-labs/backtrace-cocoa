@@ -32,14 +32,24 @@ import Foundation
 /// Logs Backtrace events.
 @objc public class BacktraceLogger: NSObject {
 
-    /// Set of logging destinations.
-    static var destinations: Set<BacktraceBaseDestination> = []
+    private static let destinationsLock = NSLock()
+    private static var storedDestinations: Set<BacktraceBaseDestination> = []
+
+    /// Set of logging destinations. Access is synchronized because the Unity bridge can change log level while Cocoa background queues are emitting diagnostics.
+    static var destinations: Set<BacktraceBaseDestination> {
+        destinationsLock.lock()
+        defer { destinationsLock.unlock() }
+        return storedDestinations
+    }
 
     /// Replaces the logging destinations.
     ///
     /// - Parameter loggingDestinations: Logging destinations.
-    class func setDestinations(destinations: Set<BacktraceBaseDestination>) {
-        self.destinations = destinations
+    @objc(setDestinations:)
+    public class func setDestinations(_ destinations: Set<BacktraceBaseDestination>) {
+        destinationsLock.lock()
+        storedDestinations = destinations
+        destinationsLock.unlock()
     }
     // swiftlint:disable line_length
     class func debug(_ msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
@@ -60,7 +70,8 @@ import Foundation
 
     private class func log(level: BacktraceLogLevel, msg: @autoclosure () -> Any, file: String = #file, function: String = #function, line: Int = #line) {
         let message = String(describing: msg())
-        destinations
+        let destinationsSnapshot = destinations
+        destinationsSnapshot
             .filter { $0.shouldLog(level: level) }
             .forEach { $0.log(level: level, msg: message, file: file, function: function, line: line) }
     }

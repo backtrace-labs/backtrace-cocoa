@@ -31,14 +31,27 @@ final class CustomDirectoryBacktraceClientTests: QuickSpec {
             it("initializes BacktraceCrashReporter without throwing") {
                 expect { _ = BacktraceCrashReporter(config: basePathConfig) }.toNot(throwError())
             }
+
+            it("keeps Backtrace metadata in its established cache directory") {
+                let attributesConfig = try AttributesStorage.AttributesConfig(fileName: "live_report")
+                let attachmentsConfig = try AttachmentsStorage.AttachmentsConfig(fileName: "live_report")
+                let expectedDirectory = FileManager.default.urls(for: .cachesDirectory,
+                                                                 in: .userDomainMask).first!
+                    .appendingPathComponent(Bundle.main.bundleIdentifier ?? "BacktraceCache")
+
+                expect(attributesConfig.directoryUrl).to(equal(expectedDirectory))
+                expect(attachmentsConfig.directoryUrl).to(equal(expectedDirectory))
+                expect(attributesConfig.directoryUrl).notTo(equal(customDir))
+            }
             
-            it("initializes BacktraceClient with BacktraceCrashReporte") {
-                let reporter = BacktraceCrashReporter(config: basePathConfig)
-                var client: BacktraceClient!
-                expect {client = try BacktraceClient(configuration: backtraceClientConfiguration,crashReporter: reporter)}.toNot(throwError())
-                
-                BacktraceClient.shared = client
-                expect(BacktraceClient.shared).to(be(client))
+            throwingIt("initializes BacktraceClient with a custom-path crash reporter") {
+                let crashReporter = BacktraceCrashReporter(config: basePathConfig)
+                let client = try BacktraceClient(configuration: backtraceClientConfiguration,
+                                                 crashReporter: crashReporter)
+
+                expect(client.configuration).to(beIdenticalTo(backtraceClientConfiguration))
+                expect(crashReporter.handlerInstallationAttempted).to(beTrue())
+                client.shutdownForNativeBridge()
             }
             
             describe("enabled reporter behavior") {

@@ -29,8 +29,19 @@ import Foundation
     @objc public var breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()
 #endif
 
-    /// Number of records sent in 1 minute. Default `30`.
+    /// Maximum number of records sent in 1 minute.
+    /// Set to `0` for unlimited submissions. Default `30`.
     @objc public var reportsPerMin: Int = 30
+
+    /// Logging destinations installed before repository and crash reporter startup.
+    ///
+    /// Leave `nil` to preserve destinations installed through `BacktraceLogger.setDestinations(_:)`.
+    /// Set an empty collection to explicitly disable logging.
+    @objc public var loggingDestinations: Set<BacktraceBaseDestination>?
+
+    /// Delegate installed before pending-report ingestion and startup repository replay.
+    /// The configuration keeps a weak reference; callers must retain the delegate.
+    @objc public weak var delegate: BacktraceClientDelegate?
 
     /// Flag indicating if the Backtrace client should report reports when the debugger is attached. Default `false`.
     @objc public var allowsAttachingDebugger: Bool = false
@@ -59,7 +70,8 @@ import Foundation
     /// - Parameters:
     ///   - credentials: Backtrace server API credentials.
     ///   - dbSettings: Backtrace database settings.
-    ///   - reportsPerMin: Maximum number of records sent to Backtrace services in 1 minute. Default: `30`.
+    ///   - reportsPerMin: Maximum records sent in 1 minute.
+    ///     Set to `0` for unlimited submissions. Default: `30`.
     ///   - allowsAttachingDebugger: if set to `true` BacktraceClient will report reports even when the debugger is attached. Default: `false`.
     ///   - oomMode: BacktraceOomMode [.none, .light, .full]
     @objc public init(credentials: BacktraceCredentials,
@@ -80,7 +92,8 @@ import Foundation
     /// - Parameters:
     ///   - credentials: Backtrace server API credentials.
     ///   - dbSettings: Backtrace database settings.
-    ///   - reportsPerMin: Maximum number of records sent to Backtrace services in 1 minute. Default: `30`.
+    ///   - reportsPerMin: Maximum records sent in 1 minute.
+    ///     Set to `0` for unlimited submissions. Default: `30`.
     ///   - allowsAttachingDebugger: if set to `true` BacktraceClient will report reports even when the debugger is attached. Default: `false`.
     ///   - detectOOM: if set to `true` BacktraceClient will detect when the app is out of memory. Default: `false`.
     @available(*, deprecated, message: "Use init(credentials:dbSettings:reportsPerMin:allowsAttachingDebugger:oomMode:) instead")

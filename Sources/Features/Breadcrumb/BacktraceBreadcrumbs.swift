@@ -65,8 +65,14 @@ import Foundation
     private var breadcrumbLevel: BacktraceBreadcrumbLevel?
     private var breadcrumbTypes: [BacktraceBreadcrumbType]?
     private(set) var isBreadcrumbsEnabled: Bool = false
+    private let lifecycleLock = NSRecursiveLock()
+    private var shutdownRequested = false
+    private var retainedShutdownObserver: BacktraceNotificationObserver?
 
     public func enableBreadcrumbs(_ breadcrumbSettings: BacktraceBreadcrumbSettings = BacktraceBreadcrumbSettings()) {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        guard !shutdownRequested else { return }
         do {
             self.breadcrumbLevel = breadcrumbSettings.breadcrumbLevel
             self.breadcrumbTypes = breadcrumbSettings.breadcrumbTypes
@@ -88,7 +94,10 @@ import Foundation
     }
 
     public func disableBreadcrumbs() {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
         self.isBreadcrumbsEnabled = false
+        self.backtraceNotificationObserver?.disableNotificationObserver()
         self.backtraceNotificationObserver = nil
         self.breadcrumbsLogManager = nil
         self.breadcrumbTypes = nil
@@ -105,6 +114,9 @@ import Foundation
                        attributes: [String: String]? = nil,
                        type: BacktraceBreadcrumbType = BacktraceBreadcrumbType.manual,
                        level: BacktraceBreadcrumbLevel = BacktraceBreadcrumbLevel.info) -> Bool {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        guard !shutdownRequested else { return false }
         if let breadcrumbsLogManager = breadcrumbsLogManager, allowBreadcrumbsToAdd(level) {
             return breadcrumbsLogManager.addBreadcrumb(message, attributes: attributes, type: type, level: level)
         }
@@ -120,10 +132,38 @@ import Foundation
     }
 
     public func clear() -> Bool {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        guard !shutdownRequested else { return false }
         return breadcrumbsLogManager?.clear() ?? false
     }
 
     public var getCurrentBreadcrumbId: Int? {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        guard !shutdownRequested else { return nil }
         return breadcrumbsLogManager?.getCurrentBreadcrumbId
+    }
+
+    internal var isShutdown: Bool {
+        lifecycleLock.lock()
+        defer { lifecycleLock.unlock() }
+        return shutdownRequested
+    }
+
+    /// Permanently stops breadcrumb collection for a client retained solely to own a native crash-handler callback.
+    /// Public `disableBreadcrumbs()` remains restartable.
+    internal func shutdownForNativeBridge() {
+        lifecycleLock.lock()
+        guard !shutdownRequested else {
+            lifecycleLock.unlock()
+            return
+        }
+        shutdownRequested = true
+        // Some platform notification APIs use an unretained callback context.
+        // Keep the stopped observer tree alive with the process-lifetime bridge client so an already-running callback cannot dereference released memory after Disable.
+        retainedShutdownObserver = backtraceNotificationObserver
+        disableBreadcrumbs()
+        lifecycleLock.unlock()
     }
 }

@@ -1,5 +1,20 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.2.0
+
+- Adds a private, symbol-prefixed PLCrashReporter 1.12.0 runtime and isolated per-application payload path for the Backtrace Unity macOS bundle.
+- Adds the `StartBacktraceIntegrationV3` ABI with explicit crash storage and distinct active, disabled, validation, storage, and initialization results.
+- Retains the Unity fatal handler and callback owner for the process lifetime; after `Disable()`, a player-process restart is required before native capture can be enabled again.
+- Persists pending native crashes transactionally before purging PLCrashReporter, using the embedded report UUID with deterministic payload-digest fallback.
+- Adds a versioned ModelV2 retry schema with durable delivery state and ownership, including inferred non-destructive migration from ModelV1.
+- Atomically claims and loads the exact current persisted row before submission.
+- Releases per-database Core Data stores, process leases, advisory locks, and descriptors when the final repository participant shuts down.
+- Gives each newly ingested native crash one initial submission opportunity, protects that opportunity from capacity eviction, and prioritizes it over ordinary retry backlog.
+- Retains client-rate-limited reports and transient transport, HTTP 408/425/429, HTTP 5xx, and retryable OOM failures for retry.
+- Treats permanent URL/configuration failures and non-retryable HTTP responses as terminal.
+- Copies retry attachments and attributes into repository-owned storage and quarantines recurring invalid payloads and malformed persisted rows.
+- Produces and validates a flat universal arm64/x86_64 Unity bundle with a matching dSYM, compiled V1/V2 models, privacy metadata, third-party attribution, and checksums.
+
 ## Version 2.1.0
 - Adds OSInfo conditional import UIKit & guards UIDevice to unblock non-UIKit builds (#160)
 - Updates Target Platforms (#161)

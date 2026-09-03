@@ -34,9 +34,7 @@ final class BacktraceReporterThreadSpec: QuickSpec {
                     reporter: crashReporter,
                     api: api,
                     dbSettings: BacktraceDatabaseSettings(),
-                    credentials: credentials,
-                    oomMode: .full,
-                    urlSession: urlSession
+                    oomMode: .full
                 )
             }
             

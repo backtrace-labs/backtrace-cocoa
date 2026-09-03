@@ -31,6 +31,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   reportsPerMin: 10,
                                                                   allowsAttachingDebugger: true,
                                                                   oomMode: .full)
+        // Configure logging before client startup so model lookup and pending-crash ingestion are visible.
+        backtraceConfiguration.loggingDestinations = [BacktraceConsoleDestination(level: .debug)]
         
         // Customize PLCrashReporterConfig with custom basePath https://docs.saucelabs.com/error-reporting/platform-integrations/ios/configuration/#plcrashreporter
         guard let plcrashReporterConfig = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all, basePath: crashDirectory.path) else {
@@ -50,8 +52,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // Handling Delegate events https://docs.saucelabs.com/error-reporting/platform-integrations/ios/configuration/#handling-events
         BacktraceClient.shared?.delegate = self
-
-        BacktraceClient.shared?.loggingDestinations = [BacktraceBaseDestination(level: .debug)]
 
         // Enable error free metrics https://docs.saucelabs.com/error-reporting/web-console/overview/#stability-metrics-widgets
         BacktraceClient.shared?.metrics.enable(settings: BacktraceMetricsSettings())
