@@ -8,6 +8,9 @@ from pathlib import Path
 
 SOURCE_SCRIPT = Path(__file__).resolve().parents[1] / "validate-release-version.sh"
 CURRENT_VERSION_SCRIPT = Path(__file__).resolve().parents[1] / "current-release-version.sh"
+RELEASE_SOURCE_VERSION_SCRIPT = (
+    Path(__file__).resolve().parents[1] / "release-source-version.sh"
+)
 
 
 class ValidateReleaseVersionTests(unittest.TestCase):
@@ -26,6 +29,11 @@ class ValidateReleaseVersionTests(unittest.TestCase):
         self.current_version_script = scripts / CURRENT_VERSION_SCRIPT.name
         self.current_version_script.write_bytes(CURRENT_VERSION_SCRIPT.read_bytes())
         self.current_version_script.chmod(0o755)
+        self.release_source_version_script = scripts / RELEASE_SOURCE_VERSION_SCRIPT.name
+        self.release_source_version_script.write_bytes(
+            RELEASE_SOURCE_VERSION_SCRIPT.read_bytes()
+        )
+        self.release_source_version_script.chmod(0o755)
         self.write_sources("9.8.7", "9.8.7", "9.8.7")
 
     def tearDown(self) -> None:
@@ -81,6 +89,16 @@ class ValidateReleaseVersionTests(unittest.TestCase):
             check=False,
         )
 
+    def release_source_version(self, tag: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [str(self.release_source_version_script), tag],
+            cwd=self.root,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+
     def test_resolves_the_current_version_from_the_podspec(self) -> None:
         result = self.current_version()
 
@@ -98,6 +116,44 @@ class ValidateReleaseVersionTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Backtrace.podspec version not found", result.stderr)
 
+    def test_resolves_stable_and_release_candidate_tags_to_source_version(
+        self,
+    ) -> None:
+        for tag in (
+            "9.8.7",
+            "9.8.7-rc",
+            "9.8.7-rc.0",
+            "9.8.7-rc.1",
+            "9.8.7-rc.42",
+        ):
+            with self.subTest(tag=tag):
+                result = self.release_source_version(tag)
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), "9.8.7")
+
+    def test_rejects_unsupported_release_tag_formats(self) -> None:
+        for tag in (
+            "v9.8.7",
+            "9.8",
+            "9.8.7.0",
+            "9.8.7-",
+            "9.8.7-rc.",
+            "9.8.7-rc..1",
+            "9.8.7-rc.01",
+            "9.8.7-rc.1.extra",
+            "9.8.7-rc.beta",
+            "9.8.7-rc1",
+            "9.8.7-RC",
+            "9.8.7-beta",
+            "9.8.7+build.1",
+        ):
+            with self.subTest(tag=tag):
+                result = self.release_source_version(tag)
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("invalid release tag", result.stderr)
+
     def test_accepts_an_exact_matching_release_version(self) -> None:
         result = self.validate("9.8.7")
 
@@ -105,7 +161,13 @@ class ValidateReleaseVersionTests(unittest.TestCase):
         self.assertIn("validated release version 9.8.7", result.stdout)
 
     def test_rejects_non_exact_version_formats(self) -> None:
-        for version in ("v9.8.7", "9.8", "9.8.7.0", "9.8.7-beta"):
+        for version in (
+            "v9.8.7",
+            "9.8",
+            "9.8.7.0",
+            "9.8.7-rc",
+            "9.8.7-beta",
+        ):
             with self.subTest(version=version):
                 result = self.validate(version)
                 self.assertNotEqual(result.returncode, 0)
