@@ -640,7 +640,7 @@ readonly COMPILE_UNITS="$(dwarfdump --debug-info "$DSYM" |
   awk '$2 == "DW_TAG_compile_unit" { count += 1 } END { print count + 0 }')"
 (( COMPILE_UNITS > 0 )) || fail "dSYM contains no debug compile units"
 
-codesign --verify --strict --verbose=2 "$BUNDLE"
+codesign --verify --all-architectures --strict --verbose=2 "$BUNDLE"
 
 (
   cd "$OUTPUT_ROOT"
@@ -686,7 +686,7 @@ readonly EXTRACTED_BUNDLE="$ROUND_TRIP_ROOT/extracted/BacktraceMacUnity.bundle"
 [[ -d "$EXTRACTED_BUNDLE" ]] || fail "archive round trip did not preserve the bundle"
 [[ -z "$(find "$EXTRACTED_BUNDLE" -type l -print -quit)" ]] ||
   fail "archive round trip introduced a symlink"
-codesign --verify --strict --verbose=2 "$EXTRACTED_BUNDLE"
+codesign --verify --all-architectures --strict --verbose=2 "$EXTRACTED_BUNDLE"
 (
   cd "$ROUND_TRIP_ROOT/extracted"
   find BacktraceMacUnity.bundle -type f -print | LC_ALL=C sort |

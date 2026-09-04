@@ -497,7 +497,7 @@ if [[ "$SIGNING_IDENTITY" == "-" ]]; then
 else
   codesign --force --timestamp --options runtime --sign "$SIGNING_IDENTITY" "$STAGED_BUNDLE"
 fi
-codesign --verify --strict --verbose=2 "$STAGED_BUNDLE"
+codesign --verify --all-architectures --strict --verbose=2 "$STAGED_BUNDLE"
 
 (
   cd "$STAGED_OUTPUT"

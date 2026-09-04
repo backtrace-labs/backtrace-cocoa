@@ -19,6 +19,8 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
       BACKTRACE_VERSION: ${{ inputs.backtrace_version }}
+      # This is an SDK input. The final Unity player must re-sign embedded code with the application producer's identity before distribution.
+      MACOS_SIGNING_IDENTITY: "-"
       PLCRASHREPORTER_REVISION: 8c61e5e38e9f737dd68512ed1ea5ab081244ad65
 
     steps:
