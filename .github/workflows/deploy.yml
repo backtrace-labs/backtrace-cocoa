@@ -248,16 +248,27 @@ jobs:
         env:
           DISTRIBUTION_IDENTITY: ${{ secrets.DISTRIBUTION_IDENTITY }}
         run: |
-          codesign --force --timestamp --sign "$DISTRIBUTION_IDENTITY" frameworks/Backtrace.xcframework
-          codesign --force --timestamp --sign "$DISTRIBUTION_IDENTITY" frameworks/PLCrashReporter/CrashReporter.xcframework  
+          for framework_path in frameworks frameworks-unity/frameworks; do
+            codesign --force --timestamp --sign "$DISTRIBUTION_IDENTITY" "$framework_path/Backtrace.xcframework"
+            codesign --force --timestamp --sign "$DISTRIBUTION_IDENTITY" "$framework_path/PLCrashReporter/CrashReporter.xcframework"
+          done
 
       - name: Tar files to preserve file permissions
-        run: tar -cvzf Archive_XCFrameworks_${{ github.ref_name }}.tar.gz frameworks/
+        env:
+          RELEASE_TAG: ${{ needs.validate-release-tag.outputs.version }}
+        run: |
+          tar -cvzf "Archive_XCFrameworks_${RELEASE_TAG}.tar.gz" frameworks/
+          tar -cvzf "Archive_XCFrameworks_${RELEASE_TAG}-Unity.tar.gz" -C frameworks-unity frameworks/
 
       - uses: actions/upload-artifact@v4
         with:
           name: Archive_XCFrameworks_${{ github.ref_name }}
           path: Archive_XCFrameworks_${{ github.ref_name }}.tar.gz    
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Archive_XCFrameworks_${{ github.ref_name }}-Unity
+          path: Archive_XCFrameworks_${{ github.ref_name }}-Unity.tar.gz
         
   upload-xcframeworks:
     runs-on: ubuntu-latest
@@ -271,6 +282,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Archive_XCFrameworks_${{ github.ref_name }}
+          path: artifacts/
+
+      - name: Download signed Unity XCFrameworks
+        uses: actions/download-artifact@v4
+        with:
+          name: Archive_XCFrameworks_${{ github.ref_name }}-Unity
           path: artifacts/
 
       - name: Download validated Unity macOS bundle
@@ -290,11 +307,14 @@ jobs:
           set -euo pipefail
 
           framework_archive="artifacts/Archive_XCFrameworks_${RELEASE_TAG}.tar.gz"
+          unity_framework_archive="artifacts/Archive_XCFrameworks_${RELEASE_TAG}-Unity.tar.gz"
           unity_archive="artifacts/BacktraceMacUnity.tar.gz"
 
           test -f "$framework_archive"
+          test -f "$unity_framework_archive"
           test -f "$unity_archive"
           tar -tzf "$framework_archive" >/dev/null
+          tar -tzf "$unity_framework_archive" >/dev/null
           tar -tzf "$unity_archive" >/dev/null
 
           read -r tag_type tag_sha <<< "$(gh api \
@@ -333,5 +353,6 @@ jobs:
 
           gh release upload "$RELEASE_TAG" \
             "$framework_archive" \
+            "$unity_framework_archive" \
             "$unity_archive" \
             --clobber
