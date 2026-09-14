@@ -37,7 +37,7 @@
         NSArray *array = @[];
         array[1]; // will throw exception
     } @catch (NSException *exception) {
-        [[BacktraceClient shared] sendWithAttachmentPaths: [NSArray init]  completion: ^(BacktraceResult * _Nonnull result) {
+        [[BacktraceClient shared] sendWithAttachmentPaths: @[] completion: ^(BacktraceResult * _Nonnull result) {
             NSLog(@"%@", result);
         }];
     } @finally {
@@ -52,7 +52,7 @@
     BacktraceClient.shared.delegate = self;
 
     // Enable error free metrics https://docs.saucelabs.com/error-reporting/web-console/overview/#stability-metrics-widgets
-    [BacktraceClient.shared.metrics enableWithSettings: [BacktraceMetricsSettings alloc]];
+    [BacktraceClient.shared.metrics enableWithSettings: [[BacktraceMetricsSettings alloc] init]];
 
     // Enable breadcrumbs https://docs.saucelabs.com/error-reporting/web-console/debug/#breadcrumbs-section
     [BacktraceClient.shared enableBreadcrumbs];
