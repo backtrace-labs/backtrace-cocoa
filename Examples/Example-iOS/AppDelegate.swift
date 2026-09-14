@@ -10,11 +10,9 @@ func throwingFunc() throws {
     throw CustomError.runtimeError
 }
 
-@UIApplicationMain
+@main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
-    
-    var window: UIWindow?
-    
+
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
@@ -31,6 +29,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                                                                   reportsPerMin: 10,
                                                                   allowsAttachingDebugger: true,
                                                                   oomMode: .full)
+        
         // Configure logging before client startup so model lookup and pending-crash ingestion are visible.
         backtraceConfiguration.loggingDestinations = [BacktraceConsoleDestination(level: .debug)]
         

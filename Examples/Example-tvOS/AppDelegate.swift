@@ -12,8 +12,6 @@ func throwingFunc() throws {
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
-
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let backtraceCredentials = BacktraceCredentials(endpoint: URL(string: Keys.backtraceUrl as String)!,
@@ -23,7 +21,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let backtraceConfiguration = BacktraceClientConfiguration(credentials: backtraceCredentials,
                                                                   dbSettings: backtraceDatabaseSettings,
                                                                   reportsPerMin: 10,
-                                                                  allowsAttachingDebugger: true)
+                                                                  allowsAttachingDebugger: true,
+                                                                  oomMode: .none)
 
         BacktraceClient.shared = try? BacktraceClient(configuration: backtraceConfiguration)
         BacktraceClient.shared?.delegate = self
