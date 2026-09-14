@@ -2,18 +2,36 @@
 
 ## Version 2.2.0
 
-- Adds a private, symbol-prefixed PLCrashReporter 1.12.0 runtime and isolated per-application payload path for the Backtrace Unity macOS bundle.
-- Adds the `StartBacktraceIntegrationV3` ABI with explicit crash storage and distinct active, disabled, validation, storage, and initialization results.
-- Retains the Unity fatal handler and callback owner for the process lifetime; after `Disable()`, a player-process restart is required before native capture can be enabled again.
-- Persists pending native crashes transactionally before purging PLCrashReporter, using the embedded report UUID with deterministic payload-digest fallback.
-- Adds a versioned ModelV2 retry schema with durable delivery state and ownership, including inferred non-destructive migration from ModelV1.
-- Atomically claims and loads the exact current persisted row before submission.
-- Releases per-database Core Data stores, process leases, advisory locks, and descriptors when the final repository participant shuts down.
-- Gives each newly ingested native crash one initial submission opportunity, protects that opportunity from capacity eviction, and prioritizes it over ordinary retry backlog.
-- Retains client-rate-limited reports and transient transport, HTTP 408/425/429, HTTP 5xx, and retryable OOM failures for retry.
-- Treats permanent URL/configuration failures and non-retryable HTTP responses as terminal.
-- Copies retry attachments and attributes into repository-owned storage and quarantines recurring invalid payloads and malformed persisted rows.
-- Produces and validates a flat universal arm64/x86_64 Unity bundle with a matching dSYM, compiled V1/V2 models, privacy metadata, third-party attribution, and checksums.
+This release brings OS 27 scene-lifecycle readiness, more reliable native crash delivery, and improved Unity integration artifacts.
+
+### OS 27 Readiness and Examples
+
+- Prepares the Swift and Objective-C iOS examples and the tvOS example for iOS/iPadOS 27 and tvOS 27 with UIKit scene delegates, scene-owned windows, and scene-based storyboard loading. Backtrace initialization remains once per process at application launch. ([#179](https://github.com/backtrace-labs/backtrace-cocoa/pull/179))
+- Raises the repository's iOS/tvOS Xcode targets and workspace deployment targets to 15.0.
+- Fixes Objective-C example startup and metrics initialization, and resolves the tvOS configuration initializer ambiguity.
+
+Scene-lifecycle migration applies to the examples. Applications integrating Backtrace must configure their own scenes, updating the SDK does not migrate the host application.
+
+### Native Crash Delivery and Recovery
+
+- Saves pending native crashes durably before removing the original PLCrashReporter files, with duplicate-ingestion protection and automatic migration of existing retry databases to ModelV2.
+- Coordinates report ownership across repository instances and processes, atomically loading the claimed report so concurrent updates cannot result in stale payloads or attachment generations being submitted.
+- Gives each new pending native crash an initial submission opportunity even with `RetryBehaviour.none`. Initial reports take priority over ordinary retries and remain protected from capacity eviction while awaiting their first attempt, including when delayed by the local rate limit.
+- Retains transient transport failures and HTTP 408, 425, 429, and 5xx responses for retry when retries are enabled. Permanent URL/configuration failures and other non-retryable responses are cleaned up instead of retried indefinitely.
+- Preserves crash attributes and repository-owned attachment copies, tolerates unavailable optional metadata, and isolates invalid payloads and malformed records so they do not block valid reports.
+- Coordinates in-flight submissions during shutdown and releases database connections, process leases, locks, and file descriptors when they are no longer needed.
+
+### Reporting and Diagnostics
+
+- Uses one delegate-aware submission path and thread-safe rate limiter for live reports, pending native crashes, retries, and OOM reports. `reportsPerMin = 0` now means unlimited submissions without accumulating rate-limit timestamps.
+- Adds `BacktraceClientConfiguration.loggingDestinations` and `delegate` so applications can capture initialization diagnostics and observe pending-report delivery from startup.
+
+### Unity Native Integrations
+
+- Isolates the Unity macOS plugin's crash storage and uses a private, symbol-prefixed PLCrashReporter 1.12.0 runtime to prevent Unity from consuming Backtrace's pending reports from a shared location.
+- Adds `StartBacktraceIntegrationV3` with an explicit crash-storage path and clear initialization results. Native handler ownership lasts for the process lifetime; re-enabling capture after `Disable()` requires a player-process restart.
+- Delivers a flat, universal arm64/x86_64 macOS bundle without nested framework symlinks, together with a matching dSYM, database models, privacy metadata, third-party attribution, and checksums.
+- Adds a dedicated Unity iOS XCFramework release archive containing device and simulator slices, alongside the standard Cocoa archives. ([#178](https://github.com/backtrace-labs/backtrace-cocoa/pull/178))
 
 ## Version 2.1.0
 - Adds OSInfo conditional import UIKit & guards UIDevice to unblock non-UIKit builds (#160)
