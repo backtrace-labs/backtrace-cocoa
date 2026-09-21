@@ -54,5 +54,26 @@ https://github.com/backtrace-labs/backtrace-cocoa/blob/8551020be9334f61cd9f27d39
 ### Objective-C
 https://github.com/backtrace-labs/backtrace-cocoa/blob/8551020be9334f61cd9f27d39a7b4e7d2733d4b0/Examples/Example-iOS-ObjC/AppDelegate.m#L19-L45
 
+### Isolating native crash storage
+
+When another crash reporter runs in the same process, give PLCrashReporter a private payload path.
+This prevents another PLCrashReporter-based SDK from discovering or purging Backtrace's pending native crash.
+
+```swift
+let payloadDirectory = cachesDirectory.appendingPathComponent("BacktraceCrashPayload", isDirectory: true)
+
+guard let plcConfig = PLCrashReporterConfig(signalHandlerType: .BSD,
+                                             symbolicationStrategy: .all,
+                                             basePath: payloadDirectory.path) else {
+    fatalError("Unable to configure PLCrashReporter")
+}
+
+let crashReporter = BacktraceCrashReporter(config: plcConfig)
+let configuration = BacktraceClientConfiguration(credentials: credentials)
+configuration.loggingDestinations = [BacktraceConsoleDestination(level: .debug)]
+BacktraceClient.shared = try BacktraceClient(configuration: configuration,
+                                             crashReporter: crashReporter)
+```
+
 ## Documentation
 For more information about the iOS SDK, including installation, usage, and configuration options, see the [iOS Integration guide](https://docs.saucelabs.com/error-reporting/platform-integrations/ios/setup/) in the Sauce Labs documentation.
