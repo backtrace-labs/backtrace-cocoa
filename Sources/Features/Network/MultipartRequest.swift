@@ -9,6 +9,14 @@ struct MultipartRequest {
         static let queryItems = { token in ["format": "plcrash", "token": token] }
     }
 
+    enum EncodingError: LocalizedError {
+        case invalidHeaderParameter
+
+        var errorDescription: String? {
+            "A multipart field name or filename contains an invalid header character."
+        }
+    }
+
     init(configuration: BacktraceCredentials.Configuration, report: BacktraceReport) throws {
         let request: URLRequest
         switch configuration {
@@ -53,8 +61,9 @@ extension MultipartRequest {
         let body = NSMutableData()
         // attributes
         for attribute in report.attributes {
+            let name = try quotedHeaderParameter(attribute.key)
             body.appendString(boundaryPrefix)
-            body.appendString("Content-Disposition: form-data; name=\"\(attribute.key)\"\r\n\r\n")
+            body.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n")
             body.appendString("\(attribute.value)\r\n")
         }
         // report file
@@ -66,18 +75,29 @@ extension MultipartRequest {
 
         // attachments
         for attachment in Set(report.attachmentPaths).compactMap(Attachment.init(filePath:)) {
+            let filename = try quotedHeaderParameter(attachment.filename)
             body.appendString(boundaryPrefix)
-            body.appendString("Content-Disposition: form-data; name=\"\(attachment.filename)\"; filename=\"\(attachment.filename)\"\r\n")
+            body.appendString("Content-Disposition: form-data; name=\"\(filename)\"; filename=\"\(filename)\"\r\n")
             body.appendString("Content-Type: \(attachment.mimeType)\r\n\r\n")
             body.append(attachment.data)
             body.appendString("\r\n")
         }
-        body.appendString("\(boundaryPrefix)--")
+        body.appendString("--\(boundary)--\r\n")
         multipartRequest.httpBody = body as Data
 
         multipartRequest.setValue("\(body.length)", forHTTPHeaderField: "Content-Length")
 
         return multipartRequest
+    }
+
+    /// Quoted disposition parameters allow UTF-8 text and quoted pairs for the delimiter and escape character.
+    /// Reject HTTP control octets instead of constructing a request with an invalid header.
+    private static func quotedHeaderParameter(_ value: String) throws -> String {
+        guard !value.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }) else {
+            throw EncodingError.invalidHeaderParameter
+        }
+        return value.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
     }
 
     private static func generateBoundaryString() -> String {
