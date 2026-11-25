@@ -383,6 +383,133 @@ final class BacktraceApiTests: QuickSpec {
     // swiftlint:enable function_body_length
 }
 
+final class BacktraceMultipartRequestTests: XCTestCase {
+    private let submissionURL = URL(string: "https://backtrace-multipart-test.invalid")!
+
+    func testEncodesQuotedParametersAndCompleteBody() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let attachment = directory.appendingPathComponent("雪\"\\.txt")
+        let attachmentData = Data("attachment data\n".utf8)
+        try attachmentData.write(to: attachment)
+        let loadedAttachment = try XCTUnwrap(Attachment(filePath: attachment.path))
+
+        let report = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+        report.attributes = ["所\"\\": "値"]
+        report.attachmentPaths = [attachment.path, attachment.path]
+
+        let request = try MultipartRequest(configuration: .submissionUrl(submissionURL), report: report).request
+        let contentType = try XCTUnwrap(request.value(forHTTPHeaderField: "Content-Type"))
+        let boundaryPrefix = "multipart/form-data; boundary="
+        XCTAssertTrue(contentType.hasPrefix(boundaryPrefix))
+        let boundary = String(contentType.dropFirst(boundaryPrefix.count))
+        XCTAssertFalse(boundary.isEmpty)
+
+        var expected = Data()
+        expected.append(contentsOf: "--\(boundary)\r\n".utf8)
+        expected.append(contentsOf: "Content-Disposition: form-data; name=\"所\\\"\\\\\"\r\n\r\n値\r\n".utf8)
+        expected.append(contentsOf: "--\(boundary)\r\n".utf8)
+        expected.append(contentsOf: "Content-Disposition: form-data; name=\"upload_file\"; filename=\"upload_file\"\r\n".utf8)
+        expected.append(contentsOf: "Content-Type: application/octet-stream\r\n\r\n".utf8)
+        expected.append(report.reportData)
+        expected.append(contentsOf: "\r\n--\(boundary)\r\n".utf8)
+        let filename = "attachment_雪\\\"\\\\.txt"
+        expected.append(contentsOf: "Content-Disposition: form-data; name=\"\(filename)\"; filename=\"\(filename)\"\r\n".utf8)
+        expected.append(contentsOf: "Content-Type: \(loadedAttachment.mimeType)\r\n\r\n".utf8)
+        expected.append(attachmentData)
+        expected.append(contentsOf: "\r\n--\(boundary)--\r\n".utf8)
+
+        XCTAssertEqual(request.httpBody, expected)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Length"), String(expected.count))
+    }
+
+    func testRejectsControlsInNamesAndFilenames() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let report = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+
+        for value: UInt32 in [0, 9, 10, 13, 31, 127] {
+            let control = try XCTUnwrap(UnicodeScalar(value))
+            report.attributes = ["field\(control)name": "value"]
+            assertRejected(report)
+        }
+
+        // File names cannot contain NUL. Exercise the other control values through real Attachment loading from files in the owned test root.
+        report.attributes = [:]
+        for value: UInt32 in [9, 10, 13, 31, 127] {
+            let control = try XCTUnwrap(UnicodeScalar(value))
+            let attachment = directory.appendingPathComponent("file\(control)name.txt")
+            try Data("attachment".utf8).write(to: attachment)
+            report.attachmentPaths = [attachment.path]
+            assertRejected(report)
+        }
+    }
+
+    func testEncodingFailureRetainsReportForRetryWithoutStartingTransport() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let repository = try PersistentRepository<BacktraceReport>(
+            settings: BacktraceDatabaseSettings(),
+            startupReconciliation: { _ in },
+            storeDirectoryUrl: directory
+        )
+        defer { repository.shutdownForNativeBridge() }
+
+        let session = URLSessionMock()
+        let api = BacktraceApi(
+            credentials: BacktraceCredentials(submissionUrl: submissionURL),
+            session: session,
+            reportsPerMin: 30
+        )
+        let coordinator = BacktraceSubmissionCoordinator(api: api, repository: repository, retryLimit: 3)
+        let report = try BacktraceCrashReporter().generateLiveReport(attributes: [:])
+        let invalidName = "field\nname"
+        report.attributes[invalidName] = "retained"
+
+        let initial = coordinator.submit(report, origin: .live)
+        XCTAssertTrue(initial.pipelineEntered)
+        XCTAssertFalse(initial.transportStarted)
+        XCTAssertTrue(initial.isDurable)
+        XCTAssertEqual(initial.result.submissionDisposition, .retryable)
+
+        let stored = try XCTUnwrap(repository.getLatest().first)
+        XCTAssertEqual(stored.identifier, report.identifier)
+        XCTAssertEqual(try repository.persistedState(for: stored), .readyForRetry)
+
+        let retry = coordinator.submit(stored, origin: .repositoryRetry)
+        XCTAssertTrue(retry.pipelineEntered)
+        XCTAssertFalse(retry.transportStarted)
+        XCTAssertTrue(retry.isDurable)
+        XCTAssertEqual(retry.result.submissionDisposition, .retryable)
+        XCTAssertEqual(session.requestCount, 0)
+        XCTAssertEqual(try repository.countResources(), 1)
+
+        let retained = try XCTUnwrap(repository.getLatest().first)
+        XCTAssertEqual(retained.identifier, report.identifier)
+        XCTAssertEqual(retained.reportData, report.reportData)
+        XCTAssertEqual(retained.attributes[invalidName] as? String, "retained")
+        XCTAssertEqual(try repository.persistedState(for: retained), .readyForRetry)
+    }
+
+    private func assertRejected(_ report: BacktraceReport, file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertThrowsError(
+            try MultipartRequest(configuration: .submissionUrl(submissionURL), report: report),
+            file: file,
+            line: line
+        ) { error in
+            XCTAssertTrue(error is MultipartRequest.EncodingError, file: file, line: line)
+            XCTAssertEqual(error.backtraceSubmissionDisposition, .retryable, file: file, line: line)
+        }
+    }
+
+    private func makeTemporaryDirectory() throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("backtrace-multipart-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        return directory
+    }
+}
+
 private final class ReentrantBacktraceDestination: BacktraceBaseDestination {
     let invoked = DispatchSemaphore(value: 0)
 
