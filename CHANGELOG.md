@@ -1,5 +1,10 @@
 # Backtrace Cocoa Release Notes
 
+## Version 2.2.1
+
+- Fixes multipart report upload encoding: the request body now ends with the closing boundary delimiter, and double quotes and backslashes in attribute names and attachment filenames are escaped in the `Content-Disposition` headers. ([#181](https://github.com/backtrace-labs/backtrace-cocoa/pull/181))
+- Rejects reports whose attribute names or attachment filenames contain ASCII control characters (U+0000 to U+001F or U+007F, including tab, CR, and LF) before a request is made. ([#181](https://github.com/backtrace-labs/backtrace-cocoa/pull/181))
+
 ## Version 2.2.0
 
 This release brings OS 27 scene-lifecycle readiness, more reliable native crash delivery, and improved Unity integration artifacts.
